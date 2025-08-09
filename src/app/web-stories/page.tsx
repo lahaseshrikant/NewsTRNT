@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumb';
 
 interface WebStory {
@@ -34,10 +35,20 @@ interface WebStorySlide {
 }
 
 const WebStoriesPage: React.FC = () => {
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get('category');
+  
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentStoryIndex, setCurrentStoryIndex] = useState<number | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Set initial category from URL parameter
+  useEffect(() => {
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [categoryParam]);
 
   // Mock Web Stories data
   const webStories: WebStory[] = [
@@ -268,6 +279,19 @@ const WebStoriesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Show notification if came from "See More" */}
+      {categoryParam && categoryParam !== 'all' && (
+        <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-b border-orange-200/20">
+          <div className="container mx-auto px-4 py-2">
+            <div className="text-center">
+              <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+                📰 Showing more {categoryParam} stories
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-border">
         <div className="container mx-auto px-4 py-8">
@@ -329,12 +353,12 @@ const WebStoriesPage: React.FC = () => {
         </div>
 
         {/* Web Stories Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
           {filteredStories.map((story, index) => (
             <Link
               key={story.id}
               href={`/web-stories/${story.id}`}
-              className="group relative aspect-[9/16] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
+              className="group relative aspect-[9/19.5] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300"
             >
               {/* Cover Image */}
               <Image

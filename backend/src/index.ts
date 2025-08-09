@@ -13,6 +13,9 @@ import categoryRoutes from './routes/categories';
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
 
+// Import database
+import { initializeDatabase } from './config/database';
+
 dotenv.config();
 
 const app = express();
@@ -53,7 +56,15 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  // Initialize database connection
+  try {
+    await initializeDatabase();
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    process.exit(1);
+  }
+  
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
 });

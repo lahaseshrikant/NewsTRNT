@@ -3,8 +3,49 @@
 import React from 'react';
 import Link from 'next/link';
 import Newsletter from './Newsletter';
+import { useLogo } from '@/contexts/LogoContext';
 
 const Footer: React.FC = () => {
+  const { currentLogo } = useLogo();
+
+  const renderLogo = () => {
+    // For footer, we'll use a slightly larger size but still compact
+    const logoSize = 'w-10 h-10';
+    const textSize = 'text-lg';
+    
+    if (currentLogo.type === 'image' && currentLogo.imageUrl) {
+      return (
+        <div className={`${logoSize} rounded-lg overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600 p-2`}>
+          <img 
+            src={currentLogo.imageUrl} 
+            alt="Logo" 
+            className="w-full h-full object-cover rounded"
+          />
+        </div>
+      );
+    }
+
+    if (currentLogo.type === 'code' && currentLogo.customCode) {
+      return (
+        <div 
+          className={`${logoSize} rounded-lg overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600 p-2`}
+          dangerouslySetInnerHTML={{ 
+            __html: currentLogo.codeLanguage === 'svg' ? currentLogo.customCode : 
+                   `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">${currentLogo.text?.substring(0, 2) || 'NN'}</div>`
+          }}
+        />
+      );
+    }
+
+    // Default text logo
+    return (
+      <div className={`${logoSize} bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-lg flex items-center justify-center`}>
+        <span className={`font-bold ${textSize}`}>
+          {currentLogo.text?.substring(0, 2) || 'NN'}
+        </span>
+      </div>
+    );
+  };
   const footerSections = [
     {
       title: 'NewsNerve',
@@ -80,9 +121,7 @@ const Footer: React.FC = () => {
             {/* Brand Section */}
             <div className="lg:col-span-1">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-lg p-2">
-                  <span className="font-bold text-xl">NN</span>
-                </div>
+                {renderLogo()}
                 <div>
                   <h3 className="text-xl font-bold">NewsNerve</h3>
                   <p className="text-xs text-gray-400">Your world. Your interests. Your news.</p>

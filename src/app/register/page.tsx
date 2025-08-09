@@ -76,16 +76,35 @@ const RegisterPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulate successful registration
-      console.log('Registration data:', formData);
-      
-      // Redirect to login with success message
-      router.push('/login?message=Registration successful! Please sign in.');
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store auth token and user data
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Dispatch custom event to update layout
+        window.dispatchEvent(new Event('authStatusChanged'));
+        
+        // Redirect to homepage
+        window.location.href = '/';
+      } else {
+        setErrors({ general: data.message || 'Registration failed' });
+      }
     } catch (err) {
-      setErrors({ general: 'Registration failed. Please try again.' });
+      setErrors({ general: 'Network error. Please try again.' });
     } finally {
       setIsLoading(false);
     }

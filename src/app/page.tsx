@@ -3,57 +3,49 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { dbApi, Article, Category } from '../lib/database-real';
 
-// Mock data - In real app, this would come from your API
-const mockTrendingNews = [
-  {
-    id: 1,
-    title: "AI Revolution Continues: New Breakthrough in Machine Learning",
-    summary: "Researchers announce a major breakthrough in machine learning algorithms that could dramatically improve AI efficiency and real-world applications.",
-    imageUrl: "/api/placeholder/800/400",
-    category: "Technology",
-    publishedAt: "2 hours ago",
-    readingTime: 3,
-    isBreaking: true,
-    slug: "ai-revolution-continues-new-breakthrough-machine-learning"
-  },
-  {
-    id: 2,
-    title: "Global Climate Summit Reaches Historic Agreement",
-    summary: "World leaders sign historic climate agreement with ambitious carbon reduction targets at Global Climate Summit.",
-    imageUrl: "/api/placeholder/800/400",
-    category: "World",
-    publishedAt: "4 hours ago",
-    readingTime: 4,
-    isBreaking: false,
-    slug: "global-climate-summit-reaches-historic-agreement"
-  },
-  {
-    id: 3,
-    title: "Market Rally Continues as Tech Stocks Surge",
-    summary: "Technology stocks lead market gains as investors show confidence in AI and renewable energy sectors.",
-    imageUrl: "/api/placeholder/800/400",
-    category: "Business",
-    publishedAt: "6 hours ago",
-    readingTime: 2,
-    isBreaking: false,
-    slug: "market-rally-continues-tech-stocks-surge"
-  }
-];
+// Helper function to format published time
+const formatPublishedTime = (publishedAt: string | Date) => {
+  const now = new Date();
+  const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
+  const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'Just now';
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 48) return 'Yesterday';
+  return `${Math.floor(diffInHours / 24)} days ago`;
+};
 
-const mockCategories = [
-  { name: "Politics", icon: "🏛️", count: 45, color: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300" },
-  { name: "Technology", icon: "💻", count: 67, color: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" },
-  { name: "Business", icon: "💼", count: 34, color: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300" },
-  { name: "Sports", icon: "⚽", count: 28, color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300" },
-  { name: "Health", icon: "🏥", count: 23, color: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300" },
-  { name: "Science", icon: "🔬", count: 19, color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300" }
-];
+// Helper function to get category color
+const getCategoryColor = (categoryName: string) => {
+  const colorMap: { [key: string]: string } = {
+    'Politics': 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
+    'Technology': 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
+    'Business': 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
+    'Sports': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300',
+    'Health': 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
+    'Science': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
+    'World': 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
+  };
+  return colorMap[categoryName] || 'bg-gray-100 text-gray-800 dark:bg-gray-950 dark:text-gray-300';
+};
 
 const HomePage: React.FC = () => {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [trendingNews, setTrendingNews] = useState<Article[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
-  // Initialize time only on client side to prevent hydration mismatch
+  // Check authentication status
+  useEffect(() => {
+    const authToken = localStorage.getItem('authToken');
+    const user = localStorage.getItem('user');
+    setIsLoggedIn(!!(authToken && user));
+  }, []);
+  
+  // Initialize time and load data
   useEffect(() => {
     // Set initial time
     setCurrentTime(new Date());
@@ -62,6 +54,35 @@ const HomePage: React.FC = () => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
+
+    // Load data from database
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Load featured articles for trending section
+        const featuredArticles = await dbApi.getFeaturedArticles(5);
+        if (Array.isArray(featuredArticles)) {
+          setTrendingNews(featuredArticles);
+        } else {
+          setTrendingNews([]);
+        }
+        
+        // Load categories
+        const categoriesData = await dbApi.getCategories();
+        if (Array.isArray(categoriesData)) {
+          setCategories(categoriesData);
+        } else {
+          setCategories([]);
+        }
+      } catch (error) {
+        console.error('Error loading homepage data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
 
     return () => clearInterval(timer);
   }, []);
@@ -122,19 +143,34 @@ const HomePage: React.FC = () => {
               Stay informed with AI-curated news, personalized feeds, and breaking updates from trusted sources worldwide.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-blue-700 px-10 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-white hover:-translate-y-1 transition-all duration-300 ease-out border border-blue-200 relative overflow-hidden group">
-                <span className="relative z-10">Get Started</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
-              </button>
-              <button className="border-2 border-white text-white px-10 py-4 rounded-xl font-bold text-lg bg-transparent hover:bg-white hover:text-blue-700 hover:border-blue-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out relative overflow-hidden group">
-                <span className="relative z-10 flex items-center gap-2">
-                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300 ease-out" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
-                  </svg>
-                  Watch Demo
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
-              </button>
+              {!isLoggedIn ? (
+                <>
+                  <Link href="/login" className="bg-white text-blue-700 px-10 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-white hover:-translate-y-1 transition-all duration-300 ease-out border border-blue-200 relative overflow-hidden group">
+                    <span className="relative z-10">Login</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
+                  </Link>
+                  <Link href="/register" className="border-2 border-white text-white px-10 py-4 rounded-xl font-bold text-lg bg-transparent hover:bg-white hover:text-blue-700 hover:border-blue-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out relative overflow-hidden group">
+                    <span className="relative z-10">Register</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <button className="bg-white text-blue-700 px-10 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-white hover:-translate-y-1 transition-all duration-300 ease-out border border-blue-200 relative overflow-hidden group">
+                    <span className="relative z-10">Get Started</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
+                  </button>
+                  <button className="border-2 border-white text-white px-10 py-4 rounded-xl font-bold text-lg bg-transparent hover:bg-white hover:text-blue-700 hover:border-blue-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out relative overflow-hidden group">
+                    <span className="relative z-10 flex items-center gap-2">
+                      <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300 ease-out" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
+                      </svg>
+                      Watch Demo
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -164,39 +200,56 @@ const HomePage: React.FC = () => {
           <div className="lg:col-span-3">
             {/* Featured Story */}
             <section className="mb-8">
-              <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-300 ease-in-out cursor-pointer group">
-                <div className="relative h-64 md:h-96 overflow-hidden">
-                  <Image
-                    src={mockTrendingNews[0].imageUrl}
-                    alt={mockTrendingNews[0].title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                  />
-                  {mockTrendingNews[0].isBreaking && (
-                    <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
-                      BREAKING
-                    </div>
-                  )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6 group-hover:from-black/80 transition-all duration-300 ease-in-out">
-                    <div className="text-white">
-                      <span className="bg-primary text-primary-foreground px-2 py-1 rounded text-sm">
-                        {mockTrendingNews[0].category}
-                      </span>
-                      <h2 className="text-2xl md:text-3xl font-bold mt-2 mb-2 group-hover:text-blue-200 transition-colors duration-300 ease-in-out">
-                        {mockTrendingNews[0].title}
-                      </h2>
-                      <p className="text-gray-200 mb-2">
-                        {mockTrendingNews[0].summary}
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm">
-                        <span>{mockTrendingNews[0].publishedAt}</span>
-                        <span>•</span>
-                        <span>{mockTrendingNews[0].readingTime} min read</span>
+              {loading ? (
+                <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+                  <div className="h-64 md:h-96 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                  <div className="p-6">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              ) : trendingNews.length > 0 ? (
+                <Link href={`/article/${trendingNews[0].slug}`}>
+                  <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-300 ease-in-out cursor-pointer group">
+                    <div className="relative h-64 md:h-96 overflow-hidden">
+                      <Image
+                        src={trendingNews[0].image_url || '/api/placeholder/800/400'}
+                        alt={trendingNews[0].title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      />
+                      {trendingNews[0].isFeatured && (
+                        <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
+                          FEATURED
+                        </div>
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6 group-hover:from-black/80 transition-all duration-300 ease-in-out">
+                        <div className="text-white">
+                          <span className="bg-primary text-primary-foreground px-2 py-1 rounded text-sm">
+                            {trendingNews[0].category?.name || 'News'}
+                          </span>
+                          <h2 className="text-2xl md:text-3xl font-bold mt-2 mb-2 group-hover:text-blue-200 transition-colors duration-300 ease-in-out">
+                            {trendingNews[0].title}
+                          </h2>
+                          <p className="text-gray-200 mb-2">
+                            {trendingNews[0].summary}
+                          </p>
+                          <div className="flex items-center space-x-4 text-sm">
+                            <span>{formatPublishedTime(trendingNews[0].published_at)}</span>
+                            <span>•</span>
+                            <span>{trendingNews[0].views} views</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+                </Link>
+              ) : (
+                <div className="bg-card border border-border rounded-lg shadow-sm p-8 text-center">
+                  <p className="text-muted-foreground">No featured articles available at the moment.</p>
                 </div>
-              </div>
+              )}
             </section>
 
             {/* Trending Stories */}
@@ -209,37 +262,46 @@ const HomePage: React.FC = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {mockTrendingNews.slice(1).map((article) => (
-                  <div key={article.id} className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-xl hover:shadow-primary/10 hover:border-primary/60 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer group">
-                    <div className="relative h-48 overflow-hidden">
-                      <Image
-                        src={article.imageUrl}
-                        alt={article.title}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
-                    </div>
-                    <div className="p-4 group-hover:bg-muted/50 transition-colors duration-300 ease-out">
-                      <span className={`inline-block px-2 py-1 rounded text-xs font-semibold mb-2 transition-all duration-300 ease-out group-hover:scale-110 group-hover:shadow-sm ${
-                        article.category === 'Technology' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 group-hover:bg-blue-200 dark:group-hover:bg-blue-800' :
-                        article.category === 'World' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 group-hover:bg-green-200 dark:group-hover:bg-green-800' :
-                        'bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
-                      }`}>
-                        {article.category}
-                      </span>
-                      <h3 className="font-bold text-lg mb-2 text-foreground group-hover:text-primary transition-colors duration-300 ease-out">
-                        {article.title}
-                      </h3>
-                      <p className="text-muted-foreground text-sm mb-3 group-hover:text-foreground transition-colors duration-300 ease-out">
-                        {article.summary}
-                      </p>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300 ease-out">
-                        <span>{article.publishedAt}</span>
-                        <span>{article.readingTime} min read</span>
+                {loading ? (
+                  // Loading skeleton
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="bg-card border border-border rounded-lg overflow-hidden">
+                      <div className="h-48 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                      <div className="p-4">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                       </div>
                     </div>
-                  </div>
+                  ))
+                ) : (Array.isArray(trendingNews) ? trendingNews.slice(1) : []).map((article: Article) => (
+                  <Link key={article.id} href={`/article/${article.slug}`}>
+                    <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-xl hover:shadow-primary/10 hover:border-primary/60 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer group">
+                      <div className="relative h-48 overflow-hidden">
+                        <Image
+                          src={article.image_url || '/api/placeholder/400/300'}
+                          alt={article.title}
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
+                      </div>
+                      <div className="p-4 group-hover:bg-muted/50 transition-colors duration-300 ease-out">
+                        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold mb-2 transition-all duration-300 ease-out group-hover:scale-110 group-hover:shadow-sm ${getCategoryColor(article.category?.name || 'News')}`}>
+                          {article.category?.name || 'News'}
+                        </span>
+                        <h3 className="font-bold text-lg mb-2 text-foreground group-hover:text-primary transition-colors duration-300 ease-out">
+                          {article.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm mb-3 group-hover:text-foreground transition-colors duration-300 ease-out">
+                          {article.summary}
+                        </p>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300 ease-out">
+                          <span>{formatPublishedTime(article.published_at)}</span>
+                          <span>{article.views} views</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -448,18 +510,28 @@ const HomePage: React.FC = () => {
               <h3 className="text-xl font-bold text-foreground mb-4">Categories</h3>
               <div className="bg-card border border-border rounded-lg shadow-sm p-4">
                 <div className="space-y-3">
-                  {mockCategories.map((category) => (
+                  {loading ? (
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                          <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                        </div>
+                        <div className="h-4 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                      </div>
+                    ))
+                  ) : categories.map((category: Category) => (
                     <Link
-                      key={category.name}
-                      href={`/category/${category.name.toLowerCase()}`}
+                      key={category.id}
+                      href={`/category/${category.slug}`}
                       className="flex items-center justify-between p-3 hover:bg-muted hover:shadow-sm hover:border-l-2 hover:border-l-primary rounded-lg transition-all duration-200 ease-in-out group"
                     >
                       <div className="flex items-center space-x-3">
-                        <span className="text-xl transition-transform duration-200 ease-in-out group-hover:scale-110">{category.icon}</span>
+                        <span className="text-xl transition-transform duration-200 ease-in-out group-hover:scale-110">{category.icon || '📰'}</span>
                         <span className="font-medium text-foreground group-hover:text-primary transition-colors duration-200 ease-in-out">{category.name}</span>
                       </div>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${category.color}`}>
-                        {category.count}
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${getCategoryColor(category.name)}`}>
+                        {category.name.slice(0, 3).toUpperCase()}
                       </span>
                     </Link>
                   ))}

@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AdminProvider } from "@/contexts/AdminContext";
+import { LogoProvider } from "@/contexts/LogoContext";
 import ConditionalLayout from "@/components/ConditionalLayout";
 
 const inter = Inter({
@@ -41,11 +43,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <ThemeProvider>
-          <ConditionalLayout>
-            {children}
-          </ConditionalLayout>
-        </ThemeProvider>
+        <AdminProvider>
+          <LogoProvider>
+            <ThemeProvider>
+              <ConditionalLayout>
+                {children}
+              </ConditionalLayout>
+            </ThemeProvider>
+          </LogoProvider>
+        </AdminProvider>
       </body>
     </html>
   );

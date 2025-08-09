@@ -28,19 +28,34 @@ const LoginPage: React.FC = () => {
     setError('');
 
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Simulate login success
-      if (formData.email === 'admin@newsnerve.com' && formData.password === 'admin123') {
-        // Store auth token (mock)
-        localStorage.setItem('authToken', 'mock-jwt-token');
-        router.push('/dashboard');
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store auth token and user data
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Dispatch custom event to update layout
+        window.dispatchEvent(new Event('authStatusChanged'));
+        
+        // Redirect to homepage to see the full site with header/footer
+        window.location.href = '/';
       } else {
-        setError('Invalid email or password');
+        setError(data.message || 'Login failed');
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -194,9 +209,17 @@ const LoginPage: React.FC = () => {
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-gray-50 rounded-md">
             <h4 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h4>
-            <div className="text-xs text-gray-600 space-y-1">
-              <div>Email: admin@newsnerve.com</div>
-              <div>Password: admin123</div>
+            <div className="text-xs text-gray-600 space-y-2">
+              <div className="bg-blue-50 p-2 rounded">
+                <div className="font-medium text-blue-800">Regular User:</div>
+                <div>Email: user@newsnerve.com</div>
+                <div>Password: testuser123</div>
+              </div>
+              <div className="bg-red-50 p-2 rounded">
+                <div className="font-medium text-red-800">Admin User:</div>
+                <div>Email: admin@newsnerve.com</div>
+                <div>Password: admin123</div>
+              </div>
             </div>
           </div>
         </div>
