@@ -116,36 +116,36 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <Link href="/" className="inline-block">
-            <h1 className="text-3xl font-bold text-blue-600">NewsNerve</h1>
-            <p className="text-gray-600 text-sm mt-1">Your world. Your interests. Your news.</p>
+            <h1 className="text-3xl font-bold text-primary">NewsNerve</h1>
+            <p className="text-muted-foreground text-sm mt-1">Your world. Your interests. Your news.</p>
           </Link>
-          <h2 className="mt-8 text-2xl font-bold text-gray-900">
+          <h2 className="mt-8 text-2xl font-bold text-foreground">
             Create your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-muted-foreground">
             Or{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link href="/login" className="font-medium text-primary hover:text-primary/80">
               sign in to your existing account
             </Link>
           </p>
         </div>
 
         {/* Registration Form */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-card rounded-lg shadow-lg p-8 border border-border">
           <form onSubmit={handleSubmit} className="space-y-6">
             {errors.general && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+              <div className="bg-destructive/10 border border-destructive/20 rounded-md p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <span className="text-red-400">⚠️</span>
+                    <span className="text-destructive">⚠️</span>
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">
+                    <h3 className="text-sm font-medium text-destructive">
                       {errors.general}
                     </h3>
                   </div>
@@ -156,7 +156,7 @@ const RegisterPage: React.FC = () => {
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="firstName" className="block text-sm font-medium text-foreground mb-2">
                   First name
                 </label>
                 <input
@@ -166,18 +166,18 @@ const RegisterPage: React.FC = () => {
                   required
                   value={formData.firstName}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.firstName ? 'border-red-300' : 'border-gray-300'
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder:text-muted-foreground bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring ${
+                    errors.firstName ? 'border-destructive' : 'border-input'
                   }`}
                   placeholder="First name"
                 />
                 {errors.firstName && (
-                  <p className="mt-1 text-xs text-red-600">{errors.firstName}</p>
+                  <p className="mt-1 text-xs text-destructive">{errors.firstName}</p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="lastName" className="block text-sm font-medium text-foreground mb-2">
                   Last name
                 </label>
                 <input
@@ -187,20 +187,20 @@ const RegisterPage: React.FC = () => {
                   required
                   value={formData.lastName}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.lastName ? 'border-red-300' : 'border-gray-300'
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder:text-muted-foreground bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring ${
+                    errors.lastName ? 'border-destructive' : 'border-input'
                   }`}
                   placeholder="Last name"
                 />
                 {errors.lastName && (
-                  <p className="mt-1 text-xs text-red-600">{errors.lastName}</p>
+                  <p className="mt-1 text-xs text-destructive">{errors.lastName}</p>
                 )}
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
                 Email address
               </label>
               <input
@@ -211,19 +211,19 @@ const RegisterPage: React.FC = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.email ? 'border-red-300' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder:text-muted-foreground bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring ${
+                  errors.email ? 'border-destructive' : 'border-input'
                 }`}
                 placeholder="Enter your email"
               />
               {errors.email && (
-                <p className="mt-1 text-xs text-red-600">{errors.email}</p>
+                <p className="mt-1 text-xs text-destructive">{errors.email}</p>
               )}
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
                 Password
               </label>
               <input
@@ -234,22 +234,22 @@ const RegisterPage: React.FC = () => {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.password ? 'border-red-300' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder:text-muted-foreground bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring ${
+                  errors.password ? 'border-destructive' : 'border-input'
                 }`}
                 placeholder="Create a password"
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-red-600">{errors.password}</p>
+                <p className="mt-1 text-xs text-destructive">{errors.password}</p>
               )}
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Must be at least 8 characters long
               </p>
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
                 Confirm password
               </label>
               <input
@@ -260,13 +260,13 @@ const RegisterPage: React.FC = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder:text-muted-foreground bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring ${
+                  errors.confirmPassword ? 'border-destructive' : 'border-input'
                 }`}
                 placeholder="Confirm your password"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>
+                <p className="mt-1 text-xs text-destructive">{errors.confirmPassword}</p>
               )}
             </div>
 
@@ -280,24 +280,24 @@ const RegisterPage: React.FC = () => {
                     type="checkbox"
                     checked={formData.agreeToTerms}
                     onChange={handleChange}
-                    className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
-                      errors.agreeToTerms ? 'border-red-300' : ''
+                    className={`h-4 w-4 text-primary focus:ring-ring border-input rounded ${
+                      errors.agreeToTerms ? 'border-destructive' : ''
                     }`}
                   />
                 </div>
                 <div className="ml-3 text-sm">
-                  <label htmlFor="agreeToTerms" className="text-gray-700">
+                  <label htmlFor="agreeToTerms" className="text-foreground">
                     I agree to the{' '}
-                    <Link href="/terms" className="text-blue-600 hover:text-blue-500">
+                    <Link href="/terms" className="text-primary hover:text-primary/80">
                       Terms and Conditions
                     </Link>{' '}
                     and{' '}
-                    <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
+                    <Link href="/privacy" className="text-primary hover:text-primary/80">
                       Privacy Policy
                     </Link>
                   </label>
                   {errors.agreeToTerms && (
-                    <p className="mt-1 text-xs text-red-600">{errors.agreeToTerms}</p>
+                    <p className="mt-1 text-xs text-destructive">{errors.agreeToTerms}</p>
                   )}
                 </div>
               </div>
@@ -310,11 +310,11 @@ const RegisterPage: React.FC = () => {
                     type="checkbox"
                     checked={formData.subscribeNewsletter}
                     onChange={handleChange}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-primary focus:ring-ring border-input rounded"
                   />
                 </div>
                 <div className="ml-3 text-sm">
-                  <label htmlFor="subscribeNewsletter" className="text-gray-700">
+                  <label htmlFor="subscribeNewsletter" className="text-foreground">
                     Subscribe to our newsletter for the latest news updates
                   </label>
                 </div>
@@ -324,11 +324,11 @@ const RegisterPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
                   Creating account...
                 </div>
               ) : (
@@ -341,17 +341,17 @@ const RegisterPage: React.FC = () => {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or sign up with</span>
+                <span className="px-2 bg-card text-muted-foreground">Or sign up with</span>
               </div>
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button
                 onClick={() => handleSocialSignup('google')}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                className="w-full inline-flex justify-center py-2 px-4 border border-border rounded-md shadow-sm bg-card text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               >
                 <span className="mr-2">🔍</span>
                 Google
@@ -359,7 +359,7 @@ const RegisterPage: React.FC = () => {
 
               <button
                 onClick={() => handleSocialSignup('github')}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                className="w-full inline-flex justify-center py-2 px-4 border border-border rounded-md shadow-sm bg-card text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               >
                 <span className="mr-2">⚫</span>
                 GitHub
@@ -369,10 +369,10 @@ const RegisterPage: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-muted-foreground">
           <p>
             Already have an account?{' '}
-            <Link href="/login" className="text-blue-600 hover:text-blue-500 font-medium">
+            <Link href="/login" className="text-primary hover:text-primary/80 font-medium">
               Sign in here
             </Link>
           </p>
