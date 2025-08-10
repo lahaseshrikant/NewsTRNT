@@ -45,7 +45,7 @@ const HomePage: React.FC = () => {
     setIsLoggedIn(!!(authToken && user));
   }, []);
   
-  // Initialize time and load data
+  // Initialize time and load data with improved performance
   useEffect(() => {
     // Set initial time
     setCurrentTime(new Date());
@@ -55,34 +55,48 @@ const HomePage: React.FC = () => {
       setCurrentTime(new Date());
     }, 1000);
 
-    // Load data from database
+    // Optimized data loading with parallel requests
     const loadData = async () => {
       try {
         setLoading(true);
         
-        // Load featured articles for trending section
-        const featuredArticles = await dbApi.getFeaturedArticles(5);
-        if (Array.isArray(featuredArticles)) {
-          setTrendingNews(featuredArticles);
+        // Load data in parallel for better performance
+        const [featuredResponse, categoriesResponse] = await Promise.allSettled([
+          dbApi.getFeaturedArticles(5),
+          dbApi.getCategories()
+        ]);
+        
+        // Handle featured articles
+        if (featuredResponse.status === 'fulfilled' && Array.isArray(featuredResponse.value)) {
+          setTrendingNews(featuredResponse.value);
         } else {
+          console.warn('Featured articles failed to load:', featuredResponse);
           setTrendingNews([]);
         }
         
-        // Load categories
-        const categoriesData = await dbApi.getCategories();
-        if (Array.isArray(categoriesData)) {
-          setCategories(categoriesData);
+        // Handle categories
+        if (categoriesResponse.status === 'fulfilled' && Array.isArray(categoriesResponse.value)) {
+          setCategories(categoriesResponse.value);
         } else {
+          console.warn('Categories failed to load:', categoriesResponse);
           setCategories([]);
         }
       } catch (error) {
         console.error('Error loading homepage data:', error);
+        setTrendingNews([]);
+        setCategories([]);
       } finally {
         setLoading(false);
       }
     };
 
-    loadData();
+    // Use requestIdleCallback for non-critical loading if available
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => loadData());
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      setTimeout(loadData, 0);
+    }
 
     return () => clearInterval(timer);
   }, []);
@@ -202,7 +216,7 @@ const HomePage: React.FC = () => {
             <section className="mb-8">
               {loading ? (
                 <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-                  <div className="h-64 md:h-96 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                  <div className="h-64 md:h-96 bg-gray-200 dark:bg-gray-700 animate-pulse" style={{ aspectRatio: '16/9' }}></div>
                   <div className="p-6">
                     <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
                     <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
@@ -211,25 +225,31 @@ const HomePage: React.FC = () => {
                 </div>
               ) : trendingNews.length > 0 ? (
                 <Link href={`/article/${trendingNews[0].slug}`}>
-                  <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-300 ease-in-out cursor-pointer group">
-                    <div className="relative h-64 md:h-96 overflow-hidden">
+                  <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-200 ease-in-out cursor-pointer group">
+                    <div className="relative overflow-hidden" style={{ aspectRatio: '16/9', height: 'auto' }}>
                       <Image
                         src={trendingNews[0].image_url || '/api/placeholder/800/400'}
                         alt={trendingNews[0].title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                        width={800}
+                        height={450}
+                        priority
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkbHB0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJiv/Z"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 800px"
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300 ease-out will-change-transform"
+                        style={{ aspectRatio: '16/9' }}
                       />
                       {trendingNews[0].isFeatured && (
                         <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
                           FEATURED
                         </div>
                       )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6 group-hover:from-black/80 transition-all duration-300 ease-in-out">
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6 group-hover:from-black/80 transition-all duration-200 ease-in-out">
                         <div className="text-white">
                           <span className="bg-primary text-primary-foreground px-2 py-1 rounded text-sm">
                             {trendingNews[0].category?.name || 'News'}
                           </span>
-                          <h2 className="text-2xl md:text-3xl font-bold mt-2 mb-2 group-hover:text-blue-200 transition-colors duration-300 ease-in-out">
+                          <h2 className="text-2xl md:text-3xl font-bold mt-2 mb-2 group-hover:text-blue-200 transition-colors duration-200 ease-in-out">
                             {trendingNews[0].title}
                           </h2>
                           <p className="text-gray-200 mb-2">
@@ -246,7 +266,7 @@ const HomePage: React.FC = () => {
                   </div>
                 </Link>
               ) : (
-                <div className="bg-card border border-border rounded-lg shadow-sm p-8 text-center">
+                <div className="bg-card border border-border rounded-lg shadow-sm p-8 text-center" style={{ minHeight: '300px' }}>
                   <p className="text-muted-foreground">No featured articles available at the moment.</p>
                 </div>
               )}
@@ -266,7 +286,7 @@ const HomePage: React.FC = () => {
                   // Loading skeleton
                   Array.from({ length: 4 }).map((_, index) => (
                     <div key={index} className="bg-card border border-border rounded-lg overflow-hidden">
-                      <div className="h-48 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                      <div className="bg-gray-200 dark:bg-gray-700 animate-pulse" style={{ aspectRatio: '4/3', height: '200px' }}></div>
                       <div className="p-4">
                         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
                         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
@@ -275,27 +295,32 @@ const HomePage: React.FC = () => {
                   ))
                 ) : (Array.isArray(trendingNews) ? trendingNews.slice(1) : []).map((article: Article) => (
                   <Link key={article.id} href={`/article/${article.slug}`}>
-                    <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-xl hover:shadow-primary/10 hover:border-primary/60 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer group">
-                      <div className="relative h-48 overflow-hidden">
+                    <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:shadow-primary/10 hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 ease-out cursor-pointer group">
+                      <div className="relative overflow-hidden" style={{ aspectRatio: '4/3', height: '200px' }}>
                         <Image
                           src={article.image_url || '/api/placeholder/400/300'}
                           alt={article.title}
-                          fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+                          width={400}
+                          height={300}
+                          placeholder="blur"
+                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkbHB0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJiv/Z"
+                          sizes="(max-width: 768px) 100vw, 400px"
+                          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200 ease-out will-change-transform"
+                          style={{ aspectRatio: '4/3' }}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-out"></div>
                       </div>
-                      <div className="p-4 group-hover:bg-muted/50 transition-colors duration-300 ease-out">
-                        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold mb-2 transition-all duration-300 ease-out group-hover:scale-110 group-hover:shadow-sm ${getCategoryColor(article.category?.name || 'News')}`}>
+                      <div className="p-4 group-hover:bg-muted/30 transition-colors duration-200 ease-out">
+                        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold mb-2 transition-all duration-200 ease-out group-hover:scale-105 ${getCategoryColor(article.category?.name || 'News')}`}>
                           {article.category?.name || 'News'}
                         </span>
-                        <h3 className="font-bold text-lg mb-2 text-foreground group-hover:text-primary transition-colors duration-300 ease-out">
+                        <h3 className="font-bold text-lg mb-2 text-foreground group-hover:text-primary transition-colors duration-200 ease-out line-clamp-2">
                           {article.title}
                         </h3>
-                        <p className="text-muted-foreground text-sm mb-3 group-hover:text-foreground transition-colors duration-300 ease-out">
+                        <p className="text-muted-foreground text-sm mb-3 group-hover:text-foreground transition-colors duration-200 ease-out line-clamp-2">
                           {article.summary}
                         </p>
-                        <div className="flex items-center justify-between text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300 ease-out">
+                        <div className="flex items-center justify-between text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-200 ease-out">
                           <span>{formatPublishedTime(article.published_at)}</span>
                           <span>{article.views} views</span>
                         </div>
@@ -318,7 +343,7 @@ const HomePage: React.FC = () => {
                 </Link>
               </div>
               
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600" style={{ minHeight: '220px' }}>
                 {[
                   {
                     id: 'story-1',
@@ -376,12 +401,17 @@ const HomePage: React.FC = () => {
                     href={`/web-stories/${story.id}`}
                     className="flex-shrink-0 w-32 group"
                   >
-                    <div className="relative aspect-[9/16] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300">
+                    <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200" style={{ aspectRatio: '9/16', height: '180px' }}>
                       <Image
                         src={story.coverImage}
                         alt={story.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        width={128}
+                        height={180}
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkbHB0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJiv/Z"
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200 will-change-transform"
+                        sizes="128px"
+                        style={{ aspectRatio: '9/16' }}
                       />
                       
                       {/* Overlay */}
@@ -429,7 +459,7 @@ const HomePage: React.FC = () => {
                       </div>
 
                       {/* Play Button Overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
                           <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
                             <svg className="w-3 h-3 text-black ml-0.5" fill="currentColor" viewBox="0 0 20 20">

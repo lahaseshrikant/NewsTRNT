@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PerformanceMonitor from "@/components/PerformanceMonitor";
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -17,11 +18,14 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
     setMounted(true);
   }, []);
   
-  // Don't render until mounted to prevent hydration mismatch
+  // Stable layout with fixed minimum height to prevent CLS
   if (!mounted) {
-    return <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      {children}
-    </div>;
+    return (
+      <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+        <PerformanceMonitor />
+        {children}
+      </div>
+    );
   }
   
   // Check if current route is admin
@@ -32,12 +36,18 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   
   // For admin routes and web story viewers, render only children without site header/footer
   if (isAdminRoute || isWebStoryViewer) {
-    return <>{children}</>;
+    return (
+      <>
+        <PerformanceMonitor />
+        {children}
+      </>
+    );
   }
   
   // For all regular site routes, render with header and footer (regardless of login status)
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
+      <PerformanceMonitor />
       <Header />
       <main className="flex-1">
         {children}

@@ -226,26 +226,26 @@ const Header = () => {
   useEffect(() => {
     const calculateVisibleItems = () => {
       if (typeof window === 'undefined' || !containerRef.current) {
-        // Default for SSR
+        // Default for SSR with stable layout
         const sortedItems = [...navigation].sort((a, b) => a.priority - b.priority);
         setVisibleItems(sortedItems.slice(0, 4));
         setHiddenItems(sortedItems.slice(4));
         return;
       }
 
-      const containerWidth = containerRef.current.offsetWidth;
-      const rightSideWidth = 200; // Approximate width of right side icons
-      const logoWidth = window.innerWidth < 640 ? 40 : 180; // Smaller logo on mobile
-      const moreButtonWidth = 80; // Width of "More" button
-      const availableWidth = containerWidth - logoWidth - rightSideWidth - moreButtonWidth - 40; // 40px padding
-
-      const itemWidth = window.innerWidth < 1024 ? 80 : 100; // Smaller items on tablet
-      const maxItems = Math.floor(availableWidth / itemWidth);
+      // Use stable breakpoint-based calculation instead of dynamic measurements
+      const width = window.innerWidth;
+      let maxItems = 4; // Default stable value
+      
+      if (width >= 1280) maxItems = 8; // xl
+      else if (width >= 1024) maxItems = 6; // lg
+      else if (width >= 768) maxItems = 5; // md
+      else maxItems = 3; // sm and below
 
       // Always show items based on priority
       const sortedItems = [...navigation].sort((a, b) => a.priority - b.priority);
-      const visible = sortedItems.slice(0, Math.max(2, maxItems));
-      const hidden = sortedItems.slice(Math.max(2, maxItems));
+      const visible = sortedItems.slice(0, maxItems);
+      const hidden = sortedItems.slice(maxItems);
 
       setVisibleItems(visible);
       setHiddenItems(hidden);
@@ -254,12 +254,18 @@ const Header = () => {
     // Initial calculation
     calculateVisibleItems();
 
+    // Throttled resize handler to prevent excessive recalculations
+    let resizeTimeout: NodeJS.Timeout;
     const handleResize = () => {
-      calculateVisibleItems();
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(calculateVisibleItems, 150);
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
+    };
   }, []);
 
   // Close dropdowns when clicking outside
