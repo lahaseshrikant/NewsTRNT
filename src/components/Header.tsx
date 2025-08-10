@@ -876,14 +876,14 @@ const Header = () => {
                         
                         <div className="py-1">
                           <Link
-                            href="/login"
+                            href="/auth/signin"
                             className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             🚀 Sign In
                           </Link>
                           <Link
-                            href="/register"
+                            href="/auth/signup"
                             className="block px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
                             onClick={() => setIsProfileOpen(false)}
                           >
@@ -1065,14 +1065,14 @@ const Header = () => {
                     <>
                       {/* Not logged in - show sign in options */}
                       <Link
-                        href="/login"
+                        href="/auth/signin"
                         className="block px-3 py-2 text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         🚀 Sign In
                       </Link>
                       <Link
-                        href="/register"
+                        href="/auth/signup"
                         className="block px-3 py-2 text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"
                         onClick={() => setIsMenuOpen(false)}
                       >

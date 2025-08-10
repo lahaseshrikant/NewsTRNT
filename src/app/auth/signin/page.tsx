@@ -43,7 +43,7 @@ const SignInPage: React.FC = () => {
         {/* Header */}
         <div className="text-center animate-fade-in">
           <Link href="/" className="inline-block group">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 animate-gradient">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-purple-400 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 animate-gradient">
               ✨ NewsNerve
             </h1>
           </Link>
@@ -62,7 +62,7 @@ const SignInPage: React.FC = () => {
         <form className="mt-8 space-y-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 hover:shadow-purple-200/50 dark:hover:shadow-blue-500/20 transition-all duration-500 animate-slide-in" onSubmit={handleSubmit}>
           <div className="space-y-5">
             <div className="group">
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2 group-hover:text-purple-600 transition-colors duration-300">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
                 📧 Email address
               </label>
               <input
@@ -73,12 +73,12 @@ const SignInPage: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full px-4 py-3 border border-gray-200 rounded-2xl shadow-sm bg-white/90 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 hover:border-purple-300 transition-all duration-300 transform hover:scale-[1.02] backdrop-blur-sm"
+                className="block w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-sm bg-white/90 dark:bg-gray-700/90 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-300 transform hover:scale-[1.02] backdrop-blur-sm"
                 placeholder="your.email@example.com ✉️"
               />
             </div>
             <div className="group">
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2 group-hover:text-purple-600 transition-colors duration-300">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
                 🔐 Password
               </label>
               <input
@@ -89,7 +89,7 @@ const SignInPage: React.FC = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full px-4 py-3 border border-gray-200 rounded-2xl shadow-sm bg-white/90 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 hover:border-purple-300 transition-all duration-300 transform hover:scale-[1.02] backdrop-blur-sm"
+                className="block w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-sm bg-white/90 dark:bg-gray-700/90 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-300 transform hover:scale-[1.02] backdrop-blur-sm"
                 placeholder="your secret key 🗝️"
               />
             </div>
@@ -109,7 +109,7 @@ const SignInPage: React.FC = () => {
                 type="checkbox"
                 className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded transition-all duration-300 hover:scale-110"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-gray-700 group-hover:text-purple-600 transition-colors duration-300 cursor-pointer">
+              <label htmlFor="remember-me" className="ml-2 block text-gray-700 dark:text-gray-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300 cursor-pointer">
                 Remember me 🧠
               </label>
             </div>

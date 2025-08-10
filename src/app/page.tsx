@@ -145,11 +145,11 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {!isLoggedIn ? (
                 <>
-                  <Link href="/login" className="bg-white text-blue-700 px-10 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-white hover:-translate-y-1 transition-all duration-300 ease-out border border-blue-200 relative overflow-hidden group">
+                  <Link href="/auth/signin" className="bg-white text-blue-700 px-10 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-white hover:-translate-y-1 transition-all duration-300 ease-out border border-blue-200 relative overflow-hidden group">
                     <span className="relative z-10">Login</span>
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
                   </Link>
-                  <Link href="/register" className="border-2 border-white text-white px-10 py-4 rounded-xl font-bold text-lg bg-transparent hover:bg-white hover:text-blue-700 hover:border-blue-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out relative overflow-hidden group">
+                  <Link href="/auth/signup" className="border-2 border-white text-white px-10 py-4 rounded-xl font-bold text-lg bg-transparent hover:bg-white hover:text-blue-700 hover:border-blue-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out relative overflow-hidden group">
                     <span className="relative z-10">Register</span>
                     <div className="absolute inset-0 bg-gradient-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
                   </Link>
