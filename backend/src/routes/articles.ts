@@ -20,6 +20,79 @@ const createArticleSchema = z.object({
 
 const updateArticleSchema = createArticleSchema.partial();
 
+// GET /api/articles/featured - Get featured articles
+router.get('/featured', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    const { limit = '5' } = req.query;
+    const limitNum = parseInt(limit as string);
+
+    const articles = await prisma.article.findMany({
+      where: {
+        isPublished: true,
+        isFeatured: true
+      },
+      orderBy: [
+        { publishedAt: 'desc' },
+        { viewCount: 'desc' }
+      ],
+      take: limitNum,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true
+          }
+        },
+        createdByUser: {
+          select: {
+            id: true,
+            fullName: true,
+            avatarUrl: true
+          }
+        },
+        tags: {
+          include: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                slug: true
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            comments: true,
+            savedByUsers: true,
+            interactions: true
+          }
+        }
+      }
+    });
+
+    // Transform the data
+    const transformedArticles = articles.map((article: any) => ({
+      ...article,
+      author: article.createdByUser,
+      tags: article.tags.map((t: any) => t.tag),
+      commentCount: article._count.comments,
+      saveCount: article._count.savedByUsers,
+      interactionCount: article._count.interactions
+    }));
+
+    return res.json({
+      articles: transformedArticles,
+      total: transformedArticles.length
+    });
+  } catch (error) {
+    console.error('Error fetching featured articles:', error);
+    return res.status(500).json({ error: 'Failed to fetch featured articles' });
+  }
+});
+
 // GET /api/articles - Get all articles with filtering and pagination
 router.get('/', optionalAuth, async (req: AuthRequest, res) => {
   try {

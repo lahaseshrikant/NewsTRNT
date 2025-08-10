@@ -97,6 +97,8 @@ const Header = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [visibleItems, setVisibleItems] = useState<NavigationItem[]>([]);
   const [hiddenItems, setHiddenItems] = useState<NavigationItem[]>([]);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
   const router = useRouter();
   const { isAdmin, logout } = useAdmin();
@@ -108,6 +110,78 @@ const Header = () => {
   const notificationsRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Check user authentication status
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const authToken = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('user');
+      
+      if (authToken && userData) {
+        try {
+          const user = JSON.parse(userData);
+          setIsUserLoggedIn(true);
+          setCurrentUser(user);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          // Clear invalid data
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          setIsUserLoggedIn(false);
+          setCurrentUser(null);
+        }
+      } else {
+        setIsUserLoggedIn(false);
+        setCurrentUser(null);
+      }
+    };
+
+    // Initial check
+    checkAuthStatus();
+
+    // Listen for auth status changes
+    const handleAuthStatusChange = () => {
+      checkAuthStatus();
+    };
+
+    // Listen for storage changes (cross-tab updates)
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'authToken' || event.key === 'user') {
+        checkAuthStatus();
+      }
+    };
+
+    window.addEventListener('authStatusChanged', handleAuthStatusChange);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('authStatusChanged', handleAuthStatusChange);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Handle user logout
+  const handleUserLogout = () => {
+    // Clear user authentication data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    
+    // Update state
+    setIsUserLoggedIn(false);
+    setCurrentUser(null);
+    
+    // Dispatch custom event to update other components
+    window.dispatchEvent(new Event('authStatusChanged'));
+    
+    // Close profile dropdown
+    setIsProfileOpen(false);
+    
+    // Redirect to home page
+    router.push('/');
+    
+    // Show success message (optional)
+    console.log('User logged out successfully');
+  };
 
   // Load saved logo on component mount and listen for changes
   useEffect(() => {
@@ -678,103 +752,156 @@ const Header = () => {
                 
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2 z-50">
-                    <div className="px-4 py-3 border-b dark:border-gray-700">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                          <span className="text-white font-semibold">JD</span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">John Doe</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">john.doe@example.com</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="py-1">
-                      <Link
-                        href="/dashboard"
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        📊 Dashboard
-                      </Link>
-                      <Link
-                        href="/saved"
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        🔖 Saved Articles
-                      </Link>
-                      <Link
-                        href="/interests"
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        ❤️ My Interests
-                      </Link>
-                      <Link
-                        href="/settings"
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        ⚙️ Settings
-                      </Link>
-                      
-                      {/* Admin Section */}
-                      {isAdmin && (
-                        <>
-                          <div className="border-t dark:border-gray-700 my-1"></div>
-                          <div className="px-4 py-2">
-                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Admin</p>
+                    {isUserLoggedIn && currentUser ? (
+                      <>
+                        {/* Logged in user */}
+                        <div className="px-4 py-3 border-b dark:border-gray-700">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                              <span className="text-white font-semibold">
+                                {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {currentUser.name || 'User'}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {currentUser.email || 'user@example.com'}
+                              </p>
+                            </div>
                           </div>
+                        </div>
+                        
+                        <div className="py-1">
                           <Link
-                            href="/admin"
-                            className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            href="/dashboard"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            🏛️ Admin Panel
+                            📊 Dashboard
                           </Link>
                           <Link
-                            href="/admin/content/new"
-                            className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            href="/saved"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            ✏️ New Article
+                            🔖 Saved Articles
                           </Link>
                           <Link
-                            href="/admin/logo-manager"
-                            className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            href="/interests"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            🎨 Logo Manager
+                            ❤️ My Interests
                           </Link>
-                        </>
-                      )}
-                      
-                      <div className="border-t dark:border-gray-700 my-1"></div>
-                      {isAdmin ? (
-                        <button
-                          className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={() => {
-                            setIsProfileOpen(false);
-                            logout();
-                            router.push('/');
-                          }}
-                        >
-                          🚪 Admin Logout
-                        </button>
-                      ) : (
-                        <button
-                          className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={() => {
-                            setIsProfileOpen(false);
-                            console.log('Logout clicked');
-                          }}
-                        >
-                          🚪 Sign Out
-                        </button>
-                      )}
-                    </div>
+                          <Link
+                            href="/settings"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            onClick={() => setIsProfileOpen(false)}
+                          >
+                            ⚙️ Settings
+                          </Link>
+                          
+                          {/* Admin Section */}
+                          {isAdmin && (
+                            <>
+                              <div className="border-t dark:border-gray-700 my-1"></div>
+                              <div className="px-4 py-2">
+                                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Admin</p>
+                              </div>
+                              <Link
+                                href="/admin"
+                                className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                onClick={() => setIsProfileOpen(false)}
+                              >
+                                🏛️ Admin Panel
+                              </Link>
+                              <Link
+                                href="/admin/content/new"
+                                className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                onClick={() => setIsProfileOpen(false)}
+                              >
+                                ✏️ New Article
+                              </Link>
+                              <Link
+                                href="/admin/logo-manager"
+                                className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                onClick={() => setIsProfileOpen(false)}
+                              >
+                                🎨 Logo Manager
+                              </Link>
+                            </>
+                          )}
+                          
+                          <div className="border-t dark:border-gray-700 my-1"></div>
+                          
+                          {/* User Logout */}
+                          <button
+                            className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                            onClick={handleUserLogout}
+                          >
+                            🚪 Sign Out
+                          </button>
+                          
+                          {/* Admin Logout (if also admin) */}
+                          {isAdmin && (
+                            <button
+                              className="block w-full text-left px-4 py-2 text-sm text-orange-600 dark:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                              onClick={() => {
+                                setIsProfileOpen(false);
+                                logout();
+                                router.push('/');
+                              }}
+                            >
+                              � Admin Logout
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Not logged in */}
+                        <div className="px-4 py-3 border-b dark:border-gray-700">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
+                              <span className="text-white font-semibold">?</span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">Guest</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Not signed in</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="py-1">
+                          <Link
+                            href="/login"
+                            className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
+                            onClick={() => setIsProfileOpen(false)}
+                          >
+                            🚀 Sign In
+                          </Link>
+                          <Link
+                            href="/register"
+                            className="block px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
+                            onClick={() => setIsProfileOpen(false)}
+                          >
+                            ✨ Join NewsNerve
+                          </Link>
+                          
+                          <div className="border-t dark:border-gray-700 my-1"></div>
+                          
+                          <Link
+                            href="/about"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            onClick={() => setIsProfileOpen(false)}
+                          >
+                            ℹ️ About NewsNerve
+                          </Link>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -900,6 +1027,61 @@ const Header = () => {
                   </Link>
                 ))}
                 
+                {/* Mobile Auth Section */}
+                <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                  {isUserLoggedIn && currentUser ? (
+                    <>
+                      {/* Logged in user info */}
+                      <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 mb-2">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-sm font-semibold">
+                              {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {currentUser.name || 'User'}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {currentUser.email || 'user@example.com'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* User Logout */}
+                      <button
+                        className="w-full text-left px-3 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          handleUserLogout();
+                        }}
+                      >
+                        🚪 Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Not logged in - show sign in options */}
+                      <Link
+                        href="/login"
+                        className="block px-3 py-2 text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        🚀 Sign In
+                      </Link>
+                      <Link
+                        href="/register"
+                        className="block px-3 py-2 text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        ✨ Join NewsNerve
+                      </Link>
+                    </>
+                  )}
+                </div>
+                
                 <div className="px-3 py-2 sm:hidden">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 dark:text-gray-400 text-sm">Theme</span>
@@ -907,17 +1089,17 @@ const Header = () => {
                   </div>
                 </div>
                 
-                {/* Mobile Logout */}
+                {/* Mobile Admin Logout */}
                 {isAdmin && (
                   <button
-                    className="w-full text-left px-3 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm"
+                    className="w-full text-left px-3 py-2 text-orange-600 dark:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium border-t border-gray-200 dark:border-gray-700 mt-2 pt-2"
                     onClick={() => {
                       setIsMenuOpen(false);
                       logout();
                       router.push('/');
                     }}
                   >
-                    🚪 Admin Logout
+                    � Admin Logout
                   </button>
                 )}
               </div>
