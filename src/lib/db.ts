@@ -1,4 +1,4 @@
-// Database connection helper for NewsNerve with Neon
+// Database connection helper for NewsTRNT with Neon
 import { sql } from '@vercel/postgres';
 
 // Article interface

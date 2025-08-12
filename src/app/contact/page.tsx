@@ -70,7 +70,7 @@ const ContactPage: React.FC = () => {
               ← Back to Home
             </Link>
             <h1 className="text-4xl font-bold text-foreground">Contact Us</h1>
-            <p className="text-muted-foreground mt-2">Get in touch with the NewsNerve team</p>
+            <p className="text-muted-foreground mt-2">The Road Not Taken - Get in touch with the NewsTRNT team</p>
           </div>
         </div>
       </div>
@@ -211,7 +211,7 @@ const ContactPage: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">Email</h3>
-                      <p className="text-muted-foreground">contact@newsnerve.com</p>
+                      <p className="text-muted-foreground">contact@NewsTRNT.com</p>
                       <p className="text-sm text-muted-foreground">We typically respond within 24 hours</p>
                     </div>
                   </div>
@@ -225,7 +225,7 @@ const ContactPage: React.FC = () => {
                     <div>
                       <h3 className="font-semibold text-foreground">Address</h3>
                       <p className="text-muted-foreground">
-                        NewsNerve Headquarters<br />
+                        NewsTRNT Headquarters<br />
                         123 News Street<br />
                         Media City, MC 12345
                       </p>
@@ -258,7 +258,7 @@ const ContactPage: React.FC = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold text-foreground">About NewsNerve</h3>
+                        <h3 className="font-semibold text-foreground">About NewsTRNT</h3>
                         <p className="text-sm text-muted-foreground">Learn more about our mission</p>
                       </div>
                       <svg className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" fill="currentColor" viewBox="0 0 20 20">

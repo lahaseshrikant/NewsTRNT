@@ -149,7 +149,7 @@ const SubscriptionPage: React.FC = () => {
               ← Back to Home
             </Link>
             <h1 className="text-5xl font-bold text-foreground mb-4">
-              Choose Your NewsNerve Plan
+              Choose Your NewsTRNT Plan
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
               Get personalized news that matches your interests with our AI-powered platform
@@ -278,7 +278,7 @@ const SubscriptionPage: React.FC = () => {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">
-                Why Choose NewsNerve Premium?
+                Why Choose NewsTRNT Premium?
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Experience the future of news consumption with our advanced AI-powered features
@@ -320,7 +320,7 @@ const SubscriptionPage: React.FC = () => {
                 </div>
               </div>
               <p className="text-muted-foreground text-justify">
-                "NewsNerve's AI personalization is incredible. It surfaces exactly the financial 
+                "NewsTRNT's AI personalization is incredible. It surfaces exactly the financial 
                 and tech news I need for my work, saving me hours of searching through multiple sources."
               </p>
               <div className="flex text-yellow-400 mt-4">
@@ -393,7 +393,7 @@ const SubscriptionPage: React.FC = () => {
                 Contact Sales
               </Link>
               <a
-                href="mailto:sales@newsnerve.com"
+                href="mailto:sales@newstrnt.com"
                 className="bg-background text-foreground border border-border px-6 py-3 rounded-lg hover:bg-muted/50 transition-colors font-medium"
               >
                 Email Us

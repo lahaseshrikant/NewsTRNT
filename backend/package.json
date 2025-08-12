@@ -1,7 +1,7 @@
 {
-  "name": "newsnerve-backend",
+  "name": "NewsTRNT-backend",
   "version": "1.0.0",
-  "description": "NewsNerve Backend API Server",
+  "description": "NewsTRNT Backend API Server",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
@@ -67,6 +67,6 @@
     "express",
     "prisma"
   ],
-  "author": "NewsNerve Team",
+  "author": "NewsTRNT Team",
   "license": "MIT"
 }

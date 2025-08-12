@@ -1,5 +1,5 @@
 """
-NewsNerve AI-Powered News Scraper
+NewsTRNT AI-Powered News Scraper
 Main pipeline for fetching, processing, and storing news articles
 """
 
@@ -26,13 +26,13 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('newsnerve.log'),
+        logging.FileHandler('NewsTRNT.log'),
         logging.StreamHandler(sys.stdout)
     ]
 )
 logger = logging.getLogger(__name__)
 
-class NewsNervePipeline:
+class NewsTRNTPipeline:
     """Main pipeline for processing news articles"""
     
     def __init__(self):
@@ -47,7 +47,7 @@ class NewsNervePipeline:
         try:
             self.db_connection = psycopg2.connect(
                 host=os.getenv('DB_HOST', 'localhost'),
-                database=os.getenv('DB_NAME', 'newsnerve'),
+                database=os.getenv('DB_NAME', 'NewsTRNT'),
                 user=os.getenv('DB_USER', 'admin'),
                 password=os.getenv('DB_PASSWORD', 'password123'),
                 port=os.getenv('DB_PORT', '5432')
@@ -226,7 +226,7 @@ class NewsNervePipeline:
     
     async def run_pipeline(self, max_articles: int = 50):
         """Run the complete news processing pipeline"""
-        logger.info("🚀 Starting NewsNerve AI Pipeline")
+        logger.info("🚀 Starting NewsTRNT AI Pipeline")
         
         try:
             # Connect to database
@@ -265,7 +265,7 @@ class NewsNervePipeline:
 
 async def main():
     """Main entry point"""
-    pipeline = NewsNervePipeline()
+    pipeline = NewsTRNTPipeline()
     await pipeline.run_pipeline(max_articles=20)
 
 if __name__ == "__main__":

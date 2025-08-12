@@ -1,0 +1,37 @@
+[
+  {
+    "id": "2c56e9c1979c3c59decbd491f99c85c9",
+    "email": "superadmin@NewsTRNT.com",
+    "username": "superadmin",
+    "isAdmin": true,
+    "isSuperAdmin": true,
+    "permissions": [
+      "*"
+    ],
+    "failedAttempts": 0,
+    "isLocked": false,
+    "passwordHash": "$2b$16$PodlM1PSCJgJkPkpuAO2ge5AmZn2QyCkQHntz2J3SwnS13uoEgE4e",
+    "mfaEnabled": false,
+    "createdAt": "2025-08-12T05:07:13.676Z",
+    "updatedAt": "2025-08-12T05:07:13.676Z"
+  },
+  {
+    "id": "7983d0d492e7c7588d613fdc418f29b8",
+    "email": "admin@NewsTRNT.com",
+    "username": "admin",
+    "isAdmin": true,
+    "isSuperAdmin": false,
+    "permissions": [
+      "admin.read",
+      "admin.write",
+      "logo.manage",
+      "content.manage"
+    ],
+    "failedAttempts": 4,
+    "isLocked": false,
+    "passwordHash": "$2b$16$ZhRefRE6PKobBYfUx3ZTLeKuDUfb9ey2OCNsoJMwD0SPsmA6u3h5q",
+    "mfaEnabled": false,
+    "createdAt": "2025-08-12T05:07:13.676Z",
+    "updatedAt": "2025-08-12T05:10:30.664Z"
+  }
+]

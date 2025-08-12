@@ -1,7 +1,7 @@
 # Admin Portal Management Guide
 
 ## Overview
-The NewsNerve Admin Portal provides centralized management for all site configurations, content, users, and system settings. You can now manage everything from one place as requested.
+The NewsTRNT Admin Portal provides centralized management for all site configurations, content, users, and system settings. You can now manage everything from one place as requested.
 
 ## Main Features
 

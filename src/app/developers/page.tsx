@@ -32,7 +32,7 @@ const DevelopersPage: React.FC = () => {
         "category": "technology",
         "publishedAt": "2024-01-15T10:30:00Z",
         "author": "John Doe",
-        "url": "https://newsnerve.com/articles/12345",
+        "url": "https://NewsTRNT.com/articles/12345",
         "summary": "AI breakthrough announcement...",
         "sentiment": "positive",
         "tags": ["AI", "technology", "innovation"]
@@ -141,10 +141,10 @@ const DevelopersPage: React.FC = () => {
     {
       name: 'JavaScript/Node.js',
       language: 'javascript',
-      installation: 'npm install newsnerve-api',
-      example: `const NewsNerve = require('newsnerve-api');
+      installation: 'npm install NewsTRNT-api',
+      example: `const NewsTRNT = require('NewsTRNT-api');
 
-const client = new NewsNerve({
+const client = new NewsTRNT({
   apiKey: 'your-api-key'
 });
 
@@ -159,10 +159,10 @@ console.log(articles);`
     {
       name: 'Python',
       language: 'python',
-      installation: 'pip install newsnerve-python',
-      example: `from newsnerve import NewsNerveAPI
+      installation: 'pip install NewsTRNT-python',
+      example: `from NewsTRNT import NewsTRNTAPI
 
-client = NewsNerveAPI(api_key='your-api-key')
+client = NewsTRNTAPI(api_key='your-api-key')
 
 # Get latest articles
 articles = client.articles.get_latest(
@@ -176,7 +176,7 @@ print(articles)`
       name: 'cURL',
       language: 'bash',
       installation: 'No installation required',
-      example: `curl -X GET "https://api.newsnerve.com/v1/articles" \\
+      example: `curl -X GET "https://api.NewsTRNT.com/v1/articles" \\
   -H "Authorization: Bearer your-api-key" \\
   -H "Content-Type: application/json" \\
   -G -d "category=technology" \\
@@ -234,7 +234,7 @@ print(articles)`
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-foreground mb-6">
-              NewsNerve API
+              NewsTRNT API
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
               Powerful REST API for news data, AI-powered search, and real-time analytics
@@ -326,12 +326,12 @@ print(articles)`
               <h2 className="text-2xl font-bold text-foreground mb-4">Quick Start</h2>
               <div className="bg-muted rounded-lg p-4 font-mono text-sm">
                 <div className="text-muted-foreground mb-2"># Get your API key</div>
-                <div className="text-foreground">curl -X POST "https://api.newsnerve.com/v1/auth/register" \</div>
+                <div className="text-foreground">curl -X POST "https://api.NewsTRNT.com/v1/auth/register" \</div>
                 <div className="text-foreground ml-4">-H "Content-Type: application/json" \</div>
                 <div className="text-foreground ml-4">-d {`'{"email": "your@email.com"}'`}</div>
                 
                 <div className="text-muted-foreground mt-4 mb-2"># Make your first request</div>
-                <div className="text-foreground">curl -X GET "https://api.newsnerve.com/v1/articles" \</div>
+                <div className="text-foreground">curl -X GET "https://api.NewsTRNT.com/v1/articles" \</div>
                 <div className="text-foreground ml-4">-H "Authorization: Bearer YOUR_API_KEY"</div>
               </div>
             </div>
@@ -534,7 +534,7 @@ print(articles)`
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">
-              Ready to Build with NewsNerve API?
+              Ready to Build with NewsTRNT API?
             </h2>
             <p className="text-xl mb-8 text-primary-foreground/80">
               Join thousands of developers building amazing news applications
@@ -547,7 +547,7 @@ print(articles)`
                 Get Free API Key
               </Link>
               <a
-                href="mailto:developers@newsnerve.com"
+                href="mailto:developers@NewsTRNT.com"
                 className="border-2 border-primary-foreground text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary-foreground hover:text-primary transition-colors font-medium"
               >
                 Contact Support

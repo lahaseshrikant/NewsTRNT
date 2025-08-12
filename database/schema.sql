@@ -1,4 +1,4 @@
--- NewsNerve Database Schema
+-- newstrnt Database Schema
 -- PostgreSQL Schema for AI-Powered News Platform
 
 -- Enable UUID extension

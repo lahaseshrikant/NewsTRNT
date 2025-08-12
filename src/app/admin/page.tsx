@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
 
 interface AdminStats {
   totalArticles: { count: number; growth: number; growthType: string };
@@ -37,7 +38,7 @@ interface AdminStats {
   };
 }
 
-export default function AdminPage() {
+function AdminPageContent() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,7 +118,7 @@ export default function AdminPage() {
     <div className="p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">Welcome to NewsNerve Admin Panel - Your complete news management center</p>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">Welcome to NewsTRNT Admin Panel - Your complete news management center</p>
       </div>
 
       {/* Stats Grid */}
@@ -408,5 +409,13 @@ export default function AdminPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <UnifiedAdminGuard>
+      <AdminPageContent />
+    </UnifiedAdminGuard>
   );
 }

@@ -39,7 +39,7 @@ const AdminLogin = () => {
             Admin Access Required
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Enter admin credentials to access logo management features
+            The Road Not Taken - Access admin features to manage your platform
           </p>
         </div>
 
@@ -113,7 +113,7 @@ const AdminLogin = () => {
             href="/" 
             className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           >
-            ← Back to NewsNerve
+            ← Back to NewsTRNT
           </a>
         </div>
       </div>

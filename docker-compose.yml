@@ -6,7 +6,7 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_DB: newsnerve
+      POSTGRES_DB: newstrnt
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password123
       POSTGRES_HOST_AUTH_METHOD: trust
@@ -16,7 +16,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
-      - newsnerve-network
+      - newstrnt-network
 
   # Backend API
   backend:
@@ -26,7 +26,7 @@ services:
       - "5000:5000"
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://admin:password123@postgres:5432/newsnerve
+      - DATABASE_URL=postgresql://admin:password123@postgres:5432/newstrnt
       - JWT_SECRET=your-super-secret-jwt-key
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
@@ -35,7 +35,7 @@ services:
       - ./backend:/app
       - /app/node_modules
     networks:
-      - newsnerve-network
+      - newstrnt-network
 
   # Frontend
   frontend:
@@ -54,14 +54,14 @@ services:
       - /app/node_modules
       - /app/.next
     networks:
-      - newsnerve-network
+      - newstrnt-network
 
   # Python AI Scraper
   scraper:
     build: ./scraper-ai
     restart: always
     environment:
-      - DATABASE_URL=postgresql://admin:password123@postgres:5432/newsnerve
+      - DATABASE_URL=postgresql://admin:password123@postgres:5432/newstrnt
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - NEWS_API_KEY=${NEWS_API_KEY}
     depends_on:
@@ -69,7 +69,7 @@ services:
     volumes:
       - ./scraper-ai:/app
     networks:
-      - newsnerve-network
+      - newstrnt-network
 
   # Redis for caching and sessions
   redis:
@@ -80,12 +80,12 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - newsnerve-network
+      - newstrnt-network
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  newsnerve-network:
+  newstrnt-network:
     driver: bridge

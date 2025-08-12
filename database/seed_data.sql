@@ -1,4 +1,4 @@
--- Seed data for NewsNerve Platform
+-- Seed data for newstrnt Platform
 
 -- Insert default categories
 INSERT INTO categories (name, slug, description, color, icon, sort_order) VALUES
@@ -33,8 +33,8 @@ INSERT INTO tags (name, slug) VALUES
 
 -- Insert sample admin user
 INSERT INTO users (email, username, full_name, is_admin, is_verified, email_verified, password_hash) VALUES
-('admin@newsnerve.com', 'admin', 'NewsNerve Admin', TRUE, TRUE, TRUE, '$2b$10$example.hash.here'),
-('editor@newsnerve.com', 'editor', 'News Editor', FALSE, TRUE, TRUE, '$2b$10$example.hash.here');
+('admin@newstrnt.com', 'admin', 'newstrnt Admin', TRUE, TRUE, TRUE, '$2b$10$example.hash.here'),
+('editor@newstrnt.com', 'editor', 'News Editor', FALSE, TRUE, TRUE, '$2b$10$example.hash.here');
 
 -- Insert sample articles
 WITH sample_category AS (
@@ -65,7 +65,7 @@ INSERT INTO articles (
     'In a groundbreaking development that promises to accelerate the AI revolution, researchers have unveiled a new approach to machine learning that dramatically improves how artificial intelligence systems learn from data. The breakthrough, announced today, represents a significant step forward in making AI more efficient, accurate, and capable of handling complex real-world scenarios.',
     'Researchers announce a major breakthrough in machine learning algorithms that could dramatically improve AI efficiency and real-world applications.',
     'Tech Reporter',
-    'NewsNerve Tech',
+    'newstrnt Tech',
     (SELECT id FROM sample_category),
     NOW() - INTERVAL '2 hours',
     TRUE,
@@ -80,7 +80,7 @@ INSERT INTO articles (
     'In a historic moment for environmental policy, world leaders at the Global Climate Summit have reached a comprehensive agreement that sets the most ambitious carbon reduction targets in history. The agreement, signed by representatives from over 150 countries, outlines specific measures and timelines for achieving net-zero emissions by 2050.',
     'World leaders sign historic climate agreement with ambitious carbon reduction targets at Global Climate Summit.',
     'Environmental Correspondent',
-    'NewsNerve World',
+    'newstrnt World',
     (SELECT id FROM categories WHERE slug = 'environment' LIMIT 1),
     NOW() - INTERVAL '4 hours',
     TRUE,

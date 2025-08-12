@@ -14,9 +14,9 @@ const HelpPage: React.FC = () => {
       icon: '🚀',
       faqs: [
         {
-          id: 'what-is-newsnerve',
-          question: 'What is NewsNerve?',
-          answer: 'NewsNerve is an AI-powered news platform that delivers personalized news content tailored to your interests. We aggregate news from multiple sources and use artificial intelligence to provide you with the most relevant and timely information.'
+          id: 'what-is-NewsTRNT',
+          question: 'What is NewsTRNT?',
+          answer: 'NewsTRNT is an AI-powered news platform that delivers personalized news content tailored to your interests. We aggregate news from multiple sources and use artificial intelligence to provide you with the most relevant and timely information.'
         },
         {
           id: 'how-to-create-account',
@@ -38,7 +38,7 @@ const HelpPage: React.FC = () => {
         {
           id: 'how-ai-works',
           question: 'How does the AI personalization work?',
-          answer: 'Our AI analyzes your reading patterns, interests, and interaction history to curate news specifically for you. The more you use NewsNerve, the better it gets at understanding your preferences and delivering relevant content.'
+          answer: 'Our AI analyzes your reading patterns, interests, and interaction history to curate news specifically for you. The more you use NewsTRNT, the better it gets at understanding your preferences and delivering relevant content.'
         },
         {
           id: 'customize-interests',
@@ -104,7 +104,7 @@ const HelpPage: React.FC = () => {
         {
           id: 'browser-support',
           question: 'Which browsers are supported?',
-          answer: 'NewsNerve works best on Chrome, Firefox, Safari, and Edge (latest versions). We also support mobile browsers. For the best experience, please ensure JavaScript is enabled.'
+          answer: 'NewsTRNT works best on Chrome, Firefox, Safari, and Edge (latest versions). We also support mobile browsers. For the best experience, please ensure JavaScript is enabled.'
         },
         {
           id: 'app-not-loading',
@@ -114,7 +114,7 @@ const HelpPage: React.FC = () => {
         {
           id: 'mobile-app',
           question: 'Is there a mobile app?',
-          answer: 'NewsNerve is currently a progressive web app (PWA) that works excellently on mobile devices. You can "Add to Home Screen" on your phone for an app-like experience. Native iOS and Android apps are coming soon.'
+          answer: 'NewsTRNT is currently a progressive web app (PWA) that works excellently on mobile devices. You can "Add to Home Screen" on your phone for an app-like experience. Native iOS and Android apps are coming soon.'
         }
       ]
     }
@@ -279,7 +279,7 @@ const HelpPage: React.FC = () => {
                   Contact Support
                 </Link>
                 <a
-                  href="mailto:support@newsnerve.com"
+                  href="mailto:support@NewsTRNT.com"
                   className="bg-background text-foreground border border-border px-6 py-3 rounded-lg hover:bg-muted/50 transition-colors font-medium"
                 >
                   Email Us

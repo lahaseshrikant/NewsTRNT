@@ -1,4 +1,4 @@
-# NewsNerve Performance Optimization - COMPLETED ✅
+# NewsTRNT Performance Optimization - COMPLETED ✅
 
 ## Issues Addressed
 

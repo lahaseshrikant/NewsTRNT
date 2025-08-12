@@ -18,23 +18,23 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "NewsNerve - Your world. Your interests. Your news.",
-  description: "Stay informed with AI-curated news, personalized feeds, and breaking updates from trusted sources worldwide.",
-  keywords: ["news", "breaking news", "AI news", "personalized news", "world news", "technology news"],
-  authors: [{ name: "NewsNerve Team" }],
-  creator: "NewsNerve",
-  publisher: "NewsNerve",
+  title: "NewsTRNT - The Road Not Taken",
+  description: "Discover stories that matter, from perspectives that challenge the mainstream. Alternative journalism powered by AI.",
+  keywords: ["news", "alternative journalism", "independent news", "AI news", "diverse perspectives", "NewsTRNT"],
+  authors: [{ name: "NewsTRNT Team" }],
+  creator: "NewsTRNT",
+  publisher: "NewsTRNT",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://newsnerve.com",
-    title: "NewsNerve - Your world. Your interests. Your news.",
+    url: "https://NewsTRNT.com",
+    title: "NewsTRNT - The Road Not Taken",
     description: "Stay informed with AI-curated news, personalized feeds, and breaking updates from trusted sources worldwide.",
-    siteName: "NewsNerve",
+    siteName: "NewsTRNT",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NewsNerve - Your world. Your interests. Your news.",
+    title: "NewsTRNT - Your world. Your interests. Your news.",
     description: "Stay informed with AI-curated news, personalized feeds, and breaking updates from trusted sources worldwide.",
   },
 };

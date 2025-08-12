@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
+import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
 
 interface User {
   id: string;
@@ -36,7 +37,7 @@ const UserPermissions: React.FC = () => {
     {
       id: '1',
       name: 'John Doe',
-      email: 'john.doe@newsnerve.com',
+      email: 'john.doe@newstrnt.com',
       role: 'admin',
       status: 'active',
       lastLogin: '2024-01-15T09:30:00Z',
@@ -54,7 +55,7 @@ const UserPermissions: React.FC = () => {
     {
       id: '2',
       name: 'Jane Smith',
-      email: 'jane.smith@newsnerve.com',
+      email: 'jane.smith@newstrnt.com',
       role: 'editor',
       status: 'active',
       lastLogin: '2024-01-14T14:20:00Z',
@@ -72,7 +73,7 @@ const UserPermissions: React.FC = () => {
     {
       id: '3',
       name: 'Mike Johnson',
-      email: 'mike.johnson@newsnerve.com',
+      email: 'mike.johnson@newstrnt.com',
       role: 'author',
       status: 'active',
       lastLogin: '2024-01-13T16:45:00Z',
@@ -445,4 +446,10 @@ const UserPermissions: React.FC = () => {
   );
 };
 
-export default UserPermissions;
+export default function AdminUserPermissionsPage() {
+  return (
+    <UnifiedAdminGuard requireSuperAdmin={true}>
+      <UserPermissions />
+    </UnifiedAdminGuard>
+  );
+}

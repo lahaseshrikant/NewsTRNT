@@ -1,9 +1,9 @@
-# Copilot Instructions for NewsNerve Platform
+# Copilot Instructions for NewsTRNT Platform
 
 <!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
 
 ## Project Overview
-This is a comprehensive AI-powered news platform called NewsNerve with the tagline "Your world. Your interests. Your news."
+This is a comprehensive AI-powered news platform called NewsTRNT with the tagline "Your world. Your interests. Your news."
 
 ## Architecture
 - **Frontend**: Next.js 14+ with TypeScript, Tailwind CSS, App Router

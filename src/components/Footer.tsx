@@ -48,7 +48,7 @@ const Footer: React.FC = () => {
   };
   const footerSections = [
     {
-      title: 'NewsNerve',
+      title: 'NewsTRNT',
       links: [
         { name: 'About Us', href: '/about' },
         { name: 'Our Mission', href: '/about#mission' },
@@ -123,8 +123,8 @@ const Footer: React.FC = () => {
               <div className="flex items-center space-x-2 mb-4">
                 {renderLogo()}
                 <div>
-                  <h3 className="text-xl font-bold">NewsNerve</h3>
-                  <p className="text-xs text-gray-400">Your world. Your interests. Your news.</p>
+                  <h3 className="text-xl font-bold">NewsTRNT</h3>
+                  <p className="text-xs text-gray-400">The Road Not Taken</p>
                 </div>
               </div>
               <p className="text-gray-400 text-sm mb-6">
@@ -175,7 +175,7 @@ const Footer: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 text-sm mb-4 md:mb-0">
-              <p>&copy; {new Date().getFullYear()} NewsNerve. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} NewsTRNT. All rights reserved.</p>
             </div>
             
             <div className="flex items-center space-x-6 text-sm">

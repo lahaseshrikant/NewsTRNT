@@ -62,7 +62,7 @@ const LogoHistory = () => {
   }, []);
 
   const loadLogoHistory = () => {
-    const savedHistory = localStorage.getItem('newsnerve-logo-history');
+    const savedHistory = localStorage.getItem('NewsTRNT-logo-history');
     if (savedHistory) {
       try {
         const history = JSON.parse(savedHistory);
@@ -303,7 +303,7 @@ const LogoHistory = () => {
     );
     
     setLogoHistory(updatedHistory);
-    localStorage.setItem('newsnerve-logo-history', JSON.stringify(updatedHistory));
+    localStorage.setItem('NewsTRNT-logo-history', JSON.stringify(updatedHistory));
     setEditingHistoryId(null);
     setEditingHistoryName('');
   };
@@ -312,7 +312,7 @@ const LogoHistory = () => {
     if (confirm('Are you sure you want to delete this logo from history?')) {
       const updatedHistory = logoHistory.filter(logo => logo.id !== logoId);
       setLogoHistory(updatedHistory);
-      localStorage.setItem('newsnerve-logo-history', JSON.stringify(updatedHistory));
+      localStorage.setItem('NewsTRNT-logo-history', JSON.stringify(updatedHistory));
     }
   };
 
@@ -329,10 +329,10 @@ const LogoHistory = () => {
       item.id === logo.id ? updatedLogo : item
     );
     setLogoHistory(updatedHistory);
-    localStorage.setItem('newsnerve-logo-history', JSON.stringify(updatedHistory));
+    localStorage.setItem('NewsTRNT-logo-history', JSON.stringify(updatedHistory));
     
     // Save as active logo
-    localStorage.setItem('newsnerve-active-logo', JSON.stringify(logo.config));
+    localStorage.setItem('NewsTRNT-active-logo', JSON.stringify(logo.config));
     
     // Dispatch events to update the site
     setTimeout(() => {
@@ -342,7 +342,7 @@ const LogoHistory = () => {
     }, 50);
     
     window.dispatchEvent(new StorageEvent('storage', {
-      key: 'newsnerve-active-logo',
+      key: 'NewsTRNT-active-logo',
       newValue: JSON.stringify(logo.config),
       storageArea: localStorage
     }));
@@ -423,7 +423,7 @@ const LogoHistory = () => {
     
     const link = document.createElement('a');
     link.href = url;
-    link.download = `newsnerve-logo-history-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `NewsTRNT-logo-history-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -433,7 +433,7 @@ const LogoHistory = () => {
   const clearHistory = () => {
     if (confirm('Are you sure you want to clear all logo history? This cannot be undone.')) {
       setLogoHistory([]);
-      localStorage.removeItem('newsnerve-logo-history');
+      localStorage.removeItem('NewsTRNT-logo-history');
       alert('Logo history cleared successfully!');
     }
   };

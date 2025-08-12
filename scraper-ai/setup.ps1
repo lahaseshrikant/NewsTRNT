@@ -1,8 +1,8 @@
-# NewsNerve Scraper-AI Setup Script for Windows PowerShell
+# NewsTRNT Scraper-AI Setup Script for Windows PowerShell
 # This script installs Python dependencies with fallback options
 
 Write-Host "================================" -ForegroundColor Green
-Write-Host "NewsNerve Scraper-AI Setup" -ForegroundColor Green  
+Write-Host "NewsTRNT Scraper-AI Setup" -ForegroundColor Green  
 Write-Host "================================" -ForegroundColor Green
 
 Write-Host ""

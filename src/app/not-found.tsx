@@ -34,7 +34,7 @@ const NotFoundPage: React.FC = () => {
             Page Not Found
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
-            The page you're looking for doesn't exist or has been moved.
+            Sometimes The Road Not Taken leads to unexpected places. Let's get you back on track.
           </p>
         </div>
 
@@ -123,7 +123,7 @@ const NotFoundPage: React.FC = () => {
               href="/search"
               className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
             >
-              Search NewsNerve
+              Search NewsTRNT
             </Link>
             <Link
               href="/sitemap"

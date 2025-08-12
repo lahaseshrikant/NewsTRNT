@@ -1,6 +1,6 @@
 @echo off
 echo ================================
-echo NewsNerve Scraper-AI Setup
+echo NewsTRNT Scraper-AI Setup
 echo ================================
 
 echo.

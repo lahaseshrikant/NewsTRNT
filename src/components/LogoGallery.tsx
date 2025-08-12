@@ -241,10 +241,10 @@ const logoVariants: LogoVariant[] = [
     symbolism: 'Award-Winning, Excellence, 5-Star Quality'
   },
 
-  // CURRENT NEWSNERVE LOGO VARIATIONS
+  // CURRENT NewsTRNT LOGO VARIATIONS
   {
     id: 'current-star',
-    name: 'Current NewsNerve Star',
+    name: 'Current NewsTRNT Star',
     description: 'Your current star logo with neural network pattern',
     clipPath: 'polygon(50% 0%, 60% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 40% 35%)',
     background: 'linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #7c3aed 100%)',
@@ -253,7 +253,7 @@ const logoVariants: LogoVariant[] = [
   },
   {
     id: 'current-shield',
-    name: 'NewsNerve Shield',
+    name: 'NewsTRNT Shield',
     description: 'Your neural network design in shield shape for trust',
     clipPath: 'polygon(50% 0%, 80% 15%, 100% 35%, 85% 85%, 50% 100%, 15% 85%, 0% 35%, 20% 15%)',
     background: 'linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #7c3aed 100%)',
@@ -262,7 +262,7 @@ const logoVariants: LogoVariant[] = [
   },
   {
     id: 'current-hexagon',
-    name: 'NewsNerve Neural Hex',
+    name: 'NewsTRNT Neural Hex',
     description: 'Your design in hexagon for neural network emphasis',
     clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)',
     background: 'linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #7c3aed 100%)',
@@ -271,7 +271,7 @@ const logoVariants: LogoVariant[] = [
   },
   {
     id: 'current-diamond',
-    name: 'NewsNerve Speed Diamond',
+    name: 'NewsTRNT Speed Diamond',
     description: 'Your neural pattern in diamond for breaking news speed',
     clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
     background: 'linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #7c3aed 100%)',
@@ -280,7 +280,7 @@ const logoVariants: LogoVariant[] = [
   },
   {
     id: 'current-circle',
-    name: 'NewsNerve Neural Circle',
+    name: 'NewsTRNT Neural Circle',
     description: 'Your design in perfect circle for global reach',
     clipPath: 'circle(50% at 50% 50%)',
     background: 'linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #7c3aed 100%)',
@@ -289,7 +289,7 @@ const logoVariants: LogoVariant[] = [
   },
   {
     id: 'current-badge',
-    name: 'NewsNerve Authority Badge',
+    name: 'NewsTRNT Authority Badge',
     description: 'Your neural network in official badge shape',
     clipPath: 'polygon(50% 0%, 80% 15%, 95% 40%, 80% 85%, 50% 100%, 20% 85%, 5% 40%, 20% 15%)',
     background: 'linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #7c3aed 100%)',
@@ -298,7 +298,7 @@ const logoVariants: LogoVariant[] = [
   },
   {
     id: 'current-crown',
-    name: 'NewsNerve Royal Crown',
+    name: 'NewsTRNT Royal Crown',
     description: 'Your neural design in crown for premium authority',
     clipPath: 'polygon(10% 70%, 20% 30%, 30% 50%, 40% 20%, 50% 40%, 60% 20%, 70% 50%, 80% 30%, 90% 70%, 85% 85%, 15% 85%)',
     background: 'linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #7c3aed 100%)',
@@ -307,7 +307,7 @@ const logoVariants: LogoVariant[] = [
   },
   {
     id: 'current-octagon',
-    name: 'NewsNerve Global Octagon',
+    name: 'NewsTRNT Global Octagon',
     description: 'Your neural pattern in octagon for comprehensive coverage',
     clipPath: 'polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%)',
     background: 'linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #7c3aed 100%)',
@@ -710,7 +710,7 @@ const LogoGallery = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            NewsNerve Logo Gallery
+            NewsTRNT Logo Gallery
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">
             Complete collection featuring creative "NN" typography and trust-based verification logos

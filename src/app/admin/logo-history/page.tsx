@@ -1,12 +1,12 @@
 'use client';
 
-import AdminGuard from '@/components/AdminGuard';
 import LogoHistory from '@/components/LogoHistory';
+import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
 
 export default function AdminLogoHistoryPage() {
   return (
-    <AdminGuard>
+    <UnifiedAdminGuard requireSuperAdmin={true}>
       <LogoHistory />
-    </AdminGuard>
+    </UnifiedAdminGuard>
   );
 }

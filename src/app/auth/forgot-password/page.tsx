@@ -40,7 +40,7 @@ const ForgotPasswordPage: React.FC = () => {
           <div className="text-center animate-fade-in">
             <Link href="/" className="inline-block group">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 animate-gradient">
-                ✨ NewsNerve
+                ✨ NewsTRNT
               </h1>
             </Link>
             <div className="mt-8 space-y-6">
@@ -98,7 +98,7 @@ const ForgotPasswordPage: React.FC = () => {
           <Link href="/" className="inline-block group">
             <div className="relative">
               <h1 className="text-3xl font-black bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-purple-400 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 animate-gradient">
-                ✨ NewsNerve
+                ✨ NewsTRNT
               </h1>
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-ping"></div>
             </div>

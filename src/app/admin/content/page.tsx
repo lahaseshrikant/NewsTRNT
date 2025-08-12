@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
+import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
 
 interface Article {
   id: string;
@@ -244,4 +245,10 @@ const ContentManagement: React.FC = () => {
   );
 };
 
-export default ContentManagement;
+export default function AdminContentPage() {
+  return (
+    <UnifiedAdminGuard>
+      <ContentManagement />
+    </UnifiedAdminGuard>
+  );
+}

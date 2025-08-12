@@ -151,10 +151,10 @@ const HomePage: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              Your world. Your interests. Your news.
+              NewsTRNT: The Road Not Taken
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-blue-100">
-              Stay informed with AI-curated news, personalized feeds, and breaking updates from trusted sources worldwide.
+              Discover stories that matter, from perspectives that challenge the mainstream. Your journey to informed independence starts here.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {!isLoggedIn ? (

@@ -1,5 +1,5 @@
 """
-SEO Optimizer for NewsNerve Platform
+SEO Optimizer for NewsTRNT Platform
 Optimizes article content for search engines and readability
 """
 
@@ -375,17 +375,17 @@ class SEOOptimizer:
             },
             "publisher": {
                 "@type": "Organization",
-                "name": "NewsNerve",
+                "name": "NewsTRNT",
                 "logo": {
                     "@type": "ImageObject",
-                    "url": "https://newsnerve.com/logo.png"
+                    "url": "https://NewsTRNT.com/logo.png"
                 }
             },
             "datePublished": published_date,
             "dateModified": published_date,
             "mainEntityOfPage": {
                 "@type": "WebPage",
-                "@id": f"https://newsnerve.com/article/{self.generate_slug(title)}"
+                "@id": f"https://NewsTRNT.com/article/{self.generate_slug(title)}"
             },
             "articleSection": category.title()
         }

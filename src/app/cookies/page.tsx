@@ -16,7 +16,7 @@ const CookiePolicyPage: React.FC = () => {
               Cookie Policy
             </h1>
             <p className="text-xl text-muted-foreground">
-              How NewsNerve uses cookies to enhance your experience
+              How NewsTRNT uses cookies to enhance your experience
             </p>
           </div>
         </div>
@@ -168,7 +168,7 @@ const CookiePolicyPage: React.FC = () => {
                 </div>
 
                 <div className="border border-border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-3">NewsNerve Settings</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-3">NewsTRNT Settings</h3>
                   <p className="text-muted-foreground text-sm mb-3">
                     Manage your cookie preferences directly on our platform.
                   </p>
@@ -223,9 +223,9 @@ const CookiePolicyPage: React.FC = () => {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-semibold text-foreground mb-2">Email</h3>
-                    <Link href="mailto:privacy@newsnerve.com" 
+                    <Link href="mailto:privacy@NewsTRNT.com" 
                           className="text-primary hover:text-primary/80">
-                      privacy@newsnerve.com
+                      privacy@NewsTRNT.com
                     </Link>
                   </div>
                   <div>

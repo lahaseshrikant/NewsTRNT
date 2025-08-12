@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
+import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
 
 interface User {
   id: string;
@@ -305,4 +306,10 @@ const UserManagement: React.FC = () => {
   );
 };
 
-export default UserManagement;
+export default function AdminUsersPage() {
+  return (
+    <UnifiedAdminGuard>
+      <UserManagement />
+    </UnifiedAdminGuard>
+  );
+}

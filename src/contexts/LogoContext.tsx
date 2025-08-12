@@ -65,7 +65,7 @@ export function LogoProvider({ children }: { children: ReactNode }) {
   // Load saved logo on mount and listen for changes
   useEffect(() => {
     // Load saved logo from localStorage
-    const savedLogo = localStorage.getItem('newsnerve-active-logo');
+    const savedLogo = localStorage.getItem('newstrnt-active-logo');
     if (savedLogo) {
       try {
         const logoConfig = JSON.parse(savedLogo);
@@ -81,7 +81,7 @@ export function LogoProvider({ children }: { children: ReactNode }) {
     };
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'newsnerve-active-logo' && event.newValue) {
+      if (event.key === 'newstrnt-active-logo' && event.newValue) {
         try {
           const logoConfig = JSON.parse(event.newValue);
           setCurrentLogo({ ...defaultLogo, ...logoConfig });

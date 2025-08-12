@@ -1,43 +1,52 @@
+// src/app/api/auth/me/route.ts - Get current user endpoint
 import { NextRequest, NextResponse } from 'next/server';
+import SimpleAdminAuth from '@/lib/simple-admin-auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
+    const authHeader = request.headers.get('Authorization');
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: 'Authorization token required' },
+        { success: false, error: 'No token provided' },
         { status: 401 }
       );
     }
 
-    const token = authHeader.substring(7);
-
-    // Forward the request to the backend API
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const token = authHeader.replace('Bearer ', '');
     
-    const response = await fetch(`${backendUrl}/api/auth/me`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      // Decode the token (it's just base64 encoded user info)
+      const userData = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      // Verify the user is still authenticated
+      const { isAuthenticated, session } = SimpleAdminAuth.isAuthenticated();
+      
+      if (!isAuthenticated || !session || session.email !== userData.email) {
+        return NextResponse.json(
+          { success: false, error: 'Token expired or invalid' },
+          { status: 401 }
+        );
+      }
 
-    const data = await response.json();
-
-    if (response.ok) {
-      return NextResponse.json(data);
-    } else {
+      return NextResponse.json({
+        success: true,
+        user: {
+          email: session.email,
+          isAdmin: session.isAdmin,
+          isSuperAdmin: session.isSuperAdmin
+        }
+      });
+    } catch (decodeError) {
       return NextResponse.json(
-        { error: data.error || 'Authentication failed' },
-        { status: response.status }
+        { success: false, error: 'Invalid token format' },
+        { status: 401 }
       );
     }
   } catch (error) {
     console.error('Auth verification error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Authentication verification failed' },
       { status: 500 }
     );
   }

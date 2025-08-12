@@ -26,7 +26,7 @@ const PrivacyPage: React.FC = () => {
             <div className="space-y-8">
               <div className="bg-primary/5 p-6 rounded-lg border border-primary/20">
                 <p className="text-lg text-foreground leading-relaxed text-justify">
-                  At NewsNerve, we respect your privacy and are committed to protecting your personal data. This Privacy Policy 
+                  At NewsTRNT, we respect your privacy and are committed to protecting your personal data. This Privacy Policy 
                   explains how we collect, use, and protect your information when you use our services.
                 </p>
               </div>
@@ -239,9 +239,9 @@ const PrivacyPage: React.FC = () => {
                 
                 <div className="bg-muted/50 p-6 rounded-lg border border-border">
                   <div className="space-y-2">
-                    <p className="text-foreground"><strong>Email:</strong> privacy@newsnerve.com</p>
-                    <p className="text-foreground"><strong>Data Protection Officer:</strong> dpo@newsnerve.com</p>
-                    <p className="text-foreground"><strong>Address:</strong> NewsNerve Privacy Team<br />
+                    <p className="text-foreground"><strong>Email:</strong> privacy@NewsTRNT.com</p>
+                    <p className="text-foreground"><strong>Data Protection Officer:</strong> dpo@NewsTRNT.com</p>
+                    <p className="text-foreground"><strong>Address:</strong> NewsTRNT Privacy Team<br />
                     123 News Street<br />
                     Media City, MC 12345</p>
                   </div>

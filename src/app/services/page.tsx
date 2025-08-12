@@ -41,7 +41,7 @@ const ServicesPage: React.FC = () => {
     {
       id: 'api-access',
       title: 'Developer API',
-      description: 'Integrate NewsNerve\'s powerful news data and AI capabilities into your own applications and platforms.',
+      description: 'Integrate NewsTRNT\'s powerful news data and AI capabilities into your own applications and platforms.',
       icon: '💻',
       features: [
         'RESTful API endpoints',
@@ -105,7 +105,7 @@ const ServicesPage: React.FC = () => {
       name: 'Sarah Johnson',
       company: 'TechCorp Media',
       role: 'Chief Digital Officer',
-      quote: 'NewsNerve\'s API has transformed how we deliver news to our customers. The AI curation is incredibly accurate.',
+      quote: 'NewsTRNT\'s API has transformed how we deliver news to our customers. The AI curation is incredibly accurate.',
       avatar: '/api/placeholder/100/100'
     },
     {
@@ -131,7 +131,7 @@ const ServicesPage: React.FC = () => {
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-foreground mb-6">
-              NewsNerve Services
+              NewsTRNT Services
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
               Powerful AI-driven news solutions for individuals, businesses, and developers
@@ -268,10 +268,10 @@ const ServicesPage: React.FC = () => {
                           Contact Sales
                         </Link>
                         <a
-                          href="mailto:sales@newsnerve.com"
+                          href="mailto:sales@NewsTRNT.com"
                           className="block w-full text-primary hover:text-primary/80 font-medium"
                         >
-                          sales@newsnerve.com
+                          sales@NewsTRNT.com
                         </a>
                       </div>
                     </div>
@@ -328,7 +328,7 @@ const ServicesPage: React.FC = () => {
               Ready to Transform Your News Experience?
             </h2>
             <p className="text-xl mb-8 text-primary-foreground/80">
-              Join thousands of satisfied customers who trust NewsNerve for their news and data needs.
+              Join thousands of satisfied customers who trust NewsTRNT for their news and data needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link

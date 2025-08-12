@@ -72,7 +72,7 @@ const SignUpPage: React.FC = () => {
           <Link href="/" className="inline-block group">
             <div className="relative">
               <h1 className="text-3xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300">
-                ✨ NewsNerve
+                ✨ NewsTRNT
               </h1>
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-ping"></div>
             </div>
@@ -82,7 +82,7 @@ const SignUpPage: React.FC = () => {
               Join the <span className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">Revolution</span> 🚀
             </h2>
             <p className="text-gray-600 dark:text-gray-300 text-base">
-              Create your account and unlock the future of news! Or{' '}
+              Take The Road Not Taken - discover news that challenges perspectives! Or{' '}
               <Link href="/auth/signin" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors underline decoration-wavy underline-offset-4">
                 sign in to existing account 🔐
               </Link>
@@ -276,7 +276,7 @@ const SignUpPage: React.FC = () => {
           <div className="text-sm">
             <Link href="/" className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-300 underline hover:scale-105 group">
               <span className="group-hover:animate-bounce-gentle mr-2">🏠</span>
-              Back to NewsNerve Home
+              Back to NewsTRNT Home
             </Link>
           </div>
         </div>

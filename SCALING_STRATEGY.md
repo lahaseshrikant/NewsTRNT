@@ -1,4 +1,4 @@
-# 🚀 NewsNerve: Free → Premium Migration Strategy
+# 🚀 NewsTRNT: Free → Premium Migration Strategy
 ## Scale from $0 → $10k+/month without rebuilding
 
 ## 🎯 **SEAMLESS SCALING ARCHITECTURE**
@@ -241,7 +241,7 @@ if (revenue > $1000) upgrade('all')
 
 ## 🎯 **BOTTOM LINE**
 
-**Your NewsNerve platform is designed to:**
+**Your NewsTRNT platform is designed to:**
 1. ✅ **Start free** and build audience
 2. ✅ **Scale automatically** as you grow  
 3. ✅ **Upgrade seamlessly** when profitable

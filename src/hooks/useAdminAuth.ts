@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import SimpleAdminAuth from '@/lib/simple-admin-auth';
 
 interface User {
   id: string;
@@ -8,6 +9,7 @@ interface User {
   name?: string;
   fullName?: string;
   isAdmin: boolean;
+  isSuperAdmin?: boolean;
 }
 
 interface AuthState {
@@ -25,57 +27,25 @@ export const useAdminAuth = () => {
     loading: true,
   });
 
-  const verifyAdminAuth = async () => {
+  const verifyAdminAuth = () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const { isAuthenticated, session } = SimpleAdminAuth.isAuthenticated();
       
-      if (!token) {
+      if (isAuthenticated && session) {
         setAuthState({
-          isAuthenticated: false,
-          isAdmin: false,
-          user: null,
+          isAuthenticated: true,
+          isAdmin: session.isAdmin,
+          user: {
+            id: 'admin-user',
+            email: session.email,
+            name: session.email.split('@')[0],
+            fullName: session.isSuperAdmin ? 'Super Admin' : 'Admin',
+            isAdmin: session.isAdmin,
+            isSuperAdmin: session.isSuperAdmin
+          },
           loading: false,
         });
-        return;
-      }
-
-      // Verify token with backend
-      const response = await fetch('/api/auth/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const user = data.user;
-
-        // Check if user is admin
-        if (user && user.isAdmin) {
-          setAuthState({
-            isAuthenticated: true,
-            isAdmin: true,
-            user,
-            loading: false,
-          });
-        } else {
-          // User is authenticated but not admin
-          setAuthState({
-            isAuthenticated: true,
-            isAdmin: false,
-            user,
-            loading: false,
-          });
-          // Clear admin-related storage
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-        }
       } else {
-        // Token is invalid
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
         setAuthState({
           isAuthenticated: false,
           isAdmin: false,
@@ -85,8 +55,6 @@ export const useAdminAuth = () => {
       }
     } catch (error) {
       console.error('Auth verification error:', error);
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
       setAuthState({
         isAuthenticated: false,
         isAdmin: false,
@@ -101,8 +69,7 @@ export const useAdminAuth = () => {
   }, []);
 
   const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    SimpleAdminAuth.logout();
     setAuthState({
       isAuthenticated: false,
       isAdmin: false,

@@ -1,7 +1,17 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# NewsTRNT Platform - Multi-Service Architecture
+# Frontend (Next.js) + Backend (Express) + AI Services (Python)
 
-# dependencies
-/node_modules
+# ===========================================
+# NODE.JS DEPENDENCIES (Frontend & Backend)
+# ===========================================
+# All node_modules folders across the project
+node_modules/
+**/node_modules/
+/node_modules/
+backend/node_modules/
+scraper-ai/node_modules/
+frontend/node_modules/
+
 /.pnp
 .pnp.*
 .yarn/*
@@ -10,34 +20,310 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+backend/package-lock.json
+backend/yarn.lock
 
-# next.js
+# ===========================================
+# FRONTEND (Next.js) SPECIFIC
+# ===========================================
+# Next.js build outputs
 /.next/
 /out/
+.next/
 
-# production
-/build
+# Next.js cache and temp files
+*.tsbuildinfo
+next-env.d.ts
 
-# misc
-.DS_Store
-*.pem
+# Static export
+/export/
 
-# debug
+# ===========================================
+# BACKEND SPECIFIC EXCLUSIONS
+# ===========================================
+# Backend build directory
+backend/dist/
+backend/build/
+backend/.next/
+backend/out/
+
+# Backend logs and temp files
+backend/logs/
+backend/*.log
+backend/.env*
+backend/.DS_Store
+backend/Thumbs.db
+
+# Backend coverage and testing
+backend/coverage/
+backend/.nyc_output/
+backend/test-results/
+
+# Backend TypeScript
+backend/*.tsbuildinfo
+backend/tsconfig.tsbuildinfo
+
+# ===========================================
+# AI SERVICES (Python) SPECIFIC
+# ===========================================
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+scraper-ai/.venv/
+scraper-ai/venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Python distribution/packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# ===========================================
+# DATABASE & ENVIRONMENT
+# ===========================================
+# Environment variables
+.env*
+!.env.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Prisma generated files
+/src/generated/prisma
+backend/prisma/generated/
+
+# ===========================================
+# DEVELOPMENT & TESTING
+# ===========================================
+# Testing
+/coverage
+.nyc_output
+
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+lerna-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
+# ===========================================
+# DEPLOYMENT & HOSTING
+# ===========================================
+# Vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Docker
+.dockerignore
 
-/src/generated/prisma
+# ===========================================
+# OPERATING SYSTEM
+# ===========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+
+# ===========================================
+# IDE & EDITORS
+# ===========================================
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# ===========================================
+# SECURITY & CERTIFICATES
+# ===========================================
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.csr
+
+# ===========================================
+# MISC & TEMPORARY FILES
+# ===========================================
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# ===========================================
+# PROJECT SPECIFIC & CRITICAL EXCLUSIONS
+# ===========================================
+# NewsTRNT specific exclusions
+data/temp/
+uploads/
+cache/
+.cache/
+
+# Large dependency and build files
+**/dist/
+**/build/
+**/.next/
+**/out/
+
+# All package-lock files (regenerated automatically)
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
+
+# All TypeScript build info
+**/*.tsbuildinfo
+**/tsconfig.tsbuildinfo
+
+# All environment files
+**/.env*
+!**/.env.example
+
+# All node_modules everywhere
+**/node_modules/
+
+# All log files
+**/*.log
+**/logs/
+
+# All coverage reports
+**/coverage/
+**/.nyc_output/
+
+# AI model files (if large)
+*.pkl
+*.joblib
+*.h5
+*.pb
+*.model
+
+# Scraped data (if sensitive)
+scraper-ai/data/raw/
+scraper-ai/output/
+scraper-ai/downloads/
+scraper-ai/temp/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+database/*.db
+database/backup/
+
+# Performance and monitoring
+.DS_Store
+.vscode/settings.json

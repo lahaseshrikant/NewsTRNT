@@ -12,14 +12,14 @@ interface AdminContextType {
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 // Simple admin password - in production, this should be environment variable
-const ADMIN_PASSWORD = 'newsnerve_admin_2025';
+const ADMIN_PASSWORD = 'newstrnt_admin_2025';
 
 export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Check if user is already logged in as admin
-    const adminStatus = localStorage.getItem('newsnerve_admin_session');
+    const adminStatus = localStorage.getItem('newstrnt_admin_session');
     if (adminStatus === 'true') {
       setIsAdmin(true);
     }
@@ -28,7 +28,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const login = (password: string): boolean => {
     if (password === ADMIN_PASSWORD) {
       setIsAdmin(true);
-      localStorage.setItem('newsnerve_admin_session', 'true');
+      localStorage.setItem('newstrnt_admin_session', 'true');
       return true;
     }
     return false;
@@ -36,7 +36,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setIsAdmin(false);
-    localStorage.removeItem('newsnerve_admin_session');
+    localStorage.removeItem('newstrnt_admin_session');
   };
 
   const checkAdminStatus = (): boolean => {

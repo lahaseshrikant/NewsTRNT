@@ -14,7 +14,7 @@
 ```
 Visit: https://supabase.com
 Sign up with GitHub
-Create new project: "newsnerve-db"
+Create new project: "NewsTRNT-db"
 Choose region: US East (closest to Vercel)
 ```
 

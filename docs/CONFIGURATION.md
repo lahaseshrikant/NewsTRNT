@@ -34,12 +34,12 @@ All site configuration is stored in `/src/config/site.ts`
 
 contact: {
   general: {
-    email: "contact@newsnerve.com",     // ← Change here
+    email: "contact@NewsTRNT.com",     // ← Change here
     phone: "+1 (555) 0123",           // ← Change here
   },
   departments: {
     advertising: {
-      email: "advertising@newsnerve.com",  // ← Change here
+      email: "advertising@NewsTRNT.com",  // ← Change here
       phone: "+1 (555) 0124",            // ← Change here
     }
   }
@@ -165,4 +165,4 @@ contact: {
 <ContactInfo department="general" />
 ```
 
-This system makes the NewsNerve platform much easier to maintain and update!
+This system makes the NewsTRNT platform much easier to maintain and update!

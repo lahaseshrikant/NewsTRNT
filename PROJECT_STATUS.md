@@ -1,4 +1,4 @@
-# NewsNerve Platform - Development Status
+# NewsTRNT Platform - Development Status
 
 ## 🎉 Successfully Completed Features
 
@@ -178,7 +178,7 @@ backend/
 
 ## 📈 Ready for Production
 
-The NewsNerve platform is now a **complete, full-featured news website** with:
+The NewsTRNT platform is now a **complete, full-featured news website** with:
 
 - Professional frontend interface
 - Robust backend API

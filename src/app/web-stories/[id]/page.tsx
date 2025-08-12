@@ -448,7 +448,7 @@ const WebStoryViewer: React.FC = () => {
                 {/* Site Branding */}
                 <div className="flex items-center">
                   <div className="text-base font-bold text-white [text-shadow:_1px_1px_3px_rgb(0_0_0_/_70%)]">
-                    NewsNerve
+                    NewsTRNT
                   </div>
                 </div>
 

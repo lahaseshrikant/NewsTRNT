@@ -61,10 +61,10 @@ const AboutPage: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              About NewsNerve
+              About NewsTRNT: The Road Not Taken
             </h1>
             <p className="text-xl md:text-2xl text-blue-100 mb-8">
-              Revolutionizing how you discover, consume, and interact with news through artificial intelligence.
+              Charting alternative paths in journalism - where diverse voices meet intelligent technology to challenge conventional narratives.
             </p>
             <div className="flex items-center justify-center space-x-2 text-blue-200">
               <span>Founded in 2024</span>
@@ -94,7 +94,7 @@ const AboutPage: React.FC = () => {
                   Intelligent News Curation
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  NewsNerve uses advanced AI algorithms to analyze thousands of news sources, 
+                  NewsTRNT uses advanced AI algorithms to analyze thousands of news sources, 
                   identify the most important stories, and personalize them based on your interests. 
                   Our platform ensures you never miss what matters to you while discovering new 
                   perspectives and topics.

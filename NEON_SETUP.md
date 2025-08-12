@@ -4,7 +4,7 @@
 ```
 1. Visit: https://neon.tech
 2. Sign up with GitHub (recommended)
-3. Create new project: "newsnerve-production"
+3. Create new project: "NewsTRNT-production"
 4. Choose region: US East (best for Vercel)
 ```
 

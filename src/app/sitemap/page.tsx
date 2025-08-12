@@ -11,7 +11,7 @@ const SitemapPage: React.FC = () => {
       icon: '🏠',
       links: [
         { name: 'Home', href: '/', description: 'Latest news and personalized feed' },
-        { name: 'About Us', href: '/about', description: 'Learn about NewsNerve mission and team' },
+        { name: 'About Us', href: '/about', description: 'Learn about NewsTRNT mission and team' },
         { name: 'Contact', href: '/contact', description: 'Get in touch with our team' },
         { name: 'Search', href: '/search', description: 'Search news articles and content' },
       ]
@@ -57,7 +57,7 @@ const SitemapPage: React.FC = () => {
       icon: '👤',
       links: [
         { name: 'Sign In', href: '/auth/signin', description: 'Access your personalized news feed' },
-        { name: 'Sign Up', href: '/auth/signup', description: 'Create a new NewsNerve account' },
+        { name: 'Sign Up', href: '/auth/signup', description: 'Create a new NewsTRNT account' },
         { name: 'Profile Settings', href: '/profile', description: 'Manage your account preferences' },
         { name: 'Subscription', href: '/subscription', description: 'Manage your subscription plan' },
         { name: 'Admin Dashboard', href: '/admin', description: 'Administrative tools and analytics' },
@@ -71,7 +71,7 @@ const SitemapPage: React.FC = () => {
         { name: 'Privacy Policy', href: '/privacy', description: 'How we protect your privacy' },
         { name: 'Terms of Service', href: '/terms', description: 'Terms and conditions of use' },
         { name: 'Cookie Policy', href: '/cookies', description: 'Information about our cookie usage' },
-        { name: 'Advertising', href: '/advertise', description: 'Advertise with NewsNerve' },
+        { name: 'Advertising', href: '/advertise', description: 'Advertise with NewsTRNT' },
       ]
     }
   ];
@@ -87,7 +87,7 @@ const SitemapPage: React.FC = () => {
               Site Map
             </h1>
             <p className="text-xl text-muted-foreground">
-              Navigate all pages and sections of NewsNerve
+              Navigate all pages and sections of NewsTRNT
             </p>
           </div>
         </div>

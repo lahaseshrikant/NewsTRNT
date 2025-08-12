@@ -44,16 +44,16 @@ const SignInPage: React.FC = () => {
         <div className="text-center animate-fade-in">
           <Link href="/" className="inline-block group">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-purple-400 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 animate-gradient">
-              ✨ NewsNerve
+              ✨ NewsTRNT
             </h1>
           </Link>
           <h2 className="mt-6 text-3xl font-bold text-gray-800 dark:text-gray-100 animate-bounce-gentle">
             Welcome back! 👋
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Ready to dive back into the news?{' '}
+            Continue your journey on The Road Not Taken{' '}
             <Link href="/auth/signup" className="font-medium bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent hover:from-blue-600 hover:to-purple-600 transition-all duration-300 underline decoration-wavy">
-              or create new account 🚀
+              or start your journey 🚀
             </Link>
           </p>
         </div>
@@ -186,13 +186,13 @@ const SignInPage: React.FC = () => {
           <div className="text-sm text-gray-600">
             New to our amazing platform? 🌟{' '}
             <Link href="/auth/signup" className="font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent hover:from-blue-600 hover:to-purple-600 transition-all duration-300 underline decoration-wavy hover:scale-105 inline-block">
-              Join the NewsNerve family! 🎉
+              Join the NewsTRNT family! 🎉
             </Link>
           </div>
           <div className="text-sm">
             <Link href="/" className="inline-flex items-center text-gray-600 hover:text-purple-600 transition-all duration-300 underline hover:scale-105 group">
               <span className="group-hover:animate-bounce-gentle mr-1">🏠</span>
-              Back to NewsNerve Home
+              Back to NewsTRNT Home
             </Link>
           </div>
         </div>

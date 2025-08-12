@@ -1,12 +1,12 @@
 'use client';
 
-import AdminGuard from '@/components/AdminGuard';
 import LogoManager from '@/components/LogoManager';
+import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
 
 export default function AdminLogoManagerPage() {
   return (
-    <AdminGuard>
+    <UnifiedAdminGuard requireSuperAdmin={true}>
       <LogoManager />
-    </AdminGuard>
+    </UnifiedAdminGuard>
   );
 }

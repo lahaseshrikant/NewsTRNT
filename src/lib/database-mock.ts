@@ -1,4 +1,4 @@
-// Database connection utility for NewsNerve
+// Database connection utility for NewsTRNT
 import { createClient } from '@supabase/supabase-js'
 
 // Supabase configuration (we'll use Neon instead for better PostgreSQL features)
@@ -60,7 +60,7 @@ export const dbApi = {
         summary: 'Researchers announce a major breakthrough in machine learning algorithms that could dramatically improve AI efficiency and real-world applications.',
         content: 'In a groundbreaking development that promises to accelerate the AI revolution, researchers have unveiled a new approach to machine learning...',
         author: 'Tech Reporter',
-        source_name: 'NewsNerve Tech',
+        source_name: 'NewsTRNT Tech',
         source_url: 'https://example.com/ai-news',
         image_url: '/api/placeholder/800/400',
         category_id: 'tech-1',
@@ -86,7 +86,7 @@ export const dbApi = {
         summary: 'World leaders sign historic climate agreement with ambitious carbon reduction targets at Global Climate Summit.',
         content: 'In a historic moment for environmental policy, world leaders at the Global Climate Summit have reached a comprehensive agreement...',
         author: 'Environmental Correspondent',
-        source_name: 'NewsNerve World',
+        source_name: 'NewsTRNT World',
         source_url: 'https://example.com/climate-news',
         image_url: '/api/placeholder/800/400',
         category_id: 'world-1',
@@ -112,7 +112,7 @@ export const dbApi = {
         summary: 'Technology stocks lead market gains as investors show confidence in AI and renewable energy sectors.',
         content: 'The stock market continued its upward trajectory today, with technology stocks leading the charge...',
         author: 'Business Reporter',
-        source_name: 'NewsNerve Business',
+        source_name: 'NewsTRNT Business',
         source_url: 'https://example.com/business-news',
         image_url: '/api/placeholder/800/400',
         category_id: 'business-1',

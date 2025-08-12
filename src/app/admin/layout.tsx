@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname } from 'next/navigation';
-import AdminProtected from '@/components/AdminProtected';
+import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
+import AdminLayoutContent from '@/components/AdminLayoutContent';
 
 export default function AdminLayout({
   children,
@@ -15,10 +16,12 @@ export default function AdminLayout({
     return <>{children}</>;
   }
   
-  // Protect all other admin pages
+  // Protect all other admin pages with unified authentication and layout
   return (
-    <AdminProtected>
-      {children}
-    </AdminProtected>
+    <UnifiedAdminGuard>
+      <AdminLayoutContent>
+        {children}
+      </AdminLayoutContent>
+    </UnifiedAdminGuard>
   );
 }

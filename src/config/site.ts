@@ -1,16 +1,16 @@
 // Site-wide configuration
 export const siteConfig = {
   // Basic Site Information
-  name: "NewsNerve",
-  tagline: "Your world. Your interests. Your news.",
-  description: "AI-powered news platform delivering personalized news experiences",
-  url: "https://newsnerve.com",
+  name: "NewsTRNT",
+  tagline: "The Road Not Taken",
+  description: "AI-powered news platform taking the path others won't - delivering truth, transparency, and the people's voice",
+  url: "https://newstrnt.com",
   
   // Contact Information
   contact: {
     // General Contact
     general: {
-      email: "contact@newsnerve.com",
+      email: "contact@newstrnt.com",
       phone: "+1 (555) 0123",
       address: {
         street: "123 News Street",
@@ -24,32 +24,32 @@ export const siteConfig = {
     // Department-specific Contacts
     departments: {
       advertising: {
-        email: "advertising@newsnerve.com",
+        email: "advertising@newstrnt.com",
         phone: "+1 (555) 0124",
         name: "Advertising Team"
       },
       support: {
-        email: "support@newsnerve.com",
+        email: "support@newstrnt.com",
         phone: "+1 (555) 0125",
         name: "Customer Support"
       },
       editorial: {
-        email: "editorial@newsnerve.com",
+        email: "editorial@newstrnt.com",
         phone: "+1 (555) 0126",
         name: "Editorial Team"
       },
       press: {
-        email: "press@newsnerve.com",
+        email: "press@newstrnt.com",
         phone: "+1 (555) 0127",
         name: "Press Relations"
       },
       careers: {
-        email: "careers@newsnerve.com",
+        email: "careers@newstrnt.com",
         phone: "+1 (555) 0128",
         name: "Human Resources"
       },
       legal: {
-        email: "legal@newsnerve.com",
+        email: "legal@newstrnt.com",
         phone: "+1 (555) 0129",
         name: "Legal Department"
       }
@@ -58,12 +58,12 @@ export const siteConfig = {
 
   // Social Media Links
   social: {
-    twitter: "https://twitter.com/newsnerve",
-    facebook: "https://facebook.com/newsnerve",
-    linkedin: "https://linkedin.com/company/newsnerve",
-    instagram: "https://instagram.com/newsnerve",
-    youtube: "https://youtube.com/@newsnerve",
-    reddit: "https://reddit.com/r/newsnerve"
+    twitter: "https://twitter.com/newstrnt",
+    facebook: "https://facebook.com/newstrnt",
+    linkedin: "https://linkedin.com/company/newstrnt",
+    instagram: "https://instagram.com/newstrnt",
+    youtube: "https://youtube.com/@newstrnt",
+    reddit: "https://reddit.com/r/newstrnt"
   },
 
   // Business Information
@@ -92,7 +92,7 @@ export const siteConfig = {
       documents: ["PDF", "DOC", "DOCX", "TXT"]
     },
     maxFileSize: "10MB",
-    cdn: "https://cdn.newsnerve.com"
+    cdn: "https://cdn.newstrnt.com"
   },
 
   // Analytics & Metrics (for advertising page)

@@ -1,4 +1,4 @@
-# 🚀 NewsNerve Production Deployment Plan
+# 🚀 NewsTRNT Production Deployment Plan
 ## From Dummy Data → Real Platform
 
 ## 🎯 **CURRENT STATUS**
@@ -17,7 +17,7 @@
 #### **Step 1.1: Setup Neon Database (15 minutes)**
 ```bash
 # 1. Go to https://neon.tech (free PostgreSQL database)
-# 2. Create account & new project: "newsnerve-db"
+# 2. Create account & new project: "NewsTRNT-db"
 # 3. Copy connection string (DATABASE_URL)
 # 4. Run schema setup
 ```
@@ -25,7 +25,7 @@
 #### **Step 1.2: Configure Environment (10 minutes)**
 ```bash
 # Update .env.local with real database
-DATABASE_URL="postgresql://user:pass@host:5432/newsnerve"
+DATABASE_URL="postgresql://user:pass@host:5432/NewsTRNT"
 NEXTAUTH_URL="https://your-domain.vercel.app"
 NEXTAUTH_SECRET="your-super-secret-key"
 ```
@@ -87,7 +87,7 @@ python pipeline.py
 ```
 1. Visit: https://neon.tech
 2. Create account (GitHub login recommended)
-3. Create project: "newsnerve-production"
+3. Create project: "NewsTRNT-production"
 4. Copy connection string
 5. Update environment variables
 ```
@@ -245,4 +245,4 @@ Say "YES" and I'll guide you through:
 3. Connecting real data
 4. Activating all features
 
-Your NewsNerve platform is production-ready - let's make it live! 🌟
+Your NewsTRNT platform is production-ready - let's make it live! 🌟

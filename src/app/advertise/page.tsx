@@ -153,7 +153,7 @@ const AdvertisePage: React.FC = () => {
           <Breadcrumb items={[{ label: 'Advertise with Us' }]} className="mb-4" />
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl font-bold text-foreground mb-4">
-              Advertise with NewsNerve
+              Advertise with NewsTRNT
             </h1>
             <p className="text-xl text-muted-foreground">
               Reach millions of engaged readers with our premium advertising solutions
@@ -297,7 +297,7 @@ const AdvertisePage: React.FC = () => {
 
           {/* Why Advertise */}
           <div className="bg-card border border-border rounded-lg p-8 mb-12">
-            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Why Advertise with NewsNerve?</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Why Advertise with NewsTRNT?</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 {

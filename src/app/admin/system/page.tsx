@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
+import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
 
 interface SystemSetting {
   id: string;
@@ -93,7 +94,7 @@ const SystemSettings: React.FC = () => {
       name: 'SMTP Host',
       description: 'SMTP server hostname',
       type: 'string',
-      value: 'smtp.newsnerve.com',
+      value: 'smtp.newstrnt.com',
       placeholder: 'smtp.example.com'
     },
     {
@@ -118,7 +119,7 @@ const SystemSettings: React.FC = () => {
       name: 'Newsletter From Email',
       description: 'Email address used for newsletter campaigns',
       type: 'string',
-      value: 'newsletter@newsnerve.com',
+      value: 'newsletter@newstrnt.com',
       placeholder: 'newsletter@example.com'
     },
 
@@ -447,4 +448,10 @@ const SystemSettings: React.FC = () => {
   );
 };
 
-export default SystemSettings;
+export default function AdminSystemPage() {
+  return (
+    <UnifiedAdminGuard requireSuperAdmin={true}>
+      <SystemSettings />
+    </UnifiedAdminGuard>
+  );
+}

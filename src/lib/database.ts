@@ -1,4 +1,4 @@
-// Database connection utility for NewsNerve
+// Database connection utility for NewsTRNT
 // Supports both local development and production
 
 import { createClient } from '@supabase/supabase-js'

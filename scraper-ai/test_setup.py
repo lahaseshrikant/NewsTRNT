@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for NewsNerve Scraper-AI setup
+Test script for NewsTRNT Scraper-AI setup
 Verifies that all dependencies are properly installed
 """
 
@@ -44,7 +44,7 @@ def test_ai_modules():
 
 def main():
     """Run all tests"""
-    logger.info("🧪 Testing NewsNerve Scraper-AI Setup")
+    logger.info("🧪 Testing NewsTRNT Scraper-AI Setup")
     logger.info("=" * 40)
     
     tests_passed = 0

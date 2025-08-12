@@ -1,4 +1,4 @@
-# NewsNerve Admin Portal - Complete Implementation
+# NewsTRNT Admin Portal - Complete Implementation
 
 ## Overview
 I have successfully created a comprehensive admin portal for your news platform with **10 major sections** and advanced change management capabilities. The admin portal provides complete control over all aspects of your website with a professional interface and real-time preview of changes.

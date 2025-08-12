@@ -27,7 +27,7 @@ const TermsPage: React.FC = () => {
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4 border-b border-border pb-2">1. Acceptance of Terms</h2>
                 <p className="text-muted-foreground leading-relaxed text-justify">
-                  By accessing and using NewsNerve ("the Service"), you accept and agree to be bound by the terms and 
+                  By accessing and using NewsTRNT ("the Service"), you accept and agree to be bound by the terms and 
                   provision of this agreement. These Terms of Service ("Terms") govern your use of our website, mobile 
                   applications, and related services.
                 </p>
@@ -36,7 +36,7 @@ const TermsPage: React.FC = () => {
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4 border-b border-border pb-2">2. Description of Service</h2>
                 <p className="text-muted-foreground leading-relaxed text-justify">
-                  NewsNerve is an AI-powered news aggregation platform that provides users with personalized news content, 
+                  NewsTRNT is an AI-powered news aggregation platform that provides users with personalized news content, 
                   breaking news alerts, and comprehensive coverage across multiple categories including politics, technology, 
                   business, sports, entertainment, health, science, and world news.
                 </p>
@@ -73,7 +73,7 @@ const TermsPage: React.FC = () => {
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4 border-b border-border pb-2">5. Content and Intellectual Property</h2>
                 <p className="text-muted-foreground leading-relaxed text-justify mb-4">
-                  The Service contains content owned by NewsNerve, our users, and third parties. This includes:
+                  The Service contains content owned by NewsTRNT, our users, and third parties. This includes:
                 </p>
                 <ul className="text-muted-foreground space-y-2 ml-6">
                   <li className="leading-relaxed">• News articles and content from various sources</li>
@@ -122,7 +122,7 @@ const TermsPage: React.FC = () => {
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4 border-b border-border pb-2">9. Limitation of Liability</h2>
                 <p className="text-muted-foreground leading-relaxed text-justify">
-                  To the maximum extent permitted by law, NewsNerve shall not be liable for any indirect, incidental, 
+                  To the maximum extent permitted by law, NewsTRNT shall not be liable for any indirect, incidental, 
                   special, consequential, or punitive damages, including but not limited to loss of profits, data, 
                   or other intangible losses resulting from your use of the Service.
                 </p>
@@ -131,7 +131,7 @@ const TermsPage: React.FC = () => {
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4 border-b border-border pb-2">10. Indemnification</h2>
                 <p className="text-muted-foreground leading-relaxed text-justify">
-                  You agree to indemnify and hold harmless NewsNerve, its officers, directors, employees, and agents 
+                  You agree to indemnify and hold harmless NewsTRNT, its officers, directors, employees, and agents 
                   from any claims, damages, obligations, losses, liabilities, costs, or debt, and expenses (including 
                   attorney's fees) arising from your use of the Service or violation of these Terms.
                 </p>
@@ -170,8 +170,8 @@ const TermsPage: React.FC = () => {
                 </p>
                 <div className="bg-muted/50 p-6 rounded-lg border border-border">
                   <div className="space-y-2">
-                    <p className="text-foreground"><strong>Email:</strong> legal@newsnerve.com</p>
-                    <p className="text-foreground"><strong>Address:</strong> NewsNerve Legal Department<br />
+                    <p className="text-foreground"><strong>Email:</strong> legal@newstrnt.com</p>
+                    <p className="text-foreground"><strong>Address:</strong> NewsTRNT Legal Department<br />
                     123 News Street<br />
                     Media City, MC 12345</p>
                     <p className="text-foreground"><strong>Phone:</strong> +1 (555) 123-4567</p>

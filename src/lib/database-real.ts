@@ -1,4 +1,4 @@
-// Real Database API for NewsNerve
+// Real Database API for NewsTRNT
 // Connects to backend API server instead of direct database access
 
 import { config } from './scalable-config';

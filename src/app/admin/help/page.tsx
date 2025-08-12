@@ -85,12 +85,12 @@ const HelpCenter: React.FC = () => {
     {
       id: 'getting-started',
       title: 'Getting Started',
-      description: 'Essential guides to help you set up and start using NewsNerve',
+      description: 'Essential guides to help you set up and start using NewsTRNT',
       icon: '🚀',
       articles: [
         {
           id: '1',
-          title: 'Setting Up Your NewsNerve Admin Panel',
+          title: 'Setting Up Your NewsTRNT Admin Panel',
           description: 'Complete walkthrough of initial setup and configuration',
           readTime: '5 min'
         },
@@ -163,7 +163,7 @@ const HelpCenter: React.FC = () => {
     {
       id: 'advanced',
       title: 'Advanced Features',
-      description: 'Unlock the full potential of NewsNerve platform',
+      description: 'Unlock the full potential of NewsTRNT platform',
       icon: '⚡',
       articles: [
         {
@@ -229,7 +229,7 @@ const HelpCenter: React.FC = () => {
           Help Center
         </h1>
         <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
-          Find answers, guides, and support for your NewsNerve admin panel
+          Find answers, guides, and support for your NewsTRNT admin panel
         </p>
         
         {/* Search */}
@@ -301,7 +301,7 @@ const HelpCenter: React.FC = () => {
             <div className="p-8 border-b border-border/50">
               <h2 className="text-2xl font-bold text-foreground mb-2">📚 User Guides</h2>
               <p className="text-slate-600 dark:text-slate-400">
-                Comprehensive guides to help you make the most of NewsNerve
+                Comprehensive guides to help you make the most of NewsTRNT
               </p>
             </div>
             <div className="p-8">

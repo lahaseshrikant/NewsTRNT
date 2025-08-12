@@ -1,5 +1,5 @@
 """
-AI Module for NewsNerve Platform
+AI Module for NewsTRNT Platform
 Provides topic classification and SEO optimization capabilities
 """
 

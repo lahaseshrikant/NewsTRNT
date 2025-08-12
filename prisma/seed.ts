@@ -82,11 +82,11 @@ async function main() {
   const hashedPassword = await bcrypt.hash('admin123', 12);
   
   const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@newsnerve.com' },
+    where: { email: 'admin@NewsTRNT.com' },
     update: {},
     create: {
-      email: 'admin@newsnerve.com',
-      fullName: 'NewsNerve Admin',
+      email: 'admin@NewsTRNT.com',
+      fullName: 'NewsTRNT Admin',
       passwordHash: hashedPassword,
       isAdmin: true,
       isVerified: true,
@@ -104,10 +104,10 @@ async function main() {
   const testUserPassword = await bcrypt.hash('testuser123', 12);
   
   const testUser = await prisma.user.upsert({
-    where: { email: 'user@newsnerve.com' },
+    where: { email: 'user@NewsTRNT.com' },
     update: {},
     create: {
-      email: 'user@newsnerve.com',
+      email: 'user@NewsTRNT.com',
       username: 'testuser',
       fullName: 'Test User',
       passwordHash: testUserPassword,
@@ -311,8 +311,8 @@ The trend shows no signs of slowing, with industry experts predicting we could s
 
   console.log('🌱 Database seed completed successfully!');
   console.log('\n📋 Login Credentials:');
-  console.log('Admin: admin@newsnerve.com / admin123');
-  console.log('User: user@newsnerve.com / testuser123');
+  console.log('Admin: admin@NewsTRNT.com / admin123');
+  console.log('User: user@NewsTRNT.com / testuser123');
 }
 
 main()

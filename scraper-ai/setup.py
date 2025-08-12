@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for NewsNerve Scraper-AI module
+Setup script for NewsTRNT Scraper-AI module
 Handles dependency installation with fallbacks for problematic packages
 """
 
@@ -35,7 +35,7 @@ def install_package_with_fallback(primary_package, fallback_package=None, descri
 
 def main():
     """Main setup function"""
-    print("🚀 Setting up NewsNerve Scraper-AI Environment")
+    print("🚀 Setting up NewsTRNT Scraper-AI Environment")
     print("=" * 50)
     
     # Upgrade pip first

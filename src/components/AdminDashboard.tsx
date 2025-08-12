@@ -100,9 +100,9 @@ const AdminDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white mb-8">
-            <h2 className="text-3xl font-bold mb-2">Welcome to Admin Panel</h2>
+            <h2 className="text-3xl font-bold mb-2">Welcome to NewsTRNT Admin</h2>
             <p className="text-blue-100 text-lg">
-              Manage your NewsNerve platform with powerful admin tools
+              The Road Not Taken - Manage your platform with powerful admin tools
             </p>
           </div>
 

@@ -343,7 +343,7 @@ const CareersPage: React.FC = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Why Join NewsNerve?</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Why Join NewsTRNT?</h2>
             <p className="text-muted-foreground">We take care of our team so they can take care of our mission</p>
           </div>
 
@@ -441,7 +441,7 @@ const CareersPage: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="mailto:careers@newsnerve.com"
+                href="mailto:careers@NewsTRNT.com"
                 className="bg-primary-foreground text-primary px-8 py-3 rounded-lg hover:bg-primary-foreground/90 transition-colors font-medium"
               >
                 Send Us Your Resume

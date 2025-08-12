@@ -186,7 +186,7 @@ const Header = () => {
   // Load saved logo on component mount and listen for changes
   useEffect(() => {
     // Load saved logo from localStorage
-    const savedLogo = localStorage.getItem('newsnerve-active-logo');
+    const savedLogo = localStorage.getItem('NewsTRNT-active-logo');
     if (savedLogo) {
       try {
         const logoConfig = JSON.parse(savedLogo);
@@ -203,7 +203,7 @@ const Header = () => {
 
     // Listen for storage changes (cross-tab updates)
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'newsnerve-active-logo' && event.newValue) {
+      if (event.key === 'NewsTRNT-active-logo' && event.newValue) {
         try {
           const logoConfig = JSON.parse(event.newValue);
           setCurrentLogo({ ...defaultLogo, ...logoConfig });
@@ -498,14 +498,14 @@ const Header = () => {
             {/* Logo */}
             <div className="flex items-center flex-shrink-0">
               <Link href="/" className="flex items-center space-x-2">
-                {/* Dynamic NewsNerve Logo */}
+                {/* Dynamic NewsTRNT Logo */}
                 {renderDynamicLogo()}
                 <div className="hidden sm:flex flex-col">
                   <h1 className="text-lg xl:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    NewsNerve
+                    NewsTRNT
                   </h1>
                   <p className="text-xs text-muted-foreground -mt-1">
-                    Your world. Your interests. Your news.
+                    The Road Not Taken
                   </p>
                 </div>
               </Link>
@@ -893,7 +893,7 @@ const Header = () => {
                             className="block px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            ✨ Join NewsNerve
+                            ✨ Join NewsTRNT
                           </Link>
                           
                           <div className="border-t dark:border-gray-700 my-1"></div>
@@ -903,7 +903,7 @@ const Header = () => {
                             className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            ℹ️ About NewsNerve
+                            ℹ️ About NewsTRNT
                           </Link>
                         </div>
                       </>
@@ -1082,7 +1082,7 @@ const Header = () => {
                         className="block px-3 py-2 text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        ✨ Join NewsNerve
+                        ✨ Join NewsTRNT
                       </Link>
                     </>
                   )}

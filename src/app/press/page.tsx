@@ -10,43 +10,43 @@ const PressPage: React.FC = () => {
   const pressReleases = [
     {
       id: 1,
-      title: 'NewsNerve Raises $50M Series B to Revolutionize AI-Powered News Curation',
+      title: 'NewsTRNT Raises $50M Series B to Revolutionize AI-Powered News Curation',
       date: '2024-01-15',
       category: 'funding',
       excerpt: 'Leading news platform secures funding to expand AI capabilities and global reach, serving millions of users worldwide.',
-      downloadUrl: '/press/newsnerve-series-b-announcement.pdf'
+      downloadUrl: '/press/NewsTRNT-series-b-announcement.pdf'
     },
     {
       id: 2,
-      title: 'NewsNerve Launches Advanced AI Fact-Checking Feature',
+      title: 'NewsTRNT Launches Advanced AI Fact-Checking Feature',
       date: '2024-01-10',
       category: 'product',
       excerpt: 'New AI-powered fact-checking system helps users identify misinformation and verify news sources in real-time.',
-      downloadUrl: '/press/newsnerve-fact-checking-launch.pdf'
+      downloadUrl: '/press/NewsTRNT-fact-checking-launch.pdf'
     },
     {
       id: 3,
-      title: 'NewsNerve Partners with Global News Organizations for Enhanced Coverage',
+      title: 'NewsTRNT Partners with Global News Organizations for Enhanced Coverage',
       date: '2024-01-05',
       category: 'partnerships',
       excerpt: 'Strategic partnerships with leading news outlets expand content library and improve global news coverage.',
-      downloadUrl: '/press/newsnerve-global-partnerships.pdf'
+      downloadUrl: '/press/NewsTRNT-global-partnerships.pdf'
     },
     {
       id: 4,
-      title: 'NewsNerve Named "Best News App" by Tech Innovation Awards 2024',
+      title: 'NewsTRNT Named "Best News App" by Tech Innovation Awards 2024',
       date: '2023-12-20',
       category: 'awards',
       excerpt: 'Recognition for outstanding innovation in AI-powered news curation and personalization technology.',
-      downloadUrl: '/press/newsnerve-tech-innovation-award.pdf'
+      downloadUrl: '/press/NewsTRNT-tech-innovation-award.pdf'
     },
     {
       id: 5,
-      title: 'NewsNerve Surpasses 10 Million Active Users Milestone',
+      title: 'NewsTRNT Surpasses 10 Million Active Users Milestone',
       date: '2023-12-15',
       category: 'milestones',
       excerpt: 'Platform growth accelerates as more users adopt AI-curated news consumption for personalized information.',
-      downloadUrl: '/press/newsnerve-10m-users-milestone.pdf'
+      downloadUrl: '/press/NewsTRNT-10m-users-milestone.pdf'
     }
   ];
 
@@ -55,25 +55,25 @@ const PressPage: React.FC = () => {
       title: 'Company Logos',
       description: 'High-resolution PNG and SVG logos in various formats',
       items: ['Primary Logo', 'Icon Only', 'Wordmark', 'White Version'],
-      downloadUrl: '/media-kit/newsnerve-logos.zip'
+      downloadUrl: '/media-kit/NewsTRNT-logos.zip'
     },
     {
       title: 'Brand Guidelines',
       description: 'Complete brand identity and usage guidelines',
       items: ['Color Palette', 'Typography', 'Logo Usage', 'Brand Voice'],
-      downloadUrl: '/media-kit/newsnerve-brand-guidelines.pdf'
+      downloadUrl: '/media-kit/NewsTRNT-brand-guidelines.pdf'
     },
     {
       title: 'Product Screenshots',
       description: 'High-quality screenshots of our platform and features',
       items: ['Desktop App', 'Mobile App', 'Admin Dashboard', 'API Interface'],
-      downloadUrl: '/media-kit/newsnerve-screenshots.zip'
+      downloadUrl: '/media-kit/NewsTRNT-screenshots.zip'
     },
     {
       title: 'Executive Photos',
       description: 'Professional headshots of leadership team',
       items: ['CEO Portrait', 'CTO Portrait', 'Team Photos', 'Event Photos'],
-      downloadUrl: '/media-kit/newsnerve-executive-photos.zip'
+      downloadUrl: '/media-kit/NewsTRNT-executive-photos.zip'
     }
   ];
 
@@ -110,21 +110,21 @@ const PressPage: React.FC = () => {
       title: 'CEO & Co-founder',
       bio: 'Former VP of Product at major tech company with 15+ years in media and technology. Expert in product strategy and AI implementation.',
       photo: '/api/placeholder/200/200',
-      contact: 'sarah.chen@newsnerve.com'
+      contact: 'sarah.chen@NewsTRNT.com'
     },
     {
       name: 'Marcus Johnson',
       title: 'CTO & Co-founder',
       bio: 'AI researcher with 10+ years experience at Google and OpenAI. Leading expert in natural language processing and machine learning.',
       photo: '/api/placeholder/200/200',
-      contact: 'marcus.johnson@newsnerve.com'
+      contact: 'marcus.johnson@NewsTRNT.com'
     },
     {
       name: 'Elena Rodriguez',
       title: 'VP of Engineering',
       bio: 'Full-stack engineer and tech lead with expertise in scalable systems. Previously built infrastructure at Netflix and Spotify.',
       photo: '/api/placeholder/200/200',
-      contact: 'elena.rodriguez@newsnerve.com'
+      contact: 'elena.rodriguez@NewsTRNT.com'
     }
   ];
 
@@ -160,11 +160,11 @@ const PressPage: React.FC = () => {
               Press & Media
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Latest news, press releases, and media resources from NewsNerve
+              Latest news, press releases, and media resources from NewsTRNT
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="mailto:press@newsnerve.com"
+                href="mailto:press@NewsTRNT.com"
                 className="bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
               >
                 Media Inquiries
@@ -184,7 +184,7 @@ const PressPage: React.FC = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">NewsNerve by the Numbers</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">NewsTRNT by the Numbers</h2>
             <p className="text-muted-foreground">Our impact on the news industry</p>
           </div>
 
@@ -274,7 +274,7 @@ const PressPage: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Media Kit</h2>
-            <p className="text-muted-foreground">Everything you need to cover NewsNerve</p>
+            <p className="text-muted-foreground">Everything you need to cover NewsTRNT</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -385,14 +385,14 @@ const PressPage: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="font-semibold mb-1">Press Contact</h3>
-                    <a href="mailto:press@newsnerve.com" className="text-primary-foreground/80 hover:text-primary-foreground">
-                      press@newsnerve.com
+                    <a href="mailto:press@NewsTRNT.com" className="text-primary-foreground/80 hover:text-primary-foreground">
+                      press@NewsTRNT.com
                     </a>
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">General Inquiries</h3>
-                    <a href="mailto:media@newsnerve.com" className="text-primary-foreground/80 hover:text-primary-foreground">
-                      media@newsnerve.com
+                    <a href="mailto:media@NewsTRNT.com" className="text-primary-foreground/80 hover:text-primary-foreground">
+                      media@NewsTRNT.com
                     </a>
                   </div>
                   <div>

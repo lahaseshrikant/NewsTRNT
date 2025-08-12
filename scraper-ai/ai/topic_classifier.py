@@ -1,5 +1,5 @@
 """
-Topic Classifier for NewsNerve Platform
+Topic Classifier for NewsTRNT Platform
 Classifies news articles into appropriate categories using ML
 """
 
