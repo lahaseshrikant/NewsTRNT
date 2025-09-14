@@ -1,22 +1,22 @@
 // src/app/api/admin/simple-auth/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import SimpleAdminAuth from '@/lib/simple-admin-auth';
+import UnifiedAdminAuth from '@/lib/unified-admin-auth';
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password, action } = await request.json();
 
     if (action === 'login') {
-      const result = SimpleAdminAuth.login(email, password);
+      const result = UnifiedAdminAuth.login(email, password);
       
-      if (result.success) {
+      if (result.success && result.session) {
         return NextResponse.json({
           success: true,
           message: 'Admin login successful',
           admin: {
-            email: result.session?.email,
-            isAdmin: result.session?.isAdmin,
-            isSuperAdmin: result.session?.isSuperAdmin
+            email: result.session.email,
+            isAdmin: result.session.role === 'ADMIN' || result.session.role === 'SUPER_ADMIN',
+            isSuperAdmin: result.session.role === 'SUPER_ADMIN'
           }
         });
       } else {
@@ -28,21 +28,21 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'verify') {
-      const { isAuthenticated, session } = SimpleAdminAuth.isAuthenticated();
+      const { isAuthenticated, session } = UnifiedAdminAuth.isAuthenticated();
       
       return NextResponse.json({
         success: true,
         isAuthenticated,
-        admin: isAuthenticated ? {
-          email: session?.email,
-          isAdmin: session?.isAdmin,
-          isSuperAdmin: session?.isSuperAdmin
+        admin: isAuthenticated && session ? {
+          email: session.email,
+          isAdmin: session.role === 'ADMIN' || session.role === 'SUPER_ADMIN',
+          isSuperAdmin: session.role === 'SUPER_ADMIN'
         } : null
       });
     }
 
     if (action === 'logout') {
-      SimpleAdminAuth.logout();
+      UnifiedAdminAuth.logout();
       return NextResponse.json({
         success: true,
         message: 'Admin logout successful'
@@ -65,15 +65,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const { isAuthenticated, session } = SimpleAdminAuth.isAuthenticated();
+    const { isAuthenticated, session } = UnifiedAdminAuth.isAuthenticated();
     
     return NextResponse.json({
       success: true,
       isAuthenticated,
-      admin: isAuthenticated ? {
-        email: session?.email,
-        isAdmin: session?.isAdmin,
-        isSuperAdmin: session?.isSuperAdmin
+      admin: isAuthenticated && session ? {
+        email: session.email,
+        isAdmin: session.role === 'ADMIN' || session.role === 'SUPER_ADMIN',
+        isSuperAdmin: session.role === 'SUPER_ADMIN'
       } : null
     });
   } catch (error) {

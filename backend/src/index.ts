@@ -9,6 +9,8 @@ import compression from 'compression';
 import authRoutes from './routes/auth';
 import articleRoutes from './routes/articles';
 import categoryRoutes from './routes/categories';
+import healthRoutes from './routes/health';
+import debugRoutes from './routes/debug';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -38,8 +40,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api', healthRoutes);
+app.use('/api/debug', debugRoutes);
 
-// Health check
+// Health check (legacy endpoint for compatibility)
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK',
@@ -57,14 +61,11 @@ app.use('*', (req, res) => {
 });
 
 app.listen(PORT, async () => {
-  // Initialize database connection
-  try {
-    await initializeDatabase();
-  } catch (error) {
-    console.error('Failed to initialize database:', error);
-    process.exit(1);
-  }
+  // Initialize database connection (graceful failure)
+  await initializeDatabase();
   
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`� Detailed health: http://localhost:${PORT}/api/health`);
+  console.log(`🏓 Ping test: http://localhost:${PORT}/api/ping`);
 });

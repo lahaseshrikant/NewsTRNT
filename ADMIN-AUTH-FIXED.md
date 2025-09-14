@@ -61,10 +61,10 @@ The system had **two conflicting authentication systems** running in parallel:
 - `src/components/SimpleAdminGuard.tsx` - Updated credential display
 
 ## 🎯 **Testing:**
-1. Go to: `http://localhost:3001/admin/login`
+1. Go to: `http://localhost:3000/admin/login`
 2. Enter: `admin@NewsTRNT.com` / `NewsTRNT!Admin#2025`
-3. Should redirect to: `http://localhost:3001/admin`
-4. Can access: `http://localhost:3001/admin/logo-history`
+3. Should redirect to: `http://localhost:3000/admin`
+4. Can access: `http://localhost:3000/admin/logo-history`
 5. No more "access denied" or login loops!
 
 ## 🔄 **For Future Development:**

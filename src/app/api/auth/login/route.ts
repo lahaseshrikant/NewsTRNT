@@ -1,6 +1,6 @@
 // src/app/api/auth/login/route.ts - Simple login endpoint
 import { NextRequest, NextResponse } from 'next/server';
-import SimpleAdminAuth from '@/lib/simple-admin-auth';
+import UnifiedAdminAuth from '@/lib/unified-admin-auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,24 +15,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Attempt authentication using SimpleAdminAuth
-    const result = SimpleAdminAuth.login(email, password);
+    // Attempt authentication using UnifiedAdminAuth
+    const result = UnifiedAdminAuth.login(email, password);
 
-    if (result.success) {
+    if (result.success && result.session) {
       // Create a basic token for compatibility with existing frontend
       const token = Buffer.from(JSON.stringify({
-        email: result.session?.email,
-        isAdmin: result.session?.isAdmin,
-        loginTime: result.session?.loginTime
+        email: result.session.email,
+        role: result.session.role,
+        userId: result.session.userId,
+        sessionId: result.session.sessionId,
+        loginTime: result.session.loginTime
       })).toString('base64');
 
       const response = NextResponse.json({
         success: true,
         token,
         user: {
-          email: result.session?.email,
-          isAdmin: result.session?.isAdmin,
-          isSuperAdmin: result.session?.isSuperAdmin
+          email: result.session.email,
+          isAdmin: result.session.role === 'ADMIN' || result.session.role === 'SUPER_ADMIN',
+          isSuperAdmin: result.session.role === 'SUPER_ADMIN'
         }
       });
       

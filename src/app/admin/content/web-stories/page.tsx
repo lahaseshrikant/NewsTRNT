@@ -464,7 +464,7 @@ const WebStoriesAdmin: React.FC = () => {
                           View
                         </Link>
                         <Link
-                          href={`/admin/content/web-stories/${story.id}/edit`}
+                          href={`/admin/content/web-stories/create?id=${story.id}`}
                           className="text-green-600 hover:text-green-800 text-sm"
                         >
                           Edit

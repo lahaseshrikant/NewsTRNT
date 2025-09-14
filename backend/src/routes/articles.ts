@@ -6,105 +6,35 @@ import { z } from 'zod';
 
 const router = Router();
 
-// Validation schemas
-const createArticleSchema = z.object({
-  title: z.string().min(10).max(200),
-  content: z.string().min(100),
-  summary: z.string().min(50).max(500),
-  categoryId: z.string().uuid(),
-  tags: z.array(z.string()).optional(),
-  imageUrl: z.string().url().optional(),
-  isBreaking: z.boolean().optional().default(false),
-  isPublished: z.boolean().optional().default(true)
-});
+// Simple UUID v4 format check (lenient – accepts any 36-char hex+hyphen pattern)
+const looksLikeUUID = (id: string | undefined): boolean => !!id && /^[0-9a-fA-F-]{36}$/.test(id);
 
-const updateArticleSchema = createArticleSchema.partial();
-
-// GET /api/articles/featured - Get featured articles
-router.get('/featured', optionalAuth, async (req: AuthRequest, res) => {
-  try {
-    const { limit = '5' } = req.query;
-    const limitNum = parseInt(limit as string);
-
-    const articles = await prisma.article.findMany({
-      where: {
-        isPublished: true,
-        isFeatured: true
-      },
-      orderBy: [
-        { publishedAt: 'desc' },
-        { viewCount: 'desc' }
-      ],
-      take: limitNum,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            color: true
-          }
-        },
-        createdByUser: {
-          select: {
-            id: true,
-            fullName: true,
-            avatarUrl: true
-          }
-        },
-        tags: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                slug: true
-              }
-            }
-          }
-        },
-        _count: {
-          select: {
-            comments: true,
-            savedByUsers: true,
-            interactions: true
-          }
-        }
-      }
-    });
-
-    // Transform the data
-    const transformedArticles = articles.map((article: any) => ({
-      ...article,
-      author: article.createdByUser,
-      tags: article.tags.map((t: any) => t.tag),
-      commentCount: article._count.comments,
-      saveCount: article._count.savedByUsers,
-      interactionCount: article._count.interactions
-    }));
-
-    return res.json({
-      articles: transformedArticles,
-      total: transformedArticles.length
-    });
-  } catch (error) {
-    console.error('Error fetching featured articles:', error);
-    return res.status(500).json({ error: 'Failed to fetch featured articles' });
+// Helper function to determine article status
+const getArticleStatus = (publishedAt: Date | null, isPublished: boolean): string => {
+  if (!isPublished) {
+    return 'draft';
   }
-});
+  if (publishedAt && publishedAt > new Date()) {
+    return 'scheduled';
+  }
+  return 'published';
+};
 
-// GET /api/articles - Get all articles with filtering and pagination
-router.get('/', optionalAuth, async (req: AuthRequest, res) => {
+// GET /api/articles/admin - Get all articles for admin (including drafts) - Admin only
+router.get('/admin', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    if (!req.user?.isAdmin) {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+
     const {
       page = '1',
       limit = '20',
       category,
-      tags,
+      status,
       search,
-      breaking,
-      trending,
-      sortBy = 'publishedAt',
+      sortBy = 'updatedAt',
       sortOrder = 'desc'
     } = req.query;
 
@@ -113,26 +43,591 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
     const skip = (pageNum - 1) * limitNum;
 
     // Build where clause
-    const where: any = {
-      isPublished: true
-    };
+    const where: any = {};
 
-    if (category) {
+    if (category && category !== 'all') {
       where.category = {
         slug: category as string
       };
     }
 
-    if (tags) {
-      const tagArray = (tags as string).split(',');
-      where.tags = {
-        some: {
-          tag: {
-            slug: {
-              in: tagArray
+    if (status && status !== 'all') {
+      if (status === 'draft') {
+        where.isPublished = false;
+      } else if (status === 'published') {
+        where.AND = [
+          { isPublished: true },
+          { publishedAt: { lte: new Date() } }
+        ];
+      } else if (status === 'scheduled') {
+        where.AND = [
+          { isPublished: true },
+          { publishedAt: { gt: new Date() } }
+        ];
+      }
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { content: { contains: search as string, mode: 'insensitive' } },
+        { summary: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+
+    // Get articles with relations
+    const articles = await prisma.article.findMany({
+      where,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        },
+        createdByUser: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        },
+        tags: {
+          include: {
+            tag: {
+              select: {
+                name: true
+              }
             }
           }
         }
+      },
+      orderBy: {
+        [sortBy as string]: sortOrder
+      },
+      skip,
+      take: limitNum
+    });
+
+    // Get total count for pagination
+    const total = await prisma.article.count({ where });
+
+    // Transform the response
+    const transformedArticles = articles.map(article => ({
+      ...article,
+      status: getArticleStatus(article.publishedAt, article.isPublished),
+      author: article.createdByUser || { fullName: 'Unknown' },
+      tags: article.tags.map((articleTag: any) => articleTag.tag.name)
+    }));
+
+    res.json({
+      success: true,
+      articles: transformedArticles,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+        hasNext: pageNum < Math.ceil(total / limitNum),
+        hasPrev: pageNum > 1
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    res.status(500).json({ error: 'Failed to fetch articles' });
+  }
+});
+
+// GET /api/articles/admin/drafts - Get draft articles for admin - Admin only
+router.get('/admin/drafts', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user?.isAdmin) {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+
+    const {
+      page = '1',
+      limit = '20',
+      search,
+      sortBy = 'updatedAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Only get unpublished articles (drafts)
+    const where: any = { isPublished: false };
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { content: { contains: search as string, mode: 'insensitive' } },
+        { summary: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+
+    const articles = await prisma.article.findMany({
+      where,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        },
+        createdByUser: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        },
+        tags: {
+          include: {
+            tag: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        [sortBy as string]: sortOrder
+      },
+      skip,
+      take: limitNum
+    });
+
+    const total = await prisma.article.count({ where });
+
+    const transformedArticles = articles.map(article => ({
+      ...article,
+      status: 'draft',
+      author: article.createdByUser || { fullName: 'Unknown' },
+      tags: article.tags.map((articleTag: any) => articleTag.tag.name)
+    }));
+
+    res.json({
+      success: true,
+      articles: transformedArticles,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+        hasNext: pageNum < Math.ceil(total / limitNum),
+        hasPrev: pageNum > 1
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching drafts:', error);
+    res.status(500).json({ error: 'Failed to fetch drafts' });
+  }
+});
+
+// POST /api/articles/admin - Create new article - Admin only
+router.post('/admin', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user?.isAdmin) {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+
+    const {
+      title,
+      content,
+      summary,
+      categoryId,
+      imageUrl,
+      tags = [],
+      isPublished = false,
+      publishedAt = null,
+      isFeatured = false,
+      isTrending = false,
+      isBreaking = false
+    } = req.body;
+
+    if (!title) {
+      res.status(400).json({ error: 'Title is required' });
+      return;
+    }
+
+    // Generate slug from title
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') + '-' + Date.now();
+
+    // Only set createdBy if the authenticated user exists in DB (avoid FK error when using dev fallback tokens)
+    let createdByData: { createdBy?: string } = {};
+    if (req.user?.id && looksLikeUUID(req.user.id)) {
+      const dbUser = await prisma.user.findUnique({ where: { id: req.user.id }, select: { id: true } });
+      if (dbUser) {
+        createdByData.createdBy = dbUser.id;
+      } else {
+        console.warn('[articles:create] Skipping createdBy – user id not found in DB:', req.user.id);
+      }
+    } else if (req.user?.id) {
+      console.warn('[articles:create] Skipping createdBy – token user id not valid UUID:', req.user.id);
+    }
+
+    const article = await prisma.article.create({
+      data: {
+        title,
+        slug,
+        content,
+        summary,
+        categoryId,
+        imageUrl,
+        isPublished,
+        publishedAt: publishedAt ? new Date(publishedAt) : null,
+        isFeatured,
+        isTrending,
+        isBreaking,
+        ...createdByData,
+      },
+      include: {
+        category: true,
+        createdByUser: { 
+          select: { 
+            id: true, 
+            fullName: true 
+          } 
+        },
+        tags: {
+          include: {
+            tag: { 
+              select: { 
+                name: true 
+              } 
+            }
+          }
+        }
+      }
+    });
+
+    // Handle tags if provided
+    if (tags.length > 0) {
+      for (const tagName of tags) {
+        // Find or create tag
+        let tag = await prisma.tag.findUnique({
+          where: { name: tagName }
+        });
+
+        if (!tag) {
+          const tagSlug = tagName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+          tag = await prisma.tag.create({
+            data: {
+              name: tagName,
+              slug: tagSlug
+            }
+          });
+        }
+
+        // Create article-tag relationship
+        await prisma.articleTag.create({
+          data: {
+            articleId: article.id,
+            tagId: tag.id
+          }
+        });
+      }
+    }
+
+    const transformedArticle = {
+      ...article,
+      status: getArticleStatus(article.publishedAt, article.isPublished),
+      author: article.createdByUser,
+      tags: tags
+    };
+
+    res.status(201).json({
+      success: true,
+      article: transformedArticle
+    });
+
+  } catch (error) {
+    console.error('Error creating article:', error);
+    res.status(500).json({ error: 'Failed to create article' });
+  }
+});
+
+// PUT /api/articles/admin/:id - Update article - Admin only
+router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res): Promise<void> => {
+  try {
+    if (!req.user?.isAdmin) {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+
+    const { id } = req.params;
+    const {
+      title,
+      content,
+      summary,
+      categoryId,
+      imageUrl,
+      tags = [],
+      isPublished = false,
+      publishedAt = null,
+      isFeatured = false,
+      isTrending = false,
+      isBreaking = false
+    } = req.body;
+
+    if (!title) {
+      res.status(400).json({ error: 'Title is required' });
+      return;
+    }
+
+    // Check if article exists
+    const existingArticle = await prisma.article.findUnique({
+      where: { id }
+    });
+
+    if (!existingArticle) {
+      res.status(404).json({ error: 'Article not found' });
+      return;
+    }
+
+    // Update slug if title changed
+    let slug = existingArticle.slug;
+    if (existingArticle.title !== title) {
+      slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '') + '-' + Date.now();
+    }
+
+    // Guard updatedBy similar to createdBy
+    let updatedByData: { updatedBy?: string } = {};
+    if (req.user?.id && looksLikeUUID(req.user.id)) {
+      const dbUser = await prisma.user.findUnique({ where: { id: req.user.id }, select: { id: true } });
+      if (dbUser) {
+        updatedByData.updatedBy = dbUser.id;
+      } else {
+        console.warn('[articles:update] Skipping updatedBy – user id not found in DB:', req.user.id);
+      }
+    } else if (req.user?.id) {
+      console.warn('[articles:update] Skipping updatedBy – token user id not valid UUID:', req.user.id);
+    }
+
+    const article = await prisma.article.update({
+      where: { id },
+      data: {
+        title,
+        slug,
+        content,
+        summary,
+        categoryId,
+        imageUrl,
+        isPublished,
+        publishedAt: publishedAt ? new Date(publishedAt) : null,
+        isFeatured,
+        isTrending,
+        isBreaking,
+        ...updatedByData,
+      },
+      include: {
+        category: true,
+        createdByUser: { 
+          select: { 
+            id: true, 
+            fullName: true 
+          } 
+        },
+        tags: {
+          include: {
+            tag: { 
+              select: { 
+                name: true 
+              } 
+            }
+          }
+        }
+      }
+    });
+
+    // Update tags - remove existing and add new ones
+    await prisma.articleTag.deleteMany({
+      where: { articleId: id }
+    });
+
+    if (tags.length > 0) {
+      for (const tagName of tags) {
+        let tag = await prisma.tag.findUnique({
+          where: { name: tagName }
+        });
+
+        if (!tag) {
+          const tagSlug = tagName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+          tag = await prisma.tag.create({
+            data: {
+              name: tagName,
+              slug: tagSlug
+            }
+          });
+        }
+
+        await prisma.articleTag.create({
+          data: {
+            articleId: article.id,
+            tagId: tag.id
+          }
+        });
+      }
+    }
+
+    const transformedArticle = {
+      ...article,
+      status: getArticleStatus(article.publishedAt, article.isPublished),
+      author: article.createdByUser,
+      tags: tags
+    };
+
+    res.json({
+      success: true,
+      article: transformedArticle
+    });
+
+  } catch (error: any) {
+    console.error('Error updating article:', error);
+    const prismaCode = error?.code;
+    if (prismaCode === 'P2003') {
+      res.status(400).json({ error: 'Invalid user reference for updatedBy/createdBy (foreign key)' });
+      return;
+    }
+    res.status(500).json({ error: 'Failed to update article' });
+  }
+});
+
+// GET /api/articles/admin/:id - Get single article by ID - Admin only
+router.get('/admin/:id', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user?.isAdmin) {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+
+    const { id } = req.params;
+
+    const article = await prisma.article.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        createdByUser: { 
+          select: { 
+            id: true, 
+            fullName: true 
+          } 
+        },
+        tags: {
+          include: {
+            tag: { 
+              select: { 
+                name: true 
+              } 
+            }
+          }
+        }
+      }
+    });
+
+    if (!article) {
+      res.status(404).json({ error: 'Article not found' });
+      return;
+    }
+
+    const transformedArticle = {
+      ...article,
+      status: getArticleStatus(article.publishedAt, article.isPublished),
+      author: article.createdByUser,
+      tags: article.tags.map((articleTag: any) => articleTag.tag.name)
+    };
+
+    res.json({
+      success: true,
+      article: transformedArticle
+    });
+
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    res.status(500).json({ error: 'Failed to fetch article' });
+  }
+});
+
+// DELETE /api/articles/admin/:id - Delete article - Admin only
+router.delete('/admin/:id', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user?.isAdmin) {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+
+    const { id } = req.params;
+
+    // Check if article exists
+    const existingArticle = await prisma.article.findUnique({
+      where: { id }
+    });
+
+    if (!existingArticle) {
+      res.status(404).json({ error: 'Article not found' });
+      return;
+    }
+
+    // Delete associated tags first
+    await prisma.articleTag.deleteMany({
+      where: { articleId: id }
+    });
+
+    // Delete the article
+    await prisma.article.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Article deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting article:', error);
+    res.status(500).json({ error: 'Failed to delete article' });
+  }
+});
+
+// GET /api/articles - Get published articles for public (no auth required)
+router.get('/', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    const {
+      page = '1',
+      limit = '10',
+      category,
+      search,
+      sortBy = 'publishedAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Only show published articles that are not scheduled
+    const where: any = {
+      isPublished: true,
+      publishedAt: { lte: new Date() }
+    };
+
+    if (category && category !== 'all') {
+      where.category = {
+        slug: category as string
       };
     }
 
@@ -144,77 +639,50 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
       ];
     }
 
-    if (breaking === 'true') {
-      where.isBreaking = true;
-    }
-
-    // Build orderBy clause
-    let orderBy: any = {};
-    if (trending === 'true') {
-      orderBy = [
-        { viewCount: 'desc' },
-        { publishedAt: 'desc' }
-      ];
-    } else {
-      orderBy[sortBy as string] = sortOrder as string;
-    }
-
-    const [articles, total] = await Promise.all([
-      prisma.article.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limitNum,
-        include: {
-          category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              color: true
-            }
-          },
-          createdByUser: {
-            select: {
-              id: true,
-              fullName: true,
-              avatarUrl: true
-            }
-          },
-          tags: {
-            include: {
-              tag: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true
-                }
+    const articles = await prisma.article.findMany({
+      where,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        },
+        createdByUser: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        },
+        tags: {
+          include: {
+            tag: {
+              select: {
+                name: true
               }
-            }
-          },
-          _count: {
-            select: {
-              comments: true,
-              savedByUsers: true,
-              interactions: true
             }
           }
         }
-      }),
-      prisma.article.count({ where })
-    ]);
+      },
+      orderBy: {
+        [sortBy as string]: sortOrder
+      },
+      skip,
+      take: limitNum
+    });
 
-    // Transform the data
-    const transformedArticles = articles.map((article: any) => ({
+    const total = await prisma.article.count({ where });
+
+    const transformedArticles = articles.map(article => ({
       ...article,
-      author: article.createdByUser,
-      tags: article.tags.map((t: any) => t.tag),
-      commentCount: article._count.comments,
-      saveCount: article._count.savedByUsers,
-      interactionCount: article._count.interactions
+      status: 'published',
+      author: article.createdByUser || { fullName: 'Unknown' },
+      tags: article.tags.map((articleTag: any) => articleTag.tag.name)
     }));
 
-    return res.json({
+    res.json({
+      success: true,
       articles: transformedArticles,
       pagination: {
         page: pageNum,
@@ -225,484 +693,70 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
         hasPrev: pageNum > 1
       }
     });
+
   } catch (error) {
     console.error('Error fetching articles:', error);
-    return res.status(500).json({ error: 'Failed to fetch articles' });
+    res.status(500).json({ error: 'Failed to fetch articles' });
   }
 });
 
-// GET /api/articles/:id - Get single article
-router.get('/:id', optionalAuth, async (req: AuthRequest, res) => {
+// GET /api/articles/:slug - Get single published article by slug (no auth required)
+router.get('/:slug', optionalAuth, async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
+    const { slug } = req.params;
 
     const article = await prisma.article.findUnique({
-      where: { id },
+      where: { 
+        slug,
+        isPublished: true,
+        publishedAt: { lte: new Date() }
+      },
       include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            color: true
-          }
-        },
-        createdByUser: {
-          select: {
-            id: true,
-            fullName: true,
-            username: true,
-            avatarUrl: true
-          }
+        category: true,
+        createdByUser: { 
+          select: { 
+            id: true, 
+            fullName: true 
+          } 
         },
         tags: {
           include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                slug: true
-              }
+            tag: { 
+              select: { 
+                name: true 
+              } 
             }
-          }
-        },
-        comments: {
-          take: 10,
-          where: {
-            isApproved: true,
-            parentId: null
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                username: true,
-                avatarUrl: true
-              }
-            },
-            replies: {
-              take: 5,
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    fullName: true,
-                    username: true,
-                    avatarUrl: true
-                  }
-                }
-              },
-              orderBy: {
-                createdAt: 'asc'
-              }
-            }
-          },
-          orderBy: {
-            createdAt: 'desc'
-          }
-        },
-        _count: {
-          select: {
-            comments: true,
-            savedByUsers: true,
-            interactions: true
           }
         }
       }
     });
 
     if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    if (!article.isPublished && (!req.user || !req.user.isAdmin)) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    // Track view if user is authenticated
-    if (req.user) {
-      await prisma.userInteraction.upsert({
-        where: {
-          userId_articleId_interactionType: {
-            userId: req.user.id,
-            articleId: article.id,
-            interactionType: 'VIEW'
-          }
-        },
-        update: {},
-        create: {
-          userId: req.user.id,
-          articleId: article.id,
-          interactionType: 'VIEW'
-        }
-      });
-
-      // Update reading history
-      await prisma.readingHistory.upsert({
-        where: {
-          userId_articleId: {
-            userId: req.user.id,
-            articleId: article.id
-          }
-        },
-        update: {
-          readAt: new Date(),
-          scrollPercentage: 100
-        },
-        create: {
-          userId: req.user.id,
-          articleId: article.id,
-          readingTime: 0,
-          scrollPercentage: 0
-        }
-      });
+      res.status(404).json({ error: 'Article not found' });
+      return;
     }
 
     // Increment view count
     await prisma.article.update({
-      where: { id },
-      data: {
-        viewCount: {
-          increment: 1
-        }
-      }
-    });
-
-    // Get related articles
-    const relatedArticles = await prisma.article.findMany({
-      take: 5,
-      where: {
-        AND: [
-          { id: { not: article.id } },
-          { isPublished: true },
-          {
-            OR: [
-              { categoryId: article.categoryId },
-              {
-                tags: {
-                  some: {
-                    tag: {
-                      slug: {
-                        in: article.tags.map((t: any) => t.tag.slug)
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            color: true
-          }
-        },
-        createdByUser: {
-          select: {
-            id: true,
-            fullName: true,
-            avatarUrl: true
-          }
-        }
-      },
-      orderBy: {
-        publishedAt: 'desc'
-      }
+      where: { id: article.id },
+      data: { viewCount: { increment: 1 } }
     });
 
     const transformedArticle = {
       ...article,
+      status: 'published',
       author: article.createdByUser,
-      tags: article.tags.map((t: any) => t.tag),
-      commentCount: article._count.comments,
-      saveCount: article._count.savedByUsers,
-      interactionCount: article._count.interactions,
-      relatedArticles
+      tags: article.tags.map((articleTag: any) => articleTag.tag.name)
     };
 
-    return res.json(transformedArticle);
+    res.json({
+      success: true,
+      article: transformedArticle
+    });
 
   } catch (error) {
     console.error('Error fetching article:', error);
-    return res.status(500).json({ error: 'Failed to fetch article' });
-  }
-});
-
-// POST /api/articles - Create new article (Admin only)
-router.post('/', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    if (!req.user?.isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
-    const validatedData = createArticleSchema.parse(req.body);
-    const { tags, ...articleData } = validatedData; // Separate tags from article data
-    
-    // Generate slug from title
-    const slug = validatedData.title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .substring(0, 100);
-
-    // Check if slug already exists
-    const existingArticle = await prisma.article.findUnique({
-      where: { slug }
-    });
-
-    if (existingArticle) {
-      return res.status(400).json({ error: 'An article with this title already exists' });
-    }
-
-    const article = await prisma.article.create({
-      data: {
-        title: articleData.title,
-        content: articleData.content,
-        summary: articleData.summary,
-        slug,
-        categoryId: articleData.categoryId,
-        imageUrl: articleData.imageUrl,
-        isBreaking: articleData.isBreaking || false,
-        isPublished: articleData.isPublished !== false, // Default to true
-        createdBy: req.user.id,
-        readingTime: Math.ceil(validatedData.content.length / 1000),
-        publishedAt: articleData.isPublished !== false ? new Date() : null
-      },
-      include: {
-        category: true,
-        createdByUser: {
-          select: {
-            id: true,
-            fullName: true,
-            avatarUrl: true
-          }
-        }
-      }
-    });
-
-    // Handle tags
-    if (tags && tags.length > 0) {
-      for (const tagName of tags) {
-        const tagSlug = tagName.toLowerCase().replace(/\s+/g, '-');
-        
-        // Find or create tag
-        const tag = await prisma.tag.upsert({
-          where: { slug: tagSlug },
-          update: {
-            usageCount: {
-              increment: 1
-            }
-          },
-          create: {
-            name: tagName,
-            slug: tagSlug,
-            usageCount: 1
-          }
-        });
-
-        // Link tag to article
-        await prisma.articleTag.create({
-          data: {
-            articleId: article.id,
-            tagId: tag.id
-          }
-        });
-      }
-    }
-
-    return res.status(201).json(article);
-  } catch (error) {
-    console.error('Error creating article:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', details: error.errors });
-    }
-    return res.status(500).json({ error: 'Failed to create article' });
-  }
-});
-
-// PUT /api/articles/:id - Update article (Admin only)
-router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    if (!req.user?.isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
-    const { id } = req.params;
-    const validatedData = updateArticleSchema.parse(req.body);
-
-    const existingArticle = await prisma.article.findUnique({
-      where: { id }
-    });
-
-    if (!existingArticle) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    const updateData: any = {
-      ...validatedData,
-      updatedBy: req.user.id
-    };
-
-    if (validatedData.title && validatedData.title !== existingArticle.title) {
-      updateData.slug = validatedData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .substring(0, 100);
-    }
-
-    if (validatedData.content) {
-      updateData.readingTime = Math.ceil(validatedData.content.length / 1000);
-    }
-
-    const article = await prisma.article.update({
-      where: { id },
-      data: updateData,
-      include: {
-        category: true,
-        createdByUser: {
-          select: {
-            id: true,
-            fullName: true,
-            avatarUrl: true
-          }
-        }
-      }
-    });
-
-    return res.json(article);
-  } catch (error) {
-    console.error('Error updating article:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', details: error.errors });
-    }
-    return res.status(500).json({ error: 'Failed to update article' });
-  }
-});
-
-// DELETE /api/articles/:id - Delete article (Admin only)
-router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    if (!req.user?.isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
-    const { id } = req.params;
-
-    const article = await prisma.article.findUnique({
-      where: { id }
-    });
-
-    if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    await prisma.article.delete({
-      where: { id }
-    });
-
-    return res.json({ message: 'Article deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting article:', error);
-    return res.status(500).json({ error: 'Failed to delete article' });
-  }
-});
-
-// POST /api/articles/:id/save - Save/unsave article
-router.post('/:id/save', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user!.id;
-
-    const article = await prisma.article.findUnique({
-      where: { id, isPublished: true }
-    });
-
-    if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    const existingSave = await prisma.savedArticle.findUnique({
-      where: {
-        userId_articleId: {
-          userId,
-          articleId: id
-        }
-      }
-    });
-
-    if (existingSave) {
-      // Unsave article
-      await prisma.savedArticle.delete({
-        where: {
-          userId_articleId: {
-            userId,
-            articleId: id
-          }
-        }
-      });
-      return res.json({ saved: false, message: 'Article removed from saved list' });
-    } else {
-      // Save article
-      await prisma.savedArticle.create({
-        data: {
-          userId,
-          articleId: id
-        }
-      });
-      return res.json({ saved: true, message: 'Article saved successfully' });
-    }
-  } catch (error) {
-    console.error('Error saving/unsaving article:', error);
-    return res.status(500).json({ error: 'Failed to save/unsave article' });
-  }
-});
-
-// POST /api/articles/:id/interact - Record user interaction (like, share, etc.)
-router.post('/:id/interact', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    const { id } = req.params;
-    const { type } = req.body; // LIKE, SHARE, COMMENT
-    const userId = req.user!.id;
-
-    if (!['LIKE', 'SHARE', 'COMMENT'].includes(type)) {
-      return res.status(400).json({ error: 'Invalid interaction type' });
-    }
-
-    const article = await prisma.article.findUnique({
-      where: { id, isPublished: true }
-    });
-
-    if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    await prisma.userInteraction.upsert({
-      where: {
-        userId_articleId_interactionType: {
-          userId,
-          articleId: id,
-          interactionType: type
-        }
-      },
-      update: {},
-      create: {
-        userId,
-        articleId: id,
-        interactionType: type
-      }
-    });
-
-    return res.json({ message: 'Interaction recorded successfully' });
-  } catch (error) {
-    console.error('Error recording interaction:', error);
-    return res.status(500).json({ error: 'Failed to record interaction' });
+    res.status(500).json({ error: 'Failed to fetch article' });
   }
 });
 

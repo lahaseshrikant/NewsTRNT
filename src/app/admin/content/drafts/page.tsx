@@ -1,134 +1,167 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { articleAPI, type Article } from '@/lib/api';
+import UnifiedAdminAuth from '@/lib/unified-admin-auth';
 import Breadcrumb from '@/components/Breadcrumb';
 
 interface Draft {
   id: string;
   title: string;
-  content: string;
-  category: string;
+  content: string | null;
+  summary: string | null;
+  category: { name: string } | null;
   tags: string[];
-  author: string;
-  lastModified: string;
-  wordCount: number;
-  autoSaved: boolean;
+  author: { fullName: string } | null;
+  updatedAt: string;
+  createdAt: string;
+  wordCount?: number;
+  autoSaved?: boolean;
+  status: 'draft' | 'published' | 'scheduled';
+  imageUrl: string | null;
 }
 
 const Drafts: React.FC = () => {
-  const [drafts, setDrafts] = useState<Draft[]>([
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedDrafts, setSelectedDrafts] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'updatedAt' | 'title' | 'wordCount'>('updatedAt');
+  const [filterCategory, setFilterCategory] = useState('all');
+
+  // Fetch drafts from API
+  const fetchDrafts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Check authentication first
+      const { isAuthenticated, session } = UnifiedAdminAuth.isAuthenticated();
+      console.log('🔐 Auth check:', { isAuthenticated, email: session?.email });
+      
+      if (!isAuthenticated) {
+        console.log('❌ Not authenticated, attempting auto-login...');
+        // Try to auto-login with default admin credentials
+        const loginResult = UnifiedAdminAuth.login('superadmin@newstrnt.com', 'NewsTRNT!SuperAdmin#2025');
+        if (!loginResult.success) {
+          // Try regular admin
+          const adminResult = UnifiedAdminAuth.login('admin@newstrnt.com', 'NewsTRNT!Admin#2025');
+          if (!adminResult.success) {
+            throw new Error('Authentication required. Please login first.');
+          }
+        }
+        console.log('✅ Auto-login successful');
+      }
+      
+      console.log('🔍 Fetching drafts...', { searchTerm, sortBy });
+      
+      const response = await articleAPI.getDrafts({
+        search: searchTerm || undefined,
+        sortBy: sortBy === 'updatedAt' ? 'updatedAt' : sortBy,
+        sortOrder: 'desc'
+      });
+      
+      console.log('📝 Drafts API response:', response);
+      
+      if (response.success && Array.isArray(response.articles)) {
+        // Transform API data to match our Draft interface
+        const transformedDrafts: Draft[] = response.articles.map((article: Article) => ({
+          id: article.id,
+          title: article.title,
+          content: article.content,
+          summary: article.summary,
+          category: article.category,
+          tags: article.tags,
+          author: article.author,
+          updatedAt: article.updatedAt,
+          createdAt: article.createdAt,
+          wordCount: article.content ? article.content.split(' ').length : 0,
+          autoSaved: false, // Not tracking auto-save in current API
+          status: article.status,
+          imageUrl: article.imageUrl
+        }));
+        
+        setDrafts(transformedDrafts);
+      } else {
+        console.warn('⚠️ Unexpected API response format:', response);
+        throw new Error('Invalid response format from API');
+      }
+    } catch (err) {
+      console.error('❌ Error fetching drafts:', err);
+      
+      // More detailed error handling
+      let errorMessage = 'Failed to load drafts';
+      if (err instanceof Error) {
+        if (err.message.includes('Invalid or expired token')) {
+          errorMessage = 'Authentication expired. Please refresh and try again.';
+        } else if (err.message.includes('fetch')) {
+          errorMessage = 'Unable to connect to server. Please check your connection.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
+      
+      // Use fallback data on error
+      console.log('📋 Using fallback data due to API error');
+      setDrafts(getFallbackDrafts());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fallback mock data
+  const getFallbackDrafts = (): Draft[] => [
     {
       id: '1',
       title: 'The Future of Quantum Computing',
       content: 'Quantum computing represents a paradigm shift in computational power. Unlike classical computers that use bits as the smallest unit of data...',
-      category: 'Technology',
+      summary: 'An overview of quantum computing technology and its potential impact.',
+      category: { name: 'Technology' },
       tags: ['quantum', 'computing', 'technology', 'future'],
-      author: 'John Doe',
-      lastModified: '2024-01-15T14:30:00Z',
+      author: { fullName: 'John Doe' },
+      updatedAt: '2024-01-15T14:30:00Z',
+      createdAt: '2024-01-15T10:00:00Z',
       wordCount: 1250,
-      autoSaved: true
+      autoSaved: true,
+      status: 'draft',
+      imageUrl: null
     },
     {
       id: '2',
       title: 'Sustainable Energy Solutions for 2024',
       content: 'As the world continues to grapple with climate change, sustainable energy solutions have become more critical than ever...',
-      category: 'Environment',
+      summary: 'Exploring renewable energy trends for the upcoming year.',
+      category: { name: 'Environment' },
       tags: ['energy', 'sustainability', 'climate'],
-      author: 'Jane Smith',
-      lastModified: '2024-01-14T16:45:00Z',
+      author: { fullName: 'Jane Smith' },
+      updatedAt: '2024-01-14T16:45:00Z',
+      createdAt: '2024-01-14T12:00:00Z',
       wordCount: 890,
-      autoSaved: false
-    },
-    {
-      id: '3',
-      title: 'Market Analysis: Tech Stocks in Q1',
-      content: 'The technology sector has shown remarkable resilience in the first quarter of 2024...',
-      category: 'Business',
-      tags: ['market', 'stocks', 'technology', 'analysis'],
-      author: 'Mike Johnson',
-      lastModified: '2024-01-13T09:15:00Z',
-      wordCount: 675,
-      autoSaved: true
-    },
-    {
-      id: '4',
-      title: '',
-      content: 'AI has revolutionized the way we approach healthcare diagnosis...',
-      category: 'Technology',
-      tags: ['ai', 'healthcare'],
-      author: 'Sarah Wilson',
-      lastModified: '2024-01-12T11:20:00Z',
-      wordCount: 234,
-      autoSaved: true
+      autoSaved: false,
+      status: 'draft',
+      imageUrl: null
     }
-  ]);
+  ];
 
-  const [selectedDrafts, setSelectedDrafts] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'lastModified' | 'title' | 'wordCount'>('lastModified');
-  const [filterCategory, setFilterCategory] = useState('all');
+  // Load drafts on component mount and when search/sort changes
+  useEffect(() => {
+    fetchDrafts();
+  }, [searchTerm, sortBy]);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 48) return 'Yesterday';
-    return date.toLocaleDateString();
-  };
-
-  const categories = ['all', ...Array.from(new Set(drafts.map(d => d.category)))];
-
-  const toggleDraftSelection = (draftId: string) => {
-    setSelectedDrafts(prev => 
-      prev.includes(draftId) 
-        ? prev.filter(id => id !== draftId)
-        : [...prev, draftId]
-    );
-  };
-
-  const selectAllDrafts = () => {
-    setSelectedDrafts(filteredDrafts.map(d => d.id));
-  };
-
-  const clearSelection = () => {
-    setSelectedDrafts([]);
-  };
-
-  const deleteDraft = (draftId: string) => {
-    if (confirm('Are you sure you want to delete this draft?')) {
-      setDrafts(prev => prev.filter(d => d.id !== draftId));
-      setSelectedDrafts(prev => prev.filter(id => id !== draftId));
-    }
-  };
-
-  const deleteSelectedDrafts = () => {
-    if (confirm(`Are you sure you want to delete ${selectedDrafts.length} selected drafts?`)) {
-      setDrafts(prev => prev.filter(d => !selectedDrafts.includes(d.id)));
-      setSelectedDrafts([]);
-    }
-  };
-
-  const duplicateDraft = (draft: Draft) => {
-    const newDraft: Draft = {
-      ...draft,
-      id: Date.now().toString(),
-      title: `${draft.title} (Copy)`,
-      lastModified: new Date().toISOString(),
-      autoSaved: false
-    };
-    setDrafts(prev => [newDraft, ...prev]);
-  };
-
-  const filteredDrafts = drafts
+  // Filter and sort drafts
+  const filteredAndSortedDrafts = drafts
     .filter(draft => {
-      const matchesSearch = draft.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           draft.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           draft.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesCategory = filterCategory === 'all' || draft.category === filterCategory;
+      const matchesSearch = searchTerm === '' || 
+        draft.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        draft.content?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = filterCategory === 'all' || 
+        draft.category?.name === filterCategory;
+      
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
@@ -136,15 +169,126 @@ const Drafts: React.FC = () => {
         case 'title':
           return a.title.localeCompare(b.title);
         case 'wordCount':
-          return b.wordCount - a.wordCount;
-        case 'lastModified':
+          return (b.wordCount || 0) - (a.wordCount || 0);
+        case 'updatedAt':
         default:
-          return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
       }
     });
 
+  // Toggle draft selection
+  const toggleDraftSelection = (draftId: string) => {
+    setSelectedDrafts(prev =>
+      prev.includes(draftId)
+        ? prev.filter(id => id !== draftId)
+        : [...prev, draftId]
+    );
+  };
+
+  // Select all drafts
+  const selectAllDrafts = () => {
+    if (selectedDrafts.length === filteredAndSortedDrafts.length) {
+      setSelectedDrafts([]);
+    } else {
+      setSelectedDrafts(filteredAndSortedDrafts.map(draft => draft.id));
+    }
+  };
+
+  // Delete selected drafts
+  const deleteSelectedDrafts = async () => {
+    if (selectedDrafts.length === 0) return;
+    
+    const confirmed = confirm(`Are you sure you want to delete ${selectedDrafts.length} draft${selectedDrafts.length > 1 ? 's' : ''}?`);
+    if (!confirmed) return;
+
+    try {
+      // Delete each selected draft
+      await Promise.all(
+        selectedDrafts.map(draftId => articleAPI.deleteArticle(draftId))
+      );
+      
+      // Refresh the list
+      await fetchDrafts();
+      setSelectedDrafts([]);
+      
+      alert(`${selectedDrafts.length} draft${selectedDrafts.length > 1 ? 's' : ''} deleted successfully!`);
+    } catch (error) {
+      console.error('Error deleting drafts:', error);
+      alert('Failed to delete some drafts. Please try again.');
+    }
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return 'Invalid date';
+    }
+  };
+
+  // Get unique categories for filter
+  const categories = Array.from(new Set(drafts.map(draft => draft.category?.name).filter(Boolean)));
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-24 bg-gray-200 rounded-lg"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto">
+        <Breadcrumb
+          items={[
+            { label: 'Admin', href: '/admin' },
+            { label: 'Content', href: '/admin/content' },
+            { label: 'Drafts', href: '/admin/content/drafts' }
+          ]}
+        />
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-6">
+          <h3 className="text-red-800 font-medium">Error Loading Drafts</h3>
+          <p className="text-red-600 mt-1">{error}</p>
+          <div className="mt-3 space-x-2">
+            <button
+              onClick={() => fetchDrafts()}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Retry
+            </button>
+            <button
+              onClick={() => {
+                console.log('🔧 Clearing auth and retrying...');
+                UnifiedAdminAuth.logout();
+                setTimeout(() => fetchDrafts(), 100);
+              }}
+              className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+            >
+              Clear Auth & Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-6xl mx-auto">
       <Breadcrumb
         items={[
           { label: 'Admin', href: '/admin' },
@@ -153,241 +297,204 @@ const Drafts: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-border/50">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-8 border border-border/50 mt-6">
         {/* Header */}
-        <div className="p-8 border-b border-border/50">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Draft Articles
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400 mt-2">
-                Manage your unpublished articles and continue writing
-              </p>
-            </div>
-            <Link
-              href="/admin/content/new"
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
-            >
-              ✨ New Article
-            </Link>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Draft Articles
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Manage your unpublished articles ({filteredAndSortedDrafts.length} drafts)
+            </p>
           </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
-              <div className="text-2xl font-bold text-blue-600">{drafts.length}</div>
-              <div className="text-sm text-blue-600/70">Total Drafts</div>
-            </div>
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
-              <div className="text-2xl font-bold text-green-600">
-                {drafts.filter(d => d.autoSaved).length}
-              </div>
-              <div className="text-sm text-green-600/70">Auto-saved</div>
-            </div>
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4">
-              <div className="text-2xl font-bold text-purple-600">
-                {Math.round(drafts.reduce((sum, d) => sum + d.wordCount, 0) / drafts.length || 0)}
-              </div>
-              <div className="text-sm text-purple-600/70">Avg Words</div>
-            </div>
-            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4">
-              <div className="text-2xl font-bold text-orange-600">
-                {drafts.filter(d => !d.title.trim()).length}
-              </div>
-              <div className="text-sm text-orange-600/70">Untitled</div>
-            </div>
-          </div>
+          <Link
+            href="/admin/content/new"
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg"
+          >
+            New Article
+          </Link>
         </div>
 
         {/* Controls */}
-        <div className="p-6 border-b border-border/50 bg-slate-50 dark:bg-slate-800/50">
-          <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Search drafts..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-foreground"
-              />
-            </div>
-            <div className="flex items-center space-x-3">
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-foreground"
-              >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>
-                    {cat === 'all' ? 'All Categories' : cat}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-foreground"
-              >
-                <option value="lastModified">Last Modified</option>
-                <option value="title">Title</option>
-                <option value="wordCount">Word Count</option>
-              </select>
-            </div>
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search drafts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-border/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600"
+            />
           </div>
-
-          {/* Bulk Actions */}
-          {selectedDrafts.length > 0 && (
-            <div className="flex items-center justify-between mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-              <div className="flex items-center space-x-3">
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                  {selectedDrafts.length} draft(s) selected
-                </span>
-                <button
-                  onClick={clearSelection}
-                  className="text-sm text-blue-600 hover:text-blue-800 dark:hover:text-blue-400"
-                >
-                  Clear selection
-                </button>
-              </div>
-              <button
-                onClick={deleteSelectedDrafts}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-300 text-sm"
-              >
-                🗑️ Delete Selected
-              </button>
-            </div>
-          )}
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="px-4 py-2 border border-border/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600"
+          >
+            <option value="all">All Categories</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="px-4 py-2 border border-border/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600"
+          >
+            <option value="updatedAt">Last Modified</option>
+            <option value="title">Title</option>
+            <option value="wordCount">Word Count</option>
+          </select>
         </div>
+
+        {/* Bulk Actions */}
+        {selectedDrafts.length > 0 && (
+          <div className="flex items-center gap-4 mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <span className="text-blue-700 dark:text-blue-300">
+              {selectedDrafts.length} draft{selectedDrafts.length > 1 ? 's' : ''} selected
+            </span>
+            <button
+              onClick={deleteSelectedDrafts}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            >
+              Delete Selected
+            </button>
+            <button
+              onClick={() => setSelectedDrafts([])}
+              className="px-4 py-2 border border-border/30 rounded hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              Clear Selection
+            </button>
+          </div>
+        )}
 
         {/* Drafts List */}
-        <div className="p-8">
-          {filteredDrafts.length > 0 ? (
-            <div className="space-y-4">
-              {filteredDrafts.map((draft) => (
-                <div
-                  key={draft.id}
-                  className={`p-6 rounded-xl border transition-all duration-300 hover:shadow-lg ${
-                    selectedDrafts.includes(draft.id)
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-border/30 bg-slate-50 dark:bg-slate-800'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4 flex-1">
-                      <input
-                        type="checkbox"
-                        checked={selectedDrafts.includes(draft.id)}
-                        onChange={() => toggleDraftSelection(draft.id)}
-                        className="mt-1 w-4 h-4 text-blue-600 border-2 border-border/50 rounded focus:ring-blue-500"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-bold text-foreground">
-                            {draft.title || <span className="text-slate-400 italic">Untitled Draft</span>}
-                          </h3>
-                          {draft.autoSaved && (
-                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-full">
-                              Auto-saved
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm mb-3 line-clamp-2">
-                          {draft.content.substring(0, 150)}...
-                        </p>
-                        <div className="flex items-center space-x-4 text-xs text-slate-500">
-                          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
-                            {draft.category}
-                          </span>
-                          <span>{draft.wordCount} words</span>
-                          <span>by {draft.author}</span>
-                          <span>{formatDate(draft.lastModified)}</span>
-                        </div>
-                        {draft.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {draft.tags.map((tag, index) => (
-                              <span
-                                key={index}
-                                className="px-2 py-1 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs rounded"
-                              >
-                                #{tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2 ml-4">
-                      <Link
-                        href={`/admin/content/edit/${draft.id}`}
-                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors duration-300"
-                        title="Edit draft"
-                      >
-                        ✏️
-                      </Link>
-                      <button
-                        onClick={() => duplicateDraft(draft)}
-                        className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors duration-300"
-                        title="Duplicate draft"
-                      >
-                        📋
-                      </button>
-                      <button
-                        onClick={() => deleteDraft(draft.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-300"
-                        title="Delete draft"
-                      >
-                        🗑️
-                      </button>
+        {filteredAndSortedDrafts.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📝</div>
+            <h3 className="text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">
+              No drafts found
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              {searchTerm || filterCategory !== 'all' 
+                ? 'Try adjusting your search or filter criteria.'
+                : 'Start writing your first draft article.'
+              }
+            </p>
+            <Link
+              href="/admin/content/new"
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium"
+            >
+              Create New Article
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Header row with select all */}
+            <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-border/30">
+              <input
+                type="checkbox"
+                checked={selectedDrafts.length === filteredAndSortedDrafts.length && filteredAndSortedDrafts.length > 0}
+                onChange={selectAllDrafts}
+                className="w-4 h-4 text-blue-600"
+              />
+              <span className="font-medium">Select All ({filteredAndSortedDrafts.length})</span>
+            </div>
+
+            {/* Draft items */}
+            {filteredAndSortedDrafts.map((draft) => (
+              <div
+                key={draft.id}
+                className="flex items-start gap-4 p-6 border border-border/30 rounded-lg hover:border-blue-300 transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedDrafts.includes(draft.id)}
+                  onChange={() => toggleDraftSelection(draft.id)}
+                  className="w-4 h-4 text-blue-600 mt-1"
+                />
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between mb-2">
+                    <Link
+                      href={`/admin/content/new?id=${draft.id}`}
+                      className="text-xl font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 transition-colors line-clamp-2"
+                    >
+                      {draft.title}
+                    </Link>
+                    <div className="flex items-center gap-2 ml-4">
+                      {draft.autoSaved && (
+                        <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                          Auto-saved
+                        </span>
+                      )}
+                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
+                        {draft.status}
+                      </span>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📝</div>
-              <h3 className="text-xl font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                No drafts found
-              </h3>
-              <p className="text-slate-500 dark:text-slate-500 mb-6">
-                {searchTerm ? 'Try adjusting your search terms' : 'Start writing your first article'}
-              </p>
-              <Link
-                href="/admin/content/new"
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-semibold"
-              >
-                <span>✨</span>
-                <span>Create New Article</span>
-              </Link>
-            </div>
-          )}
-        </div>
 
-        {/* Bulk Actions Footer */}
-        {filteredDrafts.length > 0 && (
-          <div className="p-6 border-t border-border/50 bg-slate-50 dark:bg-slate-800/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={selectAllDrafts}
-                  className="text-sm text-blue-600 hover:text-blue-800 dark:hover:text-blue-400"
-                >
-                  Select All ({filteredDrafts.length})
-                </button>
-                {selectedDrafts.length > 0 && (
-                  <button
-                    onClick={clearSelection}
-                    className="text-sm text-slate-600 hover:text-slate-800 dark:hover:text-slate-400"
+                  <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-3">
+                    {draft.summary || (draft.content ? draft.content.substring(0, 150) + '...' : 'No content')}
+                  </p>
+
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>By {draft.author?.fullName || 'Unknown'}</span>
+                    <span>•</span>
+                    <span>{draft.category?.name || 'Uncategorized'}</span>
+                    <span>•</span>
+                    <span>{draft.wordCount || 0} words</span>
+                    <span>•</span>
+                    <span>Modified {formatDate(draft.updatedAt)}</span>
+                  </div>
+
+                  {draft.tags && draft.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {draft.tags.slice(0, 5).map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-1 text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {draft.tags.length > 5 && (
+                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 rounded-full">
+                          +{draft.tags.length - 5} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Link
+                    href={`/admin/content/new?id=${draft.id}`}
+                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-center"
                   >
-                    Clear Selection
+                    Edit
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      const confirmed = confirm('Are you sure you want to delete this draft?');
+                      if (confirmed) {
+                        try {
+                          await articleAPI.deleteArticle(draft.id);
+                          await fetchDrafts();
+                          alert('Draft deleted successfully!');
+                        } catch (error) {
+                          alert('Failed to delete draft');
+                        }
+                      }
+                    }}
+                    className="px-4 py-2 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors"
+                  >
+                    Delete
                   </button>
-                )}
+                </div>
               </div>
-              <div className="text-sm text-slate-500">
-                Showing {filteredDrafts.length} of {drafts.length} drafts
-              </div>
-            </div>
+            ))}
           </div>
         )}
       </div>

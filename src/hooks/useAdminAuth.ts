@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import SimpleAdminAuth from '@/lib/simple-admin-auth';
+import UnifiedAdminAuth from '@/lib/unified-admin-auth';
 
 interface User {
   id: string;
@@ -29,19 +29,19 @@ export const useAdminAuth = () => {
 
   const verifyAdminAuth = () => {
     try {
-      const { isAuthenticated, session } = SimpleAdminAuth.isAuthenticated();
+      const { isAuthenticated, session } = UnifiedAdminAuth.isAuthenticated();
       
       if (isAuthenticated && session) {
         setAuthState({
           isAuthenticated: true,
-          isAdmin: session.isAdmin,
+          isAdmin: session.role === 'ADMIN' || session.role === 'SUPER_ADMIN',
           user: {
-            id: 'admin-user',
+            id: session.userId,
             email: session.email,
             name: session.email.split('@')[0],
-            fullName: session.isSuperAdmin ? 'Super Admin' : 'Admin',
-            isAdmin: session.isAdmin,
-            isSuperAdmin: session.isSuperAdmin
+            fullName: session.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin',
+            isAdmin: session.role === 'ADMIN' || session.role === 'SUPER_ADMIN',
+            isSuperAdmin: session.role === 'SUPER_ADMIN'
           },
           loading: false,
         });
@@ -69,7 +69,7 @@ export const useAdminAuth = () => {
   }, []);
 
   const logout = () => {
-    SimpleAdminAuth.logout();
+    UnifiedAdminAuth.logout();
     setAuthState({
       isAuthenticated: false,
       isAdmin: false,

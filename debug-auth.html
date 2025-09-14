@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Auth</title>
+</head>
+<body>
+    <h1>Authentication Debug</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        // Check localStorage
+        const sessionData = localStorage.getItem('unified_admin_session');
+        output.innerHTML += '<h2>Session Data:</h2>';
+        output.innerHTML += '<pre>' + (sessionData || 'No session found') + '</pre>';
+        
+        // Test UnifiedAdminAuth login
+        output.innerHTML += '<h2>Test Login:</h2>';
+        output.innerHTML += '<button onclick="testLogin()">Login as admin</button>';
+        output.innerHTML += '<div id="loginResult"></div>';
+        
+        function testLogin() {
+            // Simulate the UnifiedAdminAuth login
+            const session = {
+                userId: 'admin-001',
+                email: 'admin@newstrnt.com',
+                role: 'ADMIN',
+                permissions: ['content.read', 'content.write', 'content.delete', 'content.publish'],
+                loginTime: Date.now(),
+                expiresAt: Date.now() + (24 * 60 * 60 * 1000),
+                sessionId: 'sess_' + Date.now()
+            };
+            
+            localStorage.setItem('unified_admin_session', JSON.stringify(session));
+            document.getElementById('loginResult').innerHTML = '<p>Logged in! Session stored.</p>';
+            
+            // Test token generation
+            const tokenData = {
+                email: session.email,
+                role: session.role,
+                userId: session.userId,
+                sessionId: session.sessionId,
+                timestamp: Date.now()
+            };
+            
+            const token = btoa(JSON.stringify(tokenData));
+            output.innerHTML += '<h2>Generated Token:</h2>';
+            output.innerHTML += '<pre>' + token + '</pre>';
+            
+            // Test API call
+            fetch('http://localhost:5000/api/articles/admin/drafts', {
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                output.innerHTML += '<h2>API Response:</h2>';
+                output.innerHTML += '<pre>' + data + '</pre>';
+            })
+            .catch(error => {
+                output.innerHTML += '<h2>API Error:</h2>';
+                output.innerHTML += '<pre>' + error + '</pre>';
+            });
+        }
+    </script>
+</body>
+</html>

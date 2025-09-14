@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import UnifiedAdminAuth from '@/lib/unified-admin-auth';
+import AdminJWTBridge from '@/lib/admin-jwt-bridge';
 
 export default function AdminLogin() {
   const [credentials, setCredentials] = useState({
@@ -33,10 +34,19 @@ export default function AdminLogin() {
     setError('');
 
     try {
+      // First authenticate with the existing system
       const result = UnifiedAdminAuth.login(credentials.email, credentials.password);
 
       if (result.success) {
-        router.push('/admin');
+        // Generate JWT token for backend API access
+        const jwtResult = await AdminJWTBridge.login(credentials.email, credentials.password);
+        
+        if (jwtResult.success) {
+          // Both authentication systems are now ready
+          router.push('/admin');
+        } else {
+          setError('Authentication successful, but backend connection failed. Please try again.');
+        }
       } else {
         setError(result.error || 'Login failed');
       }

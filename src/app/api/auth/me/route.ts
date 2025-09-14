@@ -1,6 +1,6 @@
 // src/app/api/auth/me/route.ts - Get current user endpoint
 import { NextRequest, NextResponse } from 'next/server';
-import SimpleAdminAuth from '@/lib/simple-admin-auth';
+import UnifiedAdminAuth from '@/lib/unified-admin-auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       const userData = JSON.parse(Buffer.from(token, 'base64').toString());
       
       // Verify the user is still authenticated
-      const { isAuthenticated, session } = SimpleAdminAuth.isAuthenticated();
+      const { isAuthenticated, session } = UnifiedAdminAuth.isAuthenticated();
       
       if (!isAuthenticated || !session || session.email !== userData.email) {
         return NextResponse.json(
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
         success: true,
         user: {
           email: session.email,
-          isAdmin: session.isAdmin,
-          isSuperAdmin: session.isSuperAdmin
+          isAdmin: session.role === 'ADMIN' || session.role === 'SUPER_ADMIN',
+          isSuperAdmin: session.role === 'SUPER_ADMIN'
         }
       });
     } catch (decodeError) {

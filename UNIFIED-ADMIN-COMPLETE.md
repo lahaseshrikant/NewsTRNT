@@ -106,7 +106,7 @@ src/app/admin/logo-history/page.tsx    # Requires Super Admin access
 ## 🚀 **HOW TO USE**
 
 ### **1. Login Process:**
-1. Go to: `http://localhost:3001/admin/login`
+1. Go to: `http://localhost:3000/admin/login`
 2. Choose admin type:
    - Regular Admin: `admin@newstrnt.com` / `NewsTRNT!Admin#2025`
    - Super Admin: `superadmin@newstrnt.com` / `NewsTRNT!SuperAdmin#2025`
