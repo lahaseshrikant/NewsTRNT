@@ -255,8 +255,8 @@ const ContentPerformance: React.FC = () => {
     switch (trend) {
       case 'up': return 'text-green-600';
       case 'down': return 'text-red-600';
-      case 'stable': return 'text-gray-600';
-      default: return 'text-gray-600';
+  case 'stable': return 'text-slate-600 dark:text-slate-400';
+  default: return 'text-slate-600 dark:text-slate-400';
     }
   };
 
@@ -566,3 +566,4 @@ const ContentPerformance: React.FC = () => {
 };
 
 export default ContentPerformance;
+

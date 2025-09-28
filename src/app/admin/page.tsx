@@ -109,7 +109,7 @@ function AdminPageContent() {
   if (!stats) {
     return (
       <div className="p-6">
-        <div className="text-gray-500">No data available</div>
+  <div className="text-slate-500 dark:text-slate-400">No data available</div>
       </div>
     );
   }
@@ -117,67 +117,67 @@ function AdminPageContent() {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">Welcome to NewsTRNT Admin Panel - Your complete news management center</p>
+        <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+        <p className="text-muted-foreground mt-2">Welcome to NewsTRNT Admin Panel - Your complete news management center</p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+        <div className="bg-card p-6 rounded-lg shadow-sm border border-border hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Articles</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.totalArticles.count)}</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Articles</p>
+              <p className="text-2xl font-bold text-foreground">{formatNumber(stats.totalArticles.count)}</p>
               <p className={`text-xs mt-1 ${stats.totalArticles.growthType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {stats.totalArticles.growthType === 'increase' ? '+' : '-'}{stats.totalArticles.growth}% from last month
               </p>
             </div>
-            <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+            <div className="p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-full">
               <span className="text-xl">📄</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+        <div className="bg-card p-6 rounded-lg shadow-sm border border-border hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Users</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.activeUsers.count)}</p>
+              <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+              <p className="text-2xl font-bold text-foreground">{formatNumber(stats.activeUsers.count)}</p>
               <p className={`text-xs mt-1 ${stats.activeUsers.growthType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {stats.activeUsers.growthType === 'increase' ? '+' : '-'}{stats.activeUsers.growth}% from last month
               </p>
             </div>
-            <div className="p-3 bg-green-100 dark:bg-green-900 rounded-full">
+            <div className="p-3 bg-green-500/10 dark:bg-green-500/20 rounded-full">
               <span className="text-xl">👥</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+        <div className="bg-card p-6 rounded-lg shadow-sm border border-border hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Page Views</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.pageViews.count)}</p>
+              <p className="text-sm font-medium text-muted-foreground">Page Views</p>
+              <p className="text-2xl font-bold text-foreground">{formatNumber(stats.pageViews.count)}</p>
               <p className={`text-xs mt-1 ${stats.pageViews.growthType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {stats.pageViews.growthType === 'increase' ? '+' : '-'}{stats.pageViews.growth}% from last month
               </p>
             </div>
-            <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+            <div className="p-3 bg-purple-500/10 dark:bg-purple-500/20 rounded-full">
               <span className="text-xl">📊</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+        <div className="bg-card p-6 rounded-lg shadow-sm border border-border hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Revenue</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${formatNumber(stats.revenue.count)}</p>
+              <p className="text-sm font-medium text-muted-foreground">Revenue</p>
+              <p className="text-2xl font-bold text-foreground">${formatNumber(stats.revenue.count)}</p>
               <p className={`text-xs mt-1 ${stats.revenue.growthType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {stats.revenue.growthType === 'increase' ? '+' : '-'}{stats.revenue.growth}% from last month
               </p>
             </div>
-            <div className="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-full">
+            <div className="p-3 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-full">
               <span className="text-xl">💰</span>
             </div>
           </div>
@@ -188,19 +188,19 @@ function AdminPageContent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Recent Articles */}
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Articles</h2>
+              <h2 className="text-lg font-semibold text-foreground">Recent Articles</h2>
               <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">View All</button>
             </div>
             <div className="space-y-4">
               {stats.recentArticles.map((article) => (
-                <div key={article.id} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                <div key={article.id} className="flex items-center space-x-3 p-3 bg-muted rounded-lg hover:bg-card transition-colors">
                   <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
                     <span className="text-sm">📄</span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{article.title}</p>
+                    <p className="text-sm font-medium text-foreground">{article.title}</p>
                     <div className="flex items-center space-x-2 mt-1">
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         article.status === 'Published' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
@@ -209,11 +209,11 @@ function AdminPageContent() {
                       }`}>
                         {article.status}
                       </span>
-                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                      <span className="text-xs text-muted-foreground">
                         {article.publishedAt ? formatTimeAgo(article.publishedAt) : 'Not published'}
                       </span>
-                      <span className="text-xs text-gray-600 dark:text-gray-400">👁 {formatNumber(article.views)}</span>
-                      <span className="text-xs text-gray-600 dark:text-gray-400">by {article.author}</span>
+                      <span className="text-xs text-muted-foreground">👁 {formatNumber(article.views)}</span>
+                      <span className="text-xs text-muted-foreground">by {article.author}</span>
                     </div>
                   </div>
                 </div>
@@ -225,8 +225,8 @@ function AdminPageContent() {
         {/* Quick Actions & System Status */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+            <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
             <div className="space-y-3">
               <button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-lg hover:from-blue-700 hover:to-blue-800 text-left transition-all">
                 <div className="flex items-center space-x-3">
@@ -259,8 +259,8 @@ function AdminPageContent() {
           </div>
 
           {/* System Status */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">System Status</h2>
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+            <h2 className="text-lg font-semibold text-foreground mb-4">System Status</h2>
             <div className="space-y-4">
               <div className={`flex items-center justify-between p-3 rounded-lg ${
                 stats.systemStatus.server.status === 'online' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'
@@ -269,7 +269,7 @@ function AdminPageContent() {
                   <div className={`w-2 h-2 rounded-full animate-pulse ${
                     stats.systemStatus.server.status === 'online' ? 'bg-green-500' : 'bg-red-500'
                   }`}></div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">Server Status</span>
+                  <span className="text-sm font-medium text-foreground">Server Status</span>
                 </div>
                 <div className="text-right">
                   <span className={`text-sm font-medium ${
@@ -277,7 +277,7 @@ function AdminPageContent() {
                   }`}>
                     {stats.systemStatus.server.status}
                   </span>
-                  <p className="text-xs text-gray-500">Uptime: {stats.systemStatus.server.uptime}</p>
+                  <p className="text-xs text-muted-foreground">Uptime: {stats.systemStatus.server.uptime}</p>
                 </div>
               </div>
               
@@ -288,7 +288,7 @@ function AdminPageContent() {
                   <div className={`w-2 h-2 rounded-full animate-pulse ${
                     stats.systemStatus.database.status === 'connected' ? 'bg-green-500' : 'bg-red-500'
                   }`}></div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">Database</span>
+                  <span className="text-sm font-medium text-foreground">Database</span>
                 </div>
                 <div className="text-right">
                   <span className={`text-sm font-medium ${
@@ -296,18 +296,18 @@ function AdminPageContent() {
                   }`}>
                     {stats.systemStatus.database.status}
                   </span>
-                  <p className="text-xs text-gray-500">Response: {stats.systemStatus.database.responseTime}</p>
+                  <p className="text-xs text-muted-foreground">Response: {stats.systemStatus.database.responseTime}</p>
                 </div>
               </div>
               
               <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">CDN</span>
+                  <span className="text-sm font-medium text-foreground">CDN</span>
                 </div>
                 <div className="text-right">
                   <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">{stats.systemStatus.cdn.status}</span>
-                  <p className="text-xs text-gray-500">Hit Rate: {stats.systemStatus.cdn.cacheHitRate}</p>
+                  <p className="text-xs text-muted-foreground">Hit Rate: {stats.systemStatus.cdn.cacheHitRate}</p>
                 </div>
               </div>
               
@@ -318,7 +318,7 @@ function AdminPageContent() {
                   <div className={`w-2 h-2 rounded-full animate-pulse ${
                     stats.systemStatus.backup.status === 'completed' ? 'bg-green-500' : 'bg-yellow-500'
                   }`}></div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">Backup</span>
+                  <span className="text-sm font-medium text-foreground">Backup</span>
                 </div>
                 <div className="text-right">
                   <span className={`text-sm font-medium ${
@@ -326,7 +326,7 @@ function AdminPageContent() {
                   }`}>
                     {stats.systemStatus.backup.status}
                   </span>
-                  <p className="text-xs text-gray-500">Last: {formatTimeAgo(stats.systemStatus.backup.lastBackup)}</p>
+                  <p className="text-xs text-muted-foreground">Last: {formatTimeAgo(stats.systemStatus.backup.lastBackup)}</p>
                 </div>
               </div>
             </div>
@@ -337,16 +337,16 @@ function AdminPageContent() {
       {/* Recent Activity & Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
+        <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Recent Activity</h2>
           <div className="space-y-4">
             {stats.recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div key={activity.id} className="flex items-center space-x-3 p-3 bg-muted rounded-lg">
                 <div className={`w-2 h-2 bg-${activity.color}-500 rounded-full`}></div>
                 <span className="text-lg">{activity.icon}</span>
                 <div className="flex-1">
-                  <span className="text-sm text-gray-900 dark:text-white">{activity.message}</span>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{formatTimeAgo(activity.timestamp)}</p>
+                  <span className="text-sm text-foreground">{activity.message}</span>
+                  <p className="text-xs text-muted-foreground">{formatTimeAgo(activity.timestamp)}</p>
                 </div>
               </div>
             ))}
@@ -354,55 +354,55 @@ function AdminPageContent() {
         </div>
 
         {/* Performance Metrics */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Performance Metrics</h2>
+        <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Performance Metrics</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Site Speed</span>
+              <span className="text-sm text-muted-foreground">Site Speed</span>
               <div className="flex items-center space-x-2">
-                <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-24 bg-muted rounded-full h-2">
                   <div 
                     className="bg-green-500 h-2 rounded-full transition-all duration-500" 
                     style={{width: `${stats.performanceMetrics.siteSpeed}%`}}
                   ></div>
                 </div>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{stats.performanceMetrics.siteSpeed}%</span>
+                <span className="text-sm font-medium text-foreground">{stats.performanceMetrics.siteSpeed}%</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">User Engagement</span>
+              <span className="text-sm text-muted-foreground">User Engagement</span>
               <div className="flex items-center space-x-2">
-                <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-24 bg-muted rounded-full h-2">
                   <div 
                     className="bg-blue-500 h-2 rounded-full transition-all duration-500" 
                     style={{width: `${stats.performanceMetrics.userEngagement}%`}}
                   ></div>
                 </div>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{stats.performanceMetrics.userEngagement}%</span>
+                <span className="text-sm font-medium text-foreground">{stats.performanceMetrics.userEngagement}%</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Content Quality</span>
+              <span className="text-sm text-muted-foreground">Content Quality</span>
               <div className="flex items-center space-x-2">
-                <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-24 bg-muted rounded-full h-2">
                   <div 
                     className="bg-purple-500 h-2 rounded-full transition-all duration-500" 
                     style={{width: `${stats.performanceMetrics.contentQuality}%`}}
                   ></div>
                 </div>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{stats.performanceMetrics.contentQuality}%</span>
+                <span className="text-sm font-medium text-foreground">{stats.performanceMetrics.contentQuality}%</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">SEO Score</span>
+              <span className="text-sm text-muted-foreground">SEO Score</span>
               <div className="flex items-center space-x-2">
-                <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-24 bg-muted rounded-full h-2">
                   <div 
                     className="bg-yellow-500 h-2 rounded-full transition-all duration-500" 
                     style={{width: `${stats.performanceMetrics.seoScore}%`}}
                   ></div>
                 </div>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{stats.performanceMetrics.seoScore}%</span>
+                <span className="text-sm font-medium text-foreground">{stats.performanceMetrics.seoScore}%</span>
               </div>
             </div>
           </div>
@@ -419,3 +419,5 @@ export default function AdminPage() {
     </UnifiedAdminGuard>
   );
 }
+
+

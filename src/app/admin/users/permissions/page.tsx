@@ -222,12 +222,12 @@ const UserPermissions: React.FC = () => {
 
       <div className="space-y-8">
         {/* Roles Section */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-border/50">
+        <div className="bg-card rounded-2xl shadow-lg border border-border text-foreground transition-colors">
           <div className="p-8 border-b border-border/50">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-foreground">User Roles</h2>
-                <p className="text-slate-600 dark:text-slate-400 mt-2">
+                <p className="text-muted-foreground mt-2">
                   Manage user roles and their default permissions
                 </p>
               </div>
@@ -252,17 +252,17 @@ const UserPermissions: React.FC = () => {
                     <h3 className="text-lg font-bold text-foreground">{role.name}</h3>
                     <button
                       onClick={() => openRoleModal(role)}
-                      className="text-slate-400 hover:text-blue-600 transition-colors duration-300"
+                      className="text-muted-foreground hover:text-primary transition-colors duration-300"
                     >
                       ✏️
                     </button>
                   </div>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">
+                  <p className="text-muted-foreground text-sm mb-4">
                     {role.description}
                   </p>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">{role.userCount} users</span>
-                    <span className="text-slate-500">{role.permissions.length} permissions</span>
+                    <span className="text-muted-foreground">{role.userCount} users</span>
+                    <span className="text-muted-foreground">{role.permissions.length} permissions</span>
                   </div>
                 </div>
               ))}
@@ -271,14 +271,14 @@ const UserPermissions: React.FC = () => {
         </div>
 
         {/* Users and Permissions Section */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-border/50">
+        <div className="bg-card rounded-2xl shadow-lg border border-border text-foreground transition-colors">
           <div className="p-8 border-b border-border/50">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   User Permissions
                 </h1>
-                <p className="text-slate-600 dark:text-slate-400 mt-2">
+                <p className="text-muted-foreground mt-2">
                   Manage individual user permissions and access controls
                 </p>
               </div>
@@ -286,7 +286,7 @@ const UserPermissions: React.FC = () => {
           </div>
 
           {/* Controls */}
-          <div className="p-6 border-b border-border/50 bg-slate-50 dark:bg-slate-800/50">
+          <div className="p-6 border-b border-border/50 bg-muted">
             <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
               <div className="flex-1">
                 <input
@@ -294,13 +294,13 @@ const UserPermissions: React.FC = () => {
                   placeholder="Search users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-foreground"
+                  className="w-full px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
                 />
               </div>
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-foreground"
+                className="px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground"
               >
                 <option value="all">All Roles</option>
                 {roles.map(role => (
@@ -313,39 +313,39 @@ const UserPermissions: React.FC = () => {
           {/* Users Table */}
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50 dark:bg-slate-800">
+              <thead className="bg-muted">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                     User
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                     Role
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                     Last Login
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-200">
+                  <tr key={user.id} className="hover:bg-muted/60 transition-colors duration-200">
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-medium text-foreground">{user.name}</div>
-                        <div className="text-sm text-slate-500">{user.email}</div>
+                        <div className="text-sm text-muted-foreground">{user.email}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <select
                         value={user.role}
                         onChange={(e) => updateUserRole(user.id, e.target.value as User['role'])}
-                        className="px-3 py-2 border border-border/50 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground text-sm"
+                        className="px-3 py-2 border border-border/50 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground text-sm"
                       >
                         {roles.map(role => (
                           <option key={role.id} value={role.id}>{role.name}</option>
@@ -364,14 +364,14 @@ const UserPermissions: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-slate-500">
+                      <div className="text-sm text-muted-foreground">
                         {formatDate(user.lastLogin)}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <button
                         onClick={() => openPermissionModal(user)}
-                        className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors duration-300 text-sm font-medium"
+                        className="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/15 transition-colors duration-300 text-sm font-medium"
                       >
                         🔐 Manage Permissions
                       </button>
@@ -387,12 +387,12 @@ const UserPermissions: React.FC = () => {
       {/* Permission Modal */}
       {isPermissionModalOpen && selectedUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+          <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden border border-border">
             <div className="p-6 border-b border-border/50">
               <h2 className="text-xl font-bold text-foreground">
                 Manage Permissions: {selectedUser.name}
               </h2>
-              <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
+              <p className="text-muted-foreground text-sm mt-1">
                 Role: {roles.find(r => r.id === selectedUser.role)?.name}
               </p>
             </div>
@@ -413,7 +413,7 @@ const UserPermissions: React.FC = () => {
                           >
                             <div>
                               <div className="font-medium text-foreground">{permission.name}</div>
-                              <div className="text-sm text-slate-500">{permission.description}</div>
+                              <div className="text-sm text-muted-foreground">{permission.description}</div>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
                               <input
@@ -422,7 +422,7 @@ const UserPermissions: React.FC = () => {
                                 onChange={() => toggleUserPermission(selectedUser.id, permission.id)}
                                 className="sr-only peer"
                               />
-                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-blue-600"></div>
                             </label>
                           </div>
                         ))}
@@ -453,3 +453,4 @@ export default function AdminUserPermissionsPage() {
     </UnifiedAdminGuard>
   );
 }
+

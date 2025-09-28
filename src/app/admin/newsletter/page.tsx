@@ -401,3 +401,4 @@ const NewsletterManagement: React.FC = () => {
 };
 
 export default NewsletterManagement;
+

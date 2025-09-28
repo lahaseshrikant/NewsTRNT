@@ -52,16 +52,16 @@ img {
 /* CSS Variables for Theme Colors */
 :root {
   /* Light theme colors */
-  --background: 249 250 251;
+  --background: 255 255 255;
   --foreground: 17 24 39;
   --card: 255 255 255;
   --card-foreground: 17 24 39;
   --primary: 37 99 235;
   --primary-foreground: 255 255 255;
-  --secondary: 243 244 246;
-  --secondary-foreground: 17 24 39;
+  --secondary: 249 250 251;
+  --secondary-foreground: 55 65 81;
   --muted: 243 244 246;
-  --muted-foreground: 107 114 128;
+  --muted-foreground: 75 85 99;
   --accent: 243 244 246;
   --accent-foreground: 17 24 39;
   --destructive: 239 68 68;
@@ -73,23 +73,23 @@ img {
 
 .dark {
   /* Dark theme colors */
-  --background: 17 24 39;
-  --foreground: 243 244 246;
-  --card: 31 41 55;
-  --card-foreground: 243 244 246;
-  --primary: 59 130 246;
-  --primary-foreground: 17 24 39;
-  --secondary: 75 85 99;
-  --secondary-foreground: 243 244 246;
-  --muted: 75 85 99;
-  --muted-foreground: 156 163 175;
-  --accent: 75 85 99;
-  --accent-foreground: 243 244 246;
-  --destructive: 220 38 38;
-  --destructive-foreground: 255 255 255;
-  --border: 75 85 99;
-  --input: 75 85 99;
-  --ring: 59 130 246;
+  --background: 8 11 21;
+  --foreground: 248 250 252;
+  --card: 18 25 38;
+  --card-foreground: 248 250 252;
+  --primary: 96 165 250;
+  --primary-foreground: 15 23 42;
+  --secondary: 28 37 52;
+  --secondary-foreground: 226 232 240;
+  --muted: 32 43 63;
+  --muted-foreground: 162 174 196;
+  --accent: 30 40 58;
+  --accent-foreground: 248 250 252;
+  --destructive: 239 68 68;
+  --destructive-foreground: 248 250 252;
+  --border: 28 38 54;
+  --input: 28 38 54;
+  --ring: 96 165 250;
 }
 
 /* Custom scrollbar */
@@ -110,6 +110,234 @@ img {
   background: rgb(var(--muted-foreground));
 }
 
+/* Enhanced text visibility */
+.text-foreground {
+  color: rgb(17 24 39) !important;
+}
+
+.dark .text-foreground {
+  color: rgb(248 250 252) !important;
+}
+
+/* Input and form element visibility */
+input, textarea, select {
+  color: rgb(17 24 39);
+}
+
+.dark input, 
+.dark textarea, 
+.dark select {
+  color: rgb(248 250 252);
+}
+
+/* Ensure proper placeholder contrast */
+input::placeholder,
+textarea::placeholder {
+  color: rgb(107 114 128);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgb(156 163 175);
+}
+
+/* TipTap Editor Content Visibility */
+.ProseMirror {
+  color: rgb(17 24 39) !important;
+  background-color: transparent !important;
+  min-height: 280px;
+  outline: none;
+}
+
+.dark .ProseMirror {
+  color: rgb(248 250 252) !important;
+  background-color: transparent !important;
+}
+
+.ProseMirror p {
+  color: inherit !important;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.ProseMirror h1, 
+.ProseMirror h2, 
+.ProseMirror h3, 
+.ProseMirror h4, 
+.ProseMirror h5, 
+.ProseMirror h6 {
+  color: inherit !important;
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.ProseMirror h1 {
+  font-size: 2.25rem;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  margin-top: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ProseMirror h4 {
+  font-size: 1.125rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.ProseMirror h5 {
+  font-size: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.ProseMirror h6 {
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ProseMirror ul, .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.ProseMirror ul {
+  list-style-type: disc;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+}
+
+.ProseMirror li {
+  color: inherit !important;
+  margin-bottom: 0.25rem;
+  line-height: 1.6;
+}
+
+.ProseMirror strong {
+  color: inherit !important;
+  font-weight: bold;
+}
+
+.ProseMirror em {
+  color: inherit !important;
+  font-style: italic;
+}
+
+.ProseMirror blockquote {
+  border-left: 4px solid rgb(59 130 246);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: normal;
+  background-color: rgba(59, 130, 246, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 0.25rem;
+}
+
+.dark .ProseMirror blockquote {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.ProseMirror a {
+  color: rgb(59 130 246);
+  text-decoration: underline;
+}
+
+.dark .ProseMirror a {
+  color: rgb(147 197 253);
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.ProseMirror pre {
+  background-color: rgb(var(--muted));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  margin: 1rem 0;
+  border: 1px solid rgb(var(--border));
+}
+
+.ProseMirror code {
+  background-color: rgb(var(--muted));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+}
+
+.ProseMirror hr {
+  border: none;
+  border-top: 2px solid rgb(var(--border));
+  margin: 2rem 0;
+}
+
+.ProseMirror table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  width: 100%;
+}
+
+.ProseMirror th,
+.ProseMirror td {
+  border: 1px solid rgb(var(--border));
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.ProseMirror th {
+  background-color: rgb(var(--muted));
+  font-weight: 600;
+}
+
+.ProseMirror mark {
+  background-color: rgb(254 240 138);
+  padding: 0.125rem;
+  border-radius: 0.125rem;
+}
+
+.dark .ProseMirror mark {
+  background-color: rgb(133 77 14 / 0.5);
+  color: rgb(254 240 138);
+}
+
+/* Editor focus styles */
+.ProseMirror:focus {
+  outline: none !important;
+}
+
+.ProseMirror.ProseMirror-focused {
+  outline: none !important;
+}
+
 /* Base styles */
 * {
   border-color: rgb(var(--border));
@@ -119,6 +347,88 @@ body {
   color: rgb(var(--foreground));
   background: rgb(var(--background));
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Explicit helpers to avoid lingering gray-* classes causing low contrast */
+.bg-background { background-color: rgb(var(--background)) !important; }
+.bg-card { background-color: rgb(var(--card)) !important; }
+.text-foreground-force { color: rgb(var(--foreground)) !important; }
+.dark .text-foreground-force { color: rgb(var(--foreground)) !important; }
+
+/* Override legacy gray utility usage inside admin scope for readability */
+.admin-container .text-gray-500 { color: rgb(100 116 139) !important; }
+.admin-container .dark .text-gray-500 { color: rgb(148 163 184) !important; }
+.admin-container .text-gray-600 { color: rgb(71 85 105) !important; }
+.admin-container .dark .text-gray-600 { color: rgb(148 163 184) !important; }
+
+
+/* Ensure theme classes take precedence */
+html.light {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* Admin-specific theme improvements */
+.admin-container {
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
+}
+
+.admin-card {
+  background-color: rgb(var(--card));
+  color: rgb(var(--card-foreground));
+  border-color: rgb(var(--border));
+}
+
+.admin-input {
+  background-color: rgb(var(--card));
+  color: rgb(var(--card-foreground));
+  border-color: rgb(var(--border));
+}
+
+.admin-input:focus {
+  border-color: rgb(var(--ring));
+}
+
+.admin-sidebar {
+  background-color: rgb(var(--card));
+  border-color: rgb(var(--border));
+}
+
+/* Force theme consistency */
+.light .admin-container {
+  background-color: rgb(255 255 255);
+  color: rgb(17 24 39);
+}
+
+.dark .admin-container {
+  background-color: rgb(15 23 42);
+  color: rgb(248 250 252);
+}
+
+.light .admin-card {
+  background-color: rgb(255 255 255);
+  color: rgb(17 24 39);
+  border-color: rgb(226 232 240);
+}
+
+.dark .admin-card {
+  background-color: rgb(30 41 59);
+  color: rgb(248 250 252);
+  border-color: rgb(51 65 85);
+}
+
+.light .admin-sidebar {
+  background-color: rgb(255 255 255);
+  border-color: rgb(226 232 240);
+}
+
+.dark .admin-sidebar {
+  background-color: rgb(30 41 59);
+  border-color: rgb(51 65 85);
 }
 
 /* Glass effect with theme support */
@@ -137,20 +447,9 @@ body {
 
 /* Loading animation */
 
-/* Base styles */
+/* Additional base styles */
 html {
   scroll-behavior: smooth;
-}
-
-body {
-  background-color: rgb(249 250 251);
-  color: rgb(17 24 39);
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.dark body {
-  background-color: rgb(17 24 39);
-  color: rgb(243 244 246);
 }
 
 /* Animation keyframes */
@@ -333,4 +632,221 @@ body {
 
 .dark .loading-skeleton {
   background-color: rgb(75, 85, 99);
+}
+
+/* ArticlePreview specific styling to match editor exactly */
+.article-preview-content h1 {
+  color: rgb(var(--foreground)) !important;
+  font-size: 2.25rem !important;
+  margin-top: 2rem !important;
+  margin-bottom: 1.5rem !important;
+  font-weight: bold !important;
+  line-height: 1.2 !important;
+}
+
+.article-preview-content h2 {
+  color: rgb(var(--foreground)) !important;
+  font-size: 1.5rem !important;
+  margin-top: 1.75rem !important;
+  margin-bottom: 1rem !important;
+  font-weight: bold !important;
+  line-height: 1.2 !important;
+}
+
+.article-preview-content h3 {
+  color: rgb(var(--foreground)) !important;
+  font-size: 1.25rem !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+  font-weight: bold !important;
+  line-height: 1.2 !important;
+}
+
+.article-preview-content h4 {
+  color: rgb(var(--foreground)) !important;
+  font-size: 1.125rem !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 600 !important;
+}
+
+.article-preview-content h5 {
+  color: rgb(var(--foreground)) !important;
+  font-size: 1rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 600 !important;
+}
+
+.article-preview-content h6 {
+  color: rgb(var(--foreground)) !important;
+  font-size: 0.875rem !important;
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.25rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.article-preview-content p {
+  color: rgb(var(--foreground)) !important;
+  margin-bottom: 1rem !important;
+  line-height: 1.6 !important;
+  font-size: 1.125rem !important;
+}
+
+.article-preview-content ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.article-preview-content ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.article-preview-content li {
+  color: rgb(var(--foreground)) !important;
+  margin-bottom: 0.25rem !important;
+  line-height: 1.6 !important;
+  font-size: 1.125rem !important;
+}
+
+.article-preview-content strong {
+  color: rgb(var(--foreground)) !important;
+  font-weight: bold !important;
+}
+
+.article-preview-content em {
+  color: rgb(var(--foreground)) !important;
+  font-style: italic !important;
+}
+
+.article-preview-content blockquote {
+  border-left: 4px solid rgb(59 130 246) !important;
+  padding-left: 1rem !important;
+  margin: 1rem 0 !important;
+  font-style: normal !important;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 0.25rem !important;
+  color: rgb(30 64 175) !important;
+}
+
+.dark .article-preview-content blockquote {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  color: rgb(147 197 253) !important;
+}
+
+.article-preview-content a {
+  color: rgb(59 130 246) !important;
+  text-decoration: underline !important;
+}
+
+.dark .article-preview-content a {
+  color: rgb(147 197 253) !important;
+}
+
+.article-preview-content code {
+  background-color: rgb(var(--muted)) !important;
+  padding: 0.125rem 0.25rem !important;
+  border-radius: 0.25rem !important;
+  font-family: 'Courier New', monospace !important;
+  font-size: 0.875rem !important;
+  color: rgb(var(--foreground)) !important;
+}
+
+.article-preview-content pre {
+  background-color: rgb(var(--muted)) !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  overflow-x: auto !important;
+  font-family: 'Courier New', monospace !important;
+  font-size: 0.875rem !important;
+  margin: 1rem 0 !important;
+  border: 1px solid rgb(var(--border)) !important;
+}
+
+.article-preview-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 0.5rem !important;
+  margin: 1rem 0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+.article-preview-content hr {
+  border: none !important;
+  border-top: 2px solid rgb(var(--border)) !important;
+  margin: 2rem 0 !important;
+}
+
+.article-preview-content table {
+  border-collapse: collapse !important;
+  margin: 1rem 0 !important;
+  width: 100% !important;
+  border: 1px solid rgb(var(--border)) !important;
+}
+
+.article-preview-content th,
+.article-preview-content td {
+  border: 1px solid rgb(var(--border)) !important;
+  padding: 0.75rem !important;
+  text-align: left !important;
+  color: rgb(var(--foreground)) !important;
+}
+
+.article-preview-content th {
+  background-color: rgb(var(--muted)) !important;
+  font-weight: 600 !important;
+}
+
+.article-preview-content mark {
+  background-color: rgb(254 240 138) !important;
+  padding: 0.125rem !important;
+  border-radius: 0.125rem !important;
+}
+
+.dark .article-preview-content mark {
+  background-color: rgb(133 77 14 / 0.5) !important;
+  color: rgb(254 240 138) !important;
+}
+
+/* Split view synchronized heights */
+.split-view-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.split-view-container > div {
+  height: fit-content;
+}
+
+.split-view-editor,
+.split-view-preview {
+  min-height: 500px;
+}
+
+/* Ensure editor and preview have matching scroll behavior */
+.split-view-editor .ProseMirror,
+.split-view-preview {
+  min-height: 480px;
+  max-height: 80vh;
+}
+
+/* Responsive split view */
+@media (max-width: 1024px) {
+  .split-view-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .split-view-editor,
+  .split-view-preview {
+    min-height: 400px;
+  }
 }

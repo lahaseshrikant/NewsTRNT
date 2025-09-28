@@ -4,17 +4,22 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
+import { useCategories, Category } from '@/hooks/useCategories';
+import { getCategoryBadgeStyle, findCategoryByName } from '@/lib/categoryUtils';
 
 const ShortsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const { categories: dynamicCategories, loading: categoriesLoading } = useCategories();
 
+  // Create categories list with special items and dynamic categories
   const categories = [
     { id: 'all', label: 'All Shorts', count: 234 },
     { id: 'breaking', label: 'Breaking', count: 45 },
-    { id: 'tech', label: 'Tech', count: 67 },
-    { id: 'business', label: 'Business', count: 38 },
-    { id: 'sports', label: 'Sports', count: 52 },
-    { id: 'world', label: 'World', count: 32 }
+    ...dynamicCategories.slice(0, 4).map(cat => ({
+      id: cat.slug,
+      label: cat.name,
+      count: Math.floor(Math.random() * 50) + 20 // Mock count for now
+    }))
   ];
 
   const newsShorts = [
@@ -115,11 +120,12 @@ const ShortsPage: React.FC = () => {
     ? newsShorts 
     : newsShorts.filter(short => {
         if (selectedCategory === 'breaking') return short.isBreaking;
-        if (selectedCategory === 'tech') return short.category === 'Technology';
-        if (selectedCategory === 'business') return short.category === 'Business';
-        if (selectedCategory === 'sports') return short.category === 'Sports';
-        if (selectedCategory === 'world') return ['Environment', 'Science'].includes(short.category);
-        return true;
+        // Dynamic category matching using category slug or name
+        const category = dynamicCategories.find(cat => cat.slug === selectedCategory);
+        if (category) {
+          return short.category === category.name;
+        }
+        return false;
       });
 
   return (

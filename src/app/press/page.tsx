@@ -3,9 +3,13 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useCategories } from '@/hooks/useCategories';
 
 const PressPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  
+  // Use dynamic categories for navigation links if needed
+  const { categories: dynamicCategories } = useCategories();
 
   const pressReleases = [
     {

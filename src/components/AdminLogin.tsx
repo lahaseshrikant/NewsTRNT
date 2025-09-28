@@ -26,7 +26,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
@@ -38,16 +38,16 @@ const AdminLogin = () => {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Admin Access Required
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 dark:text-slate-400">
             The Road Not Taken - Access admin features to manage your platform
           </p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 Admin Password
               </label>
               <input
@@ -55,7 +55,7 @@ const AdminLogin = () => {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-500 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 placeholder="Enter admin password"
                 required
                 disabled={isLoading}
@@ -93,9 +93,9 @@ const AdminLogin = () => {
           </form>
 
           {/* Additional Info */}
-          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
+          <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-500">
             <div className="text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              <p className="text-sm text-gray-500 dark:text-slate-400 mb-2">
                 Admin features include:
               </p>
               <div className="flex flex-wrap justify-center gap-2 text-xs">
@@ -111,7 +111,7 @@ const AdminLogin = () => {
         <div className="text-center mt-6">
           <a 
             href="/" 
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="text-sm text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           >
             ← Back to NewsTRNT
           </a>
@@ -122,3 +122,4 @@ const AdminLogin = () => {
 };
 
 export default AdminLogin;
+

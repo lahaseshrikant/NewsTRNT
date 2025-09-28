@@ -20,11 +20,12 @@ const updateCategorySchema = createCategorySchema.partial();
 // GET /api/categories - List all categories
 router.get('/', async (req, res) => {
   try {
-    const { includeStats = 'false' } = req.query;
+    const { includeStats = 'false', includeInactive = 'false' } = req.query;
     
     const categories = await prisma.category.findMany({
       where: {
-        isActive: true
+        // Only filter by isActive if includeInactive is not true
+        ...(includeInactive !== 'true' && { isActive: true })
       },
       orderBy: {
         sortOrder: 'asc'

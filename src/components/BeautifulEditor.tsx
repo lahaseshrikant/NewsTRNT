@@ -460,15 +460,30 @@ const BeautifulEditor: React.FC<BeautifulEditorProps> = ({
         <EditorContent 
           editor={editor} 
           className="prose dark:prose-invert prose-lg max-w-none p-6 min-h-[320px] max-h-[600px] overflow-y-auto focus:outline-none
-                     prose-headings:text-gray-900 dark:prose-headings:text-gray-100
-                     prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed
-                     prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+                     prose-headings:text-foreground prose-headings:font-bold prose-headings:leading-tight
+                     prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4
+                     prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
+                     prose-p:text-foreground prose-p:leading-relaxed prose-p:mb-4
+                     prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4
+                     prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4
+                     prose-li:text-foreground prose-li:mb-1 prose-li:leading-relaxed
+                     prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:underline hover:prose-a:no-underline
                      prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/10
-                     prose-blockquote:text-blue-900 dark:prose-blockquote:text-blue-200 prose-blockquote:not-italic
-                     prose-li:text-gray-700 dark:prose-li:text-gray-300
-                     prose-strong:text-gray-900 dark:prose-strong:text-gray-100
+                     prose-blockquote:text-blue-900 dark:prose-blockquote:text-blue-200 prose-blockquote:not-italic prose-blockquote:pl-6 prose-blockquote:py-2
+                     prose-strong:text-foreground prose-strong:font-bold
+                     prose-em:text-foreground prose-em:italic
+                     prose-code:text-foreground prose-code:bg-muted prose-code:px-1 prose-code:rounded
                      prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg prose-img:shadow-md prose-img:my-4
-                     selection:bg-blue-100 dark:selection:bg-blue-900/30"
+                     selection:bg-blue-100 dark:selection:bg-blue-900/30
+                     [&_.ProseMirror]:text-foreground [&_.ProseMirror]:min-h-[280px]
+                     [&_.ProseMirror_h2]:text-foreground [&_.ProseMirror_h2]:text-2xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:mt-6 [&_.ProseMirror_h2]:mb-3
+                     [&_.ProseMirror_h3]:text-foreground [&_.ProseMirror_h3]:text-xl [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:mt-4 [&_.ProseMirror_h3]:mb-2
+                     [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-6
+                     [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6
+                     [&_.ProseMirror_li]:text-foreground [&_.ProseMirror_li]:mb-1
+                     [&_.ProseMirror_strong]:text-foreground [&_.ProseMirror_strong]:font-bold
+                     [&_.ProseMirror_em]:text-foreground [&_.ProseMirror_em]:italic
+                     [&_.ProseMirror_p]:text-foreground [&_.ProseMirror_p]:leading-relaxed"
         />
       </div>
       

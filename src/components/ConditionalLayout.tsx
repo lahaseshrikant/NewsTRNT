@@ -37,10 +37,10 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   // For admin routes and web story viewers, render only children without site header/footer
   if (isAdminRoute || isWebStoryViewer) {
     return (
-      <>
+      <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
         <PerformanceMonitor />
         {children}
-      </>
+      </div>
     );
   }
   

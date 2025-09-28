@@ -4,12 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
-
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-}
+import { articleAPI } from '@/lib/api';
+import { useCategories, Category } from '@/hooks/useCategories';
 
 interface ArticleForm {
   title: string;
@@ -49,10 +45,12 @@ const EditArticle: React.FC = () => {
   const articleId = params.id as string;
 
   const [article, setArticle] = useState<Article | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use categories hook for admin (include inactive categories)
+  const { categories, loading: categoriesLoading } = useCategories({ includeInactive: true });
   
   const [formData, setFormData] = useState<ArticleForm>({
     title: '',
@@ -77,28 +75,37 @@ const EditArticle: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/articles/${articleId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch article');
-        }
-
-        const data = await response.json();
+        const data = await articleAPI.getArticle(articleId);
         if (data.success && data.article) {
           const articleData = data.article;
-          setArticle(articleData);
+          // Map API Article to local Article interface
+          const mappedArticle: Article = {
+            id: articleData.id,
+            title: articleData.title,
+            content: articleData.content || '',
+            excerpt: articleData.summary || '', // Map summary to excerpt
+            category: articleData.category ? { id: articleData.category.id, name: articleData.category.name } : undefined,
+            tags: articleData.tags || [],
+            status: articleData.status,
+            publishedAt: articleData.publishedAt || undefined,
+            author: articleData.author ? { name: articleData.author.fullName } : undefined,
+            createdAt: articleData.createdAt,
+            updatedAt: articleData.updatedAt
+          };
+          setArticle(mappedArticle);
           
           // Populate form with existing data
           setFormData({
             title: articleData.title || '',
             content: articleData.content || '',
-            excerpt: articleData.excerpt || '',
-            categoryId: articleData.categoryId?.toString() || articleData.category?.id || '',
+            excerpt: articleData.summary || '', // Use summary as excerpt
+            categoryId: articleData.category?.id || '',
             tags: Array.isArray(articleData.tags) ? articleData.tags.join(', ') : '',
             status: articleData.status || 'draft',
-            scheduledAt: articleData.scheduledAt ? new Date(articleData.scheduledAt).toISOString().slice(0, 16) : '',
-            seoTitle: articleData.seoTitle || '',
-            seoDescription: articleData.seoDescription || '',
-            featuredImage: articleData.featuredImage || ''
+            scheduledAt: articleData.publishedAt && articleData.status === 'scheduled' ? new Date(articleData.publishedAt).toISOString().slice(0, 16) : '',
+            seoTitle: articleData.title || '', // Fallback to title
+            seoDescription: articleData.summary || '', // Fallback to summary
+            featuredImage: articleData.imageUrl || ''
           });
         } else {
           throw new Error('Article not found');
@@ -111,21 +118,8 @@ const EditArticle: React.FC = () => {
       }
     };
 
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories');
-        if (response.ok) {
-          const data = await response.json();
-          setCategories(data.categories || []);
-        }
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-      }
-    };
-
     if (articleId) {
       fetchArticle();
-      fetchCategories();
     }
   }, [articleId]);
 
@@ -136,10 +130,19 @@ const EditArticle: React.FC = () => {
     }));
   };
 
-  const validateForm = (): string | null => {
+  const validateForm = (status?: 'draft' | 'scheduled' | 'published'): string | null => {
     if (!formData.title.trim()) return 'Title is required';
     if (!formData.content.trim()) return 'Content is required';
     if (!formData.categoryId) return 'Category is required';
+    
+    // Check if selected category is active when publishing
+    if ((status === 'published' || status === 'scheduled') && formData.categoryId) {
+      const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
+      if (selectedCategory && !selectedCategory.isActive) {
+        return 'Cannot publish article with inactive category. Please select an active category.';
+      }
+    }
+    
     if (formData.status === 'scheduled' && !formData.scheduledAt) {
       return 'Scheduled date is required for scheduled articles';
     }
@@ -147,7 +150,7 @@ const EditArticle: React.FC = () => {
   };
 
   const handleSave = async (newStatus: 'draft' | 'scheduled' | 'published') => {
-    const validationError = validateForm();
+    const validationError = validateForm(newStatus);
     if (validationError) {
       setError(validationError);
       return;
@@ -165,30 +168,20 @@ const EditArticle: React.FC = () => {
       const updateData = {
         title: formData.title,
         content: formData.content,
-        excerpt: formData.excerpt,
-        categoryId: parseInt(formData.categoryId),
+        summary: formData.excerpt, // Map excerpt to summary
+        categoryId: formData.categoryId, // Keep as string
         tags: tagsArray,
-        status: newStatus,
+        isPublished: newStatus === 'published',
         ...(newStatus === 'scheduled' && formData.scheduledAt && {
-          scheduledAt: new Date(formData.scheduledAt).toISOString()
+          publishedAt: new Date(formData.scheduledAt).toISOString()
         }),
         ...(newStatus === 'published' && { publishedAt: new Date().toISOString() }),
-        seoTitle: formData.seoTitle,
-        seoDescription: formData.seoDescription,
-        featuredImage: formData.featuredImage
+        imageUrl: formData.featuredImage
       };
 
-      const response = await fetch(`/api/articles/${articleId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData),
-      });
+      const result = await articleAPI.updateArticle(articleId, updateData);
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
+      if (result.success) {
         // Show success message
         const statusText = newStatus === 'draft' ? 'saved as draft' : 
                           newStatus === 'scheduled' ? 'scheduled for publication' : 'published';
@@ -196,7 +189,7 @@ const EditArticle: React.FC = () => {
         // Redirect back to content list
         router.push(`/admin/content?success=${encodeURIComponent(`Article ${statusText} successfully!`)}`);
       } else {
-        throw new Error(result.error || result.message || 'Failed to update article');
+        throw new Error('Failed to update article');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update article');
@@ -401,7 +394,7 @@ const EditArticle: React.FC = () => {
                         <option value="">Select a category</option>
                         {categories.map((category) => (
                           <option key={category.id} value={category.id}>
-                            {category.name}
+                            {category.name} {!category.isActive && '(Inactive)'}
                           </option>
                         ))}
                       </select>

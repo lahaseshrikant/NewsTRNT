@@ -52,19 +52,19 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
         )}
 
         {/* Title */}
-        <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4 leading-tight">
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
           {title || 'Untitled Article'}
         </h1>
 
         {/* Summary */}
         {summary && (
-          <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+          <p className="text-xl text-muted-foreground leading-relaxed mb-6">
             {summary}
           </p>
         )}
 
         {/* Meta Info */}
-        <div className="flex items-center text-slate-500 dark:text-slate-400 text-sm mb-6">
+        <div className="flex items-center text-muted-foreground text-sm mb-6">
           <span>By {author || 'Admin'}</span>
           <span className="mx-2">•</span>
           <time>{formatDate(publishDate || '')}</time>
@@ -76,7 +76,7 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
             {tags.map((tag, index) => (
               <span
                 key={index}
-                className="px-3 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full text-sm font-medium transition-colors cursor-pointer"
+                className="px-3 py-1 bg-muted hover:bg-muted/80 text-foreground rounded-full text-sm font-medium transition-colors cursor-pointer"
               >
                 #{tag}
               </span>
@@ -100,14 +100,39 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
       )}
 
       {/* Article Content */}
-      <article className="prose prose-lg dark:prose-invert max-w-none">
+      <article className="prose dark:prose-invert prose-lg max-w-none
+                       prose-headings:text-foreground prose-headings:font-bold prose-headings:leading-tight
+                       prose-h1:text-4xl prose-h1:mt-10 prose-h1:mb-6
+                       prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4
+                       prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
+                       prose-h4:text-lg prose-h4:mt-5 prose-h4:mb-2 prose-h4:font-semibold
+                       prose-h5:text-base prose-h5:mt-4 prose-h5:mb-2 prose-h5:font-semibold
+                       prose-h6:text-sm prose-h6:mt-3 prose-h6:mb-1 prose-h6:font-semibold prose-h6:uppercase prose-h6:tracking-wide
+                       prose-p:text-foreground prose-p:leading-relaxed prose-p:text-lg prose-p:mb-4
+                       prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4
+                       prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4
+                       prose-li:text-foreground prose-li:text-lg prose-li:mb-1 prose-li:leading-relaxed
+                       prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:underline hover:prose-a:no-underline
+                       prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20
+                       prose-blockquote:text-blue-900 dark:prose-blockquote:text-blue-200 prose-blockquote:not-italic prose-blockquote:pl-6 prose-blockquote:py-4
+                       prose-strong:text-foreground prose-strong:font-bold
+                       prose-em:text-foreground prose-em:italic
+                       prose-code:text-foreground prose-code:bg-muted prose-code:px-1 prose-code:rounded prose-code:text-sm
+                       prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
+                       prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg prose-img:shadow-md prose-img:my-6
+                       prose-hr:border-border prose-hr:my-8
+                       prose-table:border-collapse prose-table:border prose-table:border-border prose-table:my-6
+                       prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-3 prose-th:text-foreground prose-th:font-semibold
+                       prose-td:border prose-td:border-border prose-td:p-3 prose-td:text-foreground
+                       selection:bg-blue-100 dark:selection:bg-blue-900/30
+                       text-foreground">
         {content ? (
           <div 
-            className="text-slate-700 dark:text-slate-300 leading-relaxed"
+            className="article-preview-content text-foreground leading-relaxed"
             dangerouslySetInnerHTML={{ __html: content }}
           />
         ) : (
-          <div className="text-slate-400 dark:text-slate-500 italic text-center py-12">
+          <div className="text-muted-foreground italic text-center py-12">
             Article content will appear here as you write...
           </div>
         )}
@@ -115,8 +140,8 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
 
       {/* SEO Preview Section */}
       {(seoTitle || seoDescription) && (
-        <div className="mt-12 p-6 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-          <h3 className="text-lg font-semibold mb-4 text-slate-700 dark:text-slate-300">
+        <div className="mt-12 p-6 bg-muted rounded-xl border border-border">
+          <h3 className="text-lg font-semibold mb-4 text-foreground">
             🔍 SEO Preview
           </h3>
           <div className="space-y-3">
@@ -126,7 +151,7 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
             <div className="text-green-700 dark:text-green-400 text-sm">
               https://newstrnt.com/article/{(title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-')}
             </div>
-            <div className="text-slate-600 dark:text-slate-400 text-sm">
+            <div className="text-muted-foreground text-sm">
               {seoDescription || summary || 'No description available'}
             </div>
           </div>

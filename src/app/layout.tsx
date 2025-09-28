@@ -46,6 +46,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Early theme apply to avoid always-dark flash and ensure correct contrast before hydration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => { try { const stored = localStorage.getItem('theme'); const mql = window.matchMedia('(prefers-color-scheme: dark)'); const prefersDark = mql.matches; const theme = stored === 'light' || stored === 'dark' ? stored : (stored === 'system' || !stored) ? (prefersDark ? 'dark' : 'light') : 'light'; const root = document.documentElement; if(!root.classList.contains('light') && !root.classList.contains('dark')) { root.classList.add(theme); } } catch(e) {} })();`
+          }}
+        />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <AdminProvider>
           <LogoProvider>

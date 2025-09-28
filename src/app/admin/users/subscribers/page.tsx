@@ -186,7 +186,7 @@ const Subscribers: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-border/50">
+  <div className="bg-card rounded-2xl shadow-lg border border-border text-foreground transition-colors">
         {/* Header */}
         <div className="p-8 border-b border-border/50">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
@@ -194,7 +194,7 @@ const Subscribers: React.FC = () => {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Email Subscribers
               </h1>
-              <p className="text-slate-600 dark:text-slate-400 mt-2">
+              <p className="text-muted-foreground mt-2">
                 Manage your newsletter and email subscriptions
               </p>
             </div>
@@ -232,7 +232,7 @@ const Subscribers: React.FC = () => {
         </div>
 
         {/* Controls */}
-        <div className="p-6 border-b border-border/50 bg-slate-50 dark:bg-slate-800/50">
+        <div className="p-6 border-b border-border/50 bg-muted">
           <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
             <div className="flex-1">
               <input
@@ -240,13 +240,13 @@ const Subscribers: React.FC = () => {
                 placeholder="Search subscribers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-foreground"
+                className="w-full px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-foreground"
+              className="px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -257,14 +257,14 @@ const Subscribers: React.FC = () => {
 
           {/* Bulk Actions */}
           {selectedSubscribers.length > 0 && (
-            <div className="flex items-center justify-between mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+            <div className="flex items-center justify-between mt-4 p-4 bg-primary/10 dark:bg-primary/20 rounded-xl">
               <div className="flex items-center space-x-3">
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                <span className="text-sm font-medium text-primary">
                   {selectedSubscribers.length} subscriber(s) selected
                 </span>
                 <button
                   onClick={clearSelection}
-                  className="text-sm text-blue-600 hover:text-blue-800 dark:hover:text-blue-400"
+                  className="text-sm text-primary hover:text-primary/80"
                 >
                   Clear selection
                 </button>
@@ -284,7 +284,7 @@ const Subscribers: React.FC = () => {
         {/* Subscribers Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50 dark:bg-slate-800">
+            <thead className="bg-muted">
               <tr>
                 <th className="px-6 py-4 text-left">
                   <input
@@ -293,26 +293,26 @@ const Subscribers: React.FC = () => {
                     className="w-4 h-4 text-blue-600 border-2 border-border/50 rounded focus:ring-blue-500"
                   />
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                   Subscriber
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                   Status
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                   Engagement
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                   Preferences
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
               {filteredSubscribers.map((subscriber) => (
-                <tr key={subscriber.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-200">
+                <tr key={subscriber.id} className="hover:bg-muted/60 transition-colors duration-200">
                   <td className="px-6 py-4">
                     <input
                       type="checkbox"
@@ -325,9 +325,9 @@ const Subscribers: React.FC = () => {
                     <div>
                       <div className="font-medium text-foreground">{subscriber.email}</div>
                       {subscriber.name && (
-                        <div className="text-sm text-slate-500">{subscriber.name}</div>
+                        <div className="text-sm text-muted-foreground">{subscriber.name}</div>
                       )}
-                      <div className="text-xs text-slate-400 mt-1">
+                      <div className="text-xs text-muted-foreground mt-1">
                         Joined {formatDate(subscriber.subscribedAt)} • via {subscriber.source}
                       </div>
                     </div>
@@ -346,11 +346,11 @@ const Subscribers: React.FC = () => {
                   <td className="px-6 py-4">
                     <div className="text-sm">
                       <div className="font-medium text-foreground">{subscriber.emailsReceived} emails</div>
-                      <div className="text-slate-500">
+                      <div className="text-muted-foreground">
                         {getEngagementRate(subscriber)}% engagement
                       </div>
                       {subscriber.lastEmailOpened && (
-                        <div className="text-xs text-slate-400">
+                        <div className="text-xs text-muted-foreground">
                           Last opened: {formatDate(subscriber.lastEmailOpened)}
                         </div>
                       )}
@@ -374,7 +374,7 @@ const Subscribers: React.FC = () => {
                         </span>
                       )}
                       {subscriber.preferences.categories.length > 0 && (
-                        <div className="text-xs text-slate-500 mt-1">
+                        <div className="text-xs text-muted-foreground mt-1">
                           {subscriber.preferences.categories.join(', ')}
                         </div>
                       )}
@@ -420,10 +420,10 @@ const Subscribers: React.FC = () => {
         {filteredSubscribers.length === 0 && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📧</div>
-            <h3 className="text-xl font-semibold text-slate-600 dark:text-slate-400 mb-2">
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               No subscribers found
             </h3>
-            <p className="text-slate-500 dark:text-slate-500">
+            <p className="text-muted-foreground">
               {searchTerm ? 'Try adjusting your search terms' : 'No subscribers match the current filter'}
             </p>
           </div>
@@ -433,12 +433,12 @@ const Subscribers: React.FC = () => {
       {/* Export Modal */}
       {isExportModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full">
+          <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full border border-border">
             <div className="p-6 border-b border-border/50">
               <h2 className="text-xl font-bold text-foreground">Export Subscribers</h2>
             </div>
             <div className="p-6">
-              <p className="text-slate-600 dark:text-slate-400 mb-4">
+              <p className="text-muted-foreground mb-4">
                 {selectedSubscribers.length > 0 
                   ? `Export ${selectedSubscribers.length} selected subscribers`
                   : `Export ${filteredSubscribers.length} filtered subscribers`
@@ -447,24 +447,24 @@ const Subscribers: React.FC = () => {
               <div className="space-y-3">
                 <button
                   onClick={() => exportSubscribers('csv')}
-                  className="w-full p-4 text-left border border-border/50 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-300"
+                  className="w-full p-4 text-left border border-border/50 rounded-xl hover:bg-muted transition-colors duration-300"
                 >
                   <div className="font-medium text-foreground">📊 CSV Format</div>
-                  <div className="text-sm text-slate-500">Suitable for Excel and spreadsheet applications</div>
+                  <div className="text-sm text-muted-foreground">Suitable for Excel and spreadsheet applications</div>
                 </button>
                 <button
                   onClick={() => exportSubscribers('json')}
-                  className="w-full p-4 text-left border border-border/50 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-300"
+                  className="w-full p-4 text-left border border-border/50 rounded-xl hover:bg-muted transition-colors duration-300"
                 >
                   <div className="font-medium text-foreground">📄 JSON Format</div>
-                  <div className="text-sm text-slate-500">Suitable for technical integrations</div>
+                  <div className="text-sm text-muted-foreground">Suitable for technical integrations</div>
                 </button>
               </div>
             </div>
             <div className="p-6 border-t border-border/50 flex justify-end space-x-3">
               <button
                 onClick={() => setIsExportModalOpen(false)}
-                className="px-6 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-300"
+                className="px-6 py-2 bg-muted text-foreground rounded-xl hover:bg-card transition-colors duration-300"
               >
                 Cancel
               </button>
@@ -477,3 +477,4 @@ const Subscribers: React.FC = () => {
 };
 
 export default Subscribers;
+

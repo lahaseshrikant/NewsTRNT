@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { articleAPI, type Article } from '@/lib/api';
 import UnifiedAdminAuth from '@/lib/unified-admin-auth';
 import Breadcrumb from '@/components/Breadcrumb';
+import { useCategories } from '@/hooks/useCategories';
 
 interface Draft {
   id: string;
@@ -30,6 +31,11 @@ const Drafts: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'updatedAt' | 'title' | 'wordCount'>('updatedAt');
   const [filterCategory, setFilterCategory] = useState('all');
+  
+  // Get dynamic categories (include inactive for admin)
+  const { categories: dynamicCategories, loading: categoriesLoading } = useCategories({ 
+    includeInactive: true 
+  });
 
   // Fetch drafts from API
   const fetchDrafts = async () => {
@@ -233,10 +239,7 @@ const Drafts: React.FC = () => {
     }
   };
 
-  // Get unique categories for filter
-  const categories = Array.from(new Set(drafts.map(draft => draft.category?.name).filter(Boolean)));
-
-  if (loading) {
+  if (loading || categoriesLoading) {
     return (
       <div className="p-6 max-w-6xl mx-auto">
         <div className="animate-pulse">
@@ -333,8 +336,10 @@ const Drafts: React.FC = () => {
             className="px-4 py-2 border border-border/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600"
           >
             <option value="all">All Categories</option>
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
+            {dynamicCategories.map(category => (
+              <option key={category.id} value={category.name}>
+                {category.name} {!category.isActive && '(Inactive)'}
+              </option>
             ))}
           </select>
           <select
@@ -362,7 +367,7 @@ const Drafts: React.FC = () => {
             </button>
             <button
               onClick={() => setSelectedDrafts([])}
-              className="px-4 py-2 border border-border/30 rounded hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 border border-border/30 rounded hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
             >
               Clear Selection
             </button>
@@ -373,7 +378,7 @@ const Drafts: React.FC = () => {
         {filteredAndSortedDrafts.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">
+            <h3 className="text-xl font-medium text-slate-900 dark:text-slate-100 mb-2">
               No drafts found
             </h3>
             <p className="text-muted-foreground mb-6">
@@ -392,7 +397,7 @@ const Drafts: React.FC = () => {
         ) : (
           <div className="space-y-4">
             {/* Header row with select all */}
-            <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-border/30">
+            <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-border/30">
               <input
                 type="checkbox"
                 checked={selectedDrafts.length === filteredAndSortedDrafts.length && filteredAndSortedDrafts.length > 0}
@@ -419,7 +424,7 @@ const Drafts: React.FC = () => {
                   <div className="flex items-start justify-between mb-2">
                     <Link
                       href={`/admin/content/new?id=${draft.id}`}
-                      className="text-xl font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 transition-colors line-clamp-2"
+                      className="text-xl font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600 transition-colors line-clamp-2"
                     >
                       {draft.title}
                     </Link>
@@ -429,13 +434,13 @@ const Drafts: React.FC = () => {
                           Auto-saved
                         </span>
                       )}
-                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
+                      <span className="px-2 py-1 text-xs bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200 rounded-full">
                         {draft.status}
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-3">
+                  <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-2 mb-3">
                     {draft.summary || (draft.content ? draft.content.substring(0, 150) + '...' : 'No content')}
                   </p>
 
@@ -460,7 +465,7 @@ const Drafts: React.FC = () => {
                         </span>
                       ))}
                       {draft.tags.length > 5 && (
-                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 rounded-full">
+                        <span className="px-2 py-1 text-xs bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 rounded-full">
                           +{draft.tags.length - 5} more
                         </span>
                       )}

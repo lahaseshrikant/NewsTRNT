@@ -6,6 +6,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { articleAPI, type Article } from '@/lib/api';
 import Breadcrumb from '@/components/Breadcrumb';
 import ArticlePreview from '@/components/ArticlePreview';
+import { showToast } from '@/lib/toast';
+import { useCategories } from '@/hooks/useCategories';
 
 interface ArticleForm {
   title: string;
@@ -28,14 +30,14 @@ interface Category {
   slug: string;
 }
 
-// Dynamically import BeautifulEditor client-side only - MOVED OUTSIDE COMPONENT
-const BeautifulEditor = dynamic(() => import('@/components/BeautifulEditor'), { 
+// Dynamically import AdvancedNewsEditor client-side only - MOVED OUTSIDE COMPONENT
+const AdvancedNewsEditor = dynamic(() => import('@/components/AdvancedNewsEditor'), { 
   ssr: false,
   loading: () => (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 p-8">
+    <div className="border border-border rounded-xl bg-card p-8">
       <div className="flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <span className="ml-3 text-gray-600 dark:text-gray-400">Loading editor...</span>
+        <span className="ml-3 text-muted-foreground">Loading advanced editor...</span>
       </div>
     </div>
   )
@@ -62,9 +64,13 @@ const NewArticle: React.FC = () => {
     imageUrl: ''
   });
 
-  const [categories, setCategories] = useState<Category[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Get dynamic categories (include inactive for admin)
+  const { categories, loading: categoriesLoading } = useCategories({ 
+    includeInactive: true 
+  });
   const [saving, setSaving] = useState(false);
   const [keywordInput, setKeywordInput] = useState('');
   const [viewMode, setViewMode] = useState<'edit' | 'preview' | 'split'>('edit');
@@ -76,13 +82,17 @@ const NewArticle: React.FC = () => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastContentRef = useRef(formData.content);
 
-  // Auto-save to localStorage
+  // Auto-save to localStorage 
   useEffect(() => {
-    if (!isEditing && formData.title) { // Only auto-save for new articles with content
+    // Only auto-save if:
+    // 1. Has content to save
+    // 2. Not currently in a saving state
+    if (formData.title && !saving) {
       setAutoSaveStatus('saving');
       const timeoutId = setTimeout(() => {
         localStorage.setItem('newArticleDraft', JSON.stringify({
           ...formData,
+          id: editingId || undefined, // Include article ID if editing existing article
           timestamp: Date.now()
         }));
         setAutoSaveStatus('saved');
@@ -90,7 +100,7 @@ const NewArticle: React.FC = () => {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [formData, isEditing]);
+  }, [formData, editingId, saving]);
 
   // Debounce content updates for preview
   useEffect(() => {
@@ -166,6 +176,17 @@ const NewArticle: React.FC = () => {
             if (shouldLoad) {
               setFormData(draft);
               setAutoSaveStatus('unsaved');
+              
+              // If the draft has an existing article ID, update the URL to edit mode
+              if (draft.id) {
+                window.history.replaceState(
+                  {},
+                  '',
+                  `/admin/content/new?id=${draft.id}`
+                );
+                // The URL change will trigger a re-render and set isEditing to true
+                router.refresh();
+              }
             }
           }
         } catch (error) {
@@ -173,40 +194,18 @@ const NewArticle: React.FC = () => {
         }
       }
     }
-  }, [isEditing]);
+  }, [isEditing, router]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Load categories and article (if editing) on component mount
+  // Load article (if editing) on component mount
   useEffect(() => {
-    fetchCategories();
     if (isEditing && editingId) {
       fetchArticleForEditing(editingId);
     }
   }, [isEditing, editingId]);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/categories');
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data.categories || []);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      // Fallback categories if API fails
-      setCategories([
-        { id: '1', name: 'Technology', slug: 'technology' },
-        { id: '2', name: 'Business', slug: 'business' },
-        { id: '3', name: 'Environment', slug: 'environment' },
-        { id: '4', name: 'Politics', slug: 'politics' },
-        { id: '5', name: 'Sports', slug: 'sports' },
-        { id: '6', name: 'Health', slug: 'health' },
-        { id: '7', name: 'Science', slug: 'science' },
-        { id: '8', name: 'Entertainment', slug: 'entertainment' }
-      ]);
-    }
-  };
+
 
   const fetchArticleForEditing = async (articleId: string) => {
     try {
@@ -264,9 +263,9 @@ const NewArticle: React.FC = () => {
   }, []);
 
   // Optimize editor onChange to prevent re-renders
-  const handleEditorChange = useCallback((html: string, plain: string) => {
+  const handleEditorChange = useCallback((html: string, plain: string, wordCount?: number) => {
     handleInputChange('content', html);
-    setPlainTextCount(plain.split(/\s+/).filter((w: string) => w.length).length);
+    setPlainTextCount(wordCount || plain.split(/\s+/).filter((w: string) => w.length).length);
   }, [handleInputChange]);
 
   // Handle image upload
@@ -342,6 +341,14 @@ const NewArticle: React.FC = () => {
         setError('Category is required for published articles');
         return false;
       }
+      
+      // Check if selected category is active
+      const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
+      if (selectedCategory && !selectedCategory.isActive) {
+        setError('Cannot publish article with inactive category. Please select an active category.');
+        return false;
+      }
+      
       if (!formData.summary.trim()) {
         setError('Summary is required for published articles');
         return false;
@@ -389,13 +396,34 @@ const NewArticle: React.FC = () => {
           (status === 'draft' ? 'saved as draft' : 
            status === 'scheduled' ? 'scheduled' : 'published');
         
-        alert(`Article ${actionText} successfully!`);
+        // For drafts, show success message but stay on page for continued editing
+        if (status === 'draft') {
+          // If this was a new article, update URL to edit mode with the new article ID
+          if (!isEditing && response.article?.id) {
+            const newUrl = `/admin/content/new?id=${response.article.id}`;
+            window.history.replaceState({}, '', newUrl);
+            // Clear localStorage draft since it's now saved to database
+            localStorage.removeItem('newArticleDraft');
+            // Show toast notification for new draft
+            showToast('Draft saved successfully! You can continue editing.', 'success');
+          } else if (isEditing) {
+            // Show toast notification for updated draft
+            showToast('Draft updated successfully!', 'success');
+          } else {
+            // Fallback message
+            showToast('Draft saved successfully!', 'success');
+          }
+          
+          // Show success notification without redirecting
+          setAutoSaveStatus('saved');
+        } else {
+          // For published/scheduled articles, show alert and redirect
+          alert(`Article ${actionText} successfully!`);
+          router.push('/admin/content');
+        }
         
-        // Redirect to content management
-        router.push('/admin/content');
-        
-        // Reset form only for new articles (not when editing)
-        if (!isEditing) {
+        // Reset form only for published/scheduled articles (not drafts)
+        if (!isEditing && status !== 'draft') {
           setFormData({
             title: '',
             content: '',
@@ -416,7 +444,9 @@ const NewArticle: React.FC = () => {
       }
     } catch (error) {
       console.error('Error saving article:', error);
-      setError(error instanceof Error ? error.message : 'Failed to save article. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save article. Please try again.';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setSaving(false);
     }
@@ -427,7 +457,7 @@ const NewArticle: React.FC = () => {
     <div className="space-y-8">
       {/* Article Title */}
       <div>
-        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+        <label className="block text-sm font-semibold text-foreground mb-2">
           Article Title *
         </label>
         <input
@@ -435,36 +465,39 @@ const NewArticle: React.FC = () => {
           value={formData.title}
             onChange={(e) => handleInputChange('title', e.target.value)}
           placeholder="Enter a compelling article title..."
-          className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+          className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
       {/* Category / Publish Date / Featured */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+          <label className="block text-sm font-semibold text-foreground mb-2">
             Category *
           </label>
           <select
             value={formData.categoryId}
             onChange={(e) => handleInputChange('categoryId', e.target.value)}
-            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+            disabled={categoriesLoading}
+            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground"
           >
             <option value="">Select category...</option>
             {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <option key={cat.id} value={cat.id}>
+                {cat.name} {!cat.isActive && '(Inactive)'}
+              </option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+          <label className="block text-sm font-semibold text-foreground mb-2">
             Publish Date
           </label>
           <input
             type="datetime-local"
             value={formData.publishDate}
             onChange={(e) => handleInputChange('publishDate', e.target.value)}
-            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground"
           />
         </div>
         <div className="flex items-end">
@@ -475,7 +508,7 @@ const NewArticle: React.FC = () => {
               onChange={(e) => handleInputChange('featured', e.target.checked)}
               className="w-5 h-5 text-blue-600 border-2 border-border/50 rounded focus:ring-blue-500"
             />
-            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <span className="text-sm font-semibold text-foreground">
               ⭐ Featured Article
             </span>
           </label>
@@ -484,7 +517,7 @@ const NewArticle: React.FC = () => {
 
       {/* Summary */}
       <div>
-        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+        <label className="block text-sm font-semibold text-foreground mb-2">
           Summary *
         </label>
         <textarea
@@ -493,14 +526,14 @@ const NewArticle: React.FC = () => {
           placeholder="Brief summary of the article (50-300 characters)..."
           rows={3}
           maxLength={300}
-          className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground resize-none"
+          className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground resize-none"
         />
-        <p className="text-xs text-slate-500 mt-1">{formData.summary.length}/300 characters</p>
+        <p className="text-xs text-muted-foreground mt-1">{formData.summary.length}/300 characters</p>
       </div>
 
       {/* Tags */}
       <div>
-        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+        <label className="block text-sm font-semibold text-foreground mb-2">
           Tags
         </label>
         <div className="flex items-center space-x-2 mb-3">
@@ -510,7 +543,7 @@ const NewArticle: React.FC = () => {
             onChange={(e) => setTagInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
             placeholder="Add a tag..."
-            className="flex-1 px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+            className="flex-1 px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
           />
           <button
             onClick={addTag}
@@ -541,9 +574,9 @@ const NewArticle: React.FC = () => {
 
       {/* SEO Settings */}
       <div className="space-y-6 border-t border-border/50 pt-6">
-        <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">SEO Settings</h3>
+        <h3 className="text-lg font-semibold text-foreground">SEO Settings</h3>
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+          <label className="block text-sm font-semibold text-foreground mb-2">
             SEO Title
           </label>
           <input
@@ -552,12 +585,12 @@ const NewArticle: React.FC = () => {
             onChange={(e) => handleInputChange('seoTitle', e.target.value)}
             placeholder="SEO-optimized title (leave blank to use article title)"
             maxLength={60}
-            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
           />
-          <p className="text-xs text-slate-500 mt-1">{formData.seoTitle.length}/60 characters</p>
+          <p className="text-xs text-muted-foreground mt-1">{formData.seoTitle.length}/60 characters</p>
         </div>
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+          <label className="block text-sm font-semibold text-foreground mb-2">
             SEO Description
           </label>
           <textarea
@@ -566,12 +599,12 @@ const NewArticle: React.FC = () => {
             placeholder="Brief description for SEO (150-160 characters)..."
             rows={2}
             maxLength={160}
-            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground resize-none"
+            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground resize-none"
           />
-          <p className="text-xs text-slate-500 mt-1">{formData.seoDescription.length}/160 characters</p>
+          <p className="text-xs text-muted-foreground mt-1">{formData.seoDescription.length}/160 characters</p>
         </div>
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+          <label className="block text-sm font-semibold text-foreground mb-2">
             SEO Keywords
           </label>
           <div className="flex items-center space-x-2 mb-3">
@@ -581,7 +614,7 @@ const NewArticle: React.FC = () => {
               onChange={(e) => setKeywordInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
               placeholder="Add SEO keyword..."
-              className="flex-1 px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+              className="flex-1 px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
             />
             <button
               type="button"
@@ -613,7 +646,7 @@ const NewArticle: React.FC = () => {
 
       {/* Featured Image */}
       <div>
-        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+        <label className="block text-sm font-semibold text-foreground mb-2">
           Featured Image URL
         </label>
         <input
@@ -621,21 +654,24 @@ const NewArticle: React.FC = () => {
           value={formData.imageUrl}
           onChange={(e) => handleInputChange('imageUrl', e.target.value)}
           placeholder="https://example.com/image.jpg"
-          className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+          className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
       {/* Content Editor */}
       <div>
-        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+        <label className="block text-sm font-semibold text-foreground mb-2">
           Article Content *
         </label>
-        <BeautifulEditor
+        <AdvancedNewsEditor
           value={formData.content}
           onChange={handleEditorChange}
           onImageUpload={handleImageUpload}
+          showWordTarget={true}
+          wordTarget={800}
+          autoSave={true}
         />
-        <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
+        <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
           <span>HTML length: {formData.content.length}</span>
           <span>Words: {plainTextCount}</span>
         </div>
@@ -643,7 +679,7 @@ const NewArticle: React.FC = () => {
 
       {/* Error */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
@@ -655,7 +691,7 @@ const NewArticle: React.FC = () => {
             type="button"
             onClick={() => handleSubmit('draft')}
             disabled={saving}
-            className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-300 font-medium disabled:opacity-50"
+            className="px-6 py-3 bg-muted text-foreground rounded-xl hover:bg-card transition-colors duration-300 font-medium disabled:opacity-50"
           >
             {saving ? '⏳ Saving...' : '💾 Save as Draft'}
           </button>
@@ -681,7 +717,7 @@ const NewArticle: React.FC = () => {
 
   const renderPreview = (tall: boolean) => (
     <div className={`space-y-4 ${tall ? '' : ''}`}>
-      <div className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center">
+      <div className="text-lg font-semibold text-foreground mb-4 flex items-center">
         <span className="mr-2">👁️</span>
         Live Preview
         {previewUpdating && (
@@ -691,7 +727,7 @@ const NewArticle: React.FC = () => {
         )}
       </div>
       <div 
-        className={`bg-slate-50 dark:bg-slate-800 rounded-xl p-6 ${tall ? 'h-[80vh] overflow-y-auto scroll-smooth' : ''}`}
+        className={`bg-card border border-border rounded-xl p-6 shadow-sm ${tall ? 'h-[80vh] overflow-y-auto scroll-smooth' : ''}`}
       >
         <ArticlePreview
           title={formData.title}
@@ -719,13 +755,13 @@ const NewArticle: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-8 border border-border/50">
+  <div className="bg-card rounded-2xl shadow-lg p-8 border border-border/50 text-foreground transition-colors">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               {isEditing ? 'Edit Article' : 'Create New Article'}
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-muted-foreground mt-2">
               {isEditing ? 'Update your article content and settings' : 'Write and publish engaging content for your audience'}
             </p>
             {loading && (
@@ -760,13 +796,13 @@ const NewArticle: React.FC = () => {
           </div>
           <div className="flex items-center space-x-3">
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+            <div className="flex items-center bg-muted rounded-xl p-1 transition-colors">
               <button
                 onClick={() => setViewMode('edit')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  viewMode === 'edit' 
-                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  viewMode === 'edit'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 📝 Edit
@@ -774,9 +810,9 @@ const NewArticle: React.FC = () => {
               <button
                 onClick={() => setViewMode('split')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  viewMode === 'split' 
-                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  viewMode === 'split'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
                 title="Split view - content editor and live preview side-by-side with debounced updates"
               >
@@ -785,9 +821,9 @@ const NewArticle: React.FC = () => {
               <button
                 onClick={() => setViewMode('preview')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  viewMode === 'preview' 
-                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  viewMode === 'preview'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 👁️ Preview
@@ -801,24 +837,27 @@ const NewArticle: React.FC = () => {
           {viewMode === 'split' && (
             <div className="space-y-8">
               {/* Metadata Section at Top */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 bg-slate-50 dark:bg-slate-800 rounded-xl">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 bg-muted rounded-xl transition-colors">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-semibold text-foreground mb-2">
                     Category *
                   </label>
                   <select
                     value={formData.categoryId}
                     onChange={(e) => handleInputChange('categoryId', e.target.value)}
-                    className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+                    disabled={categoriesLoading}
+                    className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
                   >
                     <option value="">Select category...</option>
                     {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name} {!cat.isActive && '(Inactive)'}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-semibold text-foreground mb-2">
                     Summary *
                   </label>
                   <textarea
@@ -827,12 +866,12 @@ const NewArticle: React.FC = () => {
                     placeholder="Brief summary of the article..."
                     rows={3}
                     maxLength={300}
-                    className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground resize-none"
+                    className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground resize-none"
                   />
-                  <p className="text-xs text-slate-500 mt-1">{formData.summary.length}/300 characters</p>
+                  <p className="text-xs text-muted-foreground mt-1">{formData.summary.length}/300 characters</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-semibold text-foreground mb-2">
                     Featured Image URL
                   </label>
                   <input
@@ -840,17 +879,17 @@ const NewArticle: React.FC = () => {
                     value={formData.imageUrl}
                     onChange={(e) => handleInputChange('imageUrl', e.target.value)}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+                    className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
                   />
                   <div className="mt-3">
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    <label className="block text-sm font-semibold text-foreground mb-2">
                       Publish Date
                     </label>
                     <input
                       type="datetime-local"
                       value={formData.publishDate}
                       onChange={(e) => handleInputChange('publishDate', e.target.value)}
-                      className="w-full px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+                      className="w-full px-4 py-2 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
                 </div>
@@ -862,11 +901,11 @@ const NewArticle: React.FC = () => {
                       onChange={(e) => handleInputChange('featured', e.target.checked)}
                       className="w-5 h-5 text-blue-600 border-2 border-border/50 rounded focus:ring-blue-500"
                     />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="text-sm font-semibold text-foreground">
                       ⭐ Featured Article
                     </span>
                   </label>
-                  <div className="text-xs text-slate-500 bg-white dark:bg-slate-900 p-3 rounded-lg">
+                  <div className="text-xs text-muted-foreground bg-card p-3 rounded-lg">
                     <strong>Shortcuts:</strong><br/>
                     Ctrl+S (Save)<br/>
                     Ctrl+Enter (Publish)<br/>
@@ -878,7 +917,7 @@ const NewArticle: React.FC = () => {
               {/* Title Section - Side by Side */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-semibold text-foreground mb-2">
                     Article Title *
                   </label>
                   <input
@@ -886,15 +925,15 @@ const NewArticle: React.FC = () => {
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                     placeholder="Enter a compelling article title..."
-                    className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-foreground"
+                    className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-semibold text-foreground mb-2">
                     Title Preview
                   </label>
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-border/50 min-h-[3.25rem] flex items-center">
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                  <div className="p-4 bg-muted rounded-xl border border-border/50 min-h-[3.25rem] flex items-center transition-colors">
+                    <h1 className="text-2xl font-bold text-foreground">
                       {formData.title || 'Your title will appear here...'}
                     </h1>
                   </div>
@@ -902,45 +941,80 @@ const NewArticle: React.FC = () => {
               </div>
 
               {/* Content Section - Side by Side */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                    Article Content *
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-foreground mb-2">
+                    📝 Article Content *
                   </label>
-                  <BeautifulEditor
-                    value={formData.content}
-                    onChange={handleEditorChange}
-                    onImageUpload={handleImageUpload}
-                  />
-                  <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
-                    <span>HTML length: {formData.content.length}</span>
+                  <div className="border border-border/30 rounded-xl overflow-hidden">
+                    <AdvancedNewsEditor
+                      value={formData.content}
+                      onChange={handleEditorChange}
+                      onImageUpload={handleImageUpload}
+                      showWordTarget={true}
+                      wordTarget={800}
+                      autoSave={true}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground px-2">
+                    <span>HTML: {formData.content.length} chars</span>
                     <span>Words: {plainTextCount}</span>
                   </div>
                 </div>
-                <div>
+                <div className="space-y-3">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      Content Preview
+                    <label className="block text-sm font-semibold text-foreground">
+                      👁️ Live Preview
                     </label>
-                    {previewUpdating && (
-                      <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full animate-pulse">
-                        Updating...
+                    <div className="flex items-center gap-2">
+                      {previewUpdating && (
+                        <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs rounded-full animate-pulse">
+                          Syncing...
+                        </span>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        Real-time
                       </span>
-                    )}
+                    </div>
                   </div>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 min-h-[320px] max-h-[600px] overflow-y-auto border border-border/50">
-                    <article className="prose prose-lg dark:prose-invert max-w-none">
+                  <div className="bg-card border border-border rounded-xl p-6 min-h-[320px] max-h-[600px] overflow-y-auto shadow-sm transition-colors">
+                    <div className="prose dark:prose-invert prose-lg max-w-none
+                                 prose-headings:text-foreground prose-headings:font-bold prose-headings:leading-tight
+                                 prose-h1:text-4xl prose-h1:mt-10 prose-h1:mb-6
+                                 prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4
+                                 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
+                                 prose-h4:text-lg prose-h4:mt-5 prose-h4:mb-2 prose-h4:font-semibold
+                                 prose-h5:text-base prose-h5:mt-4 prose-h5:mb-2 prose-h5:font-semibold
+                                 prose-h6:text-sm prose-h6:mt-3 prose-h6:mb-1 prose-h6:font-semibold prose-h6:uppercase prose-h6:tracking-wide
+                                 prose-p:text-foreground prose-p:leading-relaxed prose-p:text-lg prose-p:mb-4
+                                 prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4
+                                 prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4
+                                 prose-li:text-foreground prose-li:text-lg prose-li:mb-1 prose-li:leading-relaxed
+                                 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:underline hover:prose-a:no-underline
+                                 prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20
+                                 prose-blockquote:text-blue-900 dark:prose-blockquote:text-blue-200 prose-blockquote:not-italic prose-blockquote:pl-6 prose-blockquote:py-4
+                                 prose-strong:text-foreground prose-strong:font-bold
+                                 prose-em:text-foreground prose-em:italic
+                                 prose-code:text-foreground prose-code:bg-muted prose-code:px-1 prose-code:rounded prose-code:text-sm
+                                 prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
+                                 prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg prose-img:shadow-md prose-img:my-6
+                                 prose-hr:border-border prose-hr:my-8
+                                 prose-table:border-collapse prose-table:border prose-table:border-border prose-table:my-6
+                                 prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-3 prose-th:text-foreground prose-th:font-semibold
+                                 prose-td:border prose-td:border-border prose-td:p-3 prose-td:text-foreground
+                                 selection:bg-blue-100 dark:selection:bg-blue-900/30
+                                 text-foreground">
                       {debouncedContent ? (
                         <div 
-                          className="text-slate-700 dark:text-slate-300 leading-relaxed"
+                          className="article-preview-content text-foreground leading-relaxed"
                           dangerouslySetInnerHTML={{ __html: debouncedContent }}
                         />
                       ) : (
-                        <div className="text-slate-400 dark:text-slate-500 italic text-center py-12">
+                        <div className="text-muted-foreground italic text-center py-12">
                           Content preview will appear here as you write...
                         </div>
                       )}
-                    </article>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -952,7 +1026,7 @@ const NewArticle: React.FC = () => {
                     type="button"
                     onClick={() => handleSubmit('draft')}
                     disabled={saving}
-                    className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-300 font-medium disabled:opacity-50"
+                    className="px-6 py-3 bg-muted text-foreground rounded-xl hover:bg-card transition-colors duration-300 font-medium disabled:opacity-50"
                   >
                     {saving ? '⏳ Saving...' : '💾 Save as Draft'}
                   </button>
@@ -981,12 +1055,12 @@ const NewArticle: React.FC = () => {
           {viewMode === 'preview' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 flex items-center">
+                <h2 className="text-2xl font-semibold text-foreground flex items-center">
                   <span className="mr-2">👁️</span> Full Article Preview
                 </h2>
                 <button
                   onClick={() => setViewMode('edit')}
-                  className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm"
+                  className="px-4 py-2 rounded-lg bg-muted text-foreground hover:bg-card transition-colors text-sm"
                 >
                   ← Back to Edit
                 </button>
@@ -1001,3 +1075,5 @@ const NewArticle: React.FC = () => {
 };
 
 export default NewArticle;
+
+

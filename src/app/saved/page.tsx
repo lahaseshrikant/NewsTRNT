@@ -3,10 +3,12 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useCategories, Category } from '@/hooks/useCategories';
 
 const SavedArticlesPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('saved_date');
+  const { categories: dynamicCategories, loading: categoriesLoading } = useCategories();
 
   // Mock saved articles data
   const savedArticles = [
@@ -64,7 +66,8 @@ const SavedArticlesPage: React.FC = () => {
     }
   ];
 
-  const categories = ['all', 'Technology', 'World', 'Business', 'Science', 'Sports', 'Health'];
+  // Create categories list with 'all' option and dynamic categories
+  const categories = ['all', ...dynamicCategories.map(cat => cat.name)];
   const sortOptions = [
     { value: 'saved_date', label: 'Recently Saved' },
     { value: 'published_date', label: 'Recently Published' },

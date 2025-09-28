@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { dbApi, Article, Category } from '../lib/database-real';
+import { dbApi, Article } from '../lib/database-real';
+import { useCategories, Category } from '@/hooks/useCategories';
+import { getCategoryBadgeStyle, findCategoryByName } from '@/lib/categoryUtils';
 
 // Helper function to format published time
 const formatPublishedTime = (publishedAt: string | Date) => {
@@ -17,25 +19,19 @@ const formatPublishedTime = (publishedAt: string | Date) => {
   return `${Math.floor(diffInHours / 24)} days ago`;
 };
 
-// Helper function to get category color
-const getCategoryColor = (categoryName: string) => {
-  const colorMap: { [key: string]: string } = {
-    'Politics': 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
-    'Technology': 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
-    'Business': 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
-    'Sports': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300',
-    'Health': 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
-    'Science': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
-    'World': 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
-  };
-  return colorMap[categoryName] || 'bg-gray-100 text-gray-800 dark:bg-gray-950 dark:text-gray-300';
+// Helper function to get category color using dynamic categories
+const getCategoryColor = (categoryName: string, categories: Category[]) => {
+  const category = findCategoryByName(categories, categoryName);
+  return getCategoryBadgeStyle(category || categoryName);
 };
 
 const HomePage: React.FC = () => {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [trendingNews, setTrendingNews] = useState<Article[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Use the categories hook for dynamic category loading
+  const { categories, loading: categoriesLoading } = useCategories({ includeStats: false });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // Check authentication status
@@ -55,36 +51,22 @@ const HomePage: React.FC = () => {
       setCurrentTime(new Date());
     }, 1000);
 
-    // Optimized data loading with parallel requests
+    // Optimized data loading
     const loadData = async () => {
       try {
         setLoading(true);
         
-        // Load data in parallel for better performance
-        const [featuredResponse, categoriesResponse] = await Promise.allSettled([
-          dbApi.getFeaturedArticles(5),
-          dbApi.getCategories()
-        ]);
-        
-        // Handle featured articles
-        if (featuredResponse.status === 'fulfilled' && Array.isArray(featuredResponse.value)) {
-          setTrendingNews(featuredResponse.value);
+        // Load featured articles
+        const featuredArticles = await dbApi.getFeaturedArticles(5);
+        if (Array.isArray(featuredArticles)) {
+          setTrendingNews(featuredArticles);
         } else {
-          console.warn('Featured articles failed to load:', featuredResponse);
+          console.warn('Featured articles failed to load');
           setTrendingNews([]);
         }
-        
-        // Handle categories
-        if (categoriesResponse.status === 'fulfilled' && Array.isArray(categoriesResponse.value)) {
-          setCategories(categoriesResponse.value);
-        } else {
-          console.warn('Categories failed to load:', categoriesResponse);
-          setCategories([]);
-        }
       } catch (error) {
-        console.error('Error loading homepage data:', error);
+        console.error('Error loading featured articles:', error);
         setTrendingNews([]);
-        setCategories([]);
       } finally {
         setLoading(false);
       }
@@ -102,7 +84,8 @@ const HomePage: React.FC = () => {
   }, []);
 
   // Mock user interests - in real app, this would come from user profile/preferences
-  const userInterests = ['Technology', 'Environment', 'Health', 'Business'];
+  // Get user's top interests from dynamic categories (or use fallback)
+  const userInterests = categories.slice(0, 4).map(cat => cat.name);
   
   // Generate personalized quick reads based on user interests
   const personalizedQuickReads = [
@@ -311,7 +294,7 @@ const HomePage: React.FC = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-out"></div>
                       </div>
                       <div className="p-4 group-hover:bg-muted/30 transition-colors duration-200 ease-out">
-                        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold mb-2 transition-all duration-200 ease-out group-hover:scale-105 ${getCategoryColor(article.category?.name || 'News')}`}>
+                        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold mb-2 transition-all duration-200 ease-out group-hover:scale-105 ${getCategoryColor(article.category?.name || 'News', categories)}`}>
                           {article.category?.name || 'News'}
                         </span>
                         <h3 className="font-bold text-lg mb-2 text-foreground group-hover:text-primary transition-colors duration-200 ease-out line-clamp-2">
@@ -560,7 +543,7 @@ const HomePage: React.FC = () => {
                         <span className="text-xl transition-transform duration-200 ease-in-out group-hover:scale-110">{category.icon || '📰'}</span>
                         <span className="font-medium text-foreground group-hover:text-primary transition-colors duration-200 ease-in-out">{category.name}</span>
                       </div>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${getCategoryColor(category.name)}`}>
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${getCategoryColor(category.name, categories)}`}>
                         {category.name.slice(0, 3).toUpperCase()}
                       </span>
                     </Link>

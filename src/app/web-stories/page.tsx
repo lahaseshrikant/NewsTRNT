@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumb';
+import { useCategories } from '@/hooks/useCategories';
 
 interface WebStory {
   id: string;
@@ -42,6 +43,9 @@ const WebStoriesPage: React.FC = () => {
   const [currentStoryIndex, setCurrentStoryIndex] = useState<number | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  
+  // Use dynamic categories (active only)
+  const { categories: dynamicCategories, loading: categoriesLoading } = useCategories();
 
   // Set initial category from URL parameter
   useEffect(() => {
@@ -234,15 +238,15 @@ const WebStoriesPage: React.FC = () => {
     }
   ];
 
+  // Create categories list with special items and dynamic categories
   const categories = [
     { id: 'all', label: 'All Stories', count: webStories.length },
     { id: 'trending', label: 'Trending', count: webStories.filter(s => s.isTrending).length },
-    { id: 'Environment', label: 'Environment', count: webStories.filter(s => s.category === 'Environment').length },
-    { id: 'Technology', label: 'Technology', count: webStories.filter(s => s.category === 'Technology').length },
-    { id: 'Science', label: 'Science', count: webStories.filter(s => s.category === 'Science').length },
-    { id: 'Business', label: 'Business', count: webStories.filter(s => s.category === 'Business').length },
-    { id: 'Sports', label: 'Sports', count: webStories.filter(s => s.category === 'Sports').length },
-    { id: 'Entertainment', label: 'Entertainment', count: webStories.filter(s => s.category === 'Entertainment').length }
+    ...dynamicCategories.map(cat => ({
+      id: cat.name,
+      label: cat.name,
+      count: webStories.filter(s => s.category === cat.name).length
+    }))
   ];
 
   const filteredStories = selectedCategory === 'all' 

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useCategories } from '@/hooks/useCategories';
 
 const HelpPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');

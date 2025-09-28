@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useLogo } from '@/contexts/LogoContext';
+import { useCategories } from '@/hooks/useCategories';
 import {
   MagnifyingGlassIcon,
   BellIcon,
@@ -24,18 +25,7 @@ interface NavigationItem {
   submenu?: { name: string; href: string }[];
 }
 
-const navigation: NavigationItem[] = [
-  { name: 'Home', href: '/', priority: 1 },
-  { name: 'World', href: '/category/world', priority: 2 },
-  { name: 'Politics', href: '/category/politics', priority: 3 },
-  { name: 'Technology', href: '/category/technology', priority: 4 },
-  { name: 'Business', href: '/category/business', priority: 5 },
-  { name: 'Sports', href: '/category/sports', priority: 6 },
-  { name: 'Stories', href: '/web-stories', priority: 7 },
-  { name: 'Entertainment', href: '/category/entertainment', priority: 8 },
-  { name: 'Health', href: '/category/health', priority: 9 },
-  { name: 'Science', href: '/category/science', priority: 10 },
-];
+// Dynamic navigation will be created in component using categories hook
 
 const moreMenuItems = [
   { name: 'News Shorts', href: '/shorts' },
@@ -102,6 +92,19 @@ const Header = () => {
   
   const router = useRouter();
   const { isAdmin, logout } = useAdmin();
+  const { categories } = useCategories(); // Get active categories only
+  
+  // Memoize navigation array to prevent infinite re-renders
+  const navigation: NavigationItem[] = useMemo(() => [
+    { name: 'Home', href: '/', priority: 1 },
+    { name: 'Stories', href: '/web-stories', priority: 2 },
+    { name: 'News Shorts', href: '/shorts', priority: 3 },
+    ...categories.map((cat, index) => ({
+      name: cat.name,
+      href: `/category/${cat.slug}`,
+      priority: index + 4 // Categories start after the fixed items
+    }))
+  ], [categories]); // Only recreate when categories change
   const { currentLogo, setCurrentLogo } = useLogo();
   const navRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -222,36 +225,55 @@ const Header = () => {
     };
   }, []);
 
+  // Memoize sorted items to prevent recalculation on every render
+  const sortedItems = useMemo(() => {
+    return [...navigation].sort((a, b) => a.priority - b.priority);
+  }, [navigation]);
+
   // Calculate responsive navigation
   useEffect(() => {
     const calculateVisibleItems = () => {
-      if (typeof window === 'undefined' || !containerRef.current) {
+      if (typeof window === 'undefined') {
         // Default for SSR with stable layout
-        const sortedItems = [...navigation].sort((a, b) => a.priority - b.priority);
         setVisibleItems(sortedItems.slice(0, 4));
         setHiddenItems(sortedItems.slice(4));
         return;
       }
 
-      // Use stable breakpoint-based calculation instead of dynamic measurements
+      // Responsive navigation - show optimal number of items for each screen size
+      // Navigation now: [Home, Stories, News Shorts, ...Categories]
       const width = window.innerWidth;
-      let maxItems = 4; // Default stable value
+      let maxItems = 4; // Default: Home + Stories + News Shorts + 1 category
       
-      if (width >= 1280) maxItems = 8; // xl
-      else if (width >= 1024) maxItems = 6; // lg
-      else if (width >= 768) maxItems = 5; // md
-      else maxItems = 3; // sm and below
+      if (width >= 1536) maxItems = navigation.length; // 2xl: Show all items (no More needed)
+      else if (width >= 1280) maxItems = Math.min(navigation.length, 8); // xl: Show most items
+      else if (width >= 1024) maxItems = 7; // lg: Show fixed items + 4 categories
+      else if (width >= 768) maxItems = 5; // md: Show fixed items + 2 categories
+      else maxItems = 4; // sm: Show fixed items + 1 category + More
 
-      // Always show items based on priority
-      const sortedItems = [...navigation].sort((a, b) => a.priority - b.priority);
+      // Use memoized sorted items
       const visible = sortedItems.slice(0, maxItems);
       const hidden = sortedItems.slice(maxItems);
 
-      setVisibleItems(visible);
-      setHiddenItems(hidden);
+      // Only update state if values have actually changed
+      setVisibleItems(prev => {
+        if (prev.length !== visible.length || 
+            prev.some((item, index) => item.name !== visible[index]?.name)) {
+          return visible;
+        }
+        return prev;
+      });
+      
+      setHiddenItems(prev => {
+        if (prev.length !== hidden.length || 
+            prev.some((item, index) => item.name !== hidden[index]?.name)) {
+          return hidden;
+        }
+        return prev;
+      });
     };
 
-    // Initial calculation
+    // Calculate when sorted items change
     calculateVisibleItems();
 
     // Throttled resize handler to prevent excessive recalculations
@@ -266,7 +288,7 @@ const Header = () => {
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimeout);
     };
-  }, []);
+  }, [sortedItems, navigation.length]); // Only depend on sortedItems and navigation length
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -589,10 +611,15 @@ const Header = () => {
                       setIsNotificationsOpen(false);
                       setIsSearchOpen(false);
                     }}
-                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap"
+                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap relative"
                   >
                     <EllipsisHorizontalIcon className="h-5 w-5" />
                     <span className="ml-1 hidden lg:inline">More</span>
+                    {hiddenItems.length > 0 && (
+                      <span className="ml-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs font-medium px-1.5 py-0.5 rounded-full">
+                        {hiddenItems.length}
+                      </span>
+                    )}
                     <svg
                       className={`ml-1 h-4 w-4 transition-transform duration-200 ease-in-out ${
                         openDropdown === 'more' ? 'rotate-180' : ''

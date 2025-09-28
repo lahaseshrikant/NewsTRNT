@@ -2,8 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useCategories } from '@/hooks/useCategories';
 
 const NotFoundPage: React.FC = () => {
+  // Use dynamic categories for navigation suggestions
+  const { categories: dynamicCategories } = useCategories();
+  
   const popularPages = [
     { name: 'Home', href: '/', icon: '🏠' },
     { name: 'Latest News', href: '/category/world', icon: '🌍' },
@@ -13,16 +17,11 @@ const NotFoundPage: React.FC = () => {
     { name: 'Contact', href: '/contact', icon: '📧' }
   ];
 
-  const allCategories = [
-    { name: 'World News', href: '/category/world' },
-    { name: 'Politics', href: '/category/politics' },
-    { name: 'Technology', href: '/category/technology' },
-    { name: 'Business', href: '/category/business' },
-    { name: 'Sports', href: '/category/sports' },
-    { name: 'Health', href: '/category/health' },
-    { name: 'Entertainment', href: '/category/entertainment' },
-    { name: 'Science', href: '/category/science' }
-  ];
+  // Create category links from dynamic categories (active only)
+  const allCategories = dynamicCategories.map(cat => ({
+    name: cat.name,
+    href: `/category/${cat.slug}`
+  }));
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">

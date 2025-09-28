@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import UnifiedAdminAuth from '@/lib/unified-admin-auth';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface NavigationItem {
   label: string;
@@ -21,33 +22,21 @@ export default function AdminLayoutContent({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
 
   const [adminInfo, setAdminInfo] = useState<any>(null);
 
-  // Initialize dark mode from localStorage and get admin info
+  // Get current admin info
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('admin-dark-mode');
-    if (savedDarkMode) {
-      setDarkMode(savedDarkMode === 'true');
-    }
-    
-    // Get current admin info
     const currentAdmin = UnifiedAdminAuth.getCurrentAdmin();
     setAdminInfo(currentAdmin);
   }, []);
 
-  // Apply dark mode to document
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('admin-dark-mode', darkMode.toString());
-  }, [darkMode]);
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+  };
 
   const handleLogout = () => {
     UnifiedAdminAuth.logout();
@@ -218,7 +207,7 @@ export default function AdminLayoutContent({
           className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden ${
             isActive
               ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25'
-              : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20'
+              : 'text-muted-foreground hover:text-primary hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20'
           } ${isChild ? 'ml-2' : ''}`}
           onClick={() => setSidebarOpen(false)}
         >
@@ -252,8 +241,8 @@ export default function AdminLayoutContent({
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 text-foreground transition-all duration-500 flex">
+    <div className="min-h-screen admin-container">
+      <div className="min-h-screen bg-background text-foreground transition-colors duration-500 flex">
         {/* Mobile sidebar overlay */}
         {sidebarOpen && (
           <div
@@ -263,16 +252,16 @@ export default function AdminLayoutContent({
         )}
 
         {/* Sidebar */}
-        <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 border-r-0 backdrop-blur-sm shadow-xl transform transition-all duration-300 ease-out lg:translate-x-0 lg:relative lg:z-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-card text-foreground border-r border-border shadow-xl transform transition-all duration-300 ease-out lg:translate-x-0 lg:relative lg:z-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="flex flex-col h-full">
             {/* Logo */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl h-[73px]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card h-[73px]">
               <Link href="/admin" className="flex items-center space-x-3 group">
                 <div className="relative">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                     <span className="text-white font-bold text-lg">N</span>
                   </div>
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-card animate-pulse"></div>
                 </div>
                 <div>
                   <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">NewsTRNT</h1>
@@ -281,28 +270,28 @@ export default function AdminLayoutContent({
               </Link>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="lg:hidden p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 hover:text-red-600 transition-all duration-200"
+                className="lg:hidden p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-muted-foreground hover:text-red-600 transition-all duration-200"
               >
                 <span className="text-lg">✕</span>
               </button>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-4 py-6 space-y-3 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+            <nav className="flex-1 px-4 py-6 space-y-3 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 bg-card">
               <div className="mb-4">
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-3">Main Menu</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">Main Menu</p>
               </div>
               {filteredNavigationItems.map(item => renderNavigationItem(item))}
             </nav>
 
             {/* User Profile */}
-            <div className="border-t border-border/30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl h-[85px]">
+            <div className="border-t border-border bg-card h-[85px]">
               <div className="flex items-center space-x-3 px-6 py-4 h-full rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 transition-all duration-300 cursor-pointer group">
                 <div className="relative">
                   <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
                     <span className="text-white text-sm font-semibold">A</span>
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center">
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-card flex items-center justify-center">
                     <div className="w-2 h-2 bg-white rounded-full"></div>
                   </div>
                 </div>
@@ -312,7 +301,7 @@ export default function AdminLayoutContent({
                 </div>
                 <button 
                   onClick={handleLogout}
-                  className="text-slate-400 hover:text-red-500 transition-colors"
+                  className="text-muted-foreground hover:text-red-500 transition-colors"
                   title="Logout"
                 >
                   <span className="text-sm">🚪</span>
@@ -323,9 +312,9 @@ export default function AdminLayoutContent({
         </div>
 
         {/* Main content area */}
-        <div className="flex-1 min-h-screen flex flex-col lg:ml-0 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+  <div className="flex-1 min-h-screen flex flex-col lg:ml-0 bg-background">
           {/* Admin Top bar */}
-          <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-border/30 shadow-sm z-30 flex-shrink-0 h-[73px]">
+          <header className="bg-card border-b border-border shadow-sm z-30 flex-shrink-0 h-[73px] transition-colors">
             <div className="flex items-center justify-between px-6 py-4 h-full">
               <div className="flex items-center space-x-6">
                 <button
@@ -361,12 +350,12 @@ export default function AdminLayoutContent({
               <div className="flex items-center space-x-4">
                 {/* Dark mode toggle */}
                 <button
-                  onClick={() => setDarkMode(!darkMode)}
+                  onClick={toggleTheme}
                   className="relative p-3 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 transition-all duration-300 group shadow-sm hover:shadow-md"
                   title="Toggle dark mode"
                 >
                   <span className="text-lg group-hover:scale-110 transition-transform duration-300">
-                    {darkMode ? '☀️' : '🌙'}
+                    {resolvedTheme === 'dark' ? '☀️' : '🌙'}
                   </span>
                 </button>
 
@@ -435,7 +424,7 @@ export default function AdminLayoutContent({
           </header>
 
           {/* Page content */}
-          <main className="flex-1 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 overflow-y-auto">
+          <main className="flex-1 bg-background overflow-y-auto transition-colors">
             <div className="relative min-h-full">
               {/* Decorative background elements */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">

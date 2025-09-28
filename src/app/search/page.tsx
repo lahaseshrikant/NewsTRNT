@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useCategories } from '@/hooks/useCategories';
+import { getCategoryBadgeStyle } from '@/lib/categoryUtils';
 
 interface SearchResult {
   id: number;
@@ -22,6 +24,9 @@ const SearchPage: React.FC = () => {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState('all');
+  
+  // Use dynamic categories for search suggestions
+  const { categories: dynamicCategories } = useCategories();
 
   // Mock search results
   const mockResults = [
@@ -201,20 +206,15 @@ const SearchPage: React.FC = () => {
             <div className="bg-card rounded-lg shadow-sm p-6 border border-border">
               <h3 className="text-lg font-bold text-foreground mb-4">Popular Categories</h3>
               <div className="space-y-3">
-                {[
-                  { name: 'Technology', count: 156, color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300' },
-                  { name: 'Politics', count: 89, color: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300' },
-                  { name: 'Business', count: 67, color: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' },
-                  { name: 'Sports', count: 45, color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300' }
-                ].map((category) => (
+                {dynamicCategories.slice(0, 4).map((category) => (
                   <Link
                     key={category.name}
-                    href={`/category/${category.name.toLowerCase()}`}
+                    href={`/category/${category.slug}`}
                     className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-lg transition-colors"
                   >
                     <span className="font-medium text-foreground">{category.name}</span>
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${category.color}`}>
-                      {category.count}
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${getCategoryBadgeStyle(category)}`}>
+                      {category.articleCount || 0}
                     </span>
                   </Link>
                 ))}

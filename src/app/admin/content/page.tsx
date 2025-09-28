@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
 import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
 import { articleAPI } from '@/lib/api';
+import { useCategories, Category } from '@/hooks/useCategories';
 
 interface Article {
   id: string;
@@ -28,7 +29,7 @@ const ContentManagement: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const categories = ['Technology', 'Environment', 'Business', 'Politics', 'Sports', 'Entertainment'];
+  const { categories, loading: categoriesLoading } = useCategories({ includeInactive: true });
   const statuses = ['draft', 'published', 'scheduled'];
 
   useEffect(() => {
@@ -101,25 +102,21 @@ const ContentManagement: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`/api/articles/${articleId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await articleAPI.deleteArticle(articleId);
 
-      if (!response.ok) {
+      if (response.success) {
+        // Remove the article from local state
+        setArticles(prev => prev.filter(article => article.id !== articleId));
+        
+        // Show success message (you could add a toast notification here)
+        console.log('Article deleted successfully');
+        alert('Article deleted successfully!');
+      } else {
         throw new Error('Failed to delete article');
       }
-
-      // Remove the article from local state
-      setArticles(prev => prev.filter(article => article.id !== articleId));
-      
-      // Show success message (you could add a toast notification here)
-      console.log('Article deleted successfully');
     } catch (err) {
       console.error('Error deleting article:', err);
-      alert('Failed to delete article. Please try again.');
+      alert(`Failed to delete article: ${err instanceof Error ? err.message : 'Please try again.'}`);
     }
   };
 
@@ -209,10 +206,13 @@ const ContentManagement: React.FC = () => {
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="bg-background border border-border rounded-lg px-3 py-2 text-foreground"
+                disabled={categoriesLoading}
               >
                 <option value="all">All Categories</option>
                 {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name} {!cat.isActive && '(Inactive)'}
+                  </option>
                 ))}
               </select>
             </div>
@@ -361,3 +361,4 @@ export default function AdminContentPage() {
     </UnifiedAdminGuard>
   );
 }
+

@@ -4,9 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import Newsletter from './Newsletter';
 import { useLogo } from '@/contexts/LogoContext';
+import { useCategories } from '@/hooks/useCategories';
 
 const Footer: React.FC = () => {
   const { currentLogo } = useLogo();
+  const { categories } = useCategories(); // Get active categories only
 
   const renderLogo = () => {
     // For footer, we'll use a slightly larger size but still compact
@@ -59,16 +61,10 @@ const Footer: React.FC = () => {
     },
     {
       title: 'Categories',
-      links: [
-        { name: 'World News', href: '/category/world' },
-        { name: 'Politics', href: '/category/politics' },
-        { name: 'Technology', href: '/category/technology' },
-        { name: 'Business', href: '/category/business' },
-        { name: 'Sports', href: '/category/sports' },
-        { name: 'Entertainment', href: '/category/entertainment' },
-        { name: 'Health', href: '/category/health' },
-        { name: 'Science', href: '/category/science' },
-      ]
+      links: categories.map(cat => ({
+        name: cat.name,
+        href: `/category/${cat.slug}`
+      }))
     },
     {
       title: 'Services',
