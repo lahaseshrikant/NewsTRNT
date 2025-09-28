@@ -133,6 +133,8 @@ ipython_config.py
 # Environment variables
 .env*
 !.env.example
+backend/.env
+backend/.env.*
 
 # Database files
 *.db
@@ -220,6 +222,8 @@ $RECYCLE.BIN/
 *.key
 *.crt
 *.csr
+
+# SECURITY NOTE: Schema is in backend/ directory (isolated from frontend)
 
 # ===========================================
 # MISC & TEMPORARY FILES

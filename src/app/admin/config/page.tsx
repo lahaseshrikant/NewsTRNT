@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { siteConfig } from '@/config/site';
 import Breadcrumb from '@/components/Breadcrumb';
+import { showToast } from '@/lib/toast';
 
 interface ConfigSection {
   id: string;
@@ -138,10 +139,10 @@ const AdminConfigPage: React.FC = () => {
       setShowPreview(false);
       
       // Show success notification
-      alert('Configuration saved successfully! Changes are now live on the site.');
+      showToast('Configuration saved successfully! Changes are now live on the site.', 'success');
       
     } catch (error) {
-      alert('Error saving configuration. Please try again.');
+      showToast('Error saving configuration. Please try again.', 'error');
     } finally {
       setIsSaving(false);
     }

@@ -74,9 +74,53 @@ const CategoriesPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const originalOverflowRef = useRef<string | null>(null);
+  const originalAlertRef = useRef<typeof window.alert | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  // Prevent any default alerts on this page with multiple strategies
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Store original functions
+      originalAlertRef.current = window.alert;
+      const originalError = console.error;
+      
+      // Override window.alert
+      window.alert = (message) => {
+        console.warn('🚫 Default alert blocked on categories page:', message);
+        console.trace('Alert call stack:'); // Show where the alert came from
+        showToast(String(message), 'warning');
+        return undefined;
+      };
+
+      // Also intercept any unhandled promise rejections that might cause alerts
+      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+        console.warn('🚫 Unhandled promise rejection blocked:', event.reason);
+        event.preventDefault();
+        showToast('Operation failed. Please try again.', 'error');
+      };
+
+      // Add global error handler for this page
+      const handleError = (event: ErrorEvent) => {
+        console.warn('🚫 Global error intercepted:', event.message);
+        event.preventDefault();
+        showToast('An error occurred. Please try again.', 'error');
+      };
+
+      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+      window.addEventListener('error', handleError);
+
+      return () => {
+        // Restore original functions
+        if (originalAlertRef.current) {
+          window.alert = originalAlertRef.current;
+        }
+        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        window.removeEventListener('error', handleError);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -274,34 +318,66 @@ const CategoriesPage: React.FC = () => {
   };
 
   const deleteCategory = async (category: Category) => {
-    const confirmed = window.confirm(
-      `Delete "${category.name}"? This will permanently remove the category.`
-    );
-
-    if (!confirmed) return;
-
     try {
+      const confirmed = window.confirm(
+        `Move "${category.name}" to trash? You can restore it later from the trash.`
+      );
+
+      if (!confirmed) return;
+
+      console.log('🗑️ Starting category deletion:', category.name);
+
       const headers = getAuthHeaders();
       if (!headers.Authorization) {
+        console.warn('❌ No auth headers found');
         showToast("Authentication required. Please log in again.", "error");
         return;
       }
 
+      console.log('🔐 Auth headers valid, making delete request...');
+
+      // Use a more robust fetch with timeout and better error handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch(`/api/categories/${category.id}`, {
         method: "DELETE",
         headers,
+        signal: controller.signal,
+      }).finally(() => {
+        clearTimeout(timeoutId);
       });
+
+      console.log('📡 Delete response received:', response.status, response.statusText);
 
       if (!response.ok) {
         const message = await safeErrorMessage(response);
-        throw new Error(message ?? "Failed to delete category");
+        const errorMsg = message ?? `Failed to delete category (HTTP ${response.status})`;
+        console.error("❌ Delete category HTTP error:", errorMsg);
+        showToast(errorMsg, "error");
+        return;
       }
 
+      console.log('✅ Category moved to trash successfully, refreshing list...');
       await fetchCategories(false);
-      showToast("Category deleted successfully", "success");
+      showToast("Category moved to trash successfully", "success");
+      console.log('✅ Category deletion complete');
+
     } catch (error) {
-      console.error("Error deleting category", error);
-      showToast(error instanceof Error ? error.message : "Unable to delete category", "error");
+      console.error("❌ Exception during category deletion:", error);
+      
+      let errorMessage = "Unable to delete category";
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = "Delete operation timed out. Please try again.";
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      showToast(errorMessage, "error");
     }
   };
 
@@ -633,7 +709,7 @@ const CategoriesPage: React.FC = () => {
                       type="button"
                       onClick={() => deleteCategory(category)}
                       className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition hover:text-red-600 hover:shadow dark:hover:text-red-400"
-                      title="Delete category"
+                      title="Move to trash"
                     >
                       🗑️
                     </button>

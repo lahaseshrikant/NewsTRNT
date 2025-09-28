@@ -20,10 +20,16 @@ const updateCategorySchema = createCategorySchema.partial();
 // GET /api/categories - List all categories
 router.get('/', async (req, res) => {
   try {
-    const { includeStats = 'false', includeInactive = 'false' } = req.query;
+    const { 
+      includeStats = 'false', 
+      includeInactive = 'false',
+      includeDeleted = 'false'
+    } = req.query;
     
     const categories = await prisma.category.findMany({
       where: {
+        // Filter by soft delete status
+        ...(includeDeleted !== 'true' && { isDeleted: false }),
         // Only filter by isActive if includeInactive is not true
         ...(includeInactive !== 'true' && { isActive: true })
       },
@@ -34,7 +40,11 @@ router.get('/', async (req, res) => {
         include: {
           _count: {
             select: {
-              articles: true
+              articles: {
+                where: {
+                  isDeleted: false // Only count non-deleted articles
+                }
+              }
             }
           }
         }
@@ -52,6 +62,45 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Error fetching categories:', error);
     return res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
+// GET /api/categories/trash - Get soft deleted categories (Admin only)
+router.get('/trash', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const deletedCategories = await prisma.category.findMany({
+      where: {
+        isDeleted: true
+      },
+      orderBy: {
+        deletedAt: 'desc'
+      },
+      include: {
+        _count: {
+          select: {
+            articles: {
+              where: {
+                isDeleted: false // Count non-deleted articles
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const transformedCategories = deletedCategories.map((category: any) => ({
+      ...category,
+      articleCount: category._count?.articles || 0
+    }));
+
+    return res.json(transformedCategories);
+  } catch (error) {
+    console.error('Error fetching deleted categories:', error);
+    return res.status(500).json({ error: 'Failed to fetch deleted categories' });
   }
 });
 
@@ -248,8 +297,75 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
-// DELETE /api/categories/:id - Delete category (Admin only)
+// DELETE /api/categories/:id - Soft delete category (Admin only)
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { id } = req.params;
+    const { permanent = 'false' } = req.query;
+
+    const category = await prisma.category.findUnique({
+      where: { id }
+    });
+
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    if (permanent === 'true') {
+      console.log(`🗑️ PERMANENT DELETE requested for category ${id}`);
+      
+      // Permanent deletion - check if category has active articles
+      const articleCount = await prisma.article.count({
+        where: { 
+          categoryId: id,
+          isDeleted: false
+        }
+      });
+
+      console.log(`📊 Category ${id} has ${articleCount} active articles`);
+
+      if (articleCount > 0) {
+        console.log(`❌ Cannot delete - category has active articles`);
+        return res.status(400).json({ 
+          error: 'Cannot permanently delete category with existing articles. Please reassign or delete articles first.' 
+        });
+      }
+
+      console.log(`💥 Performing permanent deletion of category ${id}`);
+      await prisma.category.delete({
+        where: { id }
+      });
+
+      console.log(`✅ Category ${id} permanently deleted successfully`);
+      return res.json({ message: 'Category permanently deleted successfully' });
+    } else {
+      // Soft delete
+      const updatedCategory = await prisma.category.update({
+        where: { id },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedBy: req.user?.id
+        }
+      });
+
+      return res.json({ 
+        message: 'Category moved to trash successfully',
+        category: updatedCategory
+      });
+    }
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    return res.status(500).json({ error: 'Failed to delete category' });
+  }
+});
+
+// POST /api/categories/:id/restore - Restore soft deleted category (Admin only)
+router.post('/:id/restore', authenticateToken, async (req: AuthRequest, res) => {
   try {
     if (!req.user?.isAdmin) {
       return res.status(403).json({ error: 'Admin access required' });
@@ -265,25 +381,26 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    // Check if category has articles
-    const articleCount = await prisma.article.count({
-      where: { categoryId: id }
-    });
-
-    if (articleCount > 0) {
-      return res.status(400).json({ 
-        error: 'Cannot delete category with existing articles. Please reassign or delete articles first.' 
-      });
+    if (!category.isDeleted) {
+      return res.status(400).json({ error: 'Category is not deleted' });
     }
 
-    await prisma.category.delete({
-      where: { id }
+    const restoredCategory = await prisma.category.update({
+      where: { id },
+      data: {
+        isDeleted: false,
+        deletedAt: null,
+        deletedBy: null
+      }
     });
 
-    return res.json({ message: 'Category deleted successfully' });
+    return res.json({ 
+      message: 'Category restored successfully',
+      category: restoredCategory
+    });
   } catch (error) {
-    console.error('Error deleting category:', error);
-    return res.status(500).json({ error: 'Failed to delete category' });
+    console.error('Error restoring category:', error);
+    return res.status(500).json({ error: 'Failed to restore category' });
   }
 });
 

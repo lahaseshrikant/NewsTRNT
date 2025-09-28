@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { articleAPI, type Article } from '@/lib/api';
+import { api } from '@/lib/api-client';
 import UnifiedAdminAuth from '@/lib/unified-admin-auth';
 import Breadcrumb from '@/components/Breadcrumb';
 import { useCategories } from '@/hooks/useCategories';
+import { showToast } from '@/lib/toast';
 
 interface Draft {
   id: string;
@@ -21,6 +23,10 @@ interface Draft {
   autoSaved?: boolean;
   status: 'draft' | 'published' | 'scheduled';
   imageUrl: string | null;
+  type?: 'article' | 'webstory'; // Add type to distinguish content types
+  slides?: number; // For web stories - number of slides
+  duration?: number; // For web stories - duration in seconds
+  priority?: string; // For web stories - priority level
 }
 
 const Drafts: React.FC = () => {
@@ -31,6 +37,7 @@ const Drafts: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'updatedAt' | 'title' | 'wordCount'>('updatedAt');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [contentType, setContentType] = useState<'all' | 'articles' | 'webstories'>('all');
   
   // Get dynamic categories (include inactive for admin)
   const { categories: dynamicCategories, loading: categoriesLoading } = useCategories({ 
@@ -61,19 +68,45 @@ const Drafts: React.FC = () => {
         console.log('✅ Auto-login successful');
       }
       
-      console.log('🔍 Fetching drafts...', { searchTerm, sortBy });
+      console.log('🔍 Fetching drafts...', { searchTerm, sortBy, contentType });
       
-      const response = await articleAPI.getDrafts({
-        search: searchTerm || undefined,
-        sortBy: sortBy === 'updatedAt' ? 'updatedAt' : sortBy,
-        sortOrder: 'desc'
-      });
+      // Only pass valid database fields to backend, handle wordCount on frontend
+      const validSortFields = ['updatedAt', 'title', 'createdAt', 'publishedAt'];
+      const backendSortBy = validSortFields.includes(sortBy) ? sortBy : 'updatedAt';
       
-      console.log('📝 Drafts API response:', response);
+      const promises = [];
       
-      if (response.success && Array.isArray(response.articles)) {
-        // Transform API data to match our Draft interface
-        const transformedDrafts: Draft[] = response.articles.map((article: Article) => ({
+      // Fetch article drafts
+      if (contentType === 'all' || contentType === 'articles') {
+        promises.push(
+          articleAPI.getDrafts({
+            search: searchTerm || undefined,
+            sortBy: backendSortBy,
+            sortOrder: 'desc'
+          }).then(response => ({ type: 'articles', response }))
+        );
+      }
+      
+      // Fetch webstory drafts
+      if (contentType === 'all' || contentType === 'webstories') {
+        promises.push(
+          api.webstories.getDrafts({
+            search: searchTerm || undefined,
+            sortBy: backendSortBy,
+            sortOrder: 'desc'
+          }).then(response => ({ type: 'webstories', response }))
+        );
+      }
+      
+      const responses = await Promise.all(promises);
+      console.log('📝 Drafts API responses:', responses);
+      
+      let allDrafts: Draft[] = [];
+      
+      // Process article drafts
+      const articleResponse = responses.find(r => r.type === 'articles')?.response;
+      if (articleResponse?.success && Array.isArray((articleResponse as any).articles)) {
+        const articleDrafts: Draft[] = (articleResponse as any).articles.map((article: Article) => ({
           id: article.id,
           title: article.title,
           content: article.content,
@@ -84,16 +117,43 @@ const Drafts: React.FC = () => {
           updatedAt: article.updatedAt,
           createdAt: article.createdAt,
           wordCount: article.content ? article.content.split(' ').length : 0,
-          autoSaved: false, // Not tracking auto-save in current API
+          autoSaved: false,
           status: article.status,
-          imageUrl: article.imageUrl
+          imageUrl: article.imageUrl,
+          type: 'article'
         }));
-        
-        setDrafts(transformedDrafts);
-      } else {
-        console.warn('⚠️ Unexpected API response format:', response);
-        throw new Error('Invalid response format from API');
+        allDrafts = [...allDrafts, ...articleDrafts];
       }
+      
+      // Process webstory drafts
+      const webstoryResponse = responses.find(r => r.type === 'webstories')?.response;
+      if (webstoryResponse?.success && Array.isArray((webstoryResponse as any).data?.webstories)) {
+        const webstoryDrafts: Draft[] = (webstoryResponse as any).data.webstories.map((webstory: any) => ({
+          id: webstory.id,
+          title: webstory.title,
+          content: null, // Web stories don't have traditional content
+          summary: null, // Web stories don't have summary
+          category: webstory.category,
+          tags: webstory.tags || [],
+          author: webstory.author,
+          updatedAt: webstory.updatedAt,
+          createdAt: webstory.createdAt,
+          wordCount: 0, // Web stories don't have word count
+          autoSaved: false,
+          status: webstory.status,
+          imageUrl: webstory.imageUrl,
+          type: 'webstory',
+          slides: webstory.slides,
+          duration: webstory.duration,
+          priority: webstory.priority
+        }));
+        allDrafts = [...allDrafts, ...webstoryDrafts];
+      }
+      
+      // Sort combined results by updatedAt
+      allDrafts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      
+      setDrafts(allDrafts);
     } catch (err) {
       console.error('❌ Error fetching drafts:', err);
       
@@ -156,7 +216,7 @@ const Drafts: React.FC = () => {
   // Load drafts on component mount and when search/sort changes
   useEffect(() => {
     fetchDrafts();
-  }, [searchTerm, sortBy]);
+  }, [searchTerm, contentType]); // Refetch when search term or content type changes
 
   // Filter and sort drafts
   const filteredAndSortedDrafts = drafts
@@ -168,13 +228,18 @@ const Drafts: React.FC = () => {
       const matchesCategory = filterCategory === 'all' || 
         draft.category?.name === filterCategory;
       
-      return matchesSearch && matchesCategory;
+      const matchesContentType = contentType === 'all' ||
+        (contentType === 'articles' && draft.type === 'article') ||
+        (contentType === 'webstories' && draft.type === 'webstory');
+      
+      return matchesSearch && matchesCategory && matchesContentType;
     })
     .sort((a, b) => {
       switch (sortBy) {
         case 'title':
           return a.title.localeCompare(b.title);
         case 'wordCount':
+          // Frontend sorting for wordCount since it's calculated, not stored in DB
           return (b.wordCount || 0) - (a.wordCount || 0);
         case 'updatedAt':
         default:
@@ -208,19 +273,26 @@ const Drafts: React.FC = () => {
     if (!confirmed) return;
 
     try {
-      // Delete each selected draft
+      // Delete each selected draft based on its type
       await Promise.all(
-        selectedDrafts.map(draftId => articleAPI.deleteArticle(draftId))
+        selectedDrafts.map(draftId => {
+          const draft = drafts.find(d => d.id === draftId);
+          if (draft?.type === 'webstory') {
+            return api.webstories.delete(draftId);
+          } else {
+            return articleAPI.deleteArticle(draftId);
+          }
+        })
       );
       
       // Refresh the list
       await fetchDrafts();
       setSelectedDrafts([]);
       
-      alert(`${selectedDrafts.length} draft${selectedDrafts.length > 1 ? 's' : ''} deleted successfully!`);
+      showToast(`${selectedDrafts.length} draft${selectedDrafts.length > 1 ? 's' : ''} deleted successfully!`, 'success');
     } catch (error) {
       console.error('Error deleting drafts:', error);
-      alert('Failed to delete some drafts. Please try again.');
+      showToast('Failed to delete some drafts. Please try again.', 'error');
     }
   };
 
@@ -305,18 +377,26 @@ const Drafts: React.FC = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Draft Articles
+              Draft Content
             </h1>
             <p className="text-muted-foreground mt-2">
-              Manage your unpublished articles ({filteredAndSortedDrafts.length} drafts)
+              Manage your unpublished articles and web stories ({filteredAndSortedDrafts.length} drafts)
             </p>
           </div>
-          <Link
-            href="/admin/content/new"
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg"
-          >
-            New Article
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/admin/content/new"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg"
+            >
+              New Article
+            </Link>
+            <Link
+              href="/admin/content/web-stories"
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-lg"
+            >
+              New Web Story
+            </Link>
+          </div>
         </div>
 
         {/* Controls */}
@@ -341,6 +421,18 @@ const Drafts: React.FC = () => {
                 {category.name} {!category.isActive && '(Inactive)'}
               </option>
             ))}
+          </select>
+          <select
+            value={contentType}
+            onChange={(e) => {
+              setContentType(e.target.value as 'all' | 'articles' | 'webstories');
+              fetchDrafts(); // Refetch when content type changes
+            }}
+            className="px-4 py-2 border border-border/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600"
+          >
+            <option value="all">All Content</option>
+            <option value="articles">Articles Only</option>
+            <option value="webstories">Web Stories Only</option>
           </select>
           <select
             value={sortBy}
@@ -423,12 +515,22 @@ const Drafts: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between mb-2">
                     <Link
-                      href={`/admin/content/new?id=${draft.id}`}
+                      href={draft.type === 'webstory' ? `/admin/content/web-stories` : `/admin/content/new?id=${draft.id}`}
                       className="text-xl font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600 transition-colors line-clamp-2"
                     >
                       {draft.title}
                     </Link>
                     <div className="flex items-center gap-2 ml-4">
+                      {draft.type === 'webstory' && (
+                        <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300 rounded-full">
+                          📱 Web Story
+                        </span>
+                      )}
+                      {draft.type === 'article' && (
+                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300 rounded-full">
+                          📄 Article
+                        </span>
+                      )}
                       {draft.autoSaved && (
                         <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
                           Auto-saved
@@ -441,7 +543,10 @@ const Drafts: React.FC = () => {
                   </div>
 
                   <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-2 mb-3">
-                    {draft.summary || (draft.content ? draft.content.substring(0, 150) + '...' : 'No content')}
+                    {draft.type === 'webstory' 
+                      ? `Web story with ${draft.slides || 0} slides${draft.duration ? ` • ${draft.duration}s duration` : ''}${draft.priority ? ` • ${draft.priority} priority` : ''}`
+                      : (draft.summary || (draft.content ? draft.content.substring(0, 150) + '...' : 'No content'))
+                    }
                   </p>
 
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -449,7 +554,11 @@ const Drafts: React.FC = () => {
                     <span>•</span>
                     <span>{draft.category?.name || 'Uncategorized'}</span>
                     <span>•</span>
-                    <span>{draft.wordCount || 0} words</span>
+                    {draft.type === 'webstory' ? (
+                      <span>{draft.slides || 0} slides</span>
+                    ) : (
+                      <span>{draft.wordCount || 0} words</span>
+                    )}
                     <span>•</span>
                     <span>Modified {formatDate(draft.updatedAt)}</span>
                   </div>
@@ -475,7 +584,7 @@ const Drafts: React.FC = () => {
 
                 <div className="flex flex-col gap-2">
                   <Link
-                    href={`/admin/content/new?id=${draft.id}`}
+                    href={draft.type === 'webstory' ? `/admin/content/web-stories` : `/admin/content/new?id=${draft.id}`}
                     className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-center"
                   >
                     Edit
@@ -485,11 +594,15 @@ const Drafts: React.FC = () => {
                       const confirmed = confirm('Are you sure you want to delete this draft?');
                       if (confirmed) {
                         try {
-                          await articleAPI.deleteArticle(draft.id);
+                          if (draft.type === 'webstory') {
+                            await api.webstories.delete(draft.id);
+                          } else {
+                            await articleAPI.deleteArticle(draft.id);
+                          }
                           await fetchDrafts();
-                          alert('Draft deleted successfully!');
+                          showToast('Draft deleted successfully!', 'success');
                         } catch (error) {
-                          alert('Failed to delete draft');
+                          showToast('Failed to delete draft', 'error');
                         }
                       }
                     }}

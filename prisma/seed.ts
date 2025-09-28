@@ -309,6 +309,128 @@ The trend shows no signs of slowing, with industry experts predicting we could s
     console.log('✅ Article created:', article.title);
   }
 
+  // Create Web Stories
+  const webStories = [
+    {
+      title: 'Climate Summit 2024: Key Highlights',
+      slug: 'climate-summit-2024-highlights',
+      categoryId: categories[3].id, // Science
+      slides: [
+        {
+          type: 'image',
+          content: '/api/placeholder/400/600',
+          text: 'Climate Summit 2024 brings world leaders together',
+          duration: 15
+        },
+        {
+          type: 'image',
+          content: '/api/placeholder/400/600',
+          text: '$500B pledged for renewable energy initiatives',
+          duration: 15
+        },
+        {
+          type: 'image',
+          content: '/api/placeholder/400/600',
+          text: 'Historic agreement on carbon emission reduction',
+          duration: 15
+        }
+      ],
+      status: 'published',
+      author: 'Environmental Team',
+      duration: 45,
+      coverImage: '/api/placeholder/400/600',
+      isFeature: true,
+      priority: 'high',
+      viewCount: 12540,
+      likeCount: 892,
+      shareCount: 234,
+      createdBy: adminUser.id
+    },
+    {
+      title: 'AI Revolution in Healthcare',
+      slug: 'ai-healthcare-revolution',
+      categoryId: categories[0].id, // Technology
+      slides: [
+        {
+          type: 'image',
+          content: '/api/placeholder/400/600',
+          text: 'AI transforms medical diagnosis accuracy',
+          duration: 15
+        },
+        {
+          type: 'image',
+          content: '/api/placeholder/400/600',
+          text: 'Machine learning predicts diseases early',
+          duration: 15
+        },
+        {
+          type: 'image',
+          content: '/api/placeholder/400/600',
+          text: 'Robotic surgery reaches new precision levels',
+          duration: 15
+        },
+        {
+          type: 'image',
+          content: '/api/placeholder/400/600',
+          text: 'Future of personalized medicine',
+          duration: 15
+        }
+      ],
+      status: 'published',
+      author: 'Tech Team',
+      duration: 60,
+      coverImage: '/api/placeholder/400/600',
+      isFeature: false,
+      priority: 'normal',
+      viewCount: 8320,
+      likeCount: 654,
+      shareCount: 187,
+      createdBy: adminUser.id
+    },
+    {
+      title: 'Startup Success Stories',
+      slug: 'startup-success-stories-2024',
+      categoryId: categories[2].id, // Business
+      slides: [
+        {
+          type: 'image',
+          content: '/api/placeholder/400/600',
+          text: '47 new unicorns emerge this quarter',
+          duration: 15
+        },
+        {
+          type: 'image',
+          content: '/api/placeholder/400/600',
+          text: 'Record $150B in venture funding',
+          duration: 15
+        }
+      ],
+      status: 'draft',
+      author: 'Business Team',
+      duration: 30,
+      coverImage: '/api/placeholder/400/600',
+      isFeature: false,
+      priority: 'low',
+      viewCount: 0,
+      likeCount: 0,
+      shareCount: 0,
+      createdBy: adminUser.id
+    }
+  ];
+
+  for (const webStoryData of webStories) {
+    const webStory = await prisma.webStory.upsert({
+      where: { slug: webStoryData.slug },
+      update: {},
+      create: {
+        ...webStoryData,
+        publishedAt: webStoryData.status === 'published' ? new Date() : null
+      }
+    });
+
+    console.log('✅ Web Story created:', webStory.title);
+  }
+
   console.log('🌱 Database seed completed successfully!');
   console.log('\n📋 Login Credentials:');
   console.log('Admin: admin@NewsTRNT.com / admin123');

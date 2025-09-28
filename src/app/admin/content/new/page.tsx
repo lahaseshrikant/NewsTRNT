@@ -418,7 +418,8 @@ const NewArticle: React.FC = () => {
           setAutoSaveStatus('saved');
         } else {
           // For published/scheduled articles, show alert and redirect
-          alert(`Article ${actionText} successfully!`);
+          // Redirect to articles list or show success message
+          showToast(`Article ${actionText} successfully!`, 'success');
           router.push('/admin/content');
         }
         

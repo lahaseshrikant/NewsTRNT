@@ -43,7 +43,9 @@ router.get('/admin', authenticateToken, async (req: AuthRequest, res) => {
     const skip = (pageNum - 1) * limitNum;
 
     // Build where clause
-    const where: any = {};
+    const where: any = {
+      isDeleted: false // Only show non-deleted articles by default
+    };
 
     if (category && category !== 'all') {
       where.category = {
@@ -75,6 +77,16 @@ router.get('/admin', authenticateToken, async (req: AuthRequest, res) => {
       ];
     }
 
+    // Map frontend sort fields to actual Prisma fields
+    const sortFieldMap: Record<string, string> = {
+      'date': 'updatedAt',
+      'title': 'title',
+      'views': 'viewCount',
+      'status': 'isPublished'
+    };
+    
+    const actualSortField = sortFieldMap[sortBy as string] || 'updatedAt';
+
     // Get articles with relations
     const articles = await prisma.article.findMany({
       where,
@@ -103,7 +115,7 @@ router.get('/admin', authenticateToken, async (req: AuthRequest, res) => {
         }
       },
       orderBy: {
-        [sortBy as string]: sortOrder
+        [actualSortField]: sortOrder
       },
       skip,
       take: limitNum
@@ -170,6 +182,16 @@ router.get('/admin/drafts', authenticateToken, async (req: AuthRequest, res) => 
       ];
     }
 
+    // Map frontend sort fields to actual Prisma fields (for drafts route)
+    const sortFieldMap: Record<string, string> = {
+      'date': 'updatedAt',
+      'title': 'title', 
+      'views': 'viewCount',
+      'status': 'isPublished'
+    };
+    
+    const actualSortField = sortFieldMap[sortBy as string] || 'updatedAt';
+
     const articles = await prisma.article.findMany({
       where,
       include: {
@@ -197,7 +219,7 @@ router.get('/admin/drafts', authenticateToken, async (req: AuthRequest, res) => 
         }
       },
       orderBy: {
-        [sortBy as string]: sortOrder
+        [actualSortField]: sortOrder
       },
       skip,
       take: limitNum
@@ -507,6 +529,156 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res): Promi
   }
 });
 
+// GET /api/articles/admin/trash - Get soft deleted articles (Admin only)
+router.get('/admin/trash', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user?.isAdmin) {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+
+    const {
+      page = '1',
+      limit = '20',
+      category,
+      search,
+      sortBy = 'deletedAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build where clause for deleted articles
+    const where: any = {
+      isDeleted: true
+    };
+
+    if (category && category !== 'all') {
+      where.category = {
+        slug: category as string
+      };
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { content: { contains: search as string, mode: 'insensitive' } },
+        { summary: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+
+    const [articles, total] = await Promise.all([
+      prisma.article.findMany({
+        where,
+        skip,
+        take: limitNum,
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              color: true
+            }
+          },
+          createdByUser: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true
+            }
+          },
+          tags: {
+            include: {
+              tag: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          [sortBy as string]: sortOrder as string
+        }
+      }),
+      prisma.article.count({ where })
+    ]);
+
+    const transformedArticles = articles.map((article: any) => ({
+      ...article,
+      author: article.createdByUser,
+      tags: article.tags.map((t: any) => t.tag),
+      status: getArticleStatus(article.publishedAt, article.isPublished),
+      wordCount: article.content ? article.content.split(' ').filter((word: string) => word.length > 0).length : 0
+    }));
+
+    res.json({
+      articles: transformedArticles,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+        hasNext: pageNum < Math.ceil(total / limitNum),
+        hasPrev: pageNum > 1
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching deleted articles:', error);
+    res.status(500).json({ error: 'Failed to fetch deleted articles' });
+  }
+});
+
+// POST /api/articles/admin/:id/restore - Restore soft deleted article (Admin only)
+router.post('/admin/:id/restore', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user?.isAdmin) {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+
+    const { id } = req.params;
+
+    const article = await prisma.article.findUnique({
+      where: { id }
+    });
+
+    if (!article) {
+      res.status(404).json({ error: 'Article not found' });
+      return;
+    }
+
+    if (!article.isDeleted) {
+      res.status(400).json({ error: 'Article is not deleted' });
+      return;
+    }
+
+    const restoredArticle = await prisma.article.update({
+      where: { id },
+      data: {
+        isDeleted: false,
+        deletedAt: null,
+        deletedBy: null
+      }
+    });
+
+    res.json({ 
+      success: true,
+      message: 'Article restored successfully',
+      article: restoredArticle
+    });
+  } catch (error) {
+    console.error('Error restoring article:', error);
+    res.status(500).json({ error: 'Failed to restore article' });
+  }
+});
+
 // GET /api/articles/admin/:id - Get single article by ID - Admin only
 router.get('/admin/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
@@ -571,6 +743,7 @@ router.delete('/admin/:id', authenticateToken, async (req: AuthRequest, res) => 
     }
 
     const { id } = req.params;
+    const { permanent = 'false' } = req.query;
 
     // Check if article exists
     const existingArticle = await prisma.article.findUnique({
@@ -582,26 +755,44 @@ router.delete('/admin/:id', authenticateToken, async (req: AuthRequest, res) => 
       return;
     }
 
-    // Delete associated tags first
-    await prisma.articleTag.deleteMany({
-      where: { articleId: id }
-    });
+    if (permanent === 'true') {
+      // Permanent deletion
+      await prisma.articleTag.deleteMany({
+        where: { articleId: id }
+      });
 
-    // Delete the article
-    await prisma.article.delete({
-      where: { id }
-    });
+      await prisma.article.delete({
+        where: { id }
+      });
 
-    res.json({
-      success: true,
-      message: 'Article deleted successfully'
-    });
+      res.json({
+        success: true,
+        message: 'Article permanently deleted successfully'
+      });
+    } else {
+      // Soft delete
+      const updatedArticle = await prisma.article.update({
+        where: { id },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedBy: req.user?.id
+        }
+      });
+
+      res.json({
+        success: true,
+        message: 'Article moved to trash successfully',
+        article: updatedArticle
+      });
+    }
 
   } catch (error) {
     console.error('Error deleting article:', error);
     res.status(500).json({ error: 'Failed to delete article' });
   }
 });
+
 
 // GET /api/articles - Get published articles for public (no auth required)
 router.get('/', optionalAuth, async (req: AuthRequest, res) => {
@@ -622,7 +813,8 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
     // Only show published articles that are not scheduled
     const where: any = {
       isPublished: true,
-      publishedAt: { lte: new Date() }
+      publishedAt: { lte: new Date() },
+      isDeleted: false
     };
 
     if (category && category !== 'all') {
@@ -709,7 +901,8 @@ router.get('/:slug', optionalAuth, async (req: AuthRequest, res) => {
       where: { 
         slug,
         isPublished: true,
-        publishedAt: { lte: new Date() }
+        publishedAt: { lte: new Date() },
+        isDeleted: false
       },
       include: {
         category: true,

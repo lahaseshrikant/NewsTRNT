@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
+import { showToast } from '@/lib/toast';
 
 interface Comment {
   id: string;
@@ -93,7 +94,7 @@ const CommentModeration: React.FC = () => {
   const handleCommentAction = (commentId: string, action: 'approve' | 'reject' | 'spam') => {
     // In a real application, this would update the comment status in the database
     console.log(`${action} comment ${commentId}`);
-    alert(`Comment ${action}ed successfully!`);
+    showToast(`Comment ${action}ed successfully!`, 'success');
   };
 
   const handleBulkAction = (action: 'approve' | 'reject' | 'spam' | 'delete') => {
@@ -102,7 +103,7 @@ const CommentModeration: React.FC = () => {
     const actionText = action === 'delete' ? 'deleted' : `${action}ed`;
     if (confirm(`Are you sure you want to ${action} ${selectedComments.length} comment(s)?`)) {
       console.log(`Bulk ${action}:`, selectedComments);
-      alert(`${selectedComments.length} comment(s) ${actionText} successfully!`);
+      showToast(`${selectedComments.length} comment(s) ${actionText} successfully!`, 'success');
       setSelectedComments([]);
     }
   };

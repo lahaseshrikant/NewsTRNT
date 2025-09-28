@@ -92,11 +92,13 @@ export default function AdminLayoutContent({
       icon: '📝',
       requiredPermission: 'content.read',
       children: [
-        { label: 'All Articles', href: '/admin/content', icon: '📄', requiredPermission: 'content.read' },
+        { label: 'Content Hub', href: '/admin/content', icon: '🏠', requiredPermission: 'content.read' },
+        { label: 'Articles', href: '/admin/content/articles', icon: '�', requiredPermission: 'content.read' },
         { label: 'Web Stories', href: '/admin/content/web-stories', icon: '📱', requiredPermission: 'content.read' },
         { label: 'Categories', href: '/admin/content/categories', icon: '🏷️', requiredPermission: 'content.read' },
         { label: 'Tags', href: '/admin/content/tags', icon: '🔖', requiredPermission: 'content.read' },
-        { label: 'Drafts', href: '/admin/content/drafts', icon: '✏️', requiredPermission: 'content.write' }
+        { label: 'Drafts', href: '/admin/content/drafts', icon: '✏️', requiredPermission: 'content.write' },
+        { label: 'Trash', href: '/admin/content/trash', icon: '🗑️', requiredPermission: 'content.write' }
       ]
     },
     {

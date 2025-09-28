@@ -9,6 +9,7 @@ import compression from 'compression';
 import authRoutes from './routes/auth';
 import articleRoutes from './routes/articles';
 import categoryRoutes from './routes/categories';
+import webstoriesRoutes from './routes/webstories';
 import healthRoutes from './routes/health';
 import debugRoutes from './routes/debug';
 
@@ -18,7 +19,15 @@ import { errorHandler } from './middleware/errorHandler';
 // Import database
 import { initializeDatabase } from './config/database';
 
-dotenv.config();
+// Configure environment variables - ensure backend .env is loaded
+dotenv.config({ path: '.env' });
+
+// Debug: Log if DATABASE_URL is loaded (without showing actual value)
+console.log('📧 Environment loaded:', {
+  hasDB: !!process.env.DATABASE_URL,
+  hasJWT: !!process.env.JWT_SECRET,
+  nodeEnv: process.env.NODE_ENV || 'development'
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,8 +36,24 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
+// Dynamic CORS: allow multiple comma-separated origins (e.g. http://localhost:3000,http://localhost:3001)
+const clientUrls = (process.env.CLIENT_URLS || process.env.CLIENT_URL || 'http://localhost:3000,http://localhost:3001')
+  .split(',')
+  .map(u => u.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow non-browser / server-side
+    if (clientUrls.includes(origin)) {
+      return callback(null, true);
+    }
+    // In dev we log a helpful hint
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[CORS] Blocked origin', origin, '— allowed:', clientUrls);
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 app.use(compression());
@@ -40,6 +65,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/webstories', webstoriesRoutes);
 app.use('/api', healthRoutes);
 app.use('/api/debug', debugRoutes);
 

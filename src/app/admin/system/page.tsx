@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
+import { showToast } from '@/lib/toast';
 import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
 
 interface SystemSetting {
@@ -254,13 +255,13 @@ const SystemSettings: React.FC = () => {
 
   const handleSaveSettings = () => {
     // Simulate saving settings
-    alert('Settings saved successfully! Changes will take effect after server restart.');
+    showToast('Settings saved successfully! Changes will take effect after server restart.', 'success');
   };
 
   const handleResetToDefaults = () => {
     if (confirm('Are you sure you want to reset all settings to their default values?')) {
       // Reset logic would go here
-      alert('Settings reset to defaults.');
+      showToast('Settings reset to defaults.', 'info');
     }
   };
 

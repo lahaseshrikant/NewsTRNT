@@ -1,5 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// NewsTRNT Platform Database Schema - BACKEND ONLY
+// SECURITY: This file is isolated from frontend exposure
+// Production-ready schema for comprehensive news platform
 
 generator client {
   provider = "prisma-client-js"
@@ -34,6 +35,8 @@ model User {
   // Relations
   articles              Article[] @relation("ArticleAuthor")
   updatedArticles       Article[] @relation("ArticleUpdater")
+  webStories            WebStory[] @relation("WebStoryAuthor")
+  updatedWebStories     WebStory[] @relation("WebStoryUpdater")
   comments              Comment[]
   savedArticles         SavedArticle[]
   readingHistoryRecords ReadingHistory[]
@@ -55,12 +58,18 @@ model Category {
   icon        String?
   isActive    Boolean  @default(true) @map("is_active")
   sortOrder   Int      @default(0) @map("sort_order")
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?  @map("deleted_by")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
-  articles Article[]
+  articles   Article[]
+  webStories WebStory[]
 
+  @@index([isDeleted])
+  @@index([deletedAt])
   @@map("categories")
 }
 
@@ -69,11 +78,16 @@ model Tag {
   name       String   @unique
   slug       String   @unique
   usageCount Int      @default(0) @map("usage_count")
+  isDeleted  Boolean  @default(false) @map("is_deleted")
+  deletedAt  DateTime? @map("deleted_at")
+  deletedBy  String?  @map("deleted_by")
   createdAt  DateTime @default(now()) @map("created_at")
 
   // Relations
   articles ArticleTag[]
 
+  @@index([isDeleted])
+  @@index([deletedAt])
   @@map("tags")
 }
 
@@ -115,6 +129,9 @@ model Article {
   seoDescription   String?   @map("seo_description")
   seoKeywords      String[]  @map("seo_keywords")
   metaData         Json      @default("{}") @map("meta_data")
+  isDeleted        Boolean   @default(false) @map("is_deleted")
+  deletedAt        DateTime? @map("deleted_at")
+  deletedBy        String?   @map("deleted_by")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
   createdBy        String?   @map("created_by")
@@ -136,6 +153,8 @@ model Article {
   @@index([isTrending])
   @@index([isFeatured])
   @@index([slug])
+  @@index([isDeleted])
+  @@index([deletedAt])
   @@map("articles")
 }
 
@@ -270,6 +289,44 @@ model PushToken {
 
   @@unique([userId, token])
   @@map("push_tokens")
+}
+
+model WebStory {
+  id           String    @id @default(uuid())
+  title        String
+  slug         String    @unique
+  categoryId   String?   @map("category_id")
+  slides       Json      @default("[]")
+  status       String    @default("draft")
+  author       String?
+  duration     Int       @default(0)
+  coverImage   String?   @map("cover_image")
+  isFeature    Boolean   @default(false) @map("is_featured")
+  priority     String    @default("normal")
+  viewCount    Int       @default(0) @map("view_count")
+  likeCount    Int       @default(0) @map("like_count")
+  shareCount   Int       @default(0) @map("share_count")
+  publishedAt  DateTime? @map("published_at")
+  isDeleted    Boolean   @default(false) @map("is_deleted")
+  deletedAt    DateTime? @map("deleted_at")
+  deletedBy    String?   @map("deleted_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  createdBy    String?   @map("created_by")
+  updatedBy    String?   @map("updated_by")
+
+  // Relations
+  category         Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdByUser    User?     @relation("WebStoryAuthor", fields: [createdBy], references: [id], onDelete: SetNull)
+  updatedByUser    User?     @relation("WebStoryUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@index([publishedAt(sort: Desc)])
+  @@index([categoryId])
+  @@index([status])
+  @@index([slug])
+  @@index([isDeleted])
+  @@index([deletedAt])
+  @@map("web_stories")
 }
 
 model AdminLog {

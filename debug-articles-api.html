@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Articles API</title>
+</head>
+<body>
+    <h1>Debug Articles API</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message) {
+            output.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+        
+        // Check localStorage for admin session
+        log('=== Checking localStorage ===');
+        const session = localStorage.getItem('newstrnt_admin_session');
+        if (session) {
+            log('✓ Admin session found: ' + session.substring(0, 100) + '...');
+            try {
+                const sessionData = JSON.parse(session);
+                log('Session data keys: ' + Object.keys(sessionData).join(', '));
+                log('Role: ' + sessionData.role);
+                log('Expires at: ' + new Date(sessionData.expiresAt));
+                log('Is expired: ' + (Date.now() > sessionData.expiresAt));
+            } catch (e) {
+                log('❌ Failed to parse session: ' + e.message);
+            }
+        } else {
+            log('❌ No admin session found');
+        }
+        
+        // Test API endpoint with manual authentication
+        log('\n=== Testing API endpoint ===');
+        if (session) {
+            try {
+                const sessionData = JSON.parse(session);
+                const tokenData = {
+                    email: sessionData.email,
+                    role: sessionData.role,
+                    userId: sessionData.userId,
+                    sessionId: sessionData.sessionId,
+                    timestamp: Date.now()
+                };
+                
+                const token = btoa(JSON.stringify(tokenData));
+                log('Generated token: Bearer ' + token.substring(0, 50) + '...');
+                
+                fetch('http://localhost:5000/api/articles/admin?page=1&limit=5', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(response => {
+                    log('Response status: ' + response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    log('Response data: ' + JSON.stringify(data, null, 2));
+                })
+                .catch(error => {
+                    log('❌ Fetch error: ' + error.message);
+                });
+            } catch (e) {
+                log('❌ Token generation error: ' + e.message);
+            }
+        } else {
+            log('⚠️ Cannot test API - no session found');
+            log('Please log into admin first, then refresh this page');
+        }
+    </script>
+</body>
+</html>
