@@ -3,11 +3,37 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Breadcrumb from '@/components/Breadcrumb';
 
 const WorldCategoryPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('latest');
+  const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'analysis' | 'opinion'>('all');
+  const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const contentTypes = [
+    { value: 'all', label: 'All Content' },
+    { value: 'news', label: 'News' },
+    { value: 'article', label: 'Articles' },
+    { value: 'analysis', label: 'Analysis' },
+    { value: 'opinion', label: 'Opinion' }
+  ];
+
+  const sortOptions = [
+    { value: 'latest', label: 'Latest', icon: '🕐' },
+    { value: 'trending', label: 'Trending', icon: '🔥' },
+    { value: 'popular', label: 'Popular', icon: '⭐' },
+    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+  ];
+
+  const subCategories = [
+    { id: 'all', label: 'All Regions', count: 198 },
+    { id: 'europe', label: 'Europe', count: 56 },
+    { id: 'asia', label: 'Asia', count: 48 },
+    { id: 'americas', label: 'Americas', count: 42 },
+    { id: 'africa-mideast', label: 'Africa & Middle East', count: 52 }
+  ];
 
   // Mock world news articles data
   const worldArticles = [
@@ -21,7 +47,10 @@ const WorldCategoryPage: React.FC = () => {
       isBreaking: true,
       author: 'Maria Rodriguez',
       category: 'International Relations',
-      location: 'New Delhi, India'
+      location: 'New Delhi, India',
+      contentType: 'news' as const,
+      subCategory: 'asia',
+      views: 18500
     },
     {
       id: 2,
@@ -33,7 +62,10 @@ const WorldCategoryPage: React.FC = () => {
       isBreaking: false,
       author: 'James Wilson',
       category: 'Trade & Economy',
-      location: 'Brussels, Belgium'
+      location: 'Brussels, Belgium',
+      contentType: 'analysis' as const,
+      subCategory: 'europe',
+      views: 14200
     },
     {
       id: 3,
@@ -45,7 +77,10 @@ const WorldCategoryPage: React.FC = () => {
       isBreaking: false,
       author: 'Fatima Al-Zahra',
       category: 'Security & Defense',
-      location: 'New York, USA'
+      location: 'New York, USA',
+      contentType: 'news' as const,
+      subCategory: 'africa-mideast',
+      views: 11300
     },
     {
       id: 4,
@@ -57,7 +92,10 @@ const WorldCategoryPage: React.FC = () => {
       isBreaking: false,
       author: 'Dr. Erik Larsen',
       category: 'Environment',
-      location: 'Antarctica'
+      location: 'Antarctica',
+      contentType: 'article' as const,
+      subCategory: 'americas',
+      views: 9800
     },
     {
       id: 5,
@@ -69,7 +107,10 @@ const WorldCategoryPage: React.FC = () => {
       isBreaking: false,
       author: 'Sarah Ahmed',
       category: 'Diplomacy',
-      location: 'Geneva, Switzerland'
+      location: 'Geneva, Switzerland',
+      contentType: 'analysis' as const,
+      subCategory: 'africa-mideast',
+      views: 12600
     },
     {
       id: 6,
@@ -81,15 +122,11 @@ const WorldCategoryPage: React.FC = () => {
       isBreaking: false,
       author: 'Michael Chen',
       category: 'Humanitarian',
-      location: 'Rome, Italy'
+      location: 'Rome, Italy',
+      contentType: 'news' as const,
+      subCategory: 'europe',
+      views: 7500
     }
-  ];
-
-  const tabs = [
-    { id: 'latest', name: 'Latest', count: worldArticles.length },
-    { id: 'trending', name: 'Trending', count: 24 },
-    { id: 'popular', name: 'Popular', count: 31 },
-    { id: 'breaking', name: 'Breaking', count: worldArticles.filter(a => a.isBreaking).length }
   ];
 
   useEffect(() => {
@@ -101,16 +138,29 @@ const WorldCategoryPage: React.FC = () => {
   }, []);
 
   const filteredArticles = () => {
-    switch (activeTab) {
-      case 'trending':
-        return worldArticles.slice(0, 4);
-      case 'popular':
-        return worldArticles.slice(1, 5);
-      case 'breaking':
-        return worldArticles.filter(article => article.isBreaking);
-      default:
-        return worldArticles;
+    let filtered = [...worldArticles];
+
+    // Filter by content type
+    if (contentType !== 'all') {
+      filtered = filtered.filter(article => article.contentType === contentType);
     }
+
+    // Filter by sub-category
+    if (selectedSubCategory !== 'all') {
+      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
+    }
+
+    // Sort articles
+    if (sortBy === 'trending') {
+      filtered.sort((a, b) => b.views - a.views);
+    } else if (sortBy === 'popular') {
+      filtered.sort((a, b) => b.readingTime - a.readingTime);
+    } else if (sortBy === 'breaking') {
+      filtered = filtered.filter(article => article.isBreaking);
+    }
+    // 'latest' is default order
+
+    return filtered;
   };
 
   if (loading) {
@@ -132,51 +182,89 @@ const WorldCategoryPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center mb-4">
-              <span className="text-6xl mr-4">🌍</span>
-              <h1 className="text-5xl font-bold">World News</h1>
+      {/* Header Banner with Tabs */}
+      <div className="bg-gradient-to-r from-teal-600/5 to-blue-600/5 border-b border-border/50">
+        <div className="container mx-auto px-4 py-4">
+          <Breadcrumb items={[
+            { label: 'Categories', href: '/category' },
+            { label: 'World' }
+          ]} className="mb-3" />
+          
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-1">
+                World News
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Global news & international developments
+              </p>
             </div>
-            <p className="text-xl text-blue-100 mb-6">
-              Breaking global news, international relations, and worldwide developments that shape our world
-            </p>
-            <div className="flex items-center justify-center space-x-6 text-blue-200">
-              <span>Global Politics</span>
-              <span>•</span>
-              <span>International Trade</span>
-              <span>•</span>
-              <span>World Events</span>
+            <div className="hidden lg:block">
+              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
+                <div className="text-lg font-bold text-primary">198</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
+              </div>
             </div>
+          </div>
+
+          {/* Content type tabs moved below header into compact filter bar */}
+
+          {/* Sub-category Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {subCategories.map((subCat) => (
+              <button
+                key={subCat.id}
+                onClick={() => setSelectedSubCategory(subCat.id)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
+                  selectedSubCategory === subCat.id
+                    ? 'bg-teal-400 text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/5'
+                }`}
+              >
+                {subCat.label}
+                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
+                  {subCat.count}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         <div className="max-w-6xl mx-auto">
-          {/* Navigation Tabs */}
-          <div className="mb-8">
-            <div className="flex flex-wrap gap-2 mb-6">
-              {tabs.map((tab) => (
+          {/* Compact Filter Bar: content type + sort */}
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 mb-5">
+            <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
+              {contentTypes.map((type) => (
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 rounded-full font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  key={type.value}
+                  onClick={() => setContentType(type.value as any)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                    contentType === type.value
+                      ? 'bg-teal-500 text-white shadow'
+                      : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
-                  {tab.name}
-                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
-                    activeTab === tab.id
-                      ? 'bg-primary-foreground/20 text-primary-foreground'
-                      : 'bg-primary/20 text-primary'
-                  }`}>
-                    {tab.count}
-                  </span>
+                  {type.label}
+                </button>
+              ))}
+
+              <span className="hidden sm:inline-block mx-2 h-4 w-px bg-border/60" />
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Sort</span>
+
+              {sortOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setSortBy(option.value as any)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                    sortBy === option.value
+                      ? 'bg-teal-500 text-white shadow'
+                      : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <span>{option.icon}</span>
+                  <span>{option.label}</span>
                 </button>
               ))}
             </div>
@@ -190,18 +278,18 @@ const WorldCategoryPage: React.FC = () => {
                 <article
                   key={article.id}
                   className={`bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow ${
-                    index === 0 && activeTab === 'latest' ? 'lg:col-span-2' : ''
+                    index === 0 && sortBy === 'latest' ? 'lg:col-span-2' : ''
                   }`}
                 >
-                  <div className={`flex ${index === 0 && activeTab === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
-                    <div className={`relative ${index === 0 && activeTab === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
+                  <div className={`flex ${index === 0 && sortBy === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
+                    <div className={`relative ${index === 0 && sortBy === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
                       <Image
                         src={article.imageUrl}
                         alt={article.title}
                         width={600}
                         height={300}
                         className={`w-full object-cover ${
-                          index === 0 && activeTab === 'latest' ? 'h-64 lg:h-full' : 'h-48 sm:h-full'
+                          index === 0 && sortBy === 'latest' ? 'h-64 lg:h-full' : 'h-48 sm:h-full'
                         }`}
                       />
                       {article.isBreaking && (
@@ -214,9 +302,9 @@ const WorldCategoryPage: React.FC = () => {
                       </div>
                     </div>
                     
-                    <div className={`p-6 flex-1 ${index === 0 && activeTab === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
+                    <div className={`p-6 flex-1 ${index === 0 && sortBy === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
                       <div className="flex items-center space-x-2 mb-3">
-                        <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300 px-2 py-1 rounded text-xs font-medium">
+                        <span className="bg-teal-100 text-teal-800 dark:bg-teal-900/20 dark:text-teal-300 px-2 py-1 rounded text-xs font-medium">
                           {article.category}
                         </span>
                         <span className="text-muted-foreground text-sm">{article.readingTime} min read</span>
@@ -224,7 +312,7 @@ const WorldCategoryPage: React.FC = () => {
                       
                       <Link href={`/article/${article.id}`}>
                         <h2 className={`font-bold text-foreground mb-3 hover:text-primary cursor-pointer transition-colors ${
-                          index === 0 && activeTab === 'latest' ? 'text-2xl' : 'text-lg'
+                          index === 0 && sortBy === 'latest' ? 'text-2xl' : 'text-lg'
                         }`}>
                           {article.title}
                         </h2>

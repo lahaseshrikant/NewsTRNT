@@ -49,6 +49,16 @@ img {
   }
 }
 
+/* Hide scrollbar utility class */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* CSS Variables for Theme Colors */
 :root {
   /* Light theme colors */
@@ -849,4 +859,23 @@ html {
   .split-view-preview {
     min-height: 400px;
   }
+}
+
+/* Breaking news ticker animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+  display: inline-block;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
 }

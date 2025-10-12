@@ -6,16 +6,35 @@ import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
 
 const PoliticsPage: React.FC = () => {
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'opinion' | 'analysis'>('all');
+  const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('all');
 
-  const filters = [
-    { id: 'all', label: 'All Politics', count: 156 },
-    { id: 'national', label: 'National', count: 89 },
-    { id: 'international', label: 'International', count: 45 },
-    { id: 'elections', label: 'Elections', count: 22 }
+  const contentTypes = [
+    { value: 'all', label: 'All Content' },
+    { value: 'news', label: 'News' },
+    { value: 'article', label: 'Articles' },
+    { value: 'analysis', label: 'Analysis' },
+    { value: 'opinion', label: 'Opinion' }
   ];
 
-  const featuredArticles = [
+  const sortOptions = [
+    { value: 'latest', label: 'Latest', icon: '🕐' },
+    { value: 'trending', label: 'Trending', icon: '🔥' },
+    { value: 'popular', label: 'Popular', icon: '⭐' },
+    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+  ];
+
+  const subCategoryFilters = [
+    { id: 'all', label: 'All Politics', count: 198 },
+    { id: 'domestic', label: 'Domestic', count: 89 },
+    { id: 'international', label: 'International', count: 67 },
+    { id: 'elections', label: 'Elections', count: 25 },
+    { id: 'policy', label: 'Policy', count: 17 }
+  ];
+
+  // Combine all articles with filtering properties
+  const allArticles = [
     {
       id: 1,
       title: "Congressional Leaders Reach Bipartisan Agreement on Infrastructure Bill",
@@ -25,7 +44,10 @@ const PoliticsPage: React.FC = () => {
       readTime: "4 min read",
       author: "Sarah Mitchell",
       tags: ["Congress", "Infrastructure", "Bipartisan"],
-      isFeatured: true
+      isFeatured: true,
+      contentType: 'news' as const,
+      subCategory: 'domestic',
+      views: 16000
     },
     {
       id: 2,
@@ -36,11 +58,11 @@ const PoliticsPage: React.FC = () => {
       readTime: "6 min read",
       author: "David Chen",
       tags: ["Supreme Court", "Privacy", "Technology"],
-      isFeatured: true
-    }
-  ];
-
-  const recentArticles = [
+      isFeatured: true,
+      contentType: 'analysis' as const,
+      subCategory: 'policy',
+      views: 13200
+    },
     {
       id: 3,
       title: "Midterm Elections: Key Races to Watch Across the Nation",
@@ -49,7 +71,11 @@ const PoliticsPage: React.FC = () => {
       publishedAt: "6 hours ago",
       readTime: "8 min read",
       author: "Maria Rodriguez",
-      tags: ["Elections", "Congress"]
+      tags: ["Elections", "Congress"],
+      isFeatured: false,
+      contentType: 'article' as const,
+      subCategory: 'elections',
+      views: 11800
     },
     {
       id: 4,
@@ -59,7 +85,11 @@ const PoliticsPage: React.FC = () => {
       publishedAt: "8 hours ago",
       readTime: "5 min read",
       author: "James Wilson",
-      tags: ["Climate", "Policy"]
+      tags: ["Climate", "Policy"],
+      isFeatured: false,
+      contentType: 'opinion' as const,
+      subCategory: 'policy',
+      views: 8900
     },
     {
       id: 5,
@@ -69,7 +99,11 @@ const PoliticsPage: React.FC = () => {
       publishedAt: "12 hours ago",
       readTime: "6 min read",
       author: "Robert Kim",
-      tags: ["Economy", "Federal Reserve"]
+      tags: ["Economy", "Federal Reserve"],
+      isFeatured: false,
+      contentType: 'news' as const,
+      subCategory: 'domestic',
+      views: 10500
     },
     {
       id: 6,
@@ -79,9 +113,42 @@ const PoliticsPage: React.FC = () => {
       publishedAt: "1 day ago",
       readTime: "4 min read",
       author: "Lisa Thompson",
-      tags: ["States", "Commerce"]
+      tags: ["States", "Commerce"],
+      isFeatured: false,
+      contentType: 'news' as const,
+      subCategory: 'domestic',
+      views: 7600
     }
   ];
+
+  // Filtering logic
+  const filteredArticles = () => {
+    let filtered = [...allArticles];
+
+    // Filter by content type
+    if (contentType !== 'all') {
+      filtered = filtered.filter(article => article.contentType === contentType);
+    }
+
+    // Filter by sub-category
+    if (selectedSubCategory !== 'all') {
+      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
+    }
+
+    // Sort articles
+    if (sortBy === 'trending') {
+      filtered.sort((a, b) => b.views - a.views);
+    } else if (sortBy === 'popular') {
+      filtered.sort((a, b) => parseInt(b.readTime) - parseInt(a.readTime));
+    }
+    // 'latest' is default order
+
+    return filtered;
+  };
+
+  const articles = filteredArticles();
+  const featuredArticles = articles.filter(article => article.isFeatured);
+  const recentArticles = articles.filter(article => !article.isFeatured);
 
   const trendingTopics = [
     { name: "Congressional Hearings", count: 23 },
@@ -93,51 +160,94 @@ const PoliticsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-red-600/10 to-blue-600/10 border-b border-border">
-        <div className="container mx-auto px-4 py-8">
+      {/* Header Banner with Tabs */}
+      <div className="bg-gradient-to-r from-red-600/5 to-blue-600/5 border-b border-border/50">
+        <div className="container mx-auto px-4 py-4">
           <Breadcrumb items={[
             { label: 'Categories', href: '/category' },
             { label: 'Politics' }
-          ]} className="mb-4" />
-          <div className="flex items-center justify-between">
+          ]} className="mb-3" />
+          
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">
+              <h1 className="text-2xl font-bold text-foreground mb-1">
                 Politics
               </h1>
-              <p className="text-lg text-muted-foreground">
-                Stay informed with comprehensive political coverage and analysis
+              <p className="text-sm text-muted-foreground">
+                Comprehensive political coverage & analysis
               </p>
             </div>
             <div className="hidden lg:block">
-              <div className="bg-card border border-border rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary">156</div>
-                <div className="text-sm text-muted-foreground">Articles today</div>
+              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
+                <div className="text-lg font-bold text-primary">198</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
               </div>
             </div>
+          </div>
+
+          {/* Content type tabs moved below header into compact filter bar */}
+
+          {/* Sub-category Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {subCategoryFilters.map((subCat) => (
+              <button
+                key={subCat.id}
+                onClick={() => setSelectedSubCategory(subCat.id)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
+                  selectedSubCategory === subCat.id
+                    ? 'bg-red-400 text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/5'
+                }`}
+              >
+                {subCat.label}
+                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
+                  {subCat.count}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
-            {/* Filters */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {filters.map(filter => (
-                <button
-                  key={filter.id}
-                  onClick={() => setSelectedFilter(filter.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedFilter === filter.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
-                >
-                  {filter.label} ({filter.count})
-                </button>
-              ))}
+            {/* Compact Filter Bar: content type + sort */}
+            <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 mb-5">
+              <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
+                {contentTypes.map((type) => (
+                  <button
+                    key={type.value}
+                    onClick={() => setContentType(type.value as any)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                      contentType === type.value
+                        ? 'bg-red-500 text-white shadow'
+                        : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+
+                <span className="hidden sm:inline-block mx-2 h-4 w-px bg-border/60" />
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Sort</span>
+
+                {sortOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSortBy(option.value as any)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                      sortBy === option.value
+                        ? 'bg-red-500 text-white shadow'
+                        : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <span>{option.icon}</span>
+                    <span>{option.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Featured Articles */}

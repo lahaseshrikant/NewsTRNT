@@ -3,11 +3,37 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Breadcrumb from '@/components/Breadcrumb';
 
 const EntertainmentCategoryPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('latest');
+  const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'analysis' | 'opinion'>('all');
+  const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const contentTypes = [
+    { value: 'all', label: 'All Content' },
+    { value: 'news', label: 'News' },
+    { value: 'article', label: 'Articles' },
+    { value: 'analysis', label: 'Analysis' },
+    { value: 'opinion', label: 'Opinion' }
+  ];
+
+  const sortOptions = [
+    { value: 'latest', label: 'Latest', icon: '🕐' },
+    { value: 'trending', label: 'Trending', icon: '🔥' },
+    { value: 'popular', label: 'Popular', icon: '⭐' },
+    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+  ];
+
+  const subCategories = [
+    { id: 'all', label: 'All Entertainment', count: 245 },
+    { id: 'movies', label: 'Movies', count: 78 },
+    { id: 'music', label: 'Music', count: 62 },
+    { id: 'tv', label: 'TV Shows', count: 54 },
+    { id: 'celebrity', label: 'Celebrity News', count: 51 }
+  ];
 
   // Mock entertainment articles data
   const entertainmentArticles = [
@@ -20,7 +46,10 @@ const EntertainmentCategoryPage: React.FC = () => {
       readingTime: 5,
       isBreaking: true,
       author: 'Jessica Martinez',
-      category: 'Movies'
+      category: 'Movies',
+      contentType: 'news' as const,
+      subCategory: 'movies',
+      views: 15200
     },
     {
       id: 2,
@@ -31,7 +60,10 @@ const EntertainmentCategoryPage: React.FC = () => {
       readingTime: 7,
       isBreaking: false,
       author: 'David Thompson',
-      category: 'Music'
+      category: 'Music',
+      contentType: 'article' as const,
+      subCategory: 'music',
+      views: 11800
     },
     {
       id: 3,
@@ -42,7 +74,10 @@ const EntertainmentCategoryPage: React.FC = () => {
       readingTime: 4,
       isBreaking: false,
       author: 'Amanda Clark',
-      category: 'Streaming'
+      category: 'TV Shows',
+      contentType: 'news' as const,
+      subCategory: 'tv',
+      views: 9400
     },
     {
       id: 4,
@@ -53,7 +88,10 @@ const EntertainmentCategoryPage: React.FC = () => {
       readingTime: 3,
       isBreaking: false,
       author: 'Robert Lee',
-      category: 'Theater'
+      category: 'Theater',
+      contentType: 'review' as const,
+      subCategory: 'celebrity',
+      views: 6700
     },
     {
       id: 5,
@@ -64,7 +102,10 @@ const EntertainmentCategoryPage: React.FC = () => {
       readingTime: 6,
       isBreaking: false,
       author: 'Sarah Williams',
-      category: 'Technology'
+      category: 'Technology',
+      contentType: 'analysis' as const,
+      subCategory: 'movies',
+      views: 8200
     },
     {
       id: 6,
@@ -75,15 +116,11 @@ const EntertainmentCategoryPage: React.FC = () => {
       readingTime: 4,
       isBreaking: false,
       author: 'Michelle Garcia',
-      category: 'Film Festivals'
+      category: 'Film Festivals',
+      contentType: 'article' as const,
+      subCategory: 'movies',
+      views: 5900
     }
-  ];
-
-  const tabs = [
-    { id: 'latest', name: 'Latest', count: entertainmentArticles.length },
-    { id: 'trending', name: 'Trending', count: 18 },
-    { id: 'popular', name: 'Popular', count: 32 },
-    { id: 'breaking', name: 'Breaking', count: entertainmentArticles.filter(a => a.isBreaking).length }
   ];
 
   useEffect(() => {
@@ -95,16 +132,29 @@ const EntertainmentCategoryPage: React.FC = () => {
   }, []);
 
   const filteredArticles = () => {
-    switch (activeTab) {
-      case 'trending':
-        return entertainmentArticles.slice(0, 4);
-      case 'popular':
-        return entertainmentArticles.slice(1, 5);
-      case 'breaking':
-        return entertainmentArticles.filter(article => article.isBreaking);
-      default:
-        return entertainmentArticles;
+    let filtered = [...entertainmentArticles];
+
+    // Filter by content type
+    if (contentType !== 'all') {
+      filtered = filtered.filter(article => article.contentType === contentType);
     }
+
+    // Filter by sub-category
+    if (selectedSubCategory !== 'all') {
+      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
+    }
+
+    // Sort articles
+    if (sortBy === 'trending') {
+      filtered.sort((a, b) => b.views - a.views);
+    } else if (sortBy === 'popular') {
+      filtered.sort((a, b) => b.readingTime - a.readingTime);
+    } else if (sortBy === 'breaking') {
+      filtered = filtered.filter(article => article.isBreaking);
+    }
+    // 'latest' is default order
+
+    return filtered;
   };
 
   if (loading) {
@@ -126,51 +176,89 @@ const EntertainmentCategoryPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-700 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center mb-4">
-              <span className="text-6xl mr-4">🎬</span>
-              <h1 className="text-5xl font-bold">Entertainment</h1>
+      {/* Header Banner with Tabs */}
+      <div className="bg-gradient-to-r from-fuchsia-600/5 to-pink-600/5 border-b border-border/50">
+        <div className="container mx-auto px-4 py-4">
+          <Breadcrumb items={[
+            { label: 'Categories', href: '/category' },
+            { label: 'Entertainment' }
+          ]} className="mb-3" />
+          
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-1">
+                Entertainment
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Movies, music, TV & celebrity news
+              </p>
             </div>
-            <p className="text-xl text-purple-100 mb-6">
-              Your gateway to movies, music, TV, celebrity news, and pop culture updates
-            </p>
-            <div className="flex items-center justify-center space-x-6 text-purple-200">
-              <span>Movie News</span>
-              <span>•</span>
-              <span>Music Updates</span>
-              <span>•</span>
-              <span>Celebrity Stories</span>
+            <div className="hidden lg:block">
+              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
+                <div className="text-lg font-bold text-primary">245</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
+              </div>
             </div>
+          </div>
+
+          {/* Content type tabs moved below header into compact filter bar */}
+
+          {/* Sub-category Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {subCategories.map((subCat) => (
+              <button
+                key={subCat.id}
+                onClick={() => setSelectedSubCategory(subCat.id)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
+                  selectedSubCategory === subCat.id
+                    ? 'bg-fuchsia-400 text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/5'
+                }`}
+              >
+                {subCat.label}
+                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
+                  {subCat.count}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         <div className="max-w-6xl mx-auto">
-          {/* Navigation Tabs */}
-          <div className="mb-8">
-            <div className="flex flex-wrap gap-2 mb-6">
-              {tabs.map((tab) => (
+          {/* Compact Filter Bar: content type + sort */}
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 mb-5">
+            <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
+              {contentTypes.map((type) => (
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 rounded-full font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  key={type.value}
+                  onClick={() => setContentType(type.value as any)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                    contentType === type.value
+                      ? 'bg-fuchsia-500 text-white shadow'
+                      : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
-                  {tab.name}
-                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
-                    activeTab === tab.id
-                      ? 'bg-primary-foreground/20 text-primary-foreground'
-                      : 'bg-primary/20 text-primary'
-                  }`}>
-                    {tab.count}
-                  </span>
+                  {type.label}
+                </button>
+              ))}
+
+              <span className="hidden sm:inline-block mx-2 h-4 w-px bg-border/60" />
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Sort</span>
+
+              {sortOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setSortBy(option.value as any)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                    sortBy === option.value
+                      ? 'bg-fuchsia-500 text-white shadow'
+                      : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <span>{option.icon}</span>
+                  <span>{option.label}</span>
                 </button>
               ))}
             </div>
@@ -184,18 +272,18 @@ const EntertainmentCategoryPage: React.FC = () => {
                 <article
                   key={article.id}
                   className={`bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow ${
-                    index === 0 && activeTab === 'latest' ? 'lg:col-span-2' : ''
+                    index === 0 && sortBy === 'latest' ? 'lg:col-span-2' : ''
                   }`}
                 >
-                  <div className={`flex ${index === 0 && activeTab === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
-                    <div className={`relative ${index === 0 && activeTab === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
+                  <div className={`flex ${index === 0 && sortBy === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
+                    <div className={`relative ${index === 0 && sortBy === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
                       <Image
                         src={article.imageUrl}
                         alt={article.title}
                         width={600}
                         height={300}
                         className={`w-full object-cover ${
-                          index === 0 && activeTab === 'latest' ? 'h-64 lg:h-full' : 'h-48 sm:h-full'
+                          index === 0 && sortBy === 'latest' ? 'h-64 lg:h-full' : 'h-48 sm:h-full'
                         }`}
                       />
                       {article.isBreaking && (
@@ -205,9 +293,9 @@ const EntertainmentCategoryPage: React.FC = () => {
                       )}
                     </div>
                     
-                    <div className={`p-6 flex-1 ${index === 0 && activeTab === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
+                    <div className={`p-6 flex-1 ${index === 0 && sortBy === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
                       <div className="flex items-center space-x-2 mb-3">
-                        <span className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300 px-2 py-1 rounded text-xs font-medium">
+                        <span className="bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/20 dark:text-fuchsia-300 px-2 py-1 rounded text-xs font-medium">
                           {article.category}
                         </span>
                         <span className="text-muted-foreground text-sm">{article.readingTime} min read</span>
@@ -215,7 +303,7 @@ const EntertainmentCategoryPage: React.FC = () => {
                       
                       <Link href={`/article/${article.id}`}>
                         <h2 className={`font-bold text-foreground mb-3 hover:text-primary cursor-pointer transition-colors ${
-                          index === 0 && activeTab === 'latest' ? 'text-2xl' : 'text-lg'
+                          index === 0 && sortBy === 'latest' ? 'text-2xl' : 'text-lg'
                         }`}>
                           {article.title}
                         </h2>

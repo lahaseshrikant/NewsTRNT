@@ -1,7 +1,3 @@
-// NewsTRNT Platform Database Schema - BACKEND ONLY
-// SECURITY: This file is isolated from frontend exposure
-// Production-ready schema for comprehensive news platform
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,61 +8,57 @@ datasource db {
 }
 
 model User {
-  id                    String   @id @default(uuid())
-  email                 String   @unique
-  username              String?  @unique
-  passwordHash          String?  @map("password_hash")
-  fullName              String?  @map("full_name")
-  avatarUrl             String?  @map("avatar_url")
+  id                    String                   @id @default(uuid())
+  email                 String                   @unique
+  username              String?                  @unique
+  passwordHash          String?                  @map("password_hash")
+  fullName              String?                  @map("full_name")
+  avatarUrl             String?                  @map("avatar_url")
   bio                   String?
-  isVerified            Boolean  @default(false) @map("is_verified")
-  isAdmin               Boolean  @default(false) @map("is_admin")
-  emailVerified         Boolean  @default(false) @map("email_verified")
-  preferences           Json     @default("{}")
-  readingHistory        Json     @default("[]") @map("reading_history")
-  interests             String[] @default([])
-  language              String   @default("en")
-  timezone              String   @default("UTC")
-  notificationSettings  Json     @default("{\"email\": true, \"push\": true, \"breaking\": true}") @map("notification_settings")
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
-  lastLoginAt           DateTime? @map("last_login_at")
-
-  // Relations
-  articles              Article[] @relation("ArticleAuthor")
-  updatedArticles       Article[] @relation("ArticleUpdater")
-  webStories            WebStory[] @relation("WebStoryAuthor")
-  updatedWebStories     WebStory[] @relation("WebStoryUpdater")
-  comments              Comment[]
-  savedArticles         SavedArticle[]
-  readingHistoryRecords ReadingHistory[]
-  interactions          UserInteraction[]
-  newsletters           NewsletterSubscription[]
-  pushTokens            PushToken[]
+  isVerified            Boolean                  @default(false) @map("is_verified")
+  isAdmin               Boolean                  @default(false) @map("is_admin")
+  emailVerified         Boolean                  @default(false) @map("email_verified")
+  preferences           Json                     @default("{}")
+  readingHistory        Json                     @default("[]") @map("reading_history")
+  interests             String[]                 @default([])
+  language              String                   @default("en")
+  timezone              String                   @default("UTC")
+  notificationSettings  Json                     @default("{\"push\": true, \"email\": true, \"breaking\": true}") @map("notification_settings")
+  createdAt             DateTime                 @default(now()) @map("created_at")
+  updatedAt             DateTime                 @updatedAt @map("updated_at")
+  lastLoginAt           DateTime?                @map("last_login_at")
   adminLogs             AdminLog[]
   analyticsEvents       AnalyticsEvent[]
+  articles              Article[]                @relation("ArticleAuthor")
+  updatedArticles       Article[]                @relation("ArticleUpdater")
+  comments              Comment[]
+  newsletters           NewsletterSubscription[]
+  pushTokens            PushToken[]
+  readingHistoryRecords ReadingHistory[]
+  savedArticles         SavedArticle[]
+  interactions          UserInteraction[]
+  webStories            WebStory[]               @relation("WebStoryAuthor")
+  updatedWebStories     WebStory[]               @relation("WebStoryUpdater")
 
   @@map("users")
 }
 
 model Category {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  slug        String   @unique
+  id          String     @id @default(uuid())
+  name        String     @unique
+  slug        String     @unique
   description String?
-  color       String   @default("#000000")
+  color       String     @default("#000000")
   icon        String?
-  isActive    Boolean  @default(true) @map("is_active")
-  sortOrder   Int      @default(0) @map("sort_order")
-  isDeleted   Boolean  @default(false) @map("is_deleted")
-  deletedAt   DateTime? @map("deleted_at")
-  deletedBy   String?  @map("deleted_by")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  articles   Article[]
-  webStories WebStory[]
+  isActive    Boolean    @default(true) @map("is_active")
+  sortOrder   Int        @default(0) @map("sort_order")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  deletedAt   DateTime?  @map("deleted_at")
+  deletedBy   String?    @map("deleted_by")
+  isDeleted   Boolean    @default(false) @map("is_deleted")
+  articles    Article[]
+  webStories  WebStory[]
 
   @@index([isDeleted])
   @@index([deletedAt])
@@ -74,17 +66,15 @@ model Category {
 }
 
 model Tag {
-  id         String   @id @default(uuid())
-  name       String   @unique
-  slug       String   @unique
-  usageCount Int      @default(0) @map("usage_count")
-  isDeleted  Boolean  @default(false) @map("is_deleted")
-  deletedAt  DateTime? @map("deleted_at")
-  deletedBy  String?  @map("deleted_by")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  // Relations
-  articles ArticleTag[]
+  id         String       @id @default(uuid())
+  name       String       @unique
+  slug       String       @unique
+  usageCount Int          @default(0) @map("usage_count")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  deletedAt  DateTime?    @map("deleted_at")
+  deletedBy  String?      @map("deleted_by")
+  isDeleted  Boolean      @default(false) @map("is_deleted")
+  articles   ArticleTag[]
 
   @@index([isDeleted])
   @@index([deletedAt])
@@ -92,60 +82,63 @@ model Tag {
 }
 
 model Article {
-  id               String    @id @default(uuid())
-  title            String
-  slug             String    @unique
-  summary          String?
-  content          String?
-  shortContent     String?   @map("short_content")
-  excerpt          String?
-  author           String?
-  sourceName       String?   @map("source_name")
-  sourceUrl        String?   @map("source_url")
-  imageUrl         String?   @map("image_url")
-  images           Json      @default("[]")
-  videoUrl         String?   @map("video_url")
-  audioUrl         String?   @map("audio_url")
-  categoryId       String?   @map("category_id")
-  publishedAt      DateTime? @map("published_at")
-  scrapedAt        DateTime  @default(now()) @map("scraped_at")
-  isPublished      Boolean   @default(false) @map("is_published")
-  isFeatured       Boolean   @default(false) @map("is_featured")
-  isTrending       Boolean   @default(false) @map("is_trending")
-  isBreaking       Boolean   @default(false) @map("is_breaking")
-  isFactChecked    Boolean   @default(false) @map("is_fact_checked")
-  factCheckStatus  String    @default("pending") @map("fact_check_status")
-  factCheckNotes   String?   @map("fact_check_notes")
-  readingTime      Int?      @map("reading_time")
-  engagementScore  Float     @default(0) @map("engagement_score")
-  viewCount        Int       @default(0) @map("view_count")
-  likeCount        Int       @default(0) @map("like_count")
-  shareCount       Int       @default(0) @map("share_count")
-  commentCount     Int       @default(0) @map("comment_count")
-  aiGenerated      Boolean   @default(false) @map("ai_generated")
-  aiSummary        Boolean   @default(false) @map("ai_summary")
-  aiMetadata       Json      @default("{}") @map("ai_metadata")
-  seoTitle         String?   @map("seo_title")
-  seoDescription   String?   @map("seo_description")
-  seoKeywords      String[]  @map("seo_keywords")
-  metaData         Json      @default("{}") @map("meta_data")
-  isDeleted        Boolean   @default(false) @map("is_deleted")
-  deletedAt        DateTime? @map("deleted_at")
-  deletedBy        String?   @map("deleted_by")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-  createdBy        String?   @map("created_by")
-  updatedBy        String?   @map("updated_by")
-
-  // Relations
-  category         Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  createdByUser    User?     @relation("ArticleAuthor", fields: [createdBy], references: [id], onDelete: SetNull)
-  updatedByUser    User?     @relation("ArticleUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
-  tags             ArticleTag[]
-  comments         Comment[]
-  savedByUsers     SavedArticle[]
-  readingHistory   ReadingHistory[]
-  interactions     UserInteraction[]
+  id              String            @id @default(uuid())
+  title           String
+  slug            String            @unique
+  summary         String?
+  content         String?
+  shortContent    String?           @map("short_content")
+  excerpt         String?
+  author          String?
+  sourceName      String?           @map("source_name")
+  sourceUrl       String?           @map("source_url")
+  imageUrl        String?           @map("image_url")
+  images          Json              @default("[]")
+  videoUrl        String?           @map("video_url")
+  audioUrl        String?           @map("audio_url")
+  categoryId      String?           @map("category_id")
+  publishedAt     DateTime?         @map("published_at")
+  scrapedAt       DateTime          @default(now()) @map("scraped_at")
+  isPublished     Boolean           @default(false) @map("is_published")
+  isFeatured      Boolean           @default(false) @map("is_featured")
+  isTrending      Boolean           @default(false) @map("is_trending")
+  isBreaking      Boolean           @default(false) @map("is_breaking")
+  isFactChecked   Boolean           @default(false) @map("is_fact_checked")
+  factCheckStatus String            @default("pending") @map("fact_check_status")
+  factCheckNotes  String?           @map("fact_check_notes")
+  readingTime     Int?              @map("reading_time")
+  engagementScore Float             @default(0) @map("engagement_score")
+  viewCount       Int               @default(0) @map("view_count")
+  likeCount       Int               @default(0) @map("like_count")
+  shareCount      Int               @default(0) @map("share_count")
+  commentCount    Int               @default(0) @map("comment_count")
+  aiGenerated     Boolean           @default(false) @map("ai_generated")
+  aiSummary       Boolean           @default(false) @map("ai_summary")
+  aiMetadata      Json              @default("{}") @map("ai_metadata")
+  seoTitle        String?           @map("seo_title")
+  seoDescription  String?           @map("seo_description")
+  seoKeywords     String[]          @map("seo_keywords")
+  metaData        Json              @default("{}") @map("meta_data")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  createdBy       String?           @map("created_by")
+  updatedBy       String?           @map("updated_by")
+  deletedAt       DateTime?         @map("deleted_at")
+  deletedBy       String?           @map("deleted_by")
+  isDeleted       Boolean           @default(false) @map("is_deleted")
+  contentType     String            @default("news") @map("content_type")
+  authorType      String            @default("staff") @map("author_type")
+  is_original     Boolean           @default(false)
+  news_source     String?
+  priority        String            @default("normal")
+  tags            ArticleTag[]
+  category        Category?         @relation(fields: [categoryId], references: [id])
+  createdByUser   User?             @relation("ArticleAuthor", fields: [createdBy], references: [id])
+  updatedByUser   User?             @relation("ArticleUpdater", fields: [updatedBy], references: [id])
+  comments        Comment[]
+  readingHistory  ReadingHistory[]
+  savedByUsers    SavedArticle[]
+  interactions    UserInteraction[]
 
   @@index([publishedAt(sort: Desc)])
   @@index([categoryId])
@@ -155,16 +148,19 @@ model Article {
   @@index([slug])
   @@index([isDeleted])
   @@index([deletedAt])
+  @@index([contentType])
+  @@index([authorType])
+  @@index([contentType, publishedAt])
+  @@index([is_original])
+  @@index([priority])
   @@map("articles")
 }
 
 model ArticleTag {
-  articleId String @map("article_id")
-  tagId     String @map("tag_id")
-
-  // Relations
-  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  articleId String  @map("article_id")
+  tagId     String  @map("tag_id")
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([articleId, tagId])
   @@map("article_tags")
@@ -181,12 +177,10 @@ model Comment {
   likeCount  Int       @default(0) @map("like_count")
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  article Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies Comment[] @relation("CommentReplies")
+  article    Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  parent     Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    Comment[] @relation("CommentReplies")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([articleId])
   @@map("comments")
@@ -197,10 +191,8 @@ model SavedArticle {
   userId    String   @map("user_id")
   articleId String   @map("article_id")
   savedAt   DateTime @default(now()) @map("saved_at")
-
-  // Relations
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, articleId])
   @@index([userId])
@@ -214,10 +206,8 @@ model ReadingHistory {
   readAt           DateTime @default(now()) @map("read_at")
   readingTime      Int?     @map("reading_time")
   scrollPercentage Float    @default(0) @map("scroll_percentage")
-
-  // Relations
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  article          Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, articleId])
   @@index([userId])
@@ -230,10 +220,8 @@ model UserInteraction {
   articleId       String   @map("article_id")
   interactionType String   @map("interaction_type")
   createdAt       DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  article         Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, articleId, interactionType])
   @@map("user_interactions")
@@ -248,9 +236,7 @@ model NewsletterSubscription {
   isActive       Boolean   @default(true) @map("is_active")
   subscribedAt   DateTime  @default(now()) @map("subscribed_at")
   unsubscribedAt DateTime? @map("unsubscribed_at")
-
-  // Relations
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([email, frequency])
   @@map("newsletter_subscriptions")
@@ -267,9 +253,7 @@ model AnalyticsEvent {
   userAgent String?  @map("user_agent")
   ipAddress String?  @map("ip_address")
   createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([createdAt])
   @@index([userId])
@@ -283,42 +267,38 @@ model PushToken {
   platform  String
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, token])
   @@map("push_tokens")
 }
 
 model WebStory {
-  id           String    @id @default(uuid())
-  title        String
-  slug         String    @unique
-  categoryId   String?   @map("category_id")
-  slides       Json      @default("[]")
-  status       String    @default("draft")
-  author       String?
-  duration     Int       @default(0)
-  coverImage   String?   @map("cover_image")
-  isFeature    Boolean   @default(false) @map("is_featured")
-  priority     String    @default("normal")
-  viewCount    Int       @default(0) @map("view_count")
-  likeCount    Int       @default(0) @map("like_count")
-  shareCount   Int       @default(0) @map("share_count")
-  publishedAt  DateTime? @map("published_at")
-  isDeleted    Boolean   @default(false) @map("is_deleted")
-  deletedAt    DateTime? @map("deleted_at")
-  deletedBy    String?   @map("deleted_by")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  createdBy    String?   @map("created_by")
-  updatedBy    String?   @map("updated_by")
-
-  // Relations
-  category         Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  createdByUser    User?     @relation("WebStoryAuthor", fields: [createdBy], references: [id], onDelete: SetNull)
-  updatedByUser    User?     @relation("WebStoryUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+  id            String    @id @default(uuid())
+  title         String
+  slug          String    @unique
+  categoryId    String?   @map("category_id")
+  slides        Json      @default("[]")
+  status        String    @default("draft")
+  author        String?
+  duration      Int       @default(0)
+  coverImage    String?   @map("cover_image")
+  isFeature     Boolean   @default(false) @map("is_featured")
+  priority      String    @default("normal")
+  viewCount     Int       @default(0) @map("view_count")
+  likeCount     Int       @default(0) @map("like_count")
+  shareCount    Int       @default(0) @map("share_count")
+  publishedAt   DateTime? @map("published_at")
+  isDeleted     Boolean   @default(false) @map("is_deleted")
+  deletedAt     DateTime? @map("deleted_at")
+  deletedBy     String?   @map("deleted_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdBy     String?   @map("created_by")
+  updatedBy     String?   @map("updated_by")
+  category      Category? @relation(fields: [categoryId], references: [id])
+  createdByUser User?     @relation("WebStoryAuthor", fields: [createdBy], references: [id])
+  updatedByUser User?     @relation("WebStoryUpdater", fields: [updatedBy], references: [id])
 
   @@index([publishedAt(sort: Desc)])
   @@index([categoryId])
@@ -338,9 +318,7 @@ model AdminLog {
   details    Json     @default("{}")
   ipAddress  String?  @map("ip_address")
   createdAt  DateTime @default(now()) @map("created_at")
-
-  // Relations
-  admin User? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  admin      User?    @relation(fields: [adminId], references: [id])
 
   @@map("admin_logs")
 }

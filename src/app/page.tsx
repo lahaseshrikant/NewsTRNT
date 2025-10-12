@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { dbApi, Article } from '../lib/database-real';
 import { useCategories, Category } from '@/hooks/useCategories';
 import { getCategoryBadgeStyle, findCategoryByName } from '@/lib/categoryUtils';
+import NewsCard from '@/components/NewsCard';
 
 // Helper function to format published time
 const formatPublishedTime = (publishedAt: string | Date) => {
@@ -28,6 +29,9 @@ const getCategoryColor = (categoryName: string, categories: Category[]) => {
 const HomePage: React.FC = () => {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [trendingNews, setTrendingNews] = useState<Article[]>([]);
+  const [breakingNews, setBreakingNews] = useState<Article[]>([]);
+  const [latestNews, setLatestNews] = useState<Article[]>([]);
+  const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Use the categories hook for dynamic category loading
@@ -51,22 +55,25 @@ const HomePage: React.FC = () => {
       setCurrentTime(new Date());
     }, 1000);
 
-    // Optimized data loading
+    // Optimized data loading with content type differentiation
     const loadData = async () => {
       try {
         setLoading(true);
         
-        // Load featured articles
-        const featuredArticles = await dbApi.getFeaturedArticles(5);
-        if (Array.isArray(featuredArticles)) {
-          setTrendingNews(featuredArticles);
-        } else {
-          console.warn('Featured articles failed to load');
-          setTrendingNews([]);
-        }
+        // Load different content types in parallel
+        const [breaking, news, featured, trending] = await Promise.all([
+          dbApi.getBreakingNews(5),
+          dbApi.getNews(8),
+          dbApi.getFeaturedArticles(4),
+          dbApi.getTrendingArticles(6)
+        ]);
+        
+        if (Array.isArray(breaking)) setBreakingNews(breaking);
+        if (Array.isArray(news)) setLatestNews(news);
+        if (Array.isArray(featured)) setFeaturedArticles(featured);
+        if (Array.isArray(trending)) setTrendingNews(trending);
       } catch (error) {
-        console.error('Error loading featured articles:', error);
-        setTrendingNews([]);
+        console.error('Error loading homepage data:', error);
       } finally {
         setLoading(false);
       }
@@ -173,19 +180,33 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Live Updates Bar */}
-      <section className="bg-red-600 text-white py-2">
+      {/* Breaking News Ticker */}
+      <section className="bg-red-600 text-white py-3 overflow-hidden">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <span className="bg-white text-red-600 px-2 py-1 rounded text-xs font-semibold">LIVE</span>
-              <span className="text-sm">
-                {currentTime?.toLocaleTimeString() || 'Loading...'} • Breaking news updates every minute
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 flex-shrink-0">
+              <span className="bg-white text-red-600 px-3 py-1 rounded-md text-sm font-bold animate-pulse">BREAKING</span>
+              <span className="hidden md:inline text-sm">
+                {currentTime?.toLocaleTimeString() || ''}
               </span>
             </div>
-            <div className="hidden md:flex items-center space-x-4 text-sm">
-              <span>📈 Markets: +2.3%</span>
-              <span>🌡️ Weather: 72°F</span>
+            <div className="flex-1 overflow-hidden">
+              {loading || breakingNews.length === 0 ? (
+                <div className="text-sm animate-pulse">Loading breaking news...</div>
+              ) : (
+                <div className="animate-scroll whitespace-nowrap">
+                  {breakingNews.map((article, index) => (
+                    <Link 
+                      key={article.id} 
+                      href={`/article/${article.slug}`}
+                      className="inline-block hover:underline"
+                    >
+                      <span className="font-semibold">{article.title}</span>
+                      {index < breakingNews.length - 1 && <span className="mx-4">•</span>}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -211,7 +232,7 @@ const HomePage: React.FC = () => {
                   <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-200 ease-in-out cursor-pointer group">
                     <div className="relative overflow-hidden" style={{ aspectRatio: '16/9', height: 'auto' }}>
                       <Image
-                        src={trendingNews[0].image_url || '/api/placeholder/800/400'}
+                        src={trendingNews[0].imageUrl || '/api/placeholder/800/400'}
                         alt={trendingNews[0].title}
                         width={800}
                         height={450}
@@ -281,7 +302,7 @@ const HomePage: React.FC = () => {
                     <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:shadow-primary/10 hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 ease-out cursor-pointer group">
                       <div className="relative overflow-hidden" style={{ aspectRatio: '4/3', height: '200px' }}>
                         <Image
-                          src={article.image_url || '/api/placeholder/400/300'}
+                          src={article.imageUrl || '/api/placeholder/400/300'}
                           alt={article.title}
                           width={400}
                           height={300}
@@ -311,6 +332,94 @@ const HomePage: React.FC = () => {
                     </div>
                   </Link>
                 ))}
+              </div>
+            </section>
+
+            {/* Latest News Feed */}
+            <section className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground">📰 Latest News</h2>
+                <Link href="/category/news" className="text-primary hover:text-blue-800 font-medium">
+                  View All
+                </Link>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {loading ? (
+                  Array.from({ length: 8 }).map((_, index) => (
+                    <div key={index} className="bg-card border border-border rounded-lg p-4">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    </div>
+                  ))
+                ) : (
+                  latestNews.map((article) => (
+                    <NewsCard key={article.id} article={article} />
+                  ))
+                )}
+              </div>
+            </section>
+
+            {/* Featured Articles */}
+            <section className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground">📚 Featured Articles</h2>
+                <Link href="/category/article" className="text-primary hover:text-blue-800 font-medium">
+                  View All
+                </Link>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-6">
+                {loading ? (
+                  Array.from({ length: 2 }).map((_, index) => (
+                    <div key={index} className="bg-card border border-border rounded-lg overflow-hidden">
+                      <div className="h-48 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                      <div className="p-6">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  featuredArticles.slice(0, 2).map((article) => (
+                    <Link key={article.id} href={`/article/${article.slug}`}>
+                      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-200 ease-in-out cursor-pointer group">
+                        <div className="md:flex">
+                          <div className="md:w-1/3 relative overflow-hidden" style={{ minHeight: '200px' }}>
+                            <Image
+                              src={article.imageUrl || '/api/placeholder/400/300'}
+                              alt={article.title}
+                              width={400}
+                              height={300}
+                              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                          <div className="md:w-2/3 p-6">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${getCategoryColor(article.category?.name || 'Article', categories)}`}>
+                                {article.category?.name || 'Article'}
+                              </span>
+                              <span className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 px-2 py-1 rounded text-xs font-semibold">
+                                FEATURED
+                              </span>
+                            </div>
+                            <h3 className="font-bold text-xl mb-2 text-foreground group-hover:text-primary transition-colors">
+                              {article.title}
+                            </h3>
+                            <p className="text-muted-foreground mb-3 line-clamp-2">
+                              {article.summary}
+                            </p>
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <span>{article.author || 'Staff Writer'}</span>
+                              <span>{article.readingTime || 5} min read</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))
+                )}
               </div>
             </section>
 

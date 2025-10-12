@@ -6,9 +6,27 @@ import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
 
 const BusinessPage: React.FC = () => {
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  // Content Type and Sort Filters
+  const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'opinion' | 'analysis'>('all');
+  const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('all');
 
-  const filters = [
+  const contentTypes = [
+    { value: 'all', label: 'All Content' },
+    { value: 'news', label: 'News' },
+    { value: 'article', label: 'Articles' },
+    { value: 'analysis', label: 'Analysis' },
+    { value: 'opinion', label: 'Opinion' }
+  ];
+
+  const sortOptions = [
+    { value: 'latest', label: 'Latest', icon: '🕐' },
+    { value: 'trending', label: 'Trending', icon: '🔥' },
+    { value: 'popular', label: 'Popular', icon: '⭐' },
+    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+  ];
+
+  const subCategoryFilters = [
     { id: 'all', label: 'All Business', count: 189 },
     { id: 'markets', label: 'Markets', count: 78 },
     { id: 'economy', label: 'Economy', count: 56 },
@@ -16,7 +34,8 @@ const BusinessPage: React.FC = () => {
     { id: 'finance', label: 'Finance', count: 21 }
   ];
 
-  const featuredArticles = [
+  // Combine all articles with filtering properties
+  const allArticles = [
     {
       id: 1,
       title: "Federal Reserve Signals Potential Interest Rate Cuts Amid Economic Uncertainty",
@@ -26,7 +45,10 @@ const BusinessPage: React.FC = () => {
       readTime: "6 min read",
       author: "Michael Zhang",
       tags: ["Federal Reserve", "Interest Rates", "Economy"],
-      isFeatured: true
+      isFeatured: true,
+      contentType: 'news' as const,
+      subCategory: 'economy',
+      views: 15000
     },
     {
       id: 2,
@@ -37,11 +59,11 @@ const BusinessPage: React.FC = () => {
       readTime: "8 min read",
       author: "Sarah Williams",
       tags: ["Earnings", "Tech", "Markets"],
-      isFeatured: true
-    }
-  ];
-
-  const recentArticles = [
+      isFeatured: true,
+      contentType: 'analysis' as const,
+      subCategory: 'markets',
+      views: 12000
+    },
     {
       id: 3,
       title: "Global Supply Chain Disruptions Ease as Shipping Costs Normalize",
@@ -50,7 +72,11 @@ const BusinessPage: React.FC = () => {
       publishedAt: "4 hours ago",
       readTime: "5 min read",
       author: "David Park",
-      tags: ["Supply Chain", "Logistics", "Trade"]
+      tags: ["Supply Chain", "Logistics", "Trade"],
+      isFeatured: false,
+      contentType: 'news' as const,
+      subCategory: 'companies',
+      views: 8500
     },
     {
       id: 4,
@@ -60,7 +86,11 @@ const BusinessPage: React.FC = () => {
       publishedAt: "6 hours ago",
       readTime: "7 min read",
       author: "Emma Rodriguez",
-      tags: ["Energy", "Investment", "ESG"]
+      tags: ["Energy", "Investment", "ESG"],
+      isFeatured: false,
+      contentType: 'article' as const,
+      subCategory: 'finance',
+      views: 9200
     },
     {
       id: 5,
@@ -70,7 +100,11 @@ const BusinessPage: React.FC = () => {
       publishedAt: "8 hours ago",
       readTime: "4 min read",
       author: "James Chen",
-      tags: ["Cryptocurrency", "Regulation", "Markets"]
+      tags: ["Cryptocurrency", "Regulation", "Markets"],
+      isFeatured: false,
+      contentType: 'analysis' as const,
+      subCategory: 'markets',
+      views: 11000
     },
     {
       id: 6,
@@ -80,9 +114,42 @@ const BusinessPage: React.FC = () => {
       publishedAt: "12 hours ago",
       readTime: "6 min read",
       author: "Lisa Kim",
-      tags: ["Manufacturing", "AI", "Automation"]
+      tags: ["Manufacturing", "AI", "Automation"],
+      isFeatured: false,
+      contentType: 'article' as const,
+      subCategory: 'companies',
+      views: 7800
     }
   ];
+
+  // Filtering logic
+  const filteredArticles = () => {
+    let filtered = [...allArticles];
+
+    // Filter by content type
+    if (contentType !== 'all') {
+      filtered = filtered.filter(article => article.contentType === contentType);
+    }
+
+    // Filter by sub-category
+    if (selectedSubCategory !== 'all') {
+      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
+    }
+
+    // Sort articles
+    if (sortBy === 'trending') {
+      filtered.sort((a, b) => b.views - a.views);
+    } else if (sortBy === 'popular') {
+      filtered.sort((a, b) => parseInt(b.readTime) - parseInt(a.readTime));
+    }
+    // 'latest' is default order
+
+    return filtered;
+  };
+
+  const articles = filteredArticles();
+  const featuredArticles = articles.filter(article => article.isFeatured);
+  const recentArticles = articles.filter(article => !article.isFeatured);
 
   const marketData = [
     { index: "S&P 500", value: "4,785.32", change: "+1.2%", color: "green" },
@@ -108,97 +175,146 @@ const BusinessPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-green-600/10 to-blue-600/10 border-b border-border">
-        <div className="container mx-auto px-4 py-8">
+      {/* Header Banner with Tabs */}
+      <div className="bg-gradient-to-r from-green-600/5 to-blue-600/5 border-b border-border/50">
+        <div className="container mx-auto px-4 py-4">
           <Breadcrumb items={[
             { label: 'Categories', href: '/category' },
             { label: 'Business' }
-          ]} className="mb-4" />
-          <div className="flex items-center justify-between">
+          ]} className="mb-3" />
+          
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">
+              <h1 className="text-2xl font-bold text-foreground mb-1">
                 Business
               </h1>
-              <p className="text-lg text-muted-foreground">
-                Markets, economy, and corporate news that drives global business
+              <p className="text-sm text-muted-foreground">
+                Markets, economy, and corporate news
               </p>
             </div>
             <div className="hidden lg:block">
-              <div className="bg-card border border-border rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary">189</div>
-                <div className="text-sm text-muted-foreground">Articles today</div>
+              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
+                <div className="text-lg font-bold text-primary">189</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
               </div>
             </div>
+          </div>
+
+          {/* Content type tabs moved below header into compact filter bar */}
+
+          {/* Sub-category Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {subCategoryFilters.map((subCat) => (
+              <button
+                key={subCat.id}
+                onClick={() => setSelectedSubCategory(subCat.id)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
+                  selectedSubCategory === subCat.id
+                    ? 'bg-green-400 text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/5'
+                }`}
+              >
+                {subCat.label}
+                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
+                  {subCat.count}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
-            {/* Filters */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {filters.map(filter => (
-                <button
-                  key={filter.id}
-                  onClick={() => setSelectedFilter(filter.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedFilter === filter.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
-                >
-                  {filter.label} ({filter.count})
-                </button>
-              ))}
+            {/* Compact Filter Bar */}
+            <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 mb-5">
+              <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
+                {contentTypes.map((type) => (
+                  <button
+                    key={type.value}
+                    onClick={() => setContentType(type.value as any)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                      contentType === type.value
+                        ? 'bg-green-500 text-white shadow'
+                        : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+
+                <span className="hidden sm:inline-block mx-2 h-4 w-px bg-border/60" />
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Sort</span>
+
+                {sortOptions.map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSortBy(option.value as any)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                      sortBy === option.value
+                        ? 'bg-green-500 text-white shadow'
+                        : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <span>{option.icon}</span>
+                    <span>{option.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Featured Articles */}
             <section className="mb-12">
               <h2 className="text-2xl font-bold text-foreground mb-6">Market Moving News</h2>
               <div className="grid md:grid-cols-2 gap-6">
-                {featuredArticles.map(article => (
-                  <Link key={article.id} href={`/article/${article.id}`} 
-                        className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
-                    <div className="relative h-48">
-                      <Image
-                        src={article.imageUrl}
-                        alt={article.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-4 left-4">
-                        <span className="bg-green-600 text-white px-2 py-1 rounded text-xs font-medium">
-                          MARKETS
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                        {article.title}
-                      </h3>
-                      <p className="text-muted-foreground mb-4 line-clamp-2">
-                        {article.summary}
-                      </p>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-4">
-                          <span>{article.author}</span>
-                          <span>{article.publishedAt}</span>
-                        </div>
-                        <span>{article.readTime}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {article.tags.map(tag => (
-                          <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                            {tag}
+                {featuredArticles.length === 0 ? (
+                  <div className="col-span-full text-center text-muted-foreground border border-dashed border-border rounded-lg py-10">
+                    No feature stories match the current filters.
+                  </div>
+                ) : (
+                  featuredArticles.map(article => (
+                    <Link key={article.id} href={`/article/${article.id}`} 
+                          className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
+                      <div className="relative h-48">
+                        <Image
+                          src={article.imageUrl}
+                          alt={article.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-4 left-4">
+                          <span className="bg-green-600 text-white px-2 py-1 rounded text-xs font-medium">
+                            {article.isFeatured ? 'FEATURED' : 'MARKETS'}
                           </span>
-                        ))}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                          {article.title}
+                        </h3>
+                        <p className="text-muted-foreground mb-4 line-clamp-2">
+                          {article.summary}
+                        </p>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <div className="flex items-center space-x-4">
+                            <span>{article.author}</span>
+                            <span>{article.publishedAt}</span>
+                          </div>
+                          <span>{article.readTime}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {article.tags.map(tag => (
+                            <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </Link>
+                  ))
+                )}
               </div>
             </section>
 
@@ -206,43 +322,49 @@ const BusinessPage: React.FC = () => {
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-6">Latest Business News</h2>
               <div className="space-y-6">
-                {recentArticles.map(article => (
-                  <Link key={article.id} href={`/article/${article.id}`}
-                        className="group flex flex-col md:flex-row gap-4 bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all">
-                    <div className="md:w-1/3">
-                      <div className="relative h-48 md:h-32 rounded-lg overflow-hidden">
-                        <Image
-                          src={article.imageUrl}
-                          alt={article.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    </div>
-                    <div className="md:w-2/3">
-                      <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                        {article.title}
-                      </h3>
-                      <p className="text-muted-foreground mb-3 line-clamp-2">
-                        {article.summary}
-                      </p>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-4">
-                          <span>{article.author}</span>
-                          <span>{article.publishedAt}</span>
+                {recentArticles.length === 0 ? (
+                  <div className="text-center text-muted-foreground border border-dashed border-border rounded-lg py-10">
+                    No articles available for the selected filters. Adjust your selection to see more stories.
+                  </div>
+                ) : (
+                  recentArticles.map(article => (
+                    <Link key={article.id} href={`/article/${article.id}`}
+                          className="group flex flex-col md:flex-row gap-4 bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all">
+                      <div className="md:w-1/3">
+                        <div className="relative h-48 md:h-32 rounded-lg overflow-hidden">
+                          <Image
+                            src={article.imageUrl}
+                            alt={article.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
                         </div>
-                        <span>{article.readTime}</span>
                       </div>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {article.tags.map(tag => (
-                          <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                            {tag}
-                          </span>
-                        ))}
+                      <div className="md:w-2/3">
+                        <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                          {article.title}
+                        </h3>
+                        <p className="text-muted-foreground mb-3 line-clamp-2">
+                          {article.summary}
+                        </p>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <div className="flex items-center space-x-4">
+                            <span>{article.author}</span>
+                            <span>{article.publishedAt}</span>
+                          </div>
+                          <span>{article.readTime}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {article.tags.map(tag => (
+                            <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))
+                )}
               </div>
 
               {/* Load More */}

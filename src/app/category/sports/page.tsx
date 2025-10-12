@@ -6,18 +6,21 @@ import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
 
 const SportsPage: React.FC = () => {
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'analysis' | 'opinion' | 'review' | 'interview'>('all');
+  const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
 
-  const filters = [
+  // Sub-categories for Sports
+  const subCategories = [
     { id: 'all', label: 'All Sports', count: 312 },
     { id: 'football', label: 'Football', count: 89 },
     { id: 'basketball', label: 'Basketball', count: 67 },
     { id: 'baseball', label: 'Baseball', count: 54 },
-    { id: 'soccer', label: 'Soccer', count: 45 },
-    { id: 'other', label: 'Other Sports', count: 57 }
+    { id: 'other', label: 'Other Sports', count: 102 }
   ];
 
-  const featuredArticles = [
+  // Combine all articles
+  const allArticles = [
     {
       id: 1,
       title: "NFL Playoffs: Chiefs Secure Top Seed with Dominant 31-17 Victory",
@@ -27,7 +30,11 @@ const SportsPage: React.FC = () => {
       readTime: "4 min read",
       author: "Mike Johnson",
       tags: ["NFL", "Playoffs", "Chiefs"],
-      isFeatured: true
+      contentType: 'news' as const,
+      category: 'Football',
+      subCategory: 'football',
+      isFeatured: true,
+      views: 12500
     },
     {
       id: 2,
@@ -38,11 +45,12 @@ const SportsPage: React.FC = () => {
       readTime: "6 min read",
       author: "Sarah Davis",
       tags: ["NBA", "Trade", "All-Star"],
-      isFeatured: true
-    }
-  ];
-
-  const recentArticles = [
+      contentType: 'analysis' as const,
+      category: 'Basketball',
+      subCategory: 'basketball',
+      isFeatured: true,
+      views: 9800
+    },
     {
       id: 3,
       title: "World Cup Qualifiers: USMNT Secures Crucial Win in South America",
@@ -51,7 +59,11 @@ const SportsPage: React.FC = () => {
       publishedAt: "6 hours ago",
       readTime: "5 min read",
       author: "Carlos Martinez",
-      tags: ["Soccer", "USMNT", "World Cup"]
+      tags: ["Soccer", "USMNT", "World Cup"],
+      contentType: 'news' as const,
+      category: 'Soccer',
+      subCategory: 'other',
+      views: 7200
     },
     {
       id: 4,
@@ -61,7 +73,11 @@ const SportsPage: React.FC = () => {
       publishedAt: "8 hours ago",
       readTime: "7 min read",
       author: "Tommy Rodriguez",
-      tags: ["MLB", "Spring Training", "Prospects"]
+      tags: ["MLB", "Spring Training", "Prospects"],
+      contentType: 'article' as const,
+      category: 'Baseball',
+      subCategory: 'baseball',
+      views: 5600
     },
     {
       id: 5,
@@ -71,7 +87,11 @@ const SportsPage: React.FC = () => {
       publishedAt: "10 hours ago",
       readTime: "3 min read",
       author: "Elena Petrov",
-      tags: ["Tennis", "Grand Slam", "Semifinals"]
+      tags: ["Tennis", "Grand Slam", "Semifinals"],
+      contentType: 'short' as const,
+      category: 'Tennis',
+      subCategory: 'other',
+      views: 4100
     },
     {
       id: 6,
@@ -81,9 +101,38 @@ const SportsPage: React.FC = () => {
       publishedAt: "12 hours ago",
       readTime: "5 min read",
       author: "David Kim",
-      tags: ["Olympics", "Swimming", "Records"]
+      tags: ["Olympics", "Swimming", "Records"],
+      contentType: 'news' as const,
+      category: 'Olympics',
+      subCategory: 'other',
+      views: 6800
     }
   ];
+
+  // Filtering logic
+  const filteredArticles = () => {
+    let filtered = [...allArticles];
+
+    // Filter by content type
+    if (contentType !== 'all') {
+      filtered = filtered.filter(article => article.contentType === contentType);
+    }
+
+    // Filter by sub-category
+    if (selectedSubCategory !== 'all') {
+      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
+    }
+
+    // Sort articles
+    if (sortBy === 'trending') {
+      filtered.sort((a, b) => b.views - a.views);
+    } else if (sortBy === 'popular') {
+      filtered.sort((a, b) => parseInt(b.readTime) - parseInt(a.readTime));
+    }
+    // 'latest' is default order
+
+    return filtered;
+  };
 
   const liveScores = [
     { home: "Lakers", away: "Warriors", homeScore: 108, awayScore: 112, status: "Final", sport: "NBA" },
@@ -107,148 +156,182 @@ const SportsPage: React.FC = () => {
     { teams: "Man City vs Liverpool", time: "Sat 12:30 PM", channel: "NBC" }
   ];
 
+  const contentTypes = [
+    { value: 'all', label: 'All' },
+    { value: 'news', label: 'News' },
+    { value: 'article', label: 'Articles' },
+    { value: 'analysis', label: 'Analysis' },
+    { value: 'opinion', label: 'Opinion' },
+  ];
+
+  const sortOptions = [
+    { value: 'latest', label: 'Latest', icon: '🕐' },
+    { value: 'trending', label: 'Trending', icon: '🔥' },
+    { value: 'popular', label: 'Popular', icon: '⭐' },
+    { value: 'breaking', label: 'Breaking', icon: '🚨' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-orange-600/10 to-red-600/10 border-b border-border">
-        <div className="container mx-auto px-4 py-8">
+      {/* Header with Content Type Tabs */}
+      <div className="bg-gradient-to-r from-orange-600/5 to-red-600/5 border-b border-border/50">
+        <div className="container mx-auto px-4 py-4">
           <Breadcrumb items={[
             { label: 'Categories', href: '/category' },
             { label: 'Sports' }
-          ]} className="mb-4" />
-          <div className="flex items-center justify-between">
+          ]} className="mb-3" />
+          
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">
+              <h1 className="text-2xl font-bold text-foreground mb-1">
                 Sports
               </h1>
-              <p className="text-lg text-muted-foreground">
-                Live scores, breaking news, and comprehensive sports coverage
+              <p className="text-sm text-muted-foreground">
+                Live scores & comprehensive coverage
               </p>
             </div>
             <div className="hidden lg:block">
-              <div className="bg-card border border-border rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary">312</div>
-                <div className="text-sm text-muted-foreground">Articles today</div>
+              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
+                <div className="text-lg font-bold text-primary">312</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
               </div>
             </div>
+          </div>
+
+          {/* Content type tabs moved below header into compact filter bar */}
+
+          {/* Sub-category Tabs in Header */}
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {subCategories.map(subCat => (
+              <button
+                key={subCat.id}
+                onClick={() => setSelectedSubCategory(subCat.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                  selectedSubCategory === subCat.id
+                    ? 'bg-orange-400 text-white shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-white/30 dark:hover:bg-white/5'
+                }`}
+              >
+                {subCat.label}
+                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-60'}`}>
+                  {subCat.count}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
-            {/* Filters */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {filters.map(filter => (
-                <button
-                  key={filter.id}
-                  onClick={() => setSelectedFilter(filter.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedFilter === filter.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
-                >
-                  {filter.label} ({filter.count})
-                </button>
-              ))}
+            {/* Compact Filter Bar: content type + sort */}
+            <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 mb-5">
+              <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
+                {contentTypes.map((type) => (
+                  <button
+                    key={type.value}
+                    onClick={() => setContentType(type.value as any)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                      contentType === type.value
+                        ? 'bg-orange-500 text-white shadow'
+                        : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+
+                <span className="hidden sm:inline-block mx-2 h-4 w-px bg-border/60" />
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Sort</span>
+
+                {sortOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSortBy(option.value as any)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                      sortBy === option.value
+                        ? 'bg-orange-500 text-white shadow'
+                        : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <span>{option.icon}</span>
+                    <span>{option.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Featured Articles */}
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-6">Top Sports Stories</h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                {featuredArticles.map(article => (
-                  <Link key={article.id} href={`/article/${article.id}`} 
-                        className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
-                    <div className="relative h-48">
+            {/* Articles */}
+            <section className="space-y-6">
+              {filteredArticles().map((article, index) => (
+                <article
+                  key={article.id}
+                  className={`bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow ${
+                    index === 0 && sortBy === 'latest' ? 'lg:col-span-2' : ''
+                  }`}
+                >
+                  <div className={`flex ${index === 0 && sortBy === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
+                    <div className={`relative ${index === 0 && sortBy === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
                       <Image
                         src={article.imageUrl}
                         alt={article.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        width={600}
+                        height={300}
+                        className={`w-full object-cover ${
+                          index === 0 && sortBy === 'latest' ? 'h-64 lg:h-full' : 'h-48 sm:h-full'
+                        }`}
                       />
-                      <div className="absolute top-4 left-4">
-                        <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-medium">
-                          LIVE SPORTS
+                      {article.isFeatured && (
+                        <span className="absolute top-3 left-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                          ⚡ FEATURED
                         </span>
-                      </div>
+                      )}
                     </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                        {article.title}
-                      </h3>
-                      <p className="text-muted-foreground mb-4 line-clamp-2">
+                    
+                    <div className={`p-6 flex-1 ${index === 0 && sortBy === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
+                      <div className="flex items-center space-x-2 mb-3">
+                        <span className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300 px-2 py-1 rounded text-xs font-medium">
+                          {article.category}
+                        </span>
+                        <span className="text-muted-foreground text-sm">{article.readTime}</span>
+                      </div>
+                      
+                      <Link href={`/article/${article.id}`}>
+                        <h2 className={`font-bold text-foreground mb-3 hover:text-primary cursor-pointer transition-colors ${
+                          index === 0 && sortBy === 'latest' ? 'text-2xl' : 'text-lg'
+                        }`}>
+                          {article.title}
+                        </h2>
+                      </Link>
+                      
+                      <p className="text-muted-foreground mb-4 line-clamp-3">
                         {article.summary}
                       </p>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-4">
-                          <span>{article.author}</span>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3 text-sm text-muted-foreground">
+                          <span>By {article.author}</span>
+                          <span>•</span>
                           <span>{article.publishedAt}</span>
                         </div>
-                        <span>{article.readTime}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {article.tags.map(tag => (
-                          <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-
-            {/* Recent Articles */}
-            <section>
-              <h2 className="text-2xl font-bold text-foreground mb-6">Latest Sports News</h2>
-              <div className="space-y-6">
-                {recentArticles.map(article => (
-                  <Link key={article.id} href={`/article/${article.id}`}
-                        className="group flex flex-col md:flex-row gap-4 bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all">
-                    <div className="md:w-1/3">
-                      <div className="relative h-48 md:h-32 rounded-lg overflow-hidden">
-                        <Image
-                          src={article.imageUrl}
-                          alt={article.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    </div>
-                    <div className="md:w-2/3">
-                      <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                        {article.title}
-                      </h3>
-                      <p className="text-muted-foreground mb-3 line-clamp-2">
-                        {article.summary}
-                      </p>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-4">
-                          <span>{article.author}</span>
-                          <span>{article.publishedAt}</span>
+                        <div className="flex flex-wrap gap-1">
+                          {article.tags.slice(0, 2).map((tag: string) => (
+                            <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
+                              {tag}
+                            </span>
+                          ))}
                         </div>
-                        <span>{article.readTime}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {article.tags.map(tag => (
-                          <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                            {tag}
-                          </span>
-                        ))}
                       </div>
                     </div>
-                  </Link>
-                ))}
-              </div>
+                  </div>
+                </article>
+              ))}
 
               {/* Load More */}
               <div className="text-center mt-8">
-                <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors">
+                <button className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-3 rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition-all font-medium">
                   Load More Articles
                 </button>
               </div>
@@ -261,7 +344,7 @@ const SportsPage: React.FC = () => {
             <div className="bg-card border border-border rounded-lg p-6 mb-6">
               <h3 className="text-lg font-bold text-foreground mb-4">Live Scores</h3>
               <div className="space-y-4">
-                {liveScores.map((game, index) => (
+                {liveScores.map((game: any, index: number) => (
                   <div key={index} className="p-3 rounded border border-border">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-xs text-muted-foreground">{game.sport}</span>

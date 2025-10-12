@@ -4,119 +4,169 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { dbApi } from '@/lib/database-real';
+// Note: We use a compact filter bar below the header instead of CategoryFilters
 
-// Mock data for demonstration
-const mockCategoryData = {
-  politics: {
-    name: 'Politics',
-    description: 'Stay updated with the latest political news, government policies, and election coverage.',
-    icon: '🏛️',
-    color: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
-    articles: [
-      {
-        id: 1,
-        title: 'Congressional Leaders Reach Bipartisan Agreement on Infrastructure Bill',
-        summary: 'After months of negotiations, congressional leaders announce a comprehensive infrastructure package.',
-        imageUrl: '/api/placeholder/600/300',
-        publishedAt: '2 hours ago',
-        readingTime: 4,
-        isBreaking: true,
-        author: 'Sarah Johnson'
-      },
-      {
-        id: 2,
-        title: 'Supreme Court to Hear Landmark Privacy Case This Fall',
-        summary: 'The high court will review digital privacy rights in the digital age.',
-        imageUrl: '/api/placeholder/600/300',
-        publishedAt: '4 hours ago',
-        readingTime: 3,
-        isBreaking: false,
-        author: 'Michael Chen'
-      },
-      {
-        id: 5,
-        title: 'New Climate Policy Initiative Gains Bipartisan Support',
-        summary: 'Environmental legislation receives unexpected backing from both parties.',
-        imageUrl: '/api/placeholder/600/300',
-        publishedAt: '6 hours ago',
-        readingTime: 5,
-        isBreaking: false,
-        author: 'Emily Rodriguez'
-      },
-      {
-        id: 6,
-        title: 'Federal Budget Proposal Sparks Congressional Debate',
-        summary: 'New spending plan faces scrutiny over infrastructure allocations.',
-        imageUrl: '/api/placeholder/600/300',
-        publishedAt: '8 hours ago',
-        readingTime: 4,
-        isBreaking: false,
-        author: 'David Thompson'
-      }
-    ]
-  },
-  technology: {
-    name: 'Technology',
-    description: 'Discover the latest in tech innovation, startups, and digital transformation.',
-    icon: '💻',
-    color: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
-    articles: [
-      {
-        id: 3,
-        title: 'AI Breakthrough: New Model Achieves Human-Level Reasoning',
-        summary: 'Scientists develop AI system that can solve complex logical problems.',
-        imageUrl: '/api/placeholder/600/300',
-        publishedAt: '1 hour ago',
-        readingTime: 5,
-        isBreaking: true,
-        author: 'Dr. Alex Kumar'
-      },
-      {
-        id: 7,
-        title: 'Tech Giants Face New Antitrust Regulations',
-        summary: 'Major technology companies prepare for stricter oversight.',
-        imageUrl: '/api/placeholder/600/300',
-        publishedAt: '3 hours ago',
-        readingTime: 4,
-        isBreaking: false,
-        author: 'Jessica Park'
-      },
-      {
-        id: 8,
-        title: 'Cryptocurrency Market Sees Major Volatility',
-        summary: 'Digital currencies experience significant price fluctuations.',
-        imageUrl: '/api/placeholder/600/300',
-        publishedAt: '5 hours ago',
-        readingTime: 3,
-        isBreaking: true,
-        author: 'Robert Kim'
-      }
-    ]
-  },
-  business: {
-    name: 'Business',
-    description: 'Business news, market analysis, and economic insights.',
-    icon: '💼',
-    color: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
-    articles: []
-  },
-  sports: {
-    name: 'Sports',
-    description: 'Sports news, scores, and athlete stories.',
-    icon: '⚽',
-    color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300',
-    articles: []
-  }
-};
+// Types
+interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  summary?: string;
+  excerpt?: string;
+  image_url?: string;
+  published_at: Date;
+  isBreaking: boolean;
+  isFeatured: boolean;
+  readingTime?: number;
+  author?: string;
+  views: number;
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+    color: string;
+    icon?: string;
+  };
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color: string;
+  icon?: string;
+  isActive: boolean;
+}
 
 const CategoryPage: React.FC = () => {
   const params = useParams();
   const slug = params.slug as string;
-  const [selectedFilter, setSelectedFilter] = useState('latest');
-  
-  const categoryData = mockCategoryData[slug as keyof typeof mockCategoryData];
-  
-  if (!categoryData) {
+  const [selectedFilter, setSelectedFilter] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
+  const [contentTypeFilter, setContentTypeFilter] = useState<'all' | 'news' | 'article' | 'opinion' | 'analysis' | 'review' | 'interview'>('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [category, setCategory] = useState<Category | null>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
+
+  // Compact filter bar data
+  const contentTypes = [
+    { value: 'all', label: 'All Content' },
+    { value: 'news', label: 'News' },
+    { value: 'article', label: 'Articles' },
+    { value: 'analysis', label: 'Analysis' },
+    { value: 'opinion', label: 'Opinion' }
+  ] as const;
+
+  const sortOptions = [
+    { value: 'latest', label: 'Latest', icon: '🕐' },
+    { value: 'trending', label: 'Trending', icon: '🔥' },
+    { value: 'popular', label: 'Popular', icon: '⭐' },
+    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+  ] as const;
+
+  // Fetch category and articles from backend
+  useEffect(() => {
+    const fetchCategoryData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        // Fetch articles for this category
+        const fetchedArticles = await dbApi.getArticlesByCategory(slug, 50);
+        
+        if (fetchedArticles && fetchedArticles.length > 0) {
+          setArticles(fetchedArticles);
+          // Get category info from the first article
+          setCategory({
+            id: fetchedArticles[0].category.id,
+            name: fetchedArticles[0].category.name,
+            slug: fetchedArticles[0].category.slug,
+            description: `Latest ${fetchedArticles[0].category.name} news and updates`,
+            color: fetchedArticles[0].category.color || '#3B82F6',
+            icon: fetchedArticles[0].category.icon || '📰',
+            isActive: true
+          });
+        } else {
+          // Try to fetch category info even if no articles
+          const categories = await dbApi.getCategories();
+          const foundCategory = categories.find(cat => cat.slug === slug);
+          
+          if (foundCategory) {
+            setCategory(foundCategory);
+            setArticles([]);
+          } else {
+            setError('Category not found');
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching category data:', err);
+        setError('Failed to load category');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategoryData();
+  }, [slug]);
+
+  // Helper function to format date
+  const formatDate = (date: Date) => {
+    const now = new Date();
+    const articleDate = new Date(date);
+    const diffMs = now.getTime() - articleDate.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    
+    return articleDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: articleDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    });
+  };
+
+  // Calculate reading time (if not provided)
+  const getReadingTime = (article: Article) => {
+    if (article.readingTime) return article.readingTime;
+    const words = (article.summary || article.excerpt || '').split(' ').length;
+    return Math.max(1, Math.ceil(words / 200)); // Average reading speed: 200 words/min
+  };
+
+  // Get category color classes
+  const getCategoryColorClass = (color: string) => {
+    // If color is hex, use it directly in inline styles
+    // Otherwise use predefined Tailwind classes
+    const colorMap: Record<string, string> = {
+      'red': 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
+      'blue': 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
+      'green': 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
+      'yellow': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300',
+      'purple': 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
+      'pink': 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300',
+      'indigo': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
+      'orange': 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300',
+    };
+    
+    return colorMap[color.toLowerCase()] || 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300';
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading category...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error or not found state
+  if (error || !category) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -132,32 +182,43 @@ const CategoryPage: React.FC = () => {
 
   // Filter articles based on selected filter
   const getFilteredArticles = () => {
-    let articles = [...categoryData.articles];
+    let filteredList = [...articles];
     
+    // First filter by content type
+    if (contentTypeFilter !== 'all') {
+      filteredList = filteredList.filter(article => {
+        const articleType = (article as any).contentType || 'article';
+        return articleType === contentTypeFilter;
+      });
+    }
+    
+    // Then apply sort/filter
     switch (selectedFilter) {
       case 'latest':
-        return articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+        return filteredList.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
       case 'trending':
-        // Simulate trending articles (you can add trending logic here)
-        return articles.filter(article => article.readingTime >= 4);
+        // Sort by views
+        return filteredList.sort((a, b) => b.views - a.views);
       case 'popular':
-        // Simulate popular articles (you can add view count logic here)
-        return articles.filter(article => article.readingTime <= 4);
+        // Sort by views (same as trending for now)
+        return filteredList.sort((a, b) => b.views - a.views).slice(0, 10);
       case 'breaking':
-        return articles.filter(article => article.isBreaking);
+        return filteredList.filter(article => article.isBreaking);
       default:
-        return articles;
+        return filteredList;
     }
   };
 
   const filteredArticles = getFilteredArticles();
 
   const filters = [
-    { id: 'latest', name: 'Latest', count: categoryData.articles.length },
-    { id: 'trending', name: 'Trending', count: categoryData.articles.filter(a => a.readingTime >= 4).length },
-    { id: 'popular', name: 'Popular', count: categoryData.articles.filter(a => a.readingTime <= 4).length },
-    { id: 'breaking', name: 'Breaking', count: categoryData.articles.filter(a => a.isBreaking).length }
+    { id: 'latest', name: 'Latest', count: articles.length },
+    { id: 'trending', name: 'Trending', count: articles.filter(a => a.views > 100).length },
+    { id: 'popular', name: 'Popular', count: Math.min(10, articles.length) },
+    { id: 'breaking', name: 'Breaking', count: articles.filter(a => a.isBreaking).length }
   ];
+
+  const categoryColorClass = getCategoryColorClass(category.color);
 
   return (
     <div className="min-h-screen bg-background">
@@ -165,49 +226,57 @@ const CategoryPage: React.FC = () => {
       <section className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center space-x-4 mb-4">
-            <span className="text-4xl">{categoryData.icon}</span>
+            <span className="text-4xl">{category.icon || '📰'}</span>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">{categoryData.name}</h1>
-              <p className="text-muted-foreground mt-2">{categoryData.description}</p>
+              <h1 className="text-3xl font-bold text-foreground">{category.name}</h1>
+              <p className="text-muted-foreground mt-2">{category.description || `Latest ${category.name} news and updates`}</p>
             </div>
           </div>
           
-          {/* Filter Tabs */}
-          <div className="flex space-x-1 mt-6 bg-muted/50 dark:bg-muted/30 rounded-xl p-1 shadow-sm">
-            {filters.map((filter) => (
-              <button
-                key={filter.id}
-                onClick={() => setSelectedFilter(filter.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 relative flex items-center gap-2 ${
-                  selectedFilter === filter.id
-                    ? 'bg-primary text-blue-700 dark:text-blue-300 shadow-xl shadow-primary/40 dark:shadow-primary/50 transform scale-105 dark:bg-primary font-bold'
-                    : 'text-foreground/80 dark:text-foreground/90 hover:text-foreground dark:hover:text-white hover:bg-background/70 dark:hover:bg-muted/50 hover:shadow-md hover:shadow-muted/20'
-                }`}
-              >
-                {/* Active indicator dot */}
-                {selectedFilter === filter.id && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary-foreground dark:bg-primary-foreground rounded-full animate-pulse shadow-lg shadow-primary/60"></div>
-                )}
-                
-                {filter.name}
-                
-                {filter.count > 0 && (
-                  <span className={`px-2 py-0.5 text-xs rounded-full font-semibold shadow-sm ${
-                    selectedFilter === filter.id
-                      ? 'bg-blue-100/60 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 shadow-blue-200/30 dark:shadow-blue-800/30 font-bold'
-                      : 'bg-background/80 text-foreground/70 dark:bg-muted/80 dark:text-foreground/80 shadow-muted/20'
-                  }`}>
-                    {filter.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          {/* Filters moved below header into a compact bar */}
         </div>
       </section>
 
       {/* Articles Grid */}
       <section className="container mx-auto px-4 py-8">
+        {/* Compact Filter Bar: content type + sort */}
+        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 mb-5">
+          <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
+            {contentTypes.map((type) => (
+              <button
+                key={type.value}
+                onClick={() => setContentTypeFilter(type.value as typeof contentTypeFilter)}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                  contentTypeFilter === type.value
+                    ? 'text-white shadow'
+                    : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+                style={contentTypeFilter === type.value ? { backgroundColor: category.color } : undefined}
+              >
+                {type.label}
+              </button>
+            ))}
+
+            <span className="hidden sm:inline-block mx-2 h-4 w-px bg-border/60" />
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Sort</span>
+
+            {sortOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setSelectedFilter(option.value as typeof selectedFilter)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                  selectedFilter === option.value
+                    ? 'text-white shadow'
+                    : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+                style={selectedFilter === option.value ? { backgroundColor: category.color } : undefined}
+              >
+                <span>{option.icon}</span>
+                <span>{option.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         {/* Filter Status */}
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -220,8 +289,8 @@ const CategoryPage: React.FC = () => {
             </h2>
             <p className="text-muted-foreground">
               {filteredArticles.length === 0 
-                ? `No ${selectedFilter} articles found in ${categoryData.name}`
-                : `Showing ${filteredArticles.length} ${selectedFilter} ${filteredArticles.length === 1 ? 'article' : 'articles'} in ${categoryData.name}`
+                ? `No ${selectedFilter} articles found in ${category.name}`
+                : `Showing ${filteredArticles.length} ${selectedFilter} ${filteredArticles.length === 1 ? 'article' : 'articles'} in ${category.name}`
               }
             </p>
           </div>
@@ -246,40 +315,44 @@ const CategoryPage: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="space-y-6">
                 {filteredArticles.map((article) => (
-                  <Link key={article.id} href={`/article/${article.id}`} className="block">
+                  <Link key={article.id} href={`/article/${article.slug}`} className="block">
                     <div className="bg-card text-card-foreground border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer group">
                       <div className="md:flex">
-                        <div className="md:w-1/3">
-                          <div className="relative h-48 md:h-full overflow-hidden">
-                            <Image
-                              src={article.imageUrl}
-                              alt={article.title}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                            />
-                            {article.isBreaking && (
-                              <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded text-sm font-semibold">
-                                BREAKING
-                              </div>
-                            )}
+                        {article.image_url && (
+                          <div className="md:w-1/3">
+                            <div className="relative h-48 md:h-full overflow-hidden">
+                              <Image
+                                src={article.image_url}
+                                alt={article.title}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                              />
+                              {article.isBreaking && (
+                                <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded text-sm font-semibold">
+                                  BREAKING
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
                         <div className="md:w-2/3 p-6">
                           <div className="flex items-center space-x-2 mb-2">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${categoryData.color} group-hover:scale-105 transition-transform duration-300 ease-out`}>
-                              {categoryData.name}
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${categoryColorClass} group-hover:scale-105 transition-transform duration-300 ease-out`}>
+                              {category.name}
                             </span>
-                            <span className="text-muted-foreground text-sm group-hover:text-foreground transition-colors duration-300 ease-out">{article.publishedAt}</span>
+                            <span className="text-muted-foreground text-sm group-hover:text-foreground transition-colors duration-300 ease-out">
+                              {formatDate(article.published_at)}
+                            </span>
                           </div>
                           <h2 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors duration-300 ease-out">
                             {article.title}
                           </h2>
                           <p className="text-muted-foreground mb-4 group-hover:text-foreground transition-colors duration-300 ease-out">
-                            {article.summary}
+                            {article.summary || article.excerpt}
                           </p>
                           <div className="flex items-center justify-between text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300 ease-out">
-                            <span>By {article.author}</span>
-                            <span>{article.readingTime} min read</span>
+                            <span>By {article.author || 'Staff Writer'}</span>
+                            <span>{getReadingTime(article)} min read</span>
                           </div>
                         </div>
                       </div>
@@ -295,20 +368,9 @@ const CategoryPage: React.FC = () => {
               <div className="bg-card rounded-lg shadow-sm p-6 mb-6 border border-border">
                 <h3 className="text-lg font-bold text-foreground mb-4">Related Topics</h3>
                 <div className="space-y-2">
-                  {['Elections 2024', 'Policy Updates', 'International Relations', 'Local Government'].map((topic) => (
-                    <Link
-                      key={topic}
-                      href="#"
-                      className="block text-primary hover:text-blue-800 hover:bg-muted/50 text-sm p-2 rounded-lg transition-all duration-200 ease-out hover:translate-x-1 hover:shadow-sm group"
-                    >
-                      <span className="flex items-center gap-2">
-                        <svg className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all duration-200 ease-out" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"/>
-                        </svg>
-                        {topic}
-                      </span>
-                    </Link>
-                  ))}
+                  <p className="text-sm text-muted-foreground">
+                    Explore more content in {category.name}
+                  </p>
                 </div>
               </div>
 
@@ -316,7 +378,7 @@ const CategoryPage: React.FC = () => {
               <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
                 <h3 className="text-lg font-bold mb-2">Stay Updated</h3>
                 <p className="text-primary-foreground/80 text-sm mb-4">
-                  Get the latest {categoryData.name.toLowerCase()} news in your inbox.
+                  Get the latest {category.name.toLowerCase()} news in your inbox.
                 </p>
                 <form className="space-y-3">
                   <input
@@ -343,18 +405,18 @@ const CategoryPage: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">{categoryData.icon}</div>
+            <div className="text-6xl mb-4">{category.icon || '📰'}</div>
             <h2 className="text-2xl font-bold text-foreground mb-4">
               No {filters.find(f => f.id === selectedFilter)?.name} Articles
             </h2>
             <p className="text-muted-foreground mb-8">
               {selectedFilter === 'latest' 
-                ? `We're working on bringing you the latest ${categoryData.name.toLowerCase()} news.`
+                ? `We're working on bringing you the latest ${category.name.toLowerCase()} news.`
                 : selectedFilter === 'breaking'
-                ? `No breaking news in ${categoryData.name.toLowerCase()} right now.`
+                ? `No breaking news in ${category.name.toLowerCase()} right now.`
                 : selectedFilter === 'trending'
-                ? `No trending articles in ${categoryData.name.toLowerCase()} at the moment.`
-                : `No popular articles in ${categoryData.name.toLowerCase()} currently.`
+                ? `No trending articles in ${category.name.toLowerCase()} at the moment.`
+                : `No popular articles in ${category.name.toLowerCase()} currently.`
               }
             </p>
             <div className="flex gap-4 justify-center">

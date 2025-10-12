@@ -22,6 +22,10 @@ interface ArticleForm {
   seoDescription: string;
   seoKeywords: string[];
   imageUrl: string;
+  contentType: 'news' | 'article' | 'opinion' | 'analysis' | 'review' | 'interview';
+  authorType: 'staff' | 'wire' | 'contributor' | 'ai' | 'syndicated';
+  author?: string;
+  shortContent?: string;
 }
 
 interface Category {
@@ -61,7 +65,11 @@ const NewArticle: React.FC = () => {
     seoTitle: '',
     seoDescription: '',
     seoKeywords: [],
-    imageUrl: ''
+    imageUrl: '',
+    contentType: 'article',
+    authorType: 'staff',
+    author: '',
+    shortContent: ''
   });
 
   const [tagInput, setTagInput] = useState('');
@@ -174,7 +182,13 @@ const NewArticle: React.FC = () => {
           if (Date.now() - draft.timestamp < 24 * 60 * 60 * 1000) {
             const shouldLoad = confirm('Found a saved draft from your last session. Load it?');
             if (shouldLoad) {
-              setFormData(draft);
+              const { timestamp: _timestamp, id: _id, ...draftData } = draft;
+              setFormData(prev => ({
+                ...prev,
+                ...draftData,
+                contentType: draftData.contentType || prev.contentType,
+                authorType: draftData.authorType || prev.authorType,
+              }));
               setAutoSaveStatus('unsaved');
               
               // If the draft has an existing article ID, update the URL to edit mode
@@ -230,7 +244,11 @@ const NewArticle: React.FC = () => {
           seoTitle: '', // TODO: Add SEO fields to API
           seoDescription: '',
           seoKeywords: [],
-          imageUrl: article.imageUrl || ''
+          imageUrl: article.imageUrl || '',
+          contentType: (article as any)?.contentType || 'article',
+          authorType: (article as any)?.authorType || 'staff',
+          author: (article as any)?.authorName || article.author?.fullName || '',
+          shortContent: (article as any)?.shortContent || ''
         });
 
         // Content will be loaded directly into the editor via the value prop
@@ -437,7 +455,11 @@ const NewArticle: React.FC = () => {
             seoTitle: '',
             seoDescription: '',
             seoKeywords: [],
-            imageUrl: ''
+            imageUrl: '',
+            contentType: 'article',
+            authorType: 'staff',
+            author: '',
+            shortContent: ''
           });
         }
       } else {
@@ -515,6 +537,90 @@ const NewArticle: React.FC = () => {
           </label>
         </div>
       </div>
+
+      {/* Content Type / Author Type */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            Content Type *
+          </label>
+          <select
+            value={formData.contentType}
+            onChange={(e) => handleInputChange('contentType', e.target.value as ArticleForm['contentType'])}
+            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground"
+          >
+            <option value="news">📰 News (Breaking/Quick Updates)</option>
+            <option value="article">📚 Article (In-depth Content)</option>
+            <option value="opinion">💭 Opinion (Editorial/Commentary)</option>
+            <option value="analysis">📊 Analysis (Deep Dive/Investigation)</option>
+            <option value="review">⭐ Review (Product/Service/Event)</option>
+            <option value="interview">🎤 Interview (Q&A/Profile)</option>
+          </select>
+          <p className="text-xs text-muted-foreground mt-1">
+            {formData.contentType === 'news' ? 'Quick news items with short summaries' : 
+             formData.contentType === 'article' ? 'Long-form editorial content' :
+             formData.contentType === 'opinion' ? 'Opinion pieces and commentary' :
+             formData.contentType === 'analysis' ? 'In-depth analysis and investigation' :
+             formData.contentType === 'review' ? 'Reviews of products, services, or events' :
+             'Interview format content'}
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            Author Type *
+          </label>
+          <select
+            value={formData.authorType}
+            onChange={(e) => handleInputChange('authorType', e.target.value as ArticleForm['authorType'])}
+            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground"
+          >
+            <option value="staff">👤 Staff Writer</option>
+            <option value="wire">📡 Wire Service (AP, Reuters)</option>
+            <option value="contributor">✍️ Contributor/Freelance</option>
+            <option value="ai">🤖 AI Generated</option>
+            <option value="syndicated">🔄 Syndicated Content</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Author Name (conditional on authorType) */}
+      {(formData.authorType === 'wire' || formData.authorType === 'contributor' || formData.authorType === 'syndicated') && (
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            Author/Source Name
+          </label>
+          <input
+            type="text"
+            value={formData.author || ''}
+            onChange={(e) => handleInputChange('author', e.target.value)}
+            placeholder={
+              formData.authorType === 'wire' ? 'e.g., Associated Press, Reuters' :
+              formData.authorType === 'contributor' ? 'e.g., John Doe' :
+              'e.g., The New York Times'
+            }
+            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground"
+          />
+        </div>
+      )}
+
+      {/* Short Content (for news type) */}
+      {formData.contentType === 'news' && (
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            Short Content (60-100 words) *
+          </label>
+          <textarea
+            value={formData.shortContent || ''}
+            onChange={(e) => handleInputChange('shortContent', e.target.value)}
+            placeholder="Brief news content (60-100 words)..."
+            rows={4}
+            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground placeholder:text-muted-foreground resize-none"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Word count: {(formData.shortContent || '').split(/\s+/).filter(w => w).length} words
+          </p>
+        </div>
+      )}
 
       {/* Summary */}
       <div>

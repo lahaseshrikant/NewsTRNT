@@ -35,7 +35,8 @@ router.get('/admin', authenticateToken, async (req: AuthRequest, res) => {
       status,
       search,
       sortBy = 'updatedAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      contentType
     } = req.query;
 
     const pageNum = parseInt(page as string);
@@ -46,6 +47,11 @@ router.get('/admin', authenticateToken, async (req: AuthRequest, res) => {
     const where: any = {
       isDeleted: false // Only show non-deleted articles by default
     };
+
+    // Filter by content type
+    if (contentType && contentType !== 'all') {
+      where.contentType = contentType as string;
+    }
 
     if (category && category !== 'all') {
       where.category = {
@@ -129,7 +135,9 @@ router.get('/admin', authenticateToken, async (req: AuthRequest, res) => {
       ...article,
       status: getArticleStatus(article.publishedAt, article.isPublished),
       author: article.createdByUser || { fullName: 'Unknown' },
-      tags: article.tags.map((articleTag: any) => articleTag.tag.name)
+      tags: article.tags.map((articleTag: any) => articleTag.tag.name),
+      contentType: article.contentType || 'article',
+      authorType: article.authorType || 'staff'
     }));
 
     res.json({
@@ -272,7 +280,11 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res) => {
       publishedAt = null,
       isFeatured = false,
       isTrending = false,
-      isBreaking = false
+      isBreaking = false,
+      contentType = 'article',
+      authorType = 'staff',
+      author,
+      shortContent
     } = req.body;
 
     if (!title) {
@@ -312,6 +324,10 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res) => {
         isFeatured,
         isTrending,
         isBreaking,
+        contentType,
+        authorType,
+        author,
+        shortContent,
         ...createdByData,
       },
       include: {
@@ -400,7 +416,11 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res): Promi
       publishedAt = null,
       isFeatured = false,
       isTrending = false,
-      isBreaking = false
+      isBreaking = false,
+      contentType,
+      authorType,
+      author,
+      shortContent
     } = req.body;
 
     if (!title) {
@@ -454,6 +474,10 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res): Promi
         isFeatured,
         isTrending,
         isBreaking,
+        ...(contentType !== undefined && { contentType }),
+        ...(authorType !== undefined && { authorType }),
+        ...(author !== undefined && { author }),
+        ...(shortContent !== undefined && { shortContent }),
         ...updatedByData,
       },
       include: {
@@ -801,6 +825,10 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
       page = '1',
       limit = '10',
       category,
+      contentType,
+      isBreaking,
+      isFeatured,
+      isTrending,
       search,
       sortBy = 'publishedAt',
       sortOrder = 'desc'
@@ -817,12 +845,34 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
       isDeleted: false
     };
 
+    // Filter by content type
+    if (contentType) {
+      where.contentType = contentType as string;
+    }
+
+    // Filter by category
     if (category && category !== 'all') {
       where.category = {
         slug: category as string
       };
     }
 
+    // Filter by breaking news
+    if (isBreaking !== undefined) {
+      where.isBreaking = isBreaking === 'true';
+    }
+
+    // Filter by featured
+    if (isFeatured !== undefined) {
+      where.isFeatured = isFeatured === 'true';
+    }
+
+    // Filter by trending
+    if (isTrending !== undefined) {
+      where.isTrending = isTrending === 'true';
+    }
+
+    // Search functionality
     if (search) {
       where.OR = [
         { title: { contains: search as string, mode: 'insensitive' } },
@@ -869,7 +919,9 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
     const transformedArticles = articles.map(article => ({
       ...article,
       status: 'published',
-      author: article.createdByUser || { fullName: 'Unknown' },
+      author: article.createdByUser?.fullName || article.author || 'Unknown',
+      authorType: article.authorType || 'staff',
+      contentType: article.contentType || 'article',
       tags: article.tags.map((articleTag: any) => articleTag.tag.name)
     }));
 
