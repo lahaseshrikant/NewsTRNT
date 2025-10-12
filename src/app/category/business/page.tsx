@@ -228,40 +228,46 @@ const BusinessPage: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
-            {/* Compact Filter Bar */}
-            <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 mb-5">
-              <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
-                {contentTypes.map((type) => (
-                  <button
-                    key={type.value}
-                    onClick={() => setContentType(type.value as any)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
-                      contentType === type.value
-                        ? 'bg-green-500 text-white shadow'
-                        : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    {type.label}
-                  </button>
-                ))}
+            <div className="flex flex-col sm:flex-row gap-3 mb-5">
+              {/* Content Type Filter */}
+              <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 flex-1">
+                <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
+                  {contentTypes.map((type) => (
+                    <button
+                      key={type.value}
+                      onClick={() => setContentType(type.value as any)}
+                      className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                        contentType === type.value
+                          ? 'bg-green-500 text-white shadow'
+                          : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                      }`}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                <span className="hidden sm:inline-block mx-2 h-4 w-px bg-border/60" />
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Sort</span>
-
-                {sortOptions.map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSortBy(option.value as any)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
-                      sortBy === option.value
-                        ? 'bg-green-500 text-white shadow'
-                        : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <span>{option.icon}</span>
-                    <span>{option.label}</span>
-                  </button>
-                ))}
+              {/* Sort Options */}
+              <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2">
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Sort By:</span>
+                  {sortOptions.map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => setSortBy(option.value as any)}
+                      title={option.label}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                        sortBy === option.value
+                          ? 'bg-green-500 text-white shadow'
+                          : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                      }`}
+                    >
+                      <span className="text-sm">{option.icon}</span>
+                      <span className="hidden sm:inline">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
