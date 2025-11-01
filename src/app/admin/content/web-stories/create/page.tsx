@@ -206,7 +206,7 @@ const CreateWebStory: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-b border-border">
-        <div className="container mx-auto px-4 py-6">
+  <div className="container mx-auto py-6">
           <Breadcrumb 
             items={[
               { label: 'Admin', href: '/admin' },
@@ -249,7 +249,7 @@ const CreateWebStory: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Story Settings */}
           <div className="lg:col-span-3">

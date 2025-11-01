@@ -8,7 +8,7 @@ const AdminHeader = () => {
 
   return (
     <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
             <Link href="/admin" className="flex items-center space-x-2">

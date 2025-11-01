@@ -166,7 +166,7 @@ const WorldCategoryPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-32 bg-muted rounded-lg"></div>
             <div className="space-y-4">
@@ -184,7 +184,7 @@ const WorldCategoryPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header Banner with Tabs */}
       <div className="bg-gradient-to-r from-teal-600/5 to-blue-600/5 border-b border-border/50">
-        <div className="container mx-auto px-4 py-4">
+  <div className="container mx-auto py-4">
           <Breadcrumb items={[
             { label: 'Categories', href: '/category' },
             { label: 'World' }
@@ -231,7 +231,7 @@ const WorldCategoryPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+  <div className="container mx-auto py-6">
         <div className="max-w-6xl mx-auto">
           {/* Compact Filter Bar: content type + sort */}
           <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 mb-5">

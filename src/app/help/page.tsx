@@ -138,7 +138,7 @@ const HelpPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-card shadow-sm border-b border-border">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <div className="max-w-4xl mx-auto">
             <Link href="/" className="text-primary hover:text-primary/80 mb-4 inline-block">
               ← Back to Home
@@ -150,7 +150,7 @@ const HelpPage: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-card rounded-lg shadow-sm p-6 border border-border mb-8">
             <div className="relative">

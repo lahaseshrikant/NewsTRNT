@@ -158,7 +158,7 @@ const PressPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b border-border">
-        <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-foreground mb-6">
               Press & Media
@@ -185,7 +185,7 @@ const PressPage: React.FC = () => {
       </div>
 
       {/* Company Stats */}
-      <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">NewsTRNT by the Numbers</h2>
@@ -206,7 +206,7 @@ const PressPage: React.FC = () => {
 
       {/* Press Releases */}
       <div className="bg-card border-y border-border py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">Press Releases</h2>
@@ -274,7 +274,7 @@ const PressPage: React.FC = () => {
       </div>
 
       {/* Media Kit */}
-      <div id="media-kit" className="container mx-auto px-4 py-16">
+  <div id="media-kit" className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Media Kit</h2>
@@ -313,7 +313,7 @@ const PressPage: React.FC = () => {
 
       {/* Awards & Recognition */}
       <div className="bg-card border-y border-border py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">Awards & Recognition</h2>
@@ -340,7 +340,7 @@ const PressPage: React.FC = () => {
       </div>
 
       {/* Executive Team */}
-      <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Executive Team</h2>
@@ -377,7 +377,7 @@ const PressPage: React.FC = () => {
 
       {/* Contact Section */}
       <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>

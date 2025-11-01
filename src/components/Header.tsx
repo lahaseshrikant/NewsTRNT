@@ -28,7 +28,6 @@ interface NavigationItem {
 // Dynamic navigation will be created in component using categories hook
 
 const moreMenuItems = [
-  { name: 'News Shorts', href: '/shorts' },
   { name: 'About Us', href: '/about' },
   { name: 'Contact', href: '/contact' },
   { name: 'Services', href: '/services' },
@@ -108,11 +107,22 @@ const Header = () => {
   const { currentLogo, setCurrentLogo } = useLogo();
   const navRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const measurementContainerRef = useRef<HTMLDivElement | null>(null);
   
   const profileRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Clean up measurement container on unmount
+  useEffect(() => {
+    return () => {
+      if (measurementContainerRef.current) {
+        document.body.removeChild(measurementContainerRef.current);
+        measurementContainerRef.current = null;
+      }
+    };
+  }, []);
 
   // Check user authentication status
   useEffect(() => {
@@ -230,53 +240,132 @@ const Header = () => {
     return [...navigation].sort((a, b) => a.priority - b.priority);
   }, [navigation]);
 
-  // Calculate responsive navigation
+  // Calculate responsive navigation based on available space
   useEffect(() => {
+    const ensureMeasurementContainer = () => {
+      if (measurementContainerRef.current) {
+        return measurementContainerRef.current;
+      }
+      const el = document.createElement('div');
+      el.style.position = 'absolute';
+      el.style.visibility = 'hidden';
+      el.style.pointerEvents = 'none';
+      el.style.zIndex = '-1';
+      el.style.height = '0';
+      el.style.overflow = 'hidden';
+      el.style.whiteSpace = 'nowrap';
+      document.body.appendChild(el);
+      measurementContainerRef.current = el;
+      return el;
+    };
+
     const calculateVisibleItems = () => {
       if (typeof window === 'undefined') {
-        // Default for SSR with stable layout
+        // Default for SSR with stable layout - show first 4 items
         setVisibleItems(sortedItems.slice(0, 4));
         setHiddenItems(sortedItems.slice(4));
         return;
       }
 
-      // Responsive navigation - show optimal number of items for each screen size
-      // Navigation now: [Home, Stories, News Shorts, ...Categories]
       const width = window.innerWidth;
-      let maxItems = 4; // Default: Home + Stories + News Shorts + 1 category
-      
-      if (width >= 1536) maxItems = navigation.length; // 2xl: Show all items (no More needed)
-      else if (width >= 1280) maxItems = Math.min(navigation.length, 8); // xl: Show most items
-      else if (width >= 1024) maxItems = 7; // lg: Show fixed items + 4 categories
-      else if (width >= 768) maxItems = 5; // md: Show fixed items + 2 categories
-      else maxItems = 4; // sm: Show fixed items + 1 category + More
+      if (width < 768) {
+        setVisibleItems([]);
+        setHiddenItems(sortedItems);
+        return;
+      }
 
-      // Use memoized sorted items
-      const visible = sortedItems.slice(0, maxItems);
-      const hidden = sortedItems.slice(maxItems);
+      const navWrapper = navRef.current?.parentElement;
+      if (!navWrapper) {
+        setVisibleItems(sortedItems);
+        setHiddenItems([]);
+        return;
+      }
 
-      // Only update state if values have actually changed
-      setVisibleItems(prev => {
-        if (prev.length !== visible.length || 
-            prev.some((item, index) => item.name !== visible[index]?.name)) {
-          return visible;
+      const availableWidth = navWrapper.getBoundingClientRect().width - 8; // Small safety margin
+      if (availableWidth <= 0) {
+        const fallbackVisibleCount = Math.max(2, Math.floor(sortedItems.length / 2));
+        setVisibleItems(sortedItems.slice(0, fallbackVisibleCount));
+        setHiddenItems(sortedItems.slice(fallbackVisibleCount));
+        return;
+      }
+
+      const measurementContainer = ensureMeasurementContainer();
+      measurementContainer.innerHTML = '';
+
+      const navClone = document.createElement('div');
+      navClone.className = 'flex items-center space-x-1 lg:space-x-2 xl:space-x-4';
+      measurementContainer.appendChild(navClone);
+
+      const visible: NavigationItem[] = [];
+      const hidden: NavigationItem[] = [];
+      const measurementElements: HTMLElement[] = [];
+
+      sortedItems.forEach((item) => {
+        const itemElement = document.createElement('span');
+        itemElement.className = 'px-1.5 lg:px-2 py-2 text-sm font-medium whitespace-nowrap';
+        itemElement.textContent = item.name;
+        navClone.appendChild(itemElement);
+
+        const currentWidth = navClone.getBoundingClientRect().width;
+        if (currentWidth <= availableWidth) {
+          visible.push(item);
+          measurementElements.push(itemElement);
+        } else {
+          navClone.removeChild(itemElement);
+          hidden.push(item);
+        }
+      });
+
+      if (visible.length === 0 && sortedItems.length > 0) {
+        visible.push(sortedItems[0]);
+        hidden.splice(0, 0, ...sortedItems.slice(1));
+      }
+
+      if (hidden.length > 0) {
+        const moreElement = document.createElement('span');
+        moreElement.className = 'px-1.5 lg:px-2 py-2 text-sm font-medium whitespace-nowrap';
+        moreElement.textContent = 'More';
+        navClone.appendChild(moreElement);
+
+        while (navClone.getBoundingClientRect().width > availableWidth && visible.length > 1) {
+          const removedItem = visible.pop();
+          const removedElement = measurementElements.pop();
+          if (!removedItem || !removedElement) {
+            break;
+          }
+          navClone.removeChild(removedElement);
+          hidden.unshift(removedItem);
+        }
+
+        navClone.removeChild(moreElement);
+      }
+
+      const finalVisible = visible;
+      const finalHidden = hidden;
+
+      setVisibleItems((prev) => {
+        if (
+          prev.length !== finalVisible.length ||
+          prev.some((item, index) => item.name !== finalVisible[index]?.name)
+        ) {
+          return finalVisible;
         }
         return prev;
       });
-      
-      setHiddenItems(prev => {
-        if (prev.length !== hidden.length || 
-            prev.some((item, index) => item.name !== hidden[index]?.name)) {
-          return hidden;
+
+      setHiddenItems((prev) => {
+        if (
+          prev.length !== finalHidden.length ||
+          prev.some((item, index) => item.name !== finalHidden[index]?.name)
+        ) {
+          return finalHidden;
         }
         return prev;
       });
     };
 
-    // Calculate when sorted items change
-    calculateVisibleItems();
+    const initialTimeout = setTimeout(calculateVisibleItems, 100);
 
-    // Throttled resize handler to prevent excessive recalculations
     let resizeTimeout: NodeJS.Timeout;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
@@ -287,8 +376,9 @@ const Header = () => {
     return () => {
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimeout);
+      clearTimeout(initialTimeout);
     };
-  }, [sortedItems, navigation.length]); // Only depend on sortedItems and navigation length
+  }, [sortedItems]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -502,11 +592,11 @@ const Header = () => {
   return (
     <>
       {/* Breaking News Banner */}
-      <div className="bg-red-600 text-white py-2">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center">
-            <span className="text-sm font-semibold mr-2">BREAKING:</span>
-            <div className="text-sm animate-pulse">
+      <div className="bg-red-600 text-white py-2 overflow-hidden">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-center overflow-hidden">
+            <span className="text-sm font-semibold mr-2 flex-shrink-0">BREAKING:</span>
+            <div className="text-sm animate-pulse truncate">
               Latest breaking news updates from around the world • Stay informed with real-time news coverage
             </div>
           </div>
@@ -515,27 +605,31 @@ const Header = () => {
 
       {/* Main Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg sticky top-0 z-50 transition-colors duration-300">
-        <div ref={containerRef} className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
-          <div className="flex justify-between items-center h-16">
+        <div ref={containerRef} className="container mx-auto px-2 sm:px-4">
+          <div className="flex items-center justify-between h-16 gap-4 sm:gap-6">
             {/* Logo */}
             <div className="flex items-center flex-shrink-0">
-              <Link href="/" className="flex items-center space-x-2">
+              <Link href="/" className="flex items-center space-x-2 py-2">
                 {/* Dynamic NewsTRNT Logo */}
-                {renderDynamicLogo()}
-                <div className="hidden sm:flex flex-col">
-                  <h1 className="text-lg xl:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <div className="flex-shrink-0">
+                  {renderDynamicLogo()}
+                </div>
+                <div className="hidden sm:flex flex-col justify-center min-w-0">
+                  <h1 className="text-base xl:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight whitespace-nowrap">
                     NewsTRNT
                   </h1>
-                  <p className="text-xs text-muted-foreground -mt-1">
+                  <p className="text-[10px] xl:text-xs text-muted-foreground leading-tight whitespace-nowrap">
                     The Road Not Taken
                   </p>
                 </div>
               </Link>
             </div>
 
-            {/* Responsive Desktop Navigation */}
-            <nav ref={navRef} className="hidden md:flex items-center space-x-1 lg:space-x-2 xl:space-x-4">
-              {visibleItems.map((item) => (
+            {/* Navigation wrapper */}
+            <div className="hidden md:flex flex-1 min-w-0 relative">
+              {/* Responsive Desktop Navigation */}
+              <nav ref={navRef} className="flex items-center justify-start space-x-1 lg:space-x-2 xl:space-x-4 flex-1 min-w-0 relative z-10 pr-6">
+                {visibleItems.map((item) => (
                 <div
                   key={item.name}
                   className="relative"
@@ -552,7 +646,7 @@ const Header = () => {
                           setIsNotificationsOpen(false);
                           setIsSearchOpen(false);
                         }}
-                        className="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap"
+                        className="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-1.5 lg:px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap"
                       >
                         {item.name}
                         <svg
@@ -568,12 +662,12 @@ const Header = () => {
                       </button>
                       
                       {/* Dropdown with smooth animation */}
-                      <div className={`absolute top-full left-0 mt-1 w-56 transition-all duration-200 ease-in-out transform origin-top ${
+                      <div className={`absolute top-full left-0 mt-1 w-56 z-[100] transition-all duration-200 ease-in-out transform origin-top ${
                         openDropdown === item.name 
                           ? 'opacity-100 scale-100 translate-y-0' 
                           : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                       }`}>
-                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 z-50">
+                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2">
                           {item.submenu.map((subItem) => (
                             <Link
                               key={subItem.name}
@@ -590,7 +684,7 @@ const Header = () => {
                   ) : (
                     <Link
                       href={item.href}
-                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap relative"
+                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-1.5 lg:px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap relative"
                     >
                       {item.name === 'Stories' && (
                         <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
@@ -601,7 +695,7 @@ const Header = () => {
                 </div>
               ))}
               
-              {/* More dropdown for hidden items */}
+              {/* More dropdown for hidden items + additional menu items */}
               {(hiddenItems.length > 0 || moreMenuItems.length > 0) && (
                 <div className="relative" ref={(el) => { dropdownRefs.current['more'] = el; }}>
                   <button
@@ -611,7 +705,7 @@ const Header = () => {
                       setIsNotificationsOpen(false);
                       setIsSearchOpen(false);
                     }}
-                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap relative"
+                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-1.5 lg:px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap relative"
                   >
                     <EllipsisHorizontalIcon className="h-5 w-5" />
                     <span className="ml-1 hidden lg:inline">More</span>
@@ -632,13 +726,13 @@ const Header = () => {
                     </svg>
                   </button>
                   
-                  {/* More dropdown with smooth animation */}
-                  <div className={`absolute top-full right-0 mt-1 w-56 transition-all duration-200 ease-in-out transform origin-top-right ${
+                  {/* More dropdown with smooth animation - hidden nav items + additional menu items */}
+                  <div className={`absolute top-full right-0 mt-1 w-56 z-[100] transition-all duration-200 ease-in-out transform origin-top-right ${
                     openDropdown === 'more' 
                       ? 'opacity-100 scale-100 translate-y-0' 
                       : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                   }`}>
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 z-50">
+                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2">
                       {hiddenItems.map((item) => (
                         <Link
                           key={item.name}
@@ -650,7 +744,7 @@ const Header = () => {
                           {item.name}
                         </Link>
                       ))}
-                      {hiddenItems.length > 0 && moreMenuItems.length > 0 && (
+                      {hiddenItems.length > 0 && (
                         <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
                       )}
                       {moreMenuItems.map((item) => (
@@ -668,11 +762,12 @@ const Header = () => {
                 </div>
               )}
             </nav>
+            </div>
 
             {/* Right side icons */}
-            <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
+            <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 flex-shrink-0 relative z-10 min-w-max ml-4 sm:ml-6 pl-4 sm:pl-6 border-l border-gray-200 dark:border-gray-700">
               {/* Search */}
-              <div className="relative" ref={searchRef}>
+              <div className="relative z-20" ref={searchRef}>
                 <button
                   onClick={() => {
                     setIsSearchOpen(!isSearchOpen);
@@ -685,7 +780,7 @@ const Header = () => {
                 </button>
                 
                 {isSearchOpen && (
-                  <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 p-4">
+                  <div className="absolute right-0 mt-2 w-72 sm:w-80 z-[100] bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 p-4">
                     <form onSubmit={handleSearch}>
                       <input
                         type="text"
@@ -706,7 +801,7 @@ const Header = () => {
               </div>
 
               {/* Notifications */}
-              <div className="relative" ref={notificationsRef}>
+              <div className="relative z-20" ref={notificationsRef}>
                 <button 
                   onClick={() => {
                     setIsNotificationsOpen(!isNotificationsOpen);
@@ -720,7 +815,7 @@ const Header = () => {
                 </button>
                 
                 {isNotificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-80 z-[100] bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2">
                     <div className="px-4 py-3 border-b dark:border-gray-700">
                       <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
                     </div>
@@ -771,7 +866,7 @@ const Header = () => {
               </div>
 
               {/* User Profile */}
-              <div className="relative" ref={profileRef}>
+              <div className="relative z-20" ref={profileRef}>
                 <button 
                   onClick={() => {
                     setIsProfileOpen(!isProfileOpen);
@@ -784,7 +879,7 @@ const Header = () => {
                 </button>
                 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-64 z-[100] bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2">
                     {isUserLoggedIn && currentUser ? (
                       <>
                         {/* Logged in user */}
@@ -955,10 +1050,10 @@ const Header = () => {
 
           {/* Mobile Navigation with smooth slide */}
           <div className={`md:hidden border-t dark:border-gray-700 transition-all duration-300 ease-in-out ${
-            isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+            isMenuOpen ? 'max-h-screen opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'
           }`}>
             <nav className="flex flex-col space-y-2 py-4">
-              {navigation.map((item) => (
+              {sortedItems.map((item) => (
                 <div key={item.name}>
                   {item.submenu ? (
                     <>

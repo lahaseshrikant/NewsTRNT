@@ -97,7 +97,7 @@ const AdminDashboard = () => {
     <AdminGuard>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="container mx-auto py-8">
           {/* Welcome Section */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white mb-8">
             <h2 className="text-3xl font-bold mb-2">Welcome to NewsTRNT Admin</h2>

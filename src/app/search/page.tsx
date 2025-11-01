@@ -72,7 +72,7 @@ const SearchPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-muted rounded mb-4 w-1/3"></div>
             <div className="space-y-4">
@@ -92,7 +92,7 @@ const SearchPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
         {/* Search Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground mb-2">

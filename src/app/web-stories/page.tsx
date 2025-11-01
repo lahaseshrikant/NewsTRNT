@@ -286,7 +286,7 @@ const WebStoriesPage: React.FC = () => {
       {/* Show notification if came from "See More" */}
       {categoryParam && categoryParam !== 'all' && (
         <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-b border-orange-200/20">
-          <div className="container mx-auto px-4 py-2">
+          <div className="container mx-auto py-2">
             <div className="text-center">
               <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">
                 📰 Showing more {categoryParam} stories
@@ -298,7 +298,7 @@ const WebStoriesPage: React.FC = () => {
 
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-border">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <Breadcrumb items={[{ label: 'Web Stories' }]} className="mb-4" />
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl font-bold text-foreground mb-4">
@@ -311,7 +311,7 @@ const WebStoriesPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
         {/* Stats and Categories */}
         <div className="mb-8">
           {/* Quick Stats */}

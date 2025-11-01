@@ -231,7 +231,7 @@ print(articles)`
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b border-border">
-        <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-foreground mb-6">
               NewsTRNT API
@@ -259,7 +259,7 @@ print(articles)`
 
       {/* Navigation Tabs */}
       <div className="border-b border-border bg-card">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <nav className="flex space-x-8">
             {[
               { id: 'overview', label: 'Overview' },
@@ -284,7 +284,7 @@ print(articles)`
       </div>
 
       {/* Content Sections */}
-      <div className="container mx-auto px-4 py-12">
+  <div className="container mx-auto py-12">
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="max-w-4xl mx-auto">
@@ -531,7 +531,7 @@ print(articles)`
 
       {/* CTA Section */}
       <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">
               Ready to Build with NewsTRNT API?

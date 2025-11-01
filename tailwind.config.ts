@@ -9,6 +9,24 @@ export default {
   ],
   darkMode: 'class',
   theme: {
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: '1.5rem',    // 24px on mobile (< 640px)
+        sm: '2rem',           // 32px at 640px
+        md: '2.5rem',         // 40px at 768px
+        lg: '3rem',           // 48px at 1024px
+        xl: '3rem',           // 48px at 1280px
+        '2xl': '3.5rem',      // 56px at 1536px
+      },
+      screens: {
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',    // Standard Tailwind xl breakpoint
+        '2xl': '1536px', // Standard Tailwind 2xl breakpoint
+      },
+    },
     extend: {
       colors: {
         background: "rgb(var(--background) / <alpha-value>)",

@@ -93,7 +93,7 @@ const SavedArticlesPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-4 py-6">
+  <div className="container mx-auto py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Saved Articles</h1>
@@ -113,7 +113,7 @@ const SavedArticlesPage: React.FC = () => {
 
       {/* Filters */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
+  <div className="container mx-auto py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             {/* Category Filter */}
             <div className="flex items-center space-x-4">
@@ -151,7 +151,7 @@ const SavedArticlesPage: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
         {filteredArticles.length > 0 ? (
           <div className="space-y-6">
             {filteredArticles.map((article) => (

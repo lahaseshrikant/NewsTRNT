@@ -154,7 +154,7 @@ const ArticleDetailPage: React.FC = () => {
 
       {/* Article Header */}
       <article className="bg-card">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <div className="max-w-4xl mx-auto">
             {/* Breadcrumb */}
             <nav className="mb-6">
@@ -284,7 +284,7 @@ const ArticleDetailPage: React.FC = () => {
 
       {/* Article Content */}
       <div className="bg-card border-t border-border">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Main Content */}

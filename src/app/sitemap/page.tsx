@@ -80,7 +80,7 @@ const SitemapPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b border-border">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <Breadcrumb items={[{ label: 'Sitemap' }]} className="mb-4" />
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl font-bold text-foreground mb-4">
@@ -94,7 +94,7 @@ const SitemapPage: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-12">
+  <div className="container mx-auto py-12">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {siteStructure.map((section) => (

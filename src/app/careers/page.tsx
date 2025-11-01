@@ -183,7 +183,7 @@ const CareersPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b border-border">
-        <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-foreground mb-6">
               Join Our Mission
@@ -210,7 +210,7 @@ const CareersPage: React.FC = () => {
       </div>
 
       {/* Company Values */}
-      <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Our Values</h2>
@@ -245,7 +245,7 @@ const CareersPage: React.FC = () => {
 
       {/* Job Openings */}
       <div className="bg-card border-y border-border py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">Open Positions</h2>
@@ -340,7 +340,7 @@ const CareersPage: React.FC = () => {
       </div>
 
       {/* Benefits */}
-      <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Why Join NewsTRNT?</h2>
@@ -361,7 +361,7 @@ const CareersPage: React.FC = () => {
 
       {/* Team */}
       <div className="bg-card border-y border-border py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">Meet the Team</h2>
@@ -389,7 +389,7 @@ const CareersPage: React.FC = () => {
       </div>
 
       {/* Application Process */}
-      <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Our Hiring Process</h2>
@@ -431,7 +431,7 @@ const CareersPage: React.FC = () => {
 
       {/* CTA Section */}
       <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">
               Ready to Shape the Future of News?

@@ -128,7 +128,7 @@ const ServicesPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b border-border">
-        <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-foreground mb-6">
               NewsTRNT Services
@@ -155,7 +155,7 @@ const ServicesPage: React.FC = () => {
       </div>
 
       {/* Services Grid */}
-      <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Our Services</h2>
@@ -216,7 +216,7 @@ const ServicesPage: React.FC = () => {
 
       {/* Featured Service Detail */}
       <div className="bg-card border-y border-border py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             {services.map((service) => (
               selectedService === service.id && (
@@ -284,7 +284,7 @@ const ServicesPage: React.FC = () => {
       </div>
 
       {/* Testimonials */}
-      <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">What Our Clients Say</h2>
@@ -322,7 +322,7 @@ const ServicesPage: React.FC = () => {
 
       {/* CTA Section */}
       <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">
               Ready to Transform Your News Experience?

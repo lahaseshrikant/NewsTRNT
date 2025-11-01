@@ -172,7 +172,7 @@ const TechnologyPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header with Content Type Tabs */}
       <div className="bg-gradient-to-r from-blue-600/5 to-purple-600/5 border-b border-border/50">
-        <div className="container mx-auto px-4 py-4">
+  <div className="container mx-auto py-4">
           <Breadcrumb items={[
             { label: 'Categories', href: '/category' },
             { label: 'Technology' }
@@ -219,7 +219,7 @@ const TechnologyPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+  <div className="container mx-auto py-6">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">

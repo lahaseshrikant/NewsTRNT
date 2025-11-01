@@ -220,7 +220,7 @@ const WebStoriesAdmin: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-b border-border">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <Breadcrumb 
             items={[
               { label: 'Admin', href: '/admin' },
@@ -253,7 +253,7 @@ const WebStoriesAdmin: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-card border border-border rounded-lg p-6">

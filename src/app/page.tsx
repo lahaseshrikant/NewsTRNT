@@ -138,7 +138,7 @@ const HomePage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
               NewsTRNT: The Road Not Taken
@@ -182,7 +182,7 @@ const HomePage: React.FC = () => {
 
       {/* Breaking News Ticker */}
       <section className="bg-red-600 text-white py-3 overflow-hidden">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 flex-shrink-0">
               <span className="bg-white text-red-600 px-3 py-1 rounded-md text-sm font-bold animate-pulse">BREAKING</span>
@@ -212,7 +212,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-3">

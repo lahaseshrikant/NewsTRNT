@@ -224,7 +224,7 @@ const CategoryPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Category Header */}
       <section className="bg-card border-b border-border">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <div className="flex items-center space-x-4 mb-4">
             <span className="text-4xl">{category.icon || '📰'}</span>
             <div>
@@ -238,7 +238,7 @@ const CategoryPage: React.FC = () => {
       </section>
 
       {/* Articles Grid */}
-      <section className="container mx-auto px-4 py-8">
+  <section className="container mx-auto py-8">
         {/* Filter Bars - Separated */}
         <div className="flex flex-col sm:flex-row gap-3 mb-5">
           {/* Content Type Filter */}

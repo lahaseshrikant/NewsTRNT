@@ -103,7 +103,7 @@ const Footer: React.FC = () => {
     <footer className="bg-gray-900 dark:bg-gray-950 text-white">
       {/* Newsletter Section */}
       <div className="bg-gray-800 dark:bg-gray-900 py-12">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto">
             <Newsletter variant="footer" />
           </div>
@@ -112,7 +112,7 @@ const Footer: React.FC = () => {
 
       {/* Main Footer */}
       <div className="py-12">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             {/* Brand Section */}
             <div className="lg:col-span-1">
@@ -168,7 +168,7 @@ const Footer: React.FC = () => {
 
       {/* Bottom Bar */}
       <div className="border-t border-gray-800 py-6">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 text-sm mb-4 md:mb-0">
               <p>&copy; {new Date().getFullYear()} NewsTRNT. All rights reserved.</p>

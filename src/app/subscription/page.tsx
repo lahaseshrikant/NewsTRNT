@@ -143,7 +143,7 @@ const SubscriptionPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b border-border">
-        <div className="container mx-auto px-4 py-12">
+  <div className="container mx-auto py-12">
           <div className="max-w-4xl mx-auto text-center">
             <Link href="/" className="text-primary hover:text-primary/80 mb-6 inline-block">
               ← Back to Home
@@ -186,7 +186,7 @@ const SubscriptionPage: React.FC = () => {
       </div>
 
       {/* Pricing Plans */}
-      <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {plans.map((plan) => (
@@ -274,7 +274,7 @@ const SubscriptionPage: React.FC = () => {
 
       {/* Features Section */}
       <div className="bg-card border-y border-border py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">
@@ -300,7 +300,7 @@ const SubscriptionPage: React.FC = () => {
       </div>
 
       {/* Testimonials */}
-      <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
@@ -352,7 +352,7 @@ const SubscriptionPage: React.FC = () => {
 
       {/* FAQ Section */}
       <div className="bg-card border-y border-border py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">
@@ -377,7 +377,7 @@ const SubscriptionPage: React.FC = () => {
       </div>
 
       {/* Contact Support */}
-      <div className="container mx-auto px-4 py-16">
+  <div className="container mx-auto py-16">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-8 border border-primary/20">
             <div className="text-4xl mb-4">💬</div>

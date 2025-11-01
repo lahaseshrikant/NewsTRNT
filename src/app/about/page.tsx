@@ -58,7 +58,7 @@ const AboutPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
               About NewsTRNT: The Road Not Taken
@@ -79,7 +79,7 @@ const AboutPage: React.FC = () => {
 
       {/* Mission Section */}
       <section className="py-16 bg-card">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">Our Mission</h2>
@@ -122,7 +122,7 @@ const AboutPage: React.FC = () => {
 
       {/* Values Section */}
       <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">Our Values</h2>
@@ -146,7 +146,7 @@ const AboutPage: React.FC = () => {
 
       {/* Team Section */}
       <section className="py-16 bg-card">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">Meet Our Team</h2>
@@ -178,7 +178,7 @@ const AboutPage: React.FC = () => {
 
       {/* Technology Section */}
       <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">Our Technology</h2>
@@ -218,7 +218,7 @@ const AboutPage: React.FC = () => {
 
       {/* Contact CTA */}
       <section className="py-16 bg-gradient-to-r from-primary to-primary/80">
-        <div className="container mx-auto px-4">
+  <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-primary-foreground mb-4">
               Join the Future of News

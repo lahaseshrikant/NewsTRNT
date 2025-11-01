@@ -269,7 +269,7 @@ const ContentPerformance: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600/10 to-blue-600/10 border-b border-border">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <Breadcrumb 
             items={[
               { label: 'Admin', href: '/admin' },
@@ -299,7 +299,7 @@ const ContentPerformance: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
         {/* Time Range Selector */}
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold text-foreground">Performance Overview</h2>

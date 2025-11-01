@@ -132,7 +132,7 @@ const ShortsPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-gradient-to-r from-yellow-600/10 to-orange-600/10 border-b border-border">
-        <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
           <Breadcrumb items={[{ label: 'News Shorts' }]} className="mb-4" />
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl font-bold text-foreground mb-4">
@@ -145,7 +145,7 @@ const ShortsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
