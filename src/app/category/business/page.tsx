@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
+import MarketWidget from '@/components/MarketWidget';
 
 const BusinessPage: React.FC = () => {
   // Content Type and Sort Filters
@@ -150,20 +151,6 @@ const BusinessPage: React.FC = () => {
   const articles = filteredArticles();
   const featuredArticles = articles.filter(article => article.isFeatured);
   const recentArticles = articles.filter(article => !article.isFeatured);
-
-  const marketData = [
-    { index: "S&P 500", value: "4,785.32", change: "+1.2%", color: "green" },
-    { index: "NASDAQ", value: "15,421.18", change: "+2.1%", color: "green" },
-    { index: "DOW", value: "37,863.80", change: "+0.8%", color: "green" },
-    { index: "Russell 2000", value: "2,045.12", change: "-0.3%", color: "red" }
-  ];
-
-  const commodities = [
-    { name: "Gold", price: "$2,045.20", change: "+0.5%" },
-    { name: "Oil (WTI)", price: "$78.45", change: "-1.2%" },
-    { name: "Silver", price: "$24.32", change: "+1.8%" },
-    { name: "Copper", price: "$8.87", change: "+0.3%" }
-  ];
 
   const trendingTopics = [
     { name: "Interest Rates", count: 89 },
@@ -384,40 +371,14 @@ const BusinessPage: React.FC = () => {
 
           {/* Sidebar */}
           <div className="lg:w-80">
-            {/* Market Indices */}
-            <div className="bg-card border border-border rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-bold text-foreground mb-4">Market Indices</h3>
-              <div className="space-y-3">
-                {marketData.map((market, index) => (
-                  <div key={market.index} className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors">
-                    <span className="font-medium text-foreground">{market.index}</span>
-                    <div className="text-right">
-                      <div className="text-foreground">{market.value}</div>
-                      <div className={`text-sm ${market.color === 'green' ? 'text-green-600' : 'text-red-600'}`}>
-                        {market.change}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Commodities */}
-            <div className="bg-card border border-border rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-bold text-foreground mb-4">Commodities</h3>
-              <div className="space-y-3">
-                {commodities.map((commodity, index) => (
-                  <div key={commodity.name} className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors">
-                    <span className="text-foreground">{commodity.name}</span>
-                    <div className="text-right">
-                      <div className="text-foreground">{commodity.price}</div>
-                      <div className={`text-sm ${commodity.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                        {commodity.change}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* Market Data Widget - Location-based with real-time updates */}
+            <div className="mb-6">
+              <MarketWidget 
+                showCommodities={true}
+                showCurrencies={true}
+                showCrypto={true}
+                maxItems={8}
+              />
             </div>
 
             {/* Trending Topics */}

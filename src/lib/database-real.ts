@@ -4,7 +4,7 @@
 import { config } from './scalable-config';
 
 // Backend API URL based on environment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // =============================================================================
 // API CLIENT WITH AUTOMATIC FALLBACK
@@ -50,6 +50,25 @@ class ApiClient {
             const result = await mockApi.getTrendingArticles();
             return result.data as unknown as T;
           }
+          if (endpoint.includes('/category/')) {
+            // Extract category slug from endpoint
+            const slugMatch = endpoint.match(/\/category\/([^?]+)/);
+            if (slugMatch) {
+              const categorySlug = slugMatch[1];
+              const result = await mockApi.getArticlesByCategory(categorySlug);
+              return result.data as unknown as T;
+            }
+          }
+          if (endpoint.includes('/search')) {
+            // Extract search query from endpoint
+            const queryMatch = endpoint.match(/[?&]q=([^&]+)/);
+            if (queryMatch) {
+              const searchQuery = decodeURIComponent(queryMatch[1]);
+              const result = await mockApi.searchArticles(searchQuery);
+              return result.data as unknown as T;
+            }
+          }
+          // Default: return all articles
           const result = await mockApi.getArticles();
           return result.data as unknown as T;
         }
@@ -164,7 +183,7 @@ export const dbApi = {
     if (options.isTrending !== undefined) queryParams.append('isTrending', options.isTrending.toString());
 
     const queryString = queryParams.toString();
-    const endpoint = `/api/articles${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/articles${queryString ? `?${queryString}` : ''}`;
     
     return apiClient.get<Article[]>(endpoint);
   },
@@ -198,8 +217,8 @@ export const dbApi = {
   async getArticlesByCategory(categorySlug: string, limit: number = 20, contentType?: ContentType): Promise<Article[]> {
     try {
       const endpoint = contentType 
-        ? `/api/articles/category/${categorySlug}?limit=${limit}&contentType=${contentType}`
-        : `/api/articles/category/${categorySlug}?limit=${limit}`;
+        ? `/articles/category/${categorySlug}?limit=${limit}&contentType=${contentType}`
+        : `/articles/category/${categorySlug}?limit=${limit}`;
       const articles = await apiClient.get<Article[]>(endpoint);
       return Array.isArray(articles) ? articles : [];
     } catch (error) {
@@ -216,7 +235,7 @@ export const dbApi = {
   // Get single article
   async getArticle(slug: string): Promise<Article | null> {
     try {
-      return await apiClient.get<Article>(`/api/articles/${slug}`);
+      return await apiClient.get<Article>(`/articles/${slug}`);
     } catch (error) {
       console.error('Error fetching article:', error);
       return null;
@@ -225,21 +244,21 @@ export const dbApi = {
 
   // Get categories
   async getCategories(): Promise<Category[]> {
-    return apiClient.get<Category[]>('/api/categories');
+    return apiClient.get<Category[]>('/categories');
   },
 
   // Search articles
   async searchArticles(query: string, limit: number = 20, contentType?: ContentType): Promise<Article[]> {
     const endpoint = contentType
-      ? `/api/articles/search?q=${encodeURIComponent(query)}&limit=${limit}&contentType=${contentType}`
-      : `/api/articles/search?q=${encodeURIComponent(query)}&limit=${limit}`;
+      ? `/articles/search?q=${encodeURIComponent(query)}&limit=${limit}&contentType=${contentType}`
+      : `/articles/search?q=${encodeURIComponent(query)}&limit=${limit}`;
     return apiClient.get<Article[]>(endpoint);
   },
 
   // Health check
   async healthCheck(): Promise<boolean> {
     try {
-      await apiClient.get('/api/health');
+      await apiClient.get('/health');
       return true;
     } catch (error) {
       console.error('Backend health check failed:', error);
