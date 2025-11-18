@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Performance optimizations
@@ -54,6 +56,12 @@ const nextConfig = {
         },
       };
     }
+
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      '@backend': path.resolve(__dirname, 'backend/src'),
+    };
     
     return config;
   },

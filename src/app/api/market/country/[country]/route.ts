@@ -1,140 +1,150 @@
 // Market Data API - Country Endpoint
 // GET /api/market/country/[country]
+// Returns data from database cache
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getIndicesByCountry, COMMODITIES, CURRENCY_PAIRS, CRYPTOCURRENCIES } from '@/config/market-indices';
+import { getIndicesByCountry } from '@/config/market-indices';
+import {
+  getCachedIndices,
+  getCachedCryptocurrencies,
+  getCachedCurrencyRates,
+  getCachedCommodities,
+} from '@/lib/market-cache';
 
-// Currency conversion rates (mock - in production, use a real API)
-const CURRENCY_RATES: Record<string, number> = {
-  USD: 1, INR: 83.12, GBP: 0.79, EUR: 0.92, JPY: 149.50, CNY: 7.24,
-  AUD: 1.53, CAD: 1.36, BRL: 4.98, MXN: 17.15, RUB: 92.50, KRW: 1310.50,
-  CHF: 0.88, HKD: 7.82, SGD: 1.34, SAR: 3.75, AED: 3.67, ZAR: 18.20,
-};
+type CachedIndices = Awaited<ReturnType<typeof getCachedIndices>>;
+type CachedCryptos = Awaited<ReturnType<typeof getCachedCryptocurrencies>>;
+type CachedRates = Awaited<ReturnType<typeof getCachedCurrencyRates>>;
+type CachedCommodities = Awaited<ReturnType<typeof getCachedCommodities>>;
 
-// Map country to currency
-const COUNTRY_CURRENCY_MAP: Record<string, string> = {
-  US: 'USD', CA: 'CAD', GB: 'GBP', DE: 'EUR', FR: 'EUR', IT: 'EUR', ES: 'EUR',
-  JP: 'JPY', CN: 'CNY', IN: 'INR', AU: 'AUD', BR: 'BRL', MX: 'MXN',
-  RU: 'RUB', KR: 'KRW', CH: 'CHF', HK: 'HKD', SG: 'SGD', SA: 'SAR', AE: 'AED', ZA: 'ZAR',
-};
+type MarketIndexRecord = CachedIndices extends Array<infer T> ? T : never;
+type CryptocurrencyRecord = CachedCryptos extends Array<infer T> ? T : never;
+type CurrencyRateRecord = CachedRates extends Array<infer T> ? T : never;
+type CommodityRecord = CachedCommodities extends Array<infer T> ? T : never;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { country: string } }
+  { params }: { params: Promise<{ country: string }> }
 ) {
   try {
-    const countryCode = params.country.toUpperCase();
-    const targetCurrency = COUNTRY_CURRENCY_MAP[countryCode] || 'USD';
-    const conversionRate = CURRENCY_RATES[targetCurrency] || 1;
+    const { country } = await params;
+    const countryCode = country.toUpperCase();
 
-    // Get indices for the country
+    // Get indices configuration for the country
     const indicesConfig = getIndicesByCountry(countryCode);
+    const symbols = indicesConfig.map(config => config.symbol);
 
-    // Generate mock data (in production, this would call real market data APIs)
-    const indices = indicesConfig.map((config, index) => {
-      const value = 10000 + Math.random() * 5000;
-      const previousClose = value * (1 + (Math.random() - 0.5) * 0.02);
-      const change = value - previousClose;
-      const changePercent = (change / previousClose) * 100;
+    // Fetch from database cache (auto-updates in background)
+    const [dbIndices, dbCryptocurrencies, dbCurrencyRates, dbCommodities] = await Promise.all([
+      getCachedIndices(symbols),
+      getCachedCryptocurrencies(),
+      getCachedCurrencyRates(),
+      getCachedCommodities(),
+    ]);
+
+    // Transform database indices to API format
+    const indexConfigMap = new Map(indicesConfig.map(config => [config.symbol, config]));
+
+    const indices = dbIndices.map((idx: MarketIndexRecord) => {
+      const config = indexConfigMap.get(idx.symbol);
 
       return {
-        id: `${config.symbol}_${Date.now()}_${index}`,
-        symbol: config.symbol,
-        name: config.name,
+        id: idx.id,
+        symbol: idx.symbol,
+        name: idx.name,
         type: 'stock' as const,
-        region: config.region,
-        country: config.country,
-        value,
-        previousClose,
-        change,
-        changePercent,
-        high: value * 1.02,
-        low: value * 0.98,
-        volume: Math.floor(Math.random() * 10000000),
-        currency: config.currency,
-        lastUpdated: new Date().toISOString(),
-        isOpen: isMarketOpen(config.timezone),
+        region: config?.region ?? ['GLOBAL'],
+        country: idx.country,
+        value: idx.value,
+        previousClose: idx.previousClose ?? undefined,
+        change: idx.change,
+        changePercent: idx.changePercent,
+        high: idx.high ?? undefined,
+        low: idx.low ?? undefined,
+        volume: idx.volume ?? undefined,
+        currency: idx.currency,
+        lastUpdated: idx.lastUpdated.toISOString(),
+        isOpen: isMarketOpen(idx.timezone),
         marketHours: {
-          open: config.marketHours.open,
-          close: config.marketHours.close,
-          timezone: config.timezone,
+          open: config?.marketHours.open ?? '09:30',
+          close: config?.marketHours.close ?? '16:00',
+          timezone: idx.timezone,
         },
       };
     });
 
-    // Add some commodities (always global, converted to local currency)
-    const commodities = COMMODITIES.slice(0, 5).map((config, index) => {
-      const valueUSD = 50 + Math.random() * 100;
-      const value = valueUSD * conversionRate;
-      const previousClose = value * (1 + (Math.random() - 0.5) * 0.03);
-      const change = value - previousClose;
-      const changePercent = (change / previousClose) * 100;
+    // Transform cryptocurrencies
+    const cryptocurrencies = dbCryptocurrencies.map((crypto: CryptocurrencyRecord) => ({
+      id: crypto.id,
+      symbol: crypto.symbol,
+      name: crypto.name,
+      type: 'crypto' as const,
+      region: ['GLOBAL'],
+      country: 'US',
+      value: crypto.value,
+      previousClose: crypto.previousClose ?? undefined,
+      change: crypto.change,
+      changePercent: crypto.changePercent,
+      high: crypto.high24h ?? undefined,
+      low: crypto.low24h ?? undefined,
+      volume: crypto.volume24h ?? undefined,
+      currency: crypto.currency,
+      lastUpdated: crypto.lastUpdated.toISOString(),
+      isOpen: true,
+      marketCap: crypto.marketCap ? crypto.marketCap.toString() : undefined,
+    }));
+
+    // Transform currency rates to API format
+    const currencies = dbCurrencyRates.map((rate: CurrencyRateRecord) => {
+      if (isUsdBaseRate(rate)) {
+        return {
+          id: rate.id,
+          pair: `USD/${rate.currency}`,
+          baseCurrency: 'USD',
+          quoteCurrency: rate.currency,
+          rate: rate.rateToUSD,
+          change: 0,
+          changePercent: 0,
+          lastUpdated: rate.lastUpdated.toISOString(),
+          name: rate.currencyName ?? undefined,
+          symbol: rate.symbol ?? undefined,
+        };
+      }
+
+      const pair = rate.pair ?? `${rate.fromCurrency}/${rate.toCurrency}`;
+      const [baseCurrency = 'USD', quoteCurrency = 'USD'] = pair.split('/');
 
       return {
-        id: `${config.symbol}_${Date.now()}_${index}`,
-        symbol: config.symbol,
-        name: config.name,
-        type: 'commodity' as const,
-        region: ['GLOBAL'],
-        country: 'US',
-        value,
-        previousClose,
-        change,
-        changePercent,
-        currency: targetCurrency,
-        lastUpdated: new Date().toISOString(),
-        isOpen: true,
-        unit: config.unit,
+        id: rate.id,
+        pair,
+        baseCurrency,
+        quoteCurrency,
+        rate: rate.rate,
+        change: 0,
+        changePercent: 0,
+        lastUpdated: rate.lastUpdated.toISOString(),
       };
     });
 
-    // Add some currencies (relevant to country)
-    const currencies = CURRENCY_PAIRS.slice(0, 5).map((config, index) => {
-      const rate = 1 + Math.random() * 0.5;
-      const previousRate = rate * (1 + (Math.random() - 0.5) * 0.01);
-      const change = rate - previousRate;
-      const changePercent = (change / previousRate) * 100;
-
-      return {
-        id: `${config.pair}_${Date.now()}_${index}`,
-        pair: config.pair,
-        baseCurrency: config.base,
-        quoteCurrency: config.quote,
-        rate,
-        change,
-        changePercent,
-        lastUpdated: new Date().toISOString(),
-      };
-    });
-
-    // Add some cryptocurrencies (converted to local currency)
-    const cryptocurrencies = CRYPTOCURRENCIES.slice(0, 5).map((config, index) => {
-      const valueUSD = 1000 + Math.random() * 50000;
-      const value = valueUSD * conversionRate;
-      const previousClose = value * (1 + (Math.random() - 0.5) * 0.05);
-      const change = value - previousClose;
-      const changePercent = (change / previousClose) * 100;
-
-      return {
-        id: `${config.symbol}_${Date.now()}_${index}`,
-        symbol: config.symbol,
-        name: config.name,
-        type: 'crypto' as const,
-        region: ['GLOBAL'],
-        country: 'US',
-        value,
-        previousClose,
-        change,
-        changePercent,
-        currency: targetCurrency,
-        lastUpdated: new Date().toISOString(),
-        isOpen: true,
-        circulatingSupply: Math.random() * 1000000000,
-        totalSupply: Math.random() * 1500000000,
-        maxSupply: Math.random() * 2000000000,
-        rank: index + 1,
-      };
-    });
+    // Transform commodities
+    const commodities = dbCommodities.map((comm: CommodityRecord) => ({
+      id: comm.id,
+      symbol: comm.symbol,
+      name: comm.name,
+      type: 'commodity' as const,
+      region: ['GLOBAL'],
+      country: 'US',
+      value: comm.value,
+      previousClose: comm.previousClose ?? undefined,
+      change: comm.change ?? 0,
+      changePercent: comm.changePercent ?? 0,
+      high: comm.high ?? undefined,
+      low: comm.low ?? undefined,
+      currency: comm.unit,
+      lastUpdated: comm.lastUpdated.toISOString(),
+      isOpen: true,
+      unit: comm.unit,
+      category: comm.category,
+    }));
 
     const response = {
       indices,
@@ -143,7 +153,7 @@ export async function GET(
       cryptocurrencies,
       lastUpdated: new Date().toISOString(),
       region: countryCode,
-      cacheExpiry: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 minutes
+      cacheExpiry: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
     };
 
     return NextResponse.json(response, {
@@ -152,9 +162,9 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Market data API error:', error);
+    console.error('[Market API] Database cache error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch market data' },
+      { error: 'Failed to fetch market data from cache' },
       { status: 500 }
     );
   }
@@ -174,4 +184,19 @@ function isMarketOpen(timezone: string): boolean {
     console.error('Error checking market hours:', error);
     return false;
   }
+}
+
+function isUsdBaseRate(
+  rate: CurrencyRateRecord
+): rate is CurrencyRateRecord & {
+  currency: string;
+  rateToUSD: number;
+  currencyName?: string | null;
+  symbol?: string | null;
+} {
+  const candidate = rate as Record<string, unknown>;
+  return (
+    typeof candidate.currency === 'string' &&
+    typeof candidate.rateToUSD === 'number'
+  );
 }

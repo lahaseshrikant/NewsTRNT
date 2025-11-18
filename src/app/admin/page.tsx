@@ -248,7 +248,7 @@ function AdminPageContent() {
               </a>
               <a href="/admin/content" className="block w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white p-3 rounded-lg hover:from-purple-700 hover:to-purple-800 text-left transition-all">
                 <div className="flex items-center space-x-3">
-                  <span>�</span>
+                  <span>📝</span>
                   <div>
                     <h3 className="font-semibold">Manage Content</h3>
                     <p className="text-sm opacity-90">Articles & categories</p>

@@ -22,12 +22,12 @@ interface IndexConfig {
 // =============================================================================
 
 export const AMERICAS_INDICES: IndexConfig[] = [
-  // United States
-  { symbol: 'SPX', name: 'S&P 500', country: 'US', region: ['AMERICAS', 'GLOBAL'], exchange: 'NYSE', currency: 'USD', timezone: 'America/New_York', marketHours: { open: '09:30', close: '16:00' } },
-  { symbol: 'DJI', name: 'Dow Jones Industrial Average', country: 'US', region: ['AMERICAS', 'GLOBAL'], exchange: 'NYSE', currency: 'USD', timezone: 'America/New_York', marketHours: { open: '09:30', close: '16:00' } },
-  { symbol: 'IXIC', name: 'NASDAQ Composite', country: 'US', region: ['AMERICAS', 'GLOBAL'], exchange: 'NASDAQ', currency: 'USD', timezone: 'America/New_York', marketHours: { open: '09:30', close: '16:00' } },
-  { symbol: 'RUT', name: 'Russell 2000', country: 'US', region: ['AMERICAS'], exchange: 'NYSE', currency: 'USD', timezone: 'America/New_York', marketHours: { open: '09:30', close: '16:00' } },
-  { symbol: 'VIX', name: 'CBOE Volatility Index', country: 'US', region: ['AMERICAS', 'GLOBAL'], exchange: 'CBOE', currency: 'USD', timezone: 'America/Chicago', marketHours: { open: '09:30', close: '16:15' } },
+  // United States - Using proper ticker symbols for APIs
+  { symbol: '^GSPC', name: 'S&P 500', country: 'US', region: ['AMERICAS', 'GLOBAL'], exchange: 'NYSE', currency: 'USD', timezone: 'America/New_York', marketHours: { open: '09:30', close: '16:00' } },
+  { symbol: '^DJI', name: 'Dow Jones Industrial Average', country: 'US', region: ['AMERICAS', 'GLOBAL'], exchange: 'NYSE', currency: 'USD', timezone: 'America/New_York', marketHours: { open: '09:30', close: '16:00' } },
+  { symbol: '^IXIC', name: 'NASDAQ Composite', country: 'US', region: ['AMERICAS', 'GLOBAL'], exchange: 'NASDAQ', currency: 'USD', timezone: 'America/New_York', marketHours: { open: '09:30', close: '16:00' } },
+  { symbol: '^RUT', name: 'Russell 2000', country: 'US', region: ['AMERICAS'], exchange: 'NYSE', currency: 'USD', timezone: 'America/New_York', marketHours: { open: '09:30', close: '16:00' } },
+  { symbol: '^VIX', name: 'CBOE Volatility Index', country: 'US', region: ['AMERICAS', 'GLOBAL'], exchange: 'CBOE', currency: 'USD', timezone: 'America/Chicago', marketHours: { open: '09:30', close: '16:15' } },
   
   // Canada
   { symbol: 'GSPTSE', name: 'S&P/TSX Composite', country: 'CA', region: ['AMERICAS'], exchange: 'TSX', currency: 'CAD', timezone: 'America/Toronto', marketHours: { open: '09:30', close: '16:00' } },
@@ -317,65 +317,65 @@ export const ALL_INDICES = [
 // =============================================================================
 
 export const COUNTRY_INDICES_MAP: Record<string, string[]> = {
-  // Americas
-  US: ['SPX', 'DJI', 'IXIC', 'RUT', 'VIX'],
-  CA: ['GSPTSE', 'TSXV'],
-  BR: ['BVSP'],
-  MX: ['MXX'],
-  AR: ['MERV'],
-  CL: ['IPSA'],
+  // Americas - Using proper ticker symbols with ^ prefix for APIs
+  US: ['^GSPC', '^DJI', '^IXIC', '^RUT', '^VIX'],
+  CA: ['^GSPTSE', '^TSXV'],
+  BR: ['^BVSP'],
+  MX: ['^MXX'],
+  AR: ['^MERV'],
+  CL: ['^IPSA'],
   
   // Europe
-  GB: ['FTSE', 'FTMC'],
-  DE: ['GDAXI', 'MDAX'],
-  FR: ['FCHI'],
-  IT: ['FTSEMIB'],
-  ES: ['IBEX'],
-  NL: ['AEX'],
-  CH: ['SSMI'],
-  BE: ['BFX'],
-  SE: ['OMXS30'],
-  NO: ['OSEBX'],
-  DK: ['OMXC20'],
-  RU: ['IMOEX'],
-  PL: ['WIG20'],
-  EU: ['STOXX50E'],
+  GB: ['^FTSE', '^FTMC'],
+  DE: ['^GDAXI', '^MDAX'],
+  FR: ['^FCHI'],
+  IT: ['^FTSEMIB'],
+  ES: ['^IBEX'],
+  NL: ['^AEX'],
+  CH: ['^SSMI'],
+  BE: ['^BFX'],
+  SE: ['^OMXS30'],
+  NO: ['^OSEBX'],
+  DK: ['^OMXC20'],
+  RU: ['^IMOEX'],
+  PL: ['^WIG20'],
+  EU: ['^STOXX50E'],
   
   // Asia
-  JP: ['N225', 'TOPIX'],
-  CN: ['SSE', 'SZSE', 'CSI300'],
-  HK: ['HSI', 'HSCEI'],
-  IN: ['NSEI', 'BSESN', 'NSEBANK'],
-  KR: ['KS11', 'KQ11'],
-  TW: ['TWII'],
-  SG: ['STI'],
-  MY: ['KLSE'],
-  TH: ['SETI'],
-  ID: ['JKSE'],
-  PH: ['PSEI'],
-  VN: ['VNINDEX'],
-  PK: ['KSE100'],
-  BD: ['DSEX'],
-  LK: ['ASPI'],
+  JP: ['^N225', '^TOPIX'],
+  CN: ['^SSE', '^SZSE', '^CSI300'],
+  HK: ['^HSI', '^HSCEI'],
+  IN: ['^NSEI', '^BSESN', '^NSEBANK'],
+  KR: ['^KS11', '^KQ11'],
+  TW: ['^TWII'],
+  SG: ['^STI'],
+  MY: ['^KLSE'],
+  TH: ['^SETI'],
+  ID: ['^JKSE'],
+  PH: ['^PSEI'],
+  VN: ['^VNINDEX'],
+  PK: ['^KSE100'],
+  BD: ['^DSEX'],
+  LK: ['^ASPI'],
   
   // Middle East
-  SA: ['TASI'],
-  AE: ['DFM', 'ADX'],
-  QA: ['QSI'],
-  KW: ['KWSEIDX'],
-  IL: ['TA125'],
-  TR: ['XU100'],
-  EG: ['EGX30'],
+  SA: ['^TASI'],
+  AE: ['^DFM', '^ADX'],
+  QA: ['^QSI'],
+  KW: ['^KWSEIDX'],
+  IL: ['^TA125'],
+  TR: ['^XU100'],
+  EG: ['^EGX30'],
   
   // Africa
-  ZA: ['JALSH', 'TOP40'],
-  NG: ['NGSEINDX'],
-  KE: ['KNSMIDX'],
-  MA: ['MASI'],
+  ZA: ['^JALSH', '^TOP40'],
+  NG: ['^NGSEINDX'],
+  KE: ['^KNSMIDX'],
+  MA: ['^MASI'],
   
   // Oceania
-  AU: ['AXJO', 'AORD'],
-  NZ: ['NZ50'],
+  AU: ['^AXJO', '^AORD'],
+  NZ: ['^NZ50'],
 };
 
 // Helper function to get indices by country

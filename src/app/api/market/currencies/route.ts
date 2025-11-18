@@ -1,66 +1,110 @@
 // Market Data API - Currencies Endpoint
 // GET /api/market/currencies
+// Returns data from database cache
 
 import { NextRequest, NextResponse } from 'next/server';
-import { CURRENCY_PAIRS } from '@/config/market-indices';
-import { fetchExchangeRates } from '@/lib/real-market-data';
+import { getCachedCurrencyRates } from '@/lib/market-cache';
+
+type CurrencyRateRecord = {
+  id: string;
+  currency: string;
+  currencyName: string | null;
+  rateToUSD: number;
+  symbol: string | null;
+  lastUpdated: Date | string;
+};
+
+function sanitizeCurrencyCode(code: string | null | undefined): string | null {
+  if (!code) return null;
+  const trimmed = code.trim().toUpperCase();
+  return trimmed.length > 0 ? trimmed : null;
+}
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const pairsParam = searchParams.get('pairs');
-    const pairs = pairsParam ? pairsParam.split(',') : null;
-    const baseCurrency = searchParams.get('base') || 'USD';
+    const baseParam = sanitizeCurrencyCode(searchParams.get('base')) ?? 'USD';
+    const quotesParam = searchParams.get('quotes');
+    const requestedQuotes = quotesParam
+      ? Array.from(
+          new Set(
+            quotesParam
+              .split(',')
+              .map((code) => sanitizeCurrencyCode(code))
+              .filter((code): code is string => Boolean(code)),
+          ),
+        )
+      : null;
 
-    // Try to fetch real exchange rates
-    const realRates = await fetchExchangeRates(baseCurrency);
-    
-    if (realRates && realRates.length > 0) {
-      // Filter by requested pairs if provided
-      const currencies = pairs
-        ? realRates.filter(r => pairs.includes(r.pair))
-        : realRates;
-        
-      return NextResponse.json(currencies, {
-        headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-        },
-      });
+    const rawRates = (await getCachedCurrencyRates()) as CurrencyRateRecord[];
+
+    const validRates = rawRates
+      .map((rate) => {
+        const currency = sanitizeCurrencyCode(rate.currency);
+        if (!currency || !Number.isFinite(rate.rateToUSD) || rate.rateToUSD === 0) {
+          return null;
+        }
+        return {
+          ...rate,
+          currency,
+        };
+      })
+      .filter((rate): rate is CurrencyRateRecord => rate !== null);
+
+  const rateMap = new Map<string, CurrencyRateRecord>();
+    for (const record of validRates) {
+      rateMap.set(record.currency, record);
     }
 
-    // Fallback to mock data
-    const filtered = pairs
-      ? CURRENCY_PAIRS.filter(c => pairs.includes(c.pair))
-      : CURRENCY_PAIRS;
+    const baseRecord = rateMap.get(baseParam);
+    if (!baseRecord) {
+      return NextResponse.json(
+        {
+          error: `Base currency ${baseParam} is not available. Ensure it exists in the currency cache.`,
+        },
+        { status: 404 },
+      );
+    }
 
-    const currencies = filtered.map((config, index) => {
-      const rate = 1 + Math.random() * 0.5;
-      const previousRate = rate * (1 + (Math.random() - 0.5) * 0.01);
-      const change = rate - previousRate;
-      const changePercent = (change / previousRate) * 100;
+  const targetCurrencies = requestedQuotes ?? Array.from(rateMap.keys()).sort();
+    const responsePayload = targetCurrencies
+      .map((quote) => {
+        const quoteRecord = rateMap.get(quote);
+        if (!quoteRecord) return null;
 
-      return {
-        id: `${config.pair}_${Date.now()}_${index}`,
-        pair: config.pair,
-        baseCurrency: config.base,
-        quoteCurrency: config.quote,
-        rate,
-        change,
-        changePercent,
-        lastUpdated: new Date().toISOString(),
-      };
-    });
+        const rate = quote === baseRecord.currency ? 1 : baseRecord.rateToUSD / quoteRecord.rateToUSD;
+        if (!Number.isFinite(rate) || rate <= 0) {
+          return null;
+        }
 
-    return NextResponse.json(currencies, {
+        return {
+          id: `${baseRecord.currency}-${quoteRecord.currency}`,
+          pair: `${baseRecord.currency}/${quoteRecord.currency}`,
+          baseCurrency: baseRecord.currency,
+          quoteCurrency: quoteRecord.currency,
+          rate,
+          inverseRate: rate !== 0 ? 1 / rate : null,
+          change: 0,
+          changePercent: 0,
+          lastUpdated: quoteRecord.lastUpdated instanceof Date
+            ? quoteRecord.lastUpdated.toISOString()
+            : new Date(quoteRecord.lastUpdated).toISOString(),
+          name: quoteRecord.currencyName,
+          symbol: quoteRecord.symbol,
+        };
+      })
+      .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+
+    return NextResponse.json(responsePayload, {
       headers: {
         'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
       },
     });
   } catch (error) {
-    console.error('Currencies API error:', error);
+    console.error('[Currencies API] Database cache error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch currencies' },
-      { status: 500 }
+      { error: 'Failed to fetch currencies from cache' },
+      { status: 500 },
     );
   }
 }

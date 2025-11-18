@@ -322,3 +322,186 @@ model AdminLog {
 
   @@map("admin_logs")
 }
+
+// =============================================================================
+// MARKET DATA MODELS - Cache external API data to avoid rate limits
+// Optimized to store data once and serve many times
+// =============================================================================
+
+model MarketIndex {
+  id            String   @id @default(uuid())
+  symbol        String   @unique
+  name          String
+  country       String
+  exchange      String
+  value         Float
+  previousClose Float    @map("previous_close")
+  change        Float
+  changePercent Float    @map("change_percent")
+  high          Float
+  low           Float
+  volume        Float?
+  currency      String
+  timezone      String
+  isOpen        Boolean  @default(false) @map("is_open")
+  lastUpdated   DateTime @map("last_updated")
+  lastSource    String?  @map("last_source")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([symbol])
+  @@index([country])
+  @@index([lastUpdated])
+  @@map("market_indices")
+}
+
+model MarketProviderPreference {
+  id              String   @id @default(uuid())
+  category        String   @unique
+  providerOrder   String[] @map("provider_order")
+  fallbackStrategy String  @default("sequential") @map("fallback_strategy")
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("market_provider_preferences")
+}
+
+model Cryptocurrency {
+  id            String   @id @default(uuid())
+  symbol        String   @unique
+  name          String
+  coinGeckoId   String   @unique @map("coingecko_id")
+  value         Float
+  previousClose Float?   @map("previous_close")
+  change        Float
+  changePercent Float    @map("change_percent")
+  high24h       Float?   @map("high_24h")
+  low24h        Float?   @map("low_24h")
+  volume24h     Float?   @map("volume_24h")
+  marketCap     Float?   @map("market_cap")
+  currency      String   @default("USD")
+  lastUpdated   DateTime @map("last_updated")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([symbol])
+  @@index([lastUpdated])
+  @@map("cryptocurrencies")
+}
+
+model CurrencyRate {
+  id           String   @id @default(uuid())
+  currency     String   @unique
+  currencyName String   @map("currency_name")
+  rateToUSD    Float    @map("rate_to_usd")
+  symbol       String?
+  lastUpdated  DateTime @map("last_updated")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([currency])
+  @@index([lastUpdated])
+  @@map("currency_rates")
+}
+
+model Commodity {
+  id            String   @id @default(uuid())
+  symbol        String   @unique
+  name          String
+  value         Float
+  previousClose Float?   @map("previous_close")
+  change        Float?
+  changePercent Float?   @map("change_percent")
+  high          Float?
+  low           Float?
+  unit          String   @default("USD")
+  category      String   @default("general")
+  lastUpdated   DateTime @map("last_updated")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([symbol])
+  @@index([category])
+  @@index([lastUpdated])
+  @@map("commodities")
+}
+
+// =============================================================================
+// MARKET CONFIGURATION MODELS - Dynamic configuration for market data
+// Admin can add/remove/update indices, commodities, currencies through UI
+// =============================================================================
+
+model MarketIndexConfig {
+  id          String   @id @default(uuid())
+  symbol      String   @unique // e.g., "^GSPC", "^DJI"
+  name        String // e.g., "S&P 500", "Dow Jones Industrial Average"
+  country     String // ISO 2-letter code: "US", "GB", "JP"
+  region      String[] @default([]) // ["AMERICAS", "GLOBAL"]
+  exchange    String // "NYSE", "NASDAQ", "LSE"
+  currency    String // "USD", "GBP", "EUR"
+  timezone    String // "America/New_York", "Europe/London"
+  marketHours Json     @default("{\"open\": \"09:30\", \"close\": \"16:00\"}") @map("market_hours") // Trading hours
+  isActive    Boolean  @default(true) @map("is_active") // Enable/disable fetching
+  isGlobal    Boolean  @default(false) @map("is_global") // Show in global view
+  sortOrder   Int      @default(0) @map("sort_order") // Display order
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([symbol])
+  @@index([country])
+  @@index([isActive])
+  @@index([region])
+  @@map("market_index_configs")
+}
+
+model CryptocurrencyConfig {
+  id          String   @id @default(uuid())
+  symbol      String   @unique // "BTC", "ETH", "BNB"
+  name        String // "Bitcoin", "Ethereum", "Binance Coin"
+  coinGeckoId String   @unique @map("coingecko_id") // "bitcoin", "ethereum"
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([symbol])
+  @@index([isActive])
+  @@map("cryptocurrency_configs")
+}
+
+model CommodityConfig {
+  id        String   @id @default(uuid())
+  symbol    String   @unique // "GC", "CL", "SI"
+  name      String // "Gold", "Crude Oil WTI", "Silver"
+  category  String // "Energy", "Precious Metals", "Agriculture"
+  unit      String   @default("USD") // "barrel", "oz", "lb"
+  currency  String   @default("USD")
+  isActive  Boolean  @default(true) @map("is_active")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([symbol])
+  @@index([category])
+  @@index([isActive])
+  @@map("commodity_configs")
+}
+
+model CurrencyPairConfig {
+  id        String   @id @default(uuid())
+  pair      String   @unique // "EUR/USD", "GBP/USD"
+  name      String // "Euro vs US Dollar"
+  base      String // "EUR"
+  quote     String // "USD"
+  type      String   @default("major") // "major", "cross", "emerging"
+  isActive  Boolean  @default(true) @map("is_active")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([pair])
+  @@index([type])
+  @@index([isActive])
+  @@map("currency_pair_configs")
+}
