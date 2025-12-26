@@ -340,19 +340,51 @@ model MarketIndex {
   changePercent Float    @map("change_percent")
   high          Float
   low           Float
+  open          Float?   // Opening price for the day
   volume        Float?
   currency      String
   timezone      String
   isOpen        Boolean  @default(false) @map("is_open")
   lastUpdated   DateTime @map("last_updated")
-  lastSource    String?  @map("last_source")
+  lastSource    String?  @map("last_source") // e.g., "tradingview", "alphavantage", "finnhub"
+  dataQuality   Int      @default(100) @map("data_quality") // 0-100 quality score
+  isStale       Boolean  @default(false) @map("is_stale") // Flag if data is too old
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Historical data relation
+  history       MarketIndexHistory[]
 
   @@index([symbol])
   @@index([country])
   @@index([lastUpdated])
+  @@index([isStale])
   @@map("market_indices")
+}
+
+// Historical market data for charts and analysis
+model MarketIndexHistory {
+  id            String      @id @default(uuid())
+  symbol        String
+  value         Float
+  open          Float?
+  high          Float?
+  low           Float?
+  close         Float?
+  volume        Float?
+  changePercent Float?      @map("change_percent")
+  timestamp     DateTime    // The actual time of the data point
+  interval      String      @default("1d") // "1m", "5m", "1h", "1d", "1w"
+  source        String?     // Data provider
+  createdAt     DateTime    @default(now()) @map("created_at")
+  
+  // Relation to parent
+  marketIndex   MarketIndex @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+
+  @@unique([symbol, timestamp, interval])
+  @@index([symbol, timestamp])
+  @@index([timestamp])
+  @@map("market_index_history")
 }
 
 model MarketProviderPreference {
@@ -380,29 +412,85 @@ model Cryptocurrency {
   low24h        Float?   @map("low_24h")
   volume24h     Float?   @map("volume_24h")
   marketCap     Float?   @map("market_cap")
+  circulatingSupply Float? @map("circulating_supply")
+  totalSupply   Float?   @map("total_supply")
+  rank          Int?     // Market cap rank
   currency      String   @default("USD")
   lastUpdated   DateTime @map("last_updated")
+  lastSource    String?  @map("last_source")
+  dataQuality   Int      @default(100) @map("data_quality")
+  isStale       Boolean  @default(false) @map("is_stale")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Historical data relation
+  history       CryptoHistory[]
 
   @@index([symbol])
   @@index([lastUpdated])
+  @@index([rank])
   @@map("cryptocurrencies")
 }
 
+// Historical crypto data
+model CryptoHistory {
+  id            String         @id @default(uuid())
+  symbol        String
+  value         Float
+  volume        Float?
+  marketCap     Float?
+  changePercent Float?         @map("change_percent")
+  timestamp     DateTime
+  interval      String         @default("1d")
+  source        String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+  
+  crypto        Cryptocurrency @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+
+  @@unique([symbol, timestamp, interval])
+  @@index([symbol, timestamp])
+  @@map("crypto_history")
+}
+
 model CurrencyRate {
-  id           String   @id @default(uuid())
-  currency     String   @unique
-  currencyName String   @map("currency_name")
-  rateToUSD    Float    @map("rate_to_usd")
-  symbol       String?
-  lastUpdated  DateTime @map("last_updated")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  currency      String   @unique // ISO currency code: USD, EUR, GBP
+  currencyName  String   @map("currency_name")
+  rateToUSD     Float    @map("rate_to_usd")
+  rateFromUSD   Float?   @map("rate_from_usd") // Inverse rate for convenience
+  symbol        String?  // Currency symbol: $, €, £
+  country       String?  // Primary country: US, EU, GB
+  previousRate  Float?   @map("previous_rate")
+  change        Float?
+  changePercent Float?   @map("change_percent")
+  lastUpdated   DateTime @map("last_updated")
+  lastSource    String?  @map("last_source")
+  isStale       Boolean  @default(false) @map("is_stale")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Historical data
+  history       CurrencyHistory[]
 
   @@index([currency])
   @@index([lastUpdated])
   @@map("currency_rates")
+}
+
+// Historical currency rate data
+model CurrencyHistory {
+  id          String       @id @default(uuid())
+  currency    String
+  rateToUSD   Float        @map("rate_to_usd")
+  timestamp   DateTime
+  source      String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  
+  currencyRate CurrencyRate @relation(fields: [currency], references: [currency], onDelete: Cascade)
+
+  @@unique([currency, timestamp])
+  @@index([currency, timestamp])
+  @@map("currency_history")
 }
 
 model Commodity {
@@ -413,13 +501,23 @@ model Commodity {
   previousClose Float?   @map("previous_close")
   change        Float?
   changePercent Float?   @map("change_percent")
+  open          Float?
   high          Float?
   low           Float?
-  unit          String   @default("USD")
-  category      String   @default("general")
+  volume        Float?
+  unit          String   @default("USD") // oz, barrel, lb, bushel
+  unitLabel     String?  @map("unit_label") // "per ounce", "per barrel"
+  category      String   @default("general") // Energy, Precious Metals, Agriculture, Industrial
+  currency      String   @default("USD")
   lastUpdated   DateTime @map("last_updated")
+  lastSource    String?  @map("last_source")
+  dataQuality   Int      @default(100) @map("data_quality")
+  isStale       Boolean  @default(false) @map("is_stale")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Historical data
+  history       CommodityHistory[]
 
   @@index([symbol])
   @@index([category])
@@ -427,7 +525,49 @@ model Commodity {
   @@map("commodities")
 }
 
+// Historical commodity data
+model CommodityHistory {
+  id            String    @id @default(uuid())
+  symbol        String
+  value         Float
+  open          Float?
+  high          Float?
+  low           Float?
+  volume        Float?
+  timestamp     DateTime
+  interval      String    @default("1d")
+  source        String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  commodity     Commodity @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+
+  @@unique([symbol, timestamp, interval])
+  @@index([symbol, timestamp])
+  @@map("commodity_history")
+}
+
 // =============================================================================
+// MARKET DATA SCRAPER LOGS - Track scraper runs and data ingestion
+// =============================================================================
+
+model ScraperRun {
+  id            String   @id @default(uuid())
+  scraperName   String   @map("scraper_name") // "tradingview", "coingecko", "alphavantage"
+  dataType      String   @map("data_type") // "indices", "crypto", "currencies", "commodities"
+  status        String   @default("running") // "running", "success", "partial", "failed"
+  startedAt     DateTime @default(now()) @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  itemsFound    Int?     @map("items_found")
+  itemsInserted Int?     @map("items_inserted")
+  itemsFailed   Int?     @map("items_failed")
+  errorMessage  String?  @map("error_message")
+  metadata      Json     @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([scraperName, startedAt])
+  @@index([status])
+  @@map("scraper_runs")
+}
 // MARKET CONFIGURATION MODELS - Dynamic configuration for market data
 // Admin can add/remove/update indices, commodities, currencies through UI
 // =============================================================================

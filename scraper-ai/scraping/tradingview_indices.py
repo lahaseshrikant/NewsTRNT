@@ -3,13 +3,20 @@ TradingView Index Scraper
 =========================
 
 Utility for harvesting the latest index quotes from TradingView's public
-indices overview page when primary market-data providers hit their rate limits.
-The script saves a JSON snapshot that can be ingested by the NewsTRNT cache
-pipeline as a manual fallback.
+indices overview page. Supports two modes:
+1. Direct API ingestion (recommended) - Posts directly to the database via API
+2. JSON file output (legacy) - Saves to a JSON file for manual ingestion
 
 Usage
 -----
+# Direct API mode (recommended):
+python tradingview_indices.py --api http://localhost:3000/api/market/ingest --api-key YOUR_KEY
+
+# Legacy JSON mode:
 python tradingview_indices.py --output ../../data/tradingview_indices.json --limit 50
+
+# Combined mode (API + fallback JSON):
+python tradingview_indices.py --api http://localhost:3000/api/market/ingest --output ../../data/tradingview_indices.json
 """
 
 from __future__ import annotations
@@ -286,8 +293,33 @@ def save_quotes(quotes: Iterable[IndexQuote], destination: Path) -> None:
         json.dump(payload, fp, ensure_ascii=False, indent=2)
 
 
+def send_to_api(quotes: List[IndexQuote], api_url: str, api_key: Optional[str] = None) -> dict:
+    """Send scraped quotes directly to the database via API."""
+    items = [quote.to_serializable() for quote in quotes]
+    
+    payload = {
+        "scraperName": "tradingview",
+        "dataType": "indices",
+        "items": items,
+        "generatedAt": datetime.now(timezone.utc).isoformat(),
+    }
+    
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": USER_AGENT,
+    }
+    
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    
+    response = requests.post(api_url, json=payload, headers=headers, timeout=30)
+    response.raise_for_status()
+    
+    return response.json()
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Scrape TradingView index quotes for fallback caching.")
+    parser = argparse.ArgumentParser(description="Scrape TradingView index quotes and ingest to database.")
     parser.add_argument(
         "--limit",
         type=int,
@@ -297,8 +329,20 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         type=Path,
-        default=DEFAULT_OUTPUT,
-        help="Path for the JSON snapshot (default: data/tradingview_indices.json).",
+        default=None,
+        help="Path for the JSON snapshot (optional, for legacy mode or backup).",
+    )
+    parser.add_argument(
+        "--api",
+        type=str,
+        default=None,
+        help="API endpoint URL for direct database ingestion (e.g., http://localhost:3000/api/market/ingest).",
+    )
+    parser.add_argument(
+        "--api-key",
+        type=str,
+        default=None,
+        help="API key for authentication (from MARKET_INGEST_API_KEY env var).",
     )
     return parser
 
@@ -310,6 +354,11 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     logger = logging.getLogger("tradingview-scraper")
 
+    # Validate that at least one output method is specified
+    if not args.api and not args.output:
+        logger.info("No --api or --output specified. Defaulting to JSON output at %s", DEFAULT_OUTPUT)
+        args.output = DEFAULT_OUTPUT
+
     scraper = TradingViewIndexScraper(limit=args.limit)
     try:
         quotes = scraper.run()
@@ -317,8 +366,33 @@ def main() -> None:
         logger.error("Scraping failed: %s", exc)
         raise SystemExit(1) from exc
 
-    save_quotes(quotes, args.output)
-    logger.info("Saved %d index quotes to %s", len(quotes), args.output)
+    logger.info("Scraped %d index quotes", len(quotes))
+
+    # Send to API if configured (primary method)
+    if args.api:
+        try:
+            result = send_to_api(quotes, args.api, args.api_key)
+            stats = result.get("stats", {})
+            logger.info(
+                "API ingestion complete: %d inserted, %d failed",
+                stats.get("inserted", 0),
+                stats.get("failed", 0),
+            )
+            if stats.get("failedSymbols"):
+                logger.warning("Failed symbols: %s", ", ".join(stats["failedSymbols"]))
+        except Exception as exc:
+            logger.error("API ingestion failed: %s", exc)
+            # Fall through to save JSON as backup if output path is specified
+            if not args.output:
+                raise SystemExit(1) from exc
+            logger.info("Falling back to JSON output...")
+
+    # Save to JSON file (legacy method or backup)
+    if args.output:
+        save_quotes(quotes, args.output)
+        logger.info("Saved %d index quotes to %s", len(quotes), args.output)
+
+    logger.info("Done!")
 
 
 if __name__ == "__main__":
