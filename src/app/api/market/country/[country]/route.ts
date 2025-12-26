@@ -94,36 +94,29 @@ export async function GET(
     }));
 
     // Transform currency rates to API format
-    const currencies = dbCurrencyRates.map((rate: CurrencyRateRecord) => {
-      if (isUsdBaseRate(rate)) {
+    // All rates are stored relative to USD in the new schema
+    const currencies = dbCurrencyRates
+      .filter((rate: CurrencyRateRecord) => {
+        const r = rate as any;
+        return r.currency && typeof r.rateToUSD === 'number' && r.rateToUSD !== 0;
+      })
+      .map((rate: CurrencyRateRecord) => {
+        const r = rate as any;
         return {
-          id: rate.id,
-          pair: `USD/${rate.currency}`,
+          id: r.id,
+          pair: `USD/${r.currency}`,
           baseCurrency: 'USD',
-          quoteCurrency: rate.currency,
-          rate: rate.rateToUSD,
+          quoteCurrency: r.currency,
+          rate: r.rateToUSD,
           change: 0,
           changePercent: 0,
-          lastUpdated: rate.lastUpdated.toISOString(),
-          name: rate.currencyName ?? undefined,
-          symbol: rate.symbol ?? undefined,
+          lastUpdated: r.lastUpdated instanceof Date 
+            ? r.lastUpdated.toISOString() 
+            : new Date(r.lastUpdated).toISOString(),
+          name: r.currencyName ?? undefined,
+          symbol: r.symbol ?? undefined,
         };
-      }
-
-      const pair = rate.pair ?? `${rate.fromCurrency}/${rate.toCurrency}`;
-      const [baseCurrency = 'USD', quoteCurrency = 'USD'] = pair.split('/');
-
-      return {
-        id: rate.id,
-        pair,
-        baseCurrency,
-        quoteCurrency,
-        rate: rate.rate,
-        change: 0,
-        changePercent: 0,
-        lastUpdated: rate.lastUpdated.toISOString(),
-      };
-    });
+      });
 
     // Transform commodities
     const commodities = dbCommodities.map((comm: CommodityRecord) => ({
@@ -184,19 +177,4 @@ function isMarketOpen(timezone: string): boolean {
     console.error('Error checking market hours:', error);
     return false;
   }
-}
-
-function isUsdBaseRate(
-  rate: CurrencyRateRecord
-): rate is CurrencyRateRecord & {
-  currency: string;
-  rateToUSD: number;
-  currencyName?: string | null;
-  symbol?: string | null;
-} {
-  const candidate = rate as Record<string, unknown>;
-  return (
-    typeof candidate.currency === 'string' &&
-    typeof candidate.rateToUSD === 'number'
-  );
 }
