@@ -4,13 +4,43 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+
+const formatPublishedTime = (publishedAt: string | Date) => {
+  const now = new Date();
+  const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
+  const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'Just now';
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 48) return 'Yesterday';
+  return `${Math.floor(diffInHours / 24)} days ago`;
+};
 
 const ScienceCategoryPage: React.FC = () => {
   const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'opinion' | 'analysis'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
-  const [articles, setArticles] = useState<any[]>([]);
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        setLoading(true);
+        const articles = await dbApi.getArticlesByCategory('science', 30);
+        if (Array.isArray(articles)) {
+          setAllArticles(articles);
+        }
+      } catch (error) {
+        console.error('Error loading articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArticles();
+  }, []);
 
   const contentTypes = [
     { value: 'all', label: 'All Content' },
@@ -28,127 +58,37 @@ const ScienceCategoryPage: React.FC = () => {
   ];
 
   const subCategoryFilters = [
-    { id: 'all', label: 'All Science', count: 167 },
-    { id: 'space', label: 'Space', count: 54 },
-    { id: 'biology', label: 'Biology', count: 48 },
-    { id: 'physics', label: 'Physics', count: 35 },
-    { id: 'climate', label: 'Climate', count: 30 }
+    { id: 'all', label: 'All Science', count: allArticles.length },
+    { id: 'space', label: 'Space', count: allArticles.filter(a => a.category?.slug === 'space').length || 0 },
+    { id: 'biology', label: 'Biology', count: allArticles.filter(a => a.category?.slug === 'biology').length || 0 },
+    { id: 'physics', label: 'Physics', count: allArticles.filter(a => a.category?.slug === 'physics').length || 0 },
+    { id: 'climate', label: 'Climate', count: allArticles.filter(a => a.category?.slug === 'climate').length || 0 }
   ];
-
-  // Mock science articles data
-  const scienceArticles = [
-    {
-      id: 1,
-      title: 'CERN Physicists Discover New Subatomic Particle in Large Hadron Collider',
-      summary: 'Groundbreaking discovery of exotic particle could revolutionize understanding of fundamental forces in the universe.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '1 hour ago',
-      readingTime: 7,
-      isBreaking: true,
-      author: 'Dr. Elena Vasquez',
-      category: 'Physics',
-      institution: 'CERN'
-    },
-    {
-      id: 2,
-      title: 'Mars Rover Perseverance Uncovers Evidence of Ancient Microbial Life',
-      summary: 'NASA scientists analyze rock samples revealing potential biosignatures from 3.5 billion years ago.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '3 hours ago',
-      readingTime: 6,
-      isBreaking: false,
-      author: 'Dr. James Morrison',
-      category: 'Space Science',
-      institution: 'NASA JPL'
-    },
-    {
-      id: 3,
-      title: 'Quantum Computer Achieves Breakthrough in Error Correction',
-      summary: 'IBM researchers demonstrate stable quantum computing with 99.9% fidelity using new error mitigation techniques.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '5 hours ago',
-      readingTime: 8,
-      isBreaking: false,
-      author: 'Dr. Sarah Kim',
-      category: 'Quantum Computing',
-      institution: 'IBM Research'
-    },
-    {
-      id: 4,
-      title: 'CRISPR Gene Therapy Successfully Treats Inherited Blindness',
-      summary: 'Clinical trial shows remarkable restoration of vision in patients with Leber congenital amaurosis.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '8 hours ago',
-      readingTime: 5,
-      isBreaking: false,
-      author: 'Dr. Michael Zhang',
-      category: 'Biotechnology',
-      institution: 'Harvard Medical School'
-    },
-    {
-      id: 5,
-      title: 'Antarctica Glacier Reveals 2-Million-Year-Old Ice Containing Ancient Atmosphere',
-      summary: 'Researchers extract pristine ice cores providing unprecedented insights into Earth\'s climate history.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '12 hours ago',
-      readingTime: 6,
-      isBreaking: false,
-      author: 'Dr. Lisa Anderson',
-      category: 'Climate Science',
-      institution: 'Antarctic Research Station'
-    },
-    {
-      id: 6,
-      title: 'AI System Predicts Protein Structures with 95% Accuracy',
-      summary: 'DeepMind\'s AlphaFold breakthrough accelerates drug discovery and disease understanding.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '1 day ago',
-      readingTime: 4,
-      isBreaking: false,
-      author: 'Dr. David Thompson',
-      category: 'Artificial Intelligence',
-      institution: 'DeepMind'
-    }
-  ];
-
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setArticles(scienceArticles);
-      setLoading(false);
-    }, 800);
-  }, []);
 
   const filteredArticles = () => {
-    let filtered = [...scienceArticles];
+    let filtered = [...allArticles];
     
     // Filter by content type
     if (contentType !== 'all') {
-      filtered = filtered.filter(article => 
-        (article as any).contentType === contentType
-      );
+      filtered = filtered.filter(article => article.contentType === contentType);
     }
     
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => 
-        article.category?.toLowerCase() === selectedSubCategory
-      );
+      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
     }
     
-    // Apply sort
-    switch (sortBy) {
-      case 'latest':
-        return filtered;
-      case 'trending':
-        return filtered.slice(0, 4);
-      case 'popular':
-        return filtered.slice(1, 5);
-      case 'breaking':
-        return filtered.filter(article => article.isBreaking);
-      default:
-        return filtered;
+    // Sort articles
+    if (sortBy === 'trending') {
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+    } else if (sortBy === 'popular') {
+      filtered.sort((a, b) => (b.readingTime || 0) - (a.readingTime || 0));
+    } else if (sortBy === 'breaking') {
+      filtered = filtered.filter(article => article.isBreaking);
     }
+    // 'latest' is default order
+
+    return filtered;
   };
 
   if (loading) {
@@ -187,12 +127,6 @@ const ScienceCategoryPage: React.FC = () => {
                 Scientific breakthroughs & research findings
               </p>
             </div>
-            <div className="hidden lg:block">
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
-                <div className="text-lg font-bold text-primary">167</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
-              </div>
-            </div>
           </div>
 
           {/* Content type tabs moved below header into compact filter bar */}
@@ -210,9 +144,6 @@ const ScienceCategoryPage: React.FC = () => {
                 }`}
               >
                 {subCat.label}
-                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
-                  {subCat.count}
-                </span>
               </button>
             ))}
           </div>
@@ -272,7 +203,7 @@ const ScienceCategoryPage: React.FC = () => {
                   <div className={`flex ${index === 0 && sortBy === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
                     <div className={`relative ${index === 0 && sortBy === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
                       <Image
-                        src={article.imageUrl}
+                        src={article.imageUrl || '/api/placeholder/600/300'}
                         alt={article.title}
                         width={600}
                         height={300}
@@ -285,20 +216,22 @@ const ScienceCategoryPage: React.FC = () => {
                           BREAKTHROUGH
                         </span>
                       )}
-                      <div className="absolute bottom-3 left-3 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                        🏛️ {article.institution}
-                      </div>
+                      {article.sourceName && (
+                        <div className="absolute bottom-3 left-3 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                          🏛️ {article.sourceName}
+                        </div>
+                      )}
                     </div>
                     
                     <div className={`p-6 flex-1 ${index === 0 && sortBy === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
                       <div className="flex items-center space-x-2 mb-3">
                         <span className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300 px-2 py-1 rounded text-xs font-medium">
-                          {article.category}
+                          {article.category?.name || 'Science'}
                         </span>
-                        <span className="text-muted-foreground text-sm">{article.readingTime} min read</span>
+                        <span className="text-muted-foreground text-sm">{article.readingTime || 5} min read</span>
                       </div>
                       
-                      <Link href={`/article/${article.id}`}>
+                      <Link href={getContentUrl(article)}>
                         <h2 className={`font-bold text-foreground mb-3 hover:text-primary cursor-pointer transition-colors ${
                           index === 0 && sortBy === 'latest' ? 'text-2xl' : 'text-lg'
                         }`}>
@@ -311,8 +244,8 @@ const ScienceCategoryPage: React.FC = () => {
                       </p>
                       
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>By {article.author}</span>
-                        <span>{article.publishedAt}</span>
+                        <span>By {article.author || 'Staff Writer'}</span>
+                        <span>{formatPublishedTime(article.published_at)}</span>
                       </div>
                     </div>
                   </div>
@@ -342,9 +275,6 @@ const ScienceCategoryPage: React.FC = () => {
                         <span>{field.icon}</span>
                         <span className="font-medium text-foreground">{field.name}</span>
                       </div>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${field.color}`}>
-                        {field.count}
-                      </span>
                     </Link>
                   ))}
                 </div>
@@ -361,12 +291,11 @@ const ScienceCategoryPage: React.FC = () => {
                     { name: 'Harvard', articles: 29, badge: '🎓' },
                     { name: 'Stanford', articles: 26, badge: '🔬' }
                   ].map((institution) => (
-                    <div key={institution.name} className="flex items-center justify-between p-2 bg-background/50 rounded">
+                    <div key={institution.name} className="flex items-center p-2 bg-background/50 rounded">
                       <div className="flex items-center space-x-2">
                         <span>{institution.badge}</span>
                         <span className="font-medium text-foreground">{institution.name}</span>
                       </div>
-                      <span className="text-muted-foreground">{institution.articles} articles</span>
                     </div>
                   ))}
                 </div>

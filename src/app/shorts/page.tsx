@@ -1,131 +1,68 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
 import { useCategories, Category } from '@/hooks/useCategories';
 import { getCategoryBadgeStyle, findCategoryByName } from '@/lib/categoryUtils';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+
+// Helper to format published time
+const formatPublishedTime = (publishedAt: string | Date) => {
+  const now = new Date();
+  const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
+  const diffInMinutes = Math.floor((now.getTime() - published.getTime()) / (1000 * 60));
+  
+  if (diffInMinutes < 1) return 'Just now';
+  if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+  if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
+  return `${Math.floor(diffInMinutes / 1440)} days ago`;
+};
 
 const ShortsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [newsShorts, setNewsShorts] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
   const { categories: dynamicCategories, loading: categoriesLoading } = useCategories();
+
+  // Load news from database
+  useEffect(() => {
+    const loadNews = async () => {
+      try {
+        setLoading(true);
+        const articles = await dbApi.getNews(20);
+        if (Array.isArray(articles)) {
+          setNewsShorts(articles);
+        }
+      } catch (error) {
+        console.error('Error loading news shorts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNews();
+  }, []);
 
   // Create categories list with special items and dynamic categories
   const categories = [
-    { id: 'all', label: 'All Shorts', count: 234 },
-    { id: 'breaking', label: 'Breaking', count: 45 },
+    { id: 'all', label: 'All Shorts', count: newsShorts.length },
+    { id: 'breaking', label: 'Breaking', count: newsShorts.filter(s => s.isBreaking).length },
     ...dynamicCategories.slice(0, 4).map(cat => ({
       id: cat.slug,
       label: cat.name,
-      count: Math.floor(Math.random() * 50) + 20 // Mock count for now
+      count: newsShorts.filter(s => s.category?.slug === cat.slug).length
     }))
-  ];
-
-  const newsShorts = [
-    {
-      id: 1,
-      title: "AI Chip Breakthrough Boosts Computing Speed by 300%",
-      summary: "New semiconductor design revolutionizes artificial intelligence processing capabilities.",
-      content: "Researchers at leading tech companies have unveiled a groundbreaking AI chip architecture that delivers 300% faster processing speeds while reducing energy consumption by 40%. The innovation could accelerate AI adoption across industries.",
-      category: "Technology",
-      publishedAt: "5 minutes ago",
-      readTime: "1 min",
-      author: "Tech Desk",
-      imageUrl: "/api/placeholder/400/300",
-      tags: ["AI", "Technology", "Innovation"],
-      wordCount: 85,
-      isBreaking: true
-    },
-    {
-      id: 2,
-      title: "Global Climate Fund Reaches $100 Billion Milestone",
-      summary: "International climate finance initiative achieves historic funding target ahead of schedule.",
-      content: "The Green Climate Fund has successfully raised $100 billion in commitments from developed nations, marking a significant milestone in global climate action. The funding will support renewable energy projects and climate adaptation measures in developing countries over the next five years.",
-      category: "Environment",
-      publishedAt: "15 minutes ago",
-      readTime: "1 min",
-      author: "Climate Desk",
-      imageUrl: "/api/placeholder/400/300",
-      tags: ["Climate", "Environment", "Global"],
-      wordCount: 92,
-      isBreaking: false
-    },
-    {
-      id: 3,
-      title: "Space Station Crew Completes Record-Breaking Spacewalk",
-      summary: "Astronauts spend 8 hours outside ISS installing new solar panels and equipment.",
-      content: "Two astronauts aboard the International Space Station completed the longest spacewalk in ISS history, spending 8 hours and 24 minutes outside the station. They successfully installed new solar panel arrays and upgraded critical life support systems.",
-      category: "Science",
-      publishedAt: "25 minutes ago",
-      readTime: "1 min",
-      author: "Space Desk",
-      imageUrl: "/api/placeholder/400/300",
-      tags: ["Space", "NASA", "ISS"],
-      wordCount: 78,
-      isBreaking: false
-    },
-    {
-      id: 4,
-      title: "Major Tech IPO Values Company at $50 Billion",
-      summary: "Cloud computing startup achieves massive valuation in market debut.",
-      content: "A leading cloud infrastructure company went public today with shares opening at $85, giving the company a market capitalization of $50 billion. The IPO represents one of the largest tech offerings this year.",
-      category: "Business",
-      publishedAt: "35 minutes ago",
-      readTime: "1 min",
-      author: "Business Desk",
-      imageUrl: "/api/placeholder/400/300",
-      tags: ["IPO", "Tech", "Markets"],
-      wordCount: 67,
-      isBreaking: false
-    },
-    {
-      id: 5,
-      title: "Championship Game Sees Dramatic Last-Second Victory",
-      summary: "Underdog team wins title with field goal in final seconds.",
-      content: "In a thrilling championship finale, the previously 8-point underdog team scored a 52-yard field goal with 3 seconds remaining to defeat the defending champions 24-21. The victory caps off an incredible playoff run for the surprise team.",
-      category: "Sports",
-      publishedAt: "45 minutes ago",
-      readTime: "1 min",
-      author: "Sports Desk",
-      imageUrl: "/api/placeholder/400/300",
-      tags: ["Championship", "Sports", "Football"],
-      wordCount: 71,
-      isBreaking: false
-    },
-    {
-      id: 6,
-      title: "New Medical Breakthrough Could Treat Rare Disease",
-      summary: "Gene therapy shows promising results in clinical trials.",
-      content: "Clinical trials for a new gene therapy treatment have shown remarkable success in treating a rare genetic disorder that affects 1 in 50,000 children. The therapy could provide hope for families affected by this previously untreatable condition.",
-      category: "Health",
-      publishedAt: "1 hour ago",
-      readTime: "1 min",
-      author: "Health Desk",
-      imageUrl: "/api/placeholder/400/300",
-      tags: ["Medicine", "Gene Therapy", "Health"],
-      wordCount: 83,
-      isBreaking: false
-    }
-  ];
-
-  const quickStats = [
-    { label: "Stories Today", value: "234", icon: "📰" },
-    { label: "Avg Read Time", value: "1 min", icon: "⏱️" },
-    { label: "Updated", value: "Live", icon: "🔴" },
-    { label: "Categories", value: "8", icon: "📂" }
   ];
 
   const filteredShorts = selectedCategory === 'all' 
     ? newsShorts 
     : newsShorts.filter(short => {
         if (selectedCategory === 'breaking') return short.isBreaking;
-        // Dynamic category matching using category slug or name
-        const category = dynamicCategories.find(cat => cat.slug === selectedCategory);
-        if (category) {
-          return short.category === category.name;
-        }
-        return false;
+        // Dynamic category matching using category slug
+        return short.category?.slug === selectedCategory;
       });
 
   return (
@@ -149,17 +86,6 @@ const ShortsPage: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
-            {/* Stats Bar */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              {quickStats.map((stat, index) => (
-                <div key={index} className="bg-card border border-border rounded-lg p-4 text-center">
-                  <div className="text-2xl mb-1">{stat.icon}</div>
-                  <div className="text-lg font-bold text-foreground">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-
             {/* Category Filters */}
             <div className="flex flex-wrap gap-2 mb-8">
               {categories.map(category => (
@@ -172,21 +98,38 @@ const ShortsPage: React.FC = () => {
                       : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
                 >
-                  {category.label} ({category.count})
+                  {category.label}
                 </button>
               ))}
             </div>
 
             {/* News Shorts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredShorts.map(short => (
-                <Link key={short.id} href={`/article/${short.id}`}
+              {loading ? (
+                // Loading skeleton
+                Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="bg-card border border-border rounded-lg overflow-hidden">
+                    <div className="h-48 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                    <div className="p-5 space-y-3">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 animate-pulse"></div>
+                    </div>
+                  </div>
+                ))
+              ) : filteredShorts.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No news shorts available</p>
+                </div>
+              ) : (
+                filteredShorts.map(short => (
+                <Link key={short.id} href={`/news/${short.slug}`}
                       className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
                   
                   {/* Image */}
                   <div className="relative h-48">
                     <Image
-                      src={short.imageUrl}
+                      src={short.imageUrl || '/api/placeholder/400/300'}
                       alt={short.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -198,12 +141,12 @@ const ShortsPage: React.FC = () => {
                         </span>
                       )}
                       <span className="bg-black/70 text-white px-2 py-1 rounded text-xs">
-                        {short.readTime}
+                        {short.readingTime || 1} min
                       </span>
                     </div>
                     <div className="absolute top-3 right-3">
                       <span className="bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-medium">
-                        {short.category}
+                        {short.category?.name || 'News'}
                       </span>
                     </div>
                   </div>
@@ -218,29 +161,21 @@ const ShortsPage: React.FC = () => {
                       {short.summary}
                     </p>
 
-                    <div className="text-xs text-muted-foreground mb-3">
-                      {short.content.slice(0, 120)}...
+                    <div className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                      {short.shortContent || short.excerpt || ''}
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                       <div className="flex items-center space-x-2">
-                        <span>{short.author}</span>
+                        <span>{short.author || 'Staff'}</span>
                         <span>•</span>
-                        <span>{short.publishedAt}</span>
+                        <span>{formatPublishedTime(short.published_at)}</span>
                       </div>
-                      <span>{short.wordCount} words</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {short.tags.slice(0, 2).map(tag => (
-                        <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                          #{tag}
-                        </span>
-                      ))}
                     </div>
                   </div>
                 </Link>
-              ))}
+              ))
+              )}
             </div>
 
             {/* Load More */}
@@ -287,10 +222,6 @@ const ShortsPage: React.FC = () => {
                   <Link key={item.category} href={`/category/${item.category.toLowerCase()}`}
                         className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors">
                     <span className="text-foreground">{item.category}</span>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <span className="text-muted-foreground">{item.count}</span>
-                      <span className="text-green-600">{item.trend}</span>
-                    </div>
                   </Link>
                 ))}
               </div>

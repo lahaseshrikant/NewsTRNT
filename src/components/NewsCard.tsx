@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
 
 interface NewsCardProps {
   article: Article;
@@ -36,7 +37,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, className = '' }) => {
   };
 
   return (
-    <Link href={`/article/${article.slug}`}>
+    <Link href={getContentUrl(article)}>
       <div 
         className={`news-card border-l-4 ${
           article.isBreaking ? 'border-red-500' : 'border-blue-500'

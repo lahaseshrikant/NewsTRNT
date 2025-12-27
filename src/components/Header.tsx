@@ -96,12 +96,17 @@ const Header = () => {
   // Memoize navigation array to prevent infinite re-renders
   const navigation: NavigationItem[] = useMemo(() => [
     { name: 'Home', href: '/', priority: 1 },
-    { name: 'Stories', href: '/web-stories', priority: 2 },
-    { name: 'News Shorts', href: '/shorts', priority: 3 },
+    { name: 'News', href: '/news', priority: 2 },
+    { name: 'Articles', href: '/articles', priority: 3 },
+    { name: 'Opinion', href: '/opinion', priority: 4 },
+    { name: 'Analysis', href: '/analysis', priority: 5 },
+    { name: 'Shorts', href: '/shorts', priority: 6 },
+    { name: 'Stories', href: '/web-stories', priority: 7 },
+    { name: 'Trending', href: '/trending', priority: 8 },
     ...categories.map((cat, index) => ({
       name: cat.name,
       href: `/category/${cat.slug}`,
-      priority: index + 4 // Categories start after the fixed items
+      priority: index + 9 // Categories start after the fixed items
     }))
   ], [categories]); // Only recreate when categories change
   const { currentLogo, setCurrentLogo } = useLogo();

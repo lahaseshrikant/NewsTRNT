@@ -136,6 +136,12 @@ export interface Article {
   isTrending: boolean;
   views: number;
   likes: number;
+  shares?: number;
+  commentCount?: number;
+  viewCount?: number;
+  likeCount?: number;
+  shareCount?: number;
+  engagementScore?: number;
   readingTime?: number;
   categoryId: string;
   category: {
@@ -185,7 +191,16 @@ export const dbApi = {
     const queryString = queryParams.toString();
     const endpoint = `/articles${queryString ? `?${queryString}` : ''}`;
     
-    return apiClient.get<Article[]>(endpoint);
+    const response = await apiClient.get<{ success: boolean; articles: any[] }>(endpoint);
+    const articles = response.articles || [];
+    
+    // Transform backend response to match frontend Article type
+    return articles.map(article => ({
+      ...article,
+      published_at: article.publishedAt || article.published_at,
+      views: article.views || article.viewCount || 0,
+      likes: article.likes || article.likeCount || 0
+    })) as Article[];
   },
 
   // Get news only (short-form content)
@@ -219,12 +234,77 @@ export const dbApi = {
       const endpoint = contentType 
         ? `/articles/category/${categorySlug}?limit=${limit}&contentType=${contentType}`
         : `/articles/category/${categorySlug}?limit=${limit}`;
-      const articles = await apiClient.get<Article[]>(endpoint);
-      return Array.isArray(articles) ? articles : [];
+      const response = await apiClient.get<any>(endpoint);
+      const articles = Array.isArray(response) ? response : (response.articles || []);
+      
+      // Transform backend response to match frontend Article type
+      return articles.map((article: any) => ({
+        ...article,
+        published_at: article.publishedAt || article.published_at,
+        views: article.views || article.viewCount || 0,
+        likes: article.likes || article.likeCount || 0
+      })) as Article[];
     } catch (error) {
       console.error('Error fetching articles by category:', error);
       return [];
     }
+  },
+
+  // Get articles by content type (news, article, opinion, analysis, review, interview)
+  async getArticlesByType(contentType: ContentType, limit: number = 20, page: number = 1): Promise<{
+    articles: Article[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }> {
+    try {
+      const endpoint = `/articles/type/${contentType}?limit=${limit}&page=${page}`;
+      const response = await apiClient.get<any>(endpoint);
+      const articles = response.articles || [];
+      
+      // Transform backend response to match frontend Article type
+      const transformedArticles = articles.map((article: any) => ({
+        ...article,
+        published_at: article.publishedAt || article.published_at,
+        views: article.views || article.viewCount || 0,
+        likes: article.likes || article.likeCount || 0
+      })) as Article[];
+
+      return {
+        articles: transformedArticles,
+        pagination: response.pagination || {
+          page: 1,
+          limit,
+          total: articles.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching articles by type:', error);
+      return {
+        articles: [],
+        pagination: { page: 1, limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false }
+      };
+    }
+  },
+
+  // Get opinion pieces
+  async getOpinionPieces(limit: number = 20): Promise<Article[]> {
+    const result = await this.getArticlesByType('opinion', limit);
+    return result.articles;
+  },
+
+  // Get analysis articles
+  async getAnalysisArticles(limit: number = 20): Promise<Article[]> {
+    const result = await this.getArticlesByType('analysis', limit);
+    return result.articles;
   },
 
   // Get news by category
@@ -235,7 +315,17 @@ export const dbApi = {
   // Get single article
   async getArticle(slug: string): Promise<Article | null> {
     try {
-      return await apiClient.get<Article>(`/articles/${slug}`);
+      const response = await apiClient.get<{ success: boolean; article: any }>(`/articles/${slug}`);
+      if (response.article) {
+        // Transform backend response to match frontend Article type
+        return {
+          ...response.article,
+          published_at: response.article.publishedAt || response.article.published_at,
+          views: response.article.views || response.article.viewCount || 0,
+          likes: response.article.likes || response.article.likeCount || 0
+        } as Article;
+      }
+      return null;
     } catch (error) {
       console.error('Error fetching article:', error);
       return null;
@@ -249,10 +339,72 @@ export const dbApi = {
 
   // Search articles
   async searchArticles(query: string, limit: number = 20, contentType?: ContentType): Promise<Article[]> {
-    const endpoint = contentType
-      ? `/articles/search?q=${encodeURIComponent(query)}&limit=${limit}&contentType=${contentType}`
-      : `/articles/search?q=${encodeURIComponent(query)}&limit=${limit}`;
-    return apiClient.get<Article[]>(endpoint);
+    try {
+      const endpoint = contentType
+        ? `/articles/search?q=${encodeURIComponent(query)}&limit=${limit}&contentType=${contentType}`
+        : `/articles/search?q=${encodeURIComponent(query)}&limit=${limit}`;
+      const response = await apiClient.get<any>(endpoint);
+      const articles = Array.isArray(response) ? response : (response.articles || []);
+      
+      // Transform backend response to match frontend Article type
+      return articles.map((article: any) => ({
+        ...article,
+        published_at: article.publishedAt || article.published_at,
+        views: article.views || article.viewCount || 0,
+        likes: article.likes || article.likeCount || 0
+      })) as Article[];
+    } catch (error) {
+      console.error('Error searching articles:', error);
+      return [];
+    }
+  },
+
+  // ==========================================================================
+  // WEB STORIES API
+  // ==========================================================================
+
+  // Get web stories with pagination and filtering
+  async getWebStories(options: {
+    limit?: number;
+    page?: number;
+    category?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  } = {}): Promise<WebStory[]> {
+    const queryParams = new URLSearchParams();
+    
+    if (options.limit) queryParams.append('limit', options.limit.toString());
+    if (options.page) queryParams.append('page', options.page.toString());
+    if (options.category) queryParams.append('category', options.category);
+    if (options.sortBy) queryParams.append('sortBy', options.sortBy);
+    if (options.sortOrder) queryParams.append('sortOrder', options.sortOrder);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/webstories${queryString ? `?${queryString}` : ''}`;
+    
+    try {
+      const response = await apiClient.get<{ success: boolean; webStories: WebStory[] }>(endpoint);
+      return response.webStories || [];
+    } catch (error) {
+      console.error('Error fetching web stories:', error);
+      return [];
+    }
+  },
+
+  // Get single web story by ID or slug
+  async getWebStory(idOrSlug: string): Promise<WebStory | null> {
+    try {
+      const response = await apiClient.get<{ success: boolean; webStory: WebStory }>(`/webstories/${idOrSlug}`);
+      return response.webStory || null;
+    } catch (error) {
+      console.error('Error fetching web story:', error);
+      return null;
+    }
+  },
+
+  // Get featured web stories
+  async getFeaturedWebStories(limit: number = 6): Promise<WebStory[]> {
+    return this.getWebStories({ limit, sortBy: 'viewCount', sortOrder: 'desc' });
   },
 
   // Health check
@@ -265,6 +417,150 @@ export const dbApi = {
       return false;
     }
   },
+};
+
+// Web Story type definition
+export interface WebStory {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  categorySlug: string;
+  categoryColor?: string;
+  slides: WebStorySlide[];
+  slidesCount?: number;
+  author: string;
+  duration: number;
+  coverImage: string;
+  isFeature: boolean;
+  priority?: string;
+  viewCount: number;
+  views: number;
+  likeCount?: number;
+  shareCount?: number;
+  isNew?: boolean;
+  isTrending?: boolean;
+  publishedAt: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface WebStorySlide {
+  id: string;
+  type: 'image' | 'video' | 'text';
+  background: string;
+  content: {
+    headline?: string;
+    text?: string;
+    image?: string;
+    video?: string;
+    cta?: {
+      text: string;
+      url: string;
+    };
+  };
+  duration?: number;
+}
+
+// =============================================================================
+// SITE STATISTICS TYPES AND FUNCTIONS
+// =============================================================================
+
+export interface SiteStats {
+  totalArticles: number;
+  totalViews: number;
+  totalCategories: number;
+  totalWebStories: number;
+  publishedArticles: number;
+  trendingArticles: number;
+  featuredArticles: number;
+  breakingNews: number;
+  totalComments: number;
+  totalShares: number;
+  topCategories: Array<{ name: string; count: number }>;
+  recentActivityCount: number;
+}
+
+export interface FormattedStats {
+  totalArticles: string;
+  monthlyVisitors: string;
+  pageViews: string;
+  emailSubscribers: string;
+  socialFollowers: string;
+  totalCategories: string;
+  totalWebStories: string;
+  engagements: string;
+}
+
+export interface CategoryStats {
+  category: string;
+  slug: string;
+  totalArticles: number;
+  totalViews: number;
+  totalComments: number;
+  totalShares: number;
+}
+
+// Stats API functions
+export const statsApi = {
+  // Get raw site statistics
+  async getSiteStats(): Promise<SiteStats> {
+    try {
+      return await apiClient.get<SiteStats>('/stats');
+    } catch (error) {
+      console.warn('Failed to fetch site stats, returning defaults:', error);
+      return {
+        totalArticles: 0,
+        totalViews: 0,
+        totalCategories: 0,
+        totalWebStories: 0,
+        publishedArticles: 0,
+        trendingArticles: 0,
+        featuredArticles: 0,
+        breakingNews: 0,
+        totalComments: 0,
+        totalShares: 0,
+        topCategories: [],
+        recentActivityCount: 0
+      };
+    }
+  },
+
+  // Get formatted statistics for display
+  async getFormattedStats(): Promise<FormattedStats> {
+    try {
+      return await apiClient.get<FormattedStats>('/stats/formatted');
+    } catch (error) {
+      console.warn('Failed to fetch formatted stats, returning defaults:', error);
+      return {
+        totalArticles: '0',
+        monthlyVisitors: '0',
+        pageViews: '0',
+        emailSubscribers: '0',
+        socialFollowers: '0',
+        totalCategories: '0',
+        totalWebStories: '0',
+        engagements: '0'
+      };
+    }
+  },
+
+  // Get category-specific statistics
+  async getCategoryStats(slug: string): Promise<CategoryStats> {
+    try {
+      return await apiClient.get<CategoryStats>(`/stats/category/${slug}`);
+    } catch (error) {
+      console.warn(`Failed to fetch stats for category ${slug}:`, error);
+      return {
+        category: '',
+        slug: slug,
+        totalArticles: 0,
+        totalViews: 0,
+        totalComments: 0,
+        totalShares: 0
+      };
+    }
+  }
 };
 
 export default dbApi;

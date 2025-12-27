@@ -1,16 +1,51 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
 import MarketWidget from '@/components/MarketWidget';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+
+// Helper to format published time
+const formatPublishedTime = (publishedAt: string | Date) => {
+  const now = new Date();
+  const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
+  const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'Just now';
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 48) return 'Yesterday';
+  return `${Math.floor(diffInHours / 24)} days ago`;
+};
 
 const BusinessPage: React.FC = () => {
   // Content Type and Sort Filters
   const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'opinion' | 'analysis'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load articles from database
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        setLoading(true);
+        const articles = await dbApi.getArticlesByCategory('business', 30);
+        if (Array.isArray(articles)) {
+          setAllArticles(articles);
+        }
+      } catch (error) {
+        console.error('Error loading business articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadArticles();
+  }, []);
 
   const contentTypes = [
     { value: 'all', label: 'All Content' },
@@ -28,99 +63,11 @@ const BusinessPage: React.FC = () => {
   ];
 
   const subCategoryFilters = [
-    { id: 'all', label: 'All Business', count: 189 },
-    { id: 'markets', label: 'Markets', count: 78 },
-    { id: 'economy', label: 'Economy', count: 56 },
-    { id: 'companies', label: 'Companies', count: 34 },
-    { id: 'finance', label: 'Finance', count: 21 }
-  ];
-
-  // Combine all articles with filtering properties
-  const allArticles = [
-    {
-      id: 1,
-      title: "Federal Reserve Signals Potential Interest Rate Cuts Amid Economic Uncertainty",
-      summary: "Fed Chair indicates possible monetary policy adjustments as inflation shows signs of cooling and employment data remains mixed.",
-      imageUrl: "/api/placeholder/600/400",
-      publishedAt: "30 minutes ago",
-      readTime: "6 min read",
-      author: "Michael Zhang",
-      tags: ["Federal Reserve", "Interest Rates", "Economy"],
-      isFeatured: true,
-      contentType: 'news' as const,
-      subCategory: 'economy',
-      views: 15000
-    },
-    {
-      id: 2,
-      title: "Tech Giants Report Record Q3 Earnings Despite Market Volatility",
-      summary: "Apple, Microsoft, and Google exceed analyst expectations with strong cloud and AI revenue growth driving performance.",
-      imageUrl: "/api/placeholder/600/400",
-      publishedAt: "2 hours ago",
-      readTime: "8 min read",
-      author: "Sarah Williams",
-      tags: ["Earnings", "Tech", "Markets"],
-      isFeatured: true,
-      contentType: 'analysis' as const,
-      subCategory: 'markets',
-      views: 12000
-    },
-    {
-      id: 3,
-      title: "Global Supply Chain Disruptions Ease as Shipping Costs Normalize",
-      summary: "Container shipping rates fall 60% from peak levels as port congestion clears and demand stabilizes.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "4 hours ago",
-      readTime: "5 min read",
-      author: "David Park",
-      tags: ["Supply Chain", "Logistics", "Trade"],
-      isFeatured: false,
-      contentType: 'news' as const,
-      subCategory: 'companies',
-      views: 8500
-    },
-    {
-      id: 4,
-      title: "Renewable Energy Investments Reach All-Time High in 2024",
-      summary: "Global clean energy funding surpasses $2.8 trillion as governments accelerate green transition policies.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "6 hours ago",
-      readTime: "7 min read",
-      author: "Emma Rodriguez",
-      tags: ["Energy", "Investment", "ESG"],
-      isFeatured: false,
-      contentType: 'article' as const,
-      subCategory: 'finance',
-      views: 9200
-    },
-    {
-      id: 5,
-      title: "Cryptocurrency Market Shows Signs of Recovery After Regulatory Clarity",
-      summary: "Bitcoin and Ethereum gain momentum following new SEC guidelines on digital asset classification.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "8 hours ago",
-      readTime: "4 min read",
-      author: "James Chen",
-      tags: ["Cryptocurrency", "Regulation", "Markets"],
-      isFeatured: false,
-      contentType: 'analysis' as const,
-      subCategory: 'markets',
-      views: 11000
-    },
-    {
-      id: 6,
-      title: "Manufacturing Sector Rebounds with AI-Driven Automation Investments",
-      summary: "Industrial companies report increased productivity and cost savings from smart manufacturing technologies.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "12 hours ago",
-      readTime: "6 min read",
-      author: "Lisa Kim",
-      tags: ["Manufacturing", "AI", "Automation"],
-      isFeatured: false,
-      contentType: 'article' as const,
-      subCategory: 'companies',
-      views: 7800
-    }
+    { id: 'all', label: 'All Business', count: allArticles.length },
+    { id: 'markets', label: 'Markets', count: allArticles.filter(a => a.contentType === 'analysis').length },
+    { id: 'economy', label: 'Economy', count: allArticles.filter(a => a.contentType === 'news').length },
+    { id: 'companies', label: 'Companies', count: allArticles.filter(a => a.contentType === 'article').length },
+    { id: 'finance', label: 'Finance', count: allArticles.filter(a => a.contentType === 'opinion').length }
   ];
 
   // Filtering logic
@@ -132,16 +79,11 @@ const BusinessPage: React.FC = () => {
       filtered = filtered.filter(article => article.contentType === contentType);
     }
 
-    // Filter by sub-category
-    if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
-    }
-
     // Sort articles
     if (sortBy === 'trending') {
-      filtered.sort((a, b) => b.views - a.views);
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
     } else if (sortBy === 'popular') {
-      filtered.sort((a, b) => parseInt(b.readTime) - parseInt(a.readTime));
+      filtered.sort((a, b) => (b.readingTime || 0) - (a.readingTime || 0));
     }
     // 'latest' is default order
 
@@ -179,12 +121,6 @@ const BusinessPage: React.FC = () => {
                 Markets, economy, and corporate news
               </p>
             </div>
-            <div className="hidden lg:block">
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
-                <div className="text-lg font-bold text-primary">189</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
-              </div>
-            </div>
           </div>
 
           {/* Content type tabs moved below header into compact filter bar */}
@@ -202,9 +138,6 @@ const BusinessPage: React.FC = () => {
                 }`}
               >
                 {subCat.label}
-                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
-                  {subCat.count}
-                </span>
               </button>
             ))}
           </div>
@@ -262,17 +195,27 @@ const BusinessPage: React.FC = () => {
             <section className="mb-12">
               <h2 className="text-2xl font-bold text-foreground mb-6">Market Moving News</h2>
               <div className="grid md:grid-cols-2 gap-6">
-                {featuredArticles.length === 0 ? (
+                {loading ? (
+                  Array.from({ length: 2 }).map((_, index) => (
+                    <div key={index} className="bg-card border border-border rounded-lg overflow-hidden">
+                      <div className="h-48 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                      <div className="p-6 space-y-3">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                      </div>
+                    </div>
+                  ))
+                ) : featuredArticles.length === 0 ? (
                   <div className="col-span-full text-center text-muted-foreground border border-dashed border-border rounded-lg py-10">
                     No feature stories match the current filters.
                   </div>
                 ) : (
                   featuredArticles.map(article => (
-                    <Link key={article.id} href={`/article/${article.id}`} 
+                    <Link key={article.id} href={getContentUrl(article)} 
                           className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
                       <div className="relative h-48">
                         <Image
-                          src={article.imageUrl}
+                          src={article.imageUrl || '/api/placeholder/600/400'}
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -292,17 +235,10 @@ const BusinessPage: React.FC = () => {
                         </p>
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
                           <div className="flex items-center space-x-4">
-                            <span>{article.author}</span>
-                            <span>{article.publishedAt}</span>
+                            <span>{article.author || 'Staff Writer'}</span>
+                            <span>{formatPublishedTime(article.published_at)}</span>
                           </div>
-                          <span>{article.readTime}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {article.tags.map(tag => (
-                            <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                              {tag}
-                            </span>
-                          ))}
+                          <span>{article.readingTime || 5} min read</span>
                         </div>
                       </div>
                     </Link>
@@ -315,18 +251,30 @@ const BusinessPage: React.FC = () => {
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-6">Latest Business News</h2>
               <div className="space-y-6">
-                {recentArticles.length === 0 ? (
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="flex flex-col md:flex-row gap-4 bg-card border border-border rounded-lg p-6">
+                      <div className="md:w-1/3">
+                        <div className="h-48 md:h-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+                      </div>
+                      <div className="md:w-2/3 space-y-3">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                      </div>
+                    </div>
+                  ))
+                ) : recentArticles.length === 0 ? (
                   <div className="text-center text-muted-foreground border border-dashed border-border rounded-lg py-10">
                     No articles available for the selected filters. Adjust your selection to see more stories.
                   </div>
                 ) : (
                   recentArticles.map(article => (
-                    <Link key={article.id} href={`/article/${article.id}`}
+                    <Link key={article.id} href={getContentUrl(article)}
                           className="group flex flex-col md:flex-row gap-4 bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all">
                       <div className="md:w-1/3">
                         <div className="relative h-48 md:h-32 rounded-lg overflow-hidden">
                           <Image
-                            src={article.imageUrl}
+                            src={article.imageUrl || '/api/placeholder/400/300'}
                             alt={article.title}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -342,17 +290,10 @@ const BusinessPage: React.FC = () => {
                         </p>
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
                           <div className="flex items-center space-x-4">
-                            <span>{article.author}</span>
-                            <span>{article.publishedAt}</span>
+                            <span>{article.author || 'Staff Writer'}</span>
+                            <span>{formatPublishedTime(article.published_at)}</span>
                           </div>
-                          <span>{article.readTime}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {article.tags.map(tag => (
-                            <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                              {tag}
-                            </span>
-                          ))}
+                          <span>{article.readingTime || 5} min read</span>
                         </div>
                       </div>
                     </Link>
@@ -389,7 +330,6 @@ const BusinessPage: React.FC = () => {
                   <Link key={topic.name} href={`/search?q=${encodeURIComponent(topic.name)}`}
                         className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors">
                     <span className="text-foreground">{topic.name}</span>
-                    <span className="text-muted-foreground text-sm">{topic.count}</span>
                   </Link>
                 ))}
               </div>

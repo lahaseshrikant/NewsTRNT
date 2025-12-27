@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface WebStory {
   id: string;
   title: string;
+  slug: string;
   category: string;
   slides: number;
   status: 'published' | 'draft' | 'archived';
@@ -26,106 +29,49 @@ const WebStoriesAdmin: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft' | 'archived'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'views' | 'title' | 'performance'>('date');
   const [searchTerm, setSearchTerm] = useState('');
+  const [webStories, setWebStories] = useState<WebStory[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock Web Stories data
-  const webStories: WebStory[] = [
-    {
-      id: '1',
-      title: 'Climate Summit 2024: Key Highlights',
-      category: 'Environment',
-      slides: 4,
-      status: 'published',
-      publishedAt: '2024-01-21T10:30:00Z',
-      author: 'Environmental Team',
-      views: 12540,
-      likes: 892,
-      shares: 234,
-      duration: 45,
-      coverImage: '/api/placeholder/400/600',
-      isFeature: true,
-      priority: 'high'
-    },
-    {
-      id: '2',
-      title: 'AI Revolution in Healthcare',
-      category: 'Technology',
-      slides: 5,
-      status: 'published',
-      publishedAt: '2024-01-21T08:15:00Z',
-      author: 'Tech News',
-      views: 8920,
-      likes: 445,
-      shares: 178,
-      duration: 60,
-      coverImage: '/api/placeholder/400/600',
-      isFeature: false,
-      priority: 'high'
-    },
-    {
-      id: '3',
-      title: 'Space Mission Success',
-      category: 'Science',
-      slides: 3,
-      status: 'published',
-      publishedAt: '2024-01-20T16:45:00Z',
-      author: 'Space Desk',
-      views: 15670,
-      likes: 1234,
-      shares: 445,
-      duration: 50,
-      coverImage: '/api/placeholder/400/600',
-      isFeature: true,
-      priority: 'normal'
-    },
-    {
-      id: '4',
-      title: 'Economic Outlook 2024 - Draft',
-      category: 'Business',
-      slides: 2,
-      status: 'draft',
-      publishedAt: '2024-01-20T12:30:00Z',
-      author: 'Business Team',
-      views: 0,
-      likes: 0,
-      shares: 0,
-      duration: 40,
-      coverImage: '/api/placeholder/400/600',
-      isFeature: false,
-      priority: 'normal'
-    },
-    {
-      id: '5',
-      title: 'Sports Championship Finals',
-      category: 'Sports',
-      slides: 6,
-      status: 'published',
-      publishedAt: '2024-01-19T20:00:00Z',
-      author: 'Sports Desk',
-      views: 22100,
-      likes: 1890,
-      shares: 567,
-      duration: 75,
-      coverImage: '/api/placeholder/400/600',
-      isFeature: false,
-      priority: 'normal'
-    },
-    {
-      id: '6',
-      title: 'Celebrity Red Carpet Event',
-      category: 'Entertainment',
-      slides: 4,
-      status: 'archived',
-      publishedAt: '2024-01-19T18:30:00Z',
-      author: 'Entertainment',
-      views: 18900,
-      likes: 1456,
-      shares: 389,
-      duration: 30,
-      coverImage: '/api/placeholder/400/600',
-      isFeature: false,
-      priority: 'low'
-    }
-  ];
+  // Fetch web stories from API
+  useEffect(() => {
+    const fetchWebStories = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/webstories`);
+        if (response.ok) {
+          const data = await response.json();
+          // Transform API response to match component interface
+          const stories = (data.stories || data || []).map((story: any) => {
+            const slug = story.slug || story.title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+            return {
+              id: story.id,
+              title: story.title,
+              slug: slug,
+              category: story.category?.name || story.category || 'Uncategorized',
+              slides: story.slidesCount || story.slides?.length || 0,
+              status: story.isPublished ? 'published' : (story.isArchived ? 'archived' : 'draft'),
+              publishedAt: story.publishedAt || story.createdAt,
+              author: story.author || 'Staff',
+              views: story.viewCount || story.views || 0,
+              likes: story.likeCount || story.likes || 0,
+              shares: story.shareCount || story.shares || 0,
+              duration: story.duration || 30,
+              coverImage: story.coverImage || '/api/placeholder/400/600',
+              isFeature: story.isFeature || story.isFeatured || false,
+              priority: story.priority || 'normal'
+            };
+          });
+          setWebStories(stories);
+        }
+      } catch (error) {
+        console.error('Failed to fetch web stories:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWebStories();
+  }, []);
 
   const filteredStories = webStories.filter(story => {
     const matchesStatus = filterStatus === 'all' || story.status === filterStatus;
@@ -457,7 +403,7 @@ const WebStoriesAdmin: React.FC = () => {
                     <td className="p-4">
                       <div className="flex space-x-2">
                         <Link
-                          href={`/web-stories/${story.id}`}
+                          href={`/web-stories/${story.slug}`}
                           target="_blank"
                           className="text-blue-600 hover:text-blue-800 text-sm"
                         >

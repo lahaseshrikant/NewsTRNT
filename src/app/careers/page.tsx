@@ -264,7 +264,7 @@ const CareersPage: React.FC = () => {
                       : 'bg-background border border-border text-foreground hover:bg-muted/50'
                   }`}
                 >
-                  {dept.name} ({dept.count})
+                  {dept.name}
                 </button>
               ))}
             </div>
