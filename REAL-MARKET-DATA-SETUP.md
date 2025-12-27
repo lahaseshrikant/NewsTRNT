@@ -91,7 +91,7 @@ ENABLE_REAL_MARKET_DATA="true"
 ```
 
 ### Step 3: Test API Connectivity
-Create a test page at `src/app/test-market-api/page.tsx`:
+The monitoring page is located at `src/app/admin/market-data/page.tsx`:
 
 ```typescript
 'use client';
@@ -133,7 +133,7 @@ export default function TestMarketAPI() {
 npm run dev
 ```
 
-Visit: http://localhost:3000/test-market-api
+Visit: http://localhost:3000/admin/market-data (admin panel)
 
 ## 📊 API Usage & Rate Limits
 
@@ -169,7 +169,7 @@ To stay within rate limits, the app implements aggressive caching:
 1. Check `.env.local` has `ENABLE_REAL_MARKET_DATA="true"`
 2. Verify API keys are correct
 3. Check browser console for errors
-4. Test API connectivity at `/test-market-api`
+4. Test API connectivity at `/admin/market-data`
 
 ### Mock Data Still Showing
 - App falls back to mock data if APIs fail

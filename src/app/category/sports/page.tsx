@@ -1,112 +1,56 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+
+const formatPublishedTime = (publishedAt: string | Date) => {
+  const now = new Date();
+  const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
+  const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'Just now';
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 48) return 'Yesterday';
+  return `${Math.floor(diffInHours / 24)} days ago`;
+};
 
 const SportsPage: React.FC = () => {
   const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'analysis' | 'opinion' | 'review' | 'interview'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
+  
+  // Database articles state
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        setLoading(true);
+        const articles = await dbApi.getArticlesByCategory('sports', 30);
+        if (Array.isArray(articles)) {
+          setAllArticles(articles);
+        }
+      } catch (error) {
+        console.error('Error loading articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArticles();
+  }, []);
 
   // Sub-categories for Sports
   const subCategories = [
-    { id: 'all', label: 'All Sports', count: 312 },
-    { id: 'football', label: 'Football', count: 89 },
-    { id: 'basketball', label: 'Basketball', count: 67 },
-    { id: 'baseball', label: 'Baseball', count: 54 },
-    { id: 'other', label: 'Other Sports', count: 102 }
-  ];
-
-  // Combine all articles
-  const allArticles = [
-    {
-      id: 1,
-      title: "NFL Playoffs: Chiefs Secure Top Seed with Dominant 31-17 Victory",
-      summary: "Patrick Mahomes throws for 320 yards and 3 touchdowns as Kansas City clinches home-field advantage throughout the playoffs.",
-      imageUrl: "/api/placeholder/600/400",
-      publishedAt: "2 hours ago",
-      readTime: "4 min read",
-      author: "Mike Johnson",
-      tags: ["NFL", "Playoffs", "Chiefs"],
-      contentType: 'news' as const,
-      category: 'Football',
-      subCategory: 'football',
-      isFeatured: true,
-      views: 12500
-    },
-    {
-      id: 2,
-      title: "NBA Trade Deadline Shakeup: All-Star Forward Joins Championship Contender",
-      summary: "Blockbuster trade sends veteran player to title-contending team in exchange for young prospects and draft picks.",
-      imageUrl: "/api/placeholder/600/400",
-      publishedAt: "4 hours ago",
-      readTime: "6 min read",
-      author: "Sarah Davis",
-      tags: ["NBA", "Trade", "All-Star"],
-      contentType: 'analysis' as const,
-      category: 'Basketball',
-      subCategory: 'basketball',
-      isFeatured: true,
-      views: 9800
-    },
-    {
-      id: 3,
-      title: "World Cup Qualifiers: USMNT Secures Crucial Win in South America",
-      summary: "United States defeats Colombia 2-1 in thrilling match to boost World Cup qualification hopes.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "6 hours ago",
-      readTime: "5 min read",
-      author: "Carlos Martinez",
-      tags: ["Soccer", "USMNT", "World Cup"],
-      contentType: 'news' as const,
-      category: 'Soccer',
-      subCategory: 'other',
-      views: 7200
-    },
-    {
-      id: 4,
-      title: "MLB Spring Training: Top Prospects Make Impressive Debuts",
-      summary: "Rising stars showcase talent as teams prepare for upcoming season with promising young players.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "8 hours ago",
-      readTime: "7 min read",
-      author: "Tommy Rodriguez",
-      tags: ["MLB", "Spring Training", "Prospects"],
-      contentType: 'article' as const,
-      category: 'Baseball',
-      subCategory: 'baseball',
-      views: 5600
-    },
-    {
-      id: 5,
-      title: "Tennis Grand Slam: Defending Champion Advances to Semifinals",
-      summary: "Current title holder overcomes tough opponent in straight sets to reach final four.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "10 hours ago",
-      readTime: "3 min read",
-      author: "Elena Petrov",
-      tags: ["Tennis", "Grand Slam", "Semifinals"],
-      contentType: 'short' as const,
-      category: 'Tennis',
-      subCategory: 'other',
-      views: 4100
-    },
-    {
-      id: 6,
-      title: "Olympic Training: Swimming Records Broken at National Championships",
-      summary: "Multiple world records fall as athletes prepare for upcoming Olympic Games.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "12 hours ago",
-      readTime: "5 min read",
-      author: "David Kim",
-      tags: ["Olympics", "Swimming", "Records"],
-      contentType: 'news' as const,
-      category: 'Olympics',
-      subCategory: 'other',
-      views: 6800
-    }
+    { id: 'all', label: 'All Sports', count: allArticles.length },
+    { id: 'football', label: 'Football', count: allArticles.filter(a => a.category?.slug === 'football').length || 0 },
+    { id: 'basketball', label: 'Basketball', count: allArticles.filter(a => a.category?.slug === 'basketball').length || 0 },
+    { id: 'baseball', label: 'Baseball', count: allArticles.filter(a => a.category?.slug === 'baseball').length || 0 },
+    { id: 'other', label: 'Other Sports', count: allArticles.filter(a => a.category?.slug === 'other').length || 0 }
   ];
 
   // Filtering logic
@@ -120,14 +64,14 @@ const SportsPage: React.FC = () => {
 
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
+      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
     }
 
     // Sort articles
     if (sortBy === 'trending') {
-      filtered.sort((a, b) => b.views - a.views);
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
     } else if (sortBy === 'popular') {
-      filtered.sort((a, b) => parseInt(b.readTime) - parseInt(a.readTime));
+      filtered.sort((a, b) => (b.readingTime || 0) - (a.readingTime || 0));
     }
     // 'latest' is default order
 
@@ -190,12 +134,6 @@ const SportsPage: React.FC = () => {
                 Live scores & comprehensive coverage
               </p>
             </div>
-            <div className="hidden lg:block">
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
-                <div className="text-lg font-bold text-primary">312</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
-              </div>
-            </div>
           </div>
 
           {/* Content type tabs moved below header into compact filter bar */}
@@ -213,9 +151,6 @@ const SportsPage: React.FC = () => {
                 }`}
               >
                 {subCat.label}
-                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-60'}`}>
-                  {subCat.count}
-                </span>
               </button>
             ))}
           </div>
@@ -265,6 +200,24 @@ const SportsPage: React.FC = () => {
 
             {/* Articles */}
             <section className="space-y-6">
+              {loading ? (
+                <>
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="animate-pulse bg-card rounded-lg shadow-sm border border-border overflow-hidden">
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="sm:w-1/3 h-48 sm:h-full bg-muted"></div>
+                        <div className="p-6 flex-1 sm:w-2/3 space-y-3">
+                          <div className="h-4 bg-muted rounded w-1/4"></div>
+                          <div className="h-6 bg-muted rounded w-3/4"></div>
+                          <div className="h-4 bg-muted rounded w-full"></div>
+                          <div className="h-4 bg-muted rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+              <>
               {filteredArticles().map((article, index) => (
                 <article
                   key={article.id}
@@ -275,7 +228,7 @@ const SportsPage: React.FC = () => {
                   <div className={`flex ${index === 0 && sortBy === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
                     <div className={`relative ${index === 0 && sortBy === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
                       <Image
-                        src={article.imageUrl}
+                        src={article.imageUrl || '/api/placeholder/600/400'}
                         alt={article.title}
                         width={600}
                         height={300}
@@ -293,12 +246,12 @@ const SportsPage: React.FC = () => {
                     <div className={`p-6 flex-1 ${index === 0 && sortBy === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
                       <div className="flex items-center space-x-2 mb-3">
                         <span className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300 px-2 py-1 rounded text-xs font-medium">
-                          {article.category}
+                          {article.category?.name || 'Sports'}
                         </span>
-                        <span className="text-muted-foreground text-sm">{article.readTime}</span>
+                        <span className="text-muted-foreground text-sm">{article.readingTime || 5} min read</span>
                       </div>
                       
-                      <Link href={`/article/${article.id}`}>
+                      <Link href={getContentUrl(article)}>
                         <h2 className={`font-bold text-foreground mb-3 hover:text-primary cursor-pointer transition-colors ${
                           index === 0 && sortBy === 'latest' ? 'text-2xl' : 'text-lg'
                         }`}>
@@ -312,22 +265,17 @@ const SportsPage: React.FC = () => {
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 text-sm text-muted-foreground">
-                          <span>By {article.author}</span>
+                          <span>By {article.author || 'Staff Writer'}</span>
                           <span>•</span>
-                          <span>{article.publishedAt}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {article.tags.slice(0, 2).map((tag: string) => (
-                            <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                              {tag}
-                            </span>
-                          ))}
+                          <span>{formatPublishedTime(article.published_at)}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </article>
               ))}
+              </>
+              )}
 
               {/* Load More */}
               <div className="text-center mt-8">
@@ -387,7 +335,6 @@ const SportsPage: React.FC = () => {
                   <Link key={topic.name} href={`/search?q=${encodeURIComponent(topic.name)}`}
                         className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors">
                     <span className="text-foreground">{topic.name}</span>
-                    <span className="text-muted-foreground text-sm">{topic.count}</span>
                   </Link>
                 ))}
               </div>

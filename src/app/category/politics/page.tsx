@@ -1,14 +1,48 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+
+const formatPublishedTime = (publishedAt: string | Date) => {
+  const now = new Date();
+  const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
+  const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'Just now';
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 48) return 'Yesterday';
+  return `${Math.floor(diffInHours / 24)} days ago`;
+};
 
 const PoliticsPage: React.FC = () => {
   const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'opinion' | 'analysis'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
+  
+  // Database articles state
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        setLoading(true);
+        const articles = await dbApi.getArticlesByCategory('politics', 30);
+        if (Array.isArray(articles)) {
+          setAllArticles(articles);
+        }
+      } catch (error) {
+        console.error('Error loading articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArticles();
+  }, []);
 
   const contentTypes = [
     { value: 'all', label: 'All Content' },
@@ -26,99 +60,11 @@ const PoliticsPage: React.FC = () => {
   ];
 
   const subCategoryFilters = [
-    { id: 'all', label: 'All Politics', count: 198 },
-    { id: 'domestic', label: 'Domestic', count: 89 },
-    { id: 'international', label: 'International', count: 67 },
-    { id: 'elections', label: 'Elections', count: 25 },
-    { id: 'policy', label: 'Policy', count: 17 }
-  ];
-
-  // Combine all articles with filtering properties
-  const allArticles = [
-    {
-      id: 1,
-      title: "Congressional Leaders Reach Bipartisan Agreement on Infrastructure Bill",
-      summary: "After months of negotiations, both parties find common ground on a comprehensive infrastructure package worth $1.2 trillion.",
-      imageUrl: "/api/placeholder/600/400",
-      publishedAt: "2 hours ago",
-      readTime: "4 min read",
-      author: "Sarah Mitchell",
-      tags: ["Congress", "Infrastructure", "Bipartisan"],
-      isFeatured: true,
-      contentType: 'news' as const,
-      subCategory: 'domestic',
-      views: 16000
-    },
-    {
-      id: 2,
-      title: "Supreme Court to Hear Major Cases on Digital Privacy Rights",
-      summary: "The high court will examine constitutional questions surrounding government surveillance and digital privacy in the modern era.",
-      imageUrl: "/api/placeholder/600/400",
-      publishedAt: "4 hours ago",
-      readTime: "6 min read",
-      author: "David Chen",
-      tags: ["Supreme Court", "Privacy", "Technology"],
-      isFeatured: true,
-      contentType: 'analysis' as const,
-      subCategory: 'policy',
-      views: 13200
-    },
-    {
-      id: 3,
-      title: "Midterm Elections: Key Races to Watch Across the Nation",
-      summary: "Comprehensive analysis of the most competitive congressional and gubernatorial races.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "6 hours ago",
-      readTime: "8 min read",
-      author: "Maria Rodriguez",
-      tags: ["Elections", "Congress"],
-      isFeatured: false,
-      contentType: 'article' as const,
-      subCategory: 'elections',
-      views: 11800
-    },
-    {
-      id: 4,
-      title: "Climate Policy Debate Intensifies as New Legislation Proposed",
-      summary: "Environmental groups and industry leaders clash over proposed carbon emission standards.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "8 hours ago",
-      readTime: "5 min read",
-      author: "James Wilson",
-      tags: ["Climate", "Policy"],
-      isFeatured: false,
-      contentType: 'opinion' as const,
-      subCategory: 'policy',
-      views: 8900
-    },
-    {
-      id: 5,
-      title: "Federal Reserve Chair Discusses Economic Policy in Senate Hearing",
-      summary: "Key insights from congressional testimony on interest rates and inflation concerns.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "12 hours ago",
-      readTime: "6 min read",
-      author: "Robert Kim",
-      tags: ["Economy", "Federal Reserve"],
-      isFeatured: false,
-      contentType: 'news' as const,
-      subCategory: 'domestic',
-      views: 10500
-    },
-    {
-      id: 6,
-      title: "State Governors Meet to Discuss Interstate Commerce Policies",
-      summary: "Regional leaders collaborate on trade agreements and regulatory harmonization.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "1 day ago",
-      readTime: "4 min read",
-      author: "Lisa Thompson",
-      tags: ["States", "Commerce"],
-      isFeatured: false,
-      contentType: 'news' as const,
-      subCategory: 'domestic',
-      views: 7600
-    }
+    { id: 'all', label: 'All Politics', count: allArticles.length },
+    { id: 'domestic', label: 'Domestic', count: allArticles.filter(a => a.category?.slug === 'domestic').length || 0 },
+    { id: 'international', label: 'International', count: allArticles.filter(a => a.category?.slug === 'international').length || 0 },
+    { id: 'elections', label: 'Elections', count: allArticles.filter(a => a.category?.slug === 'elections').length || 0 },
+    { id: 'policy', label: 'Policy', count: allArticles.filter(a => a.category?.slug === 'policy').length || 0 }
   ];
 
   // Filtering logic
@@ -132,14 +78,14 @@ const PoliticsPage: React.FC = () => {
 
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
+      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
     }
 
     // Sort articles
     if (sortBy === 'trending') {
-      filtered.sort((a, b) => b.views - a.views);
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
     } else if (sortBy === 'popular') {
-      filtered.sort((a, b) => parseInt(b.readTime) - parseInt(a.readTime));
+      filtered.sort((a, b) => (b.readingTime || 0) - (a.readingTime || 0));
     }
     // 'latest' is default order
 
@@ -177,12 +123,6 @@ const PoliticsPage: React.FC = () => {
                 Comprehensive political coverage & analysis
               </p>
             </div>
-            <div className="hidden lg:block">
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
-                <div className="text-lg font-bold text-primary">198</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
-              </div>
-            </div>
           </div>
 
           {/* Content type tabs moved below header into compact filter bar */}
@@ -200,9 +140,6 @@ const PoliticsPage: React.FC = () => {
                 }`}
               >
                 {subCat.label}
-                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
-                  {subCat.count}
-                </span>
               </button>
             ))}
           </div>
@@ -259,13 +196,27 @@ const PoliticsPage: React.FC = () => {
             {/* Featured Articles */}
             <section className="mb-12">
               <h2 className="text-2xl font-bold text-foreground mb-6">Breaking Political News</h2>
+              {loading ? (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="animate-pulse bg-card border border-border rounded-lg overflow-hidden">
+                      <div className="h-48 bg-muted"></div>
+                      <div className="p-6 space-y-3">
+                        <div className="h-6 bg-muted rounded w-3/4"></div>
+                        <div className="h-4 bg-muted rounded w-full"></div>
+                        <div className="h-4 bg-muted rounded w-2/3"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="grid md:grid-cols-2 gap-6">
                 {featuredArticles.map(article => (
-                  <Link key={article.id} href={`/article/${article.id}`} 
+                  <Link key={article.id} href={getContentUrl(article)} 
                         className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
                     <div className="relative h-48">
                       <Image
-                        src={article.imageUrl}
+                        src={article.imageUrl || '/api/placeholder/600/400'}
                         alt={article.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -285,35 +236,43 @@ const PoliticsPage: React.FC = () => {
                       </p>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <div className="flex items-center space-x-4">
-                          <span>{article.author}</span>
-                          <span>{article.publishedAt}</span>
+                          <span>{article.author || 'Staff Writer'}</span>
+                          <span>{formatPublishedTime(article.published_at)}</span>
                         </div>
-                        <span>{article.readTime}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {article.tags.map(tag => (
-                          <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                            {tag}
-                          </span>
-                        ))}
+                        <span>{article.readingTime || 5} min read</span>
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
+              )}
             </section>
 
             {/* Recent Articles */}
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-6">Latest Political News</h2>
+              {loading ? (
+                <div className="space-y-6">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="animate-pulse flex flex-col md:flex-row gap-4 bg-card border border-border rounded-lg p-6">
+                      <div className="md:w-1/3 h-48 md:h-32 bg-muted rounded-lg"></div>
+                      <div className="md:w-2/3 space-y-3">
+                        <div className="h-5 bg-muted rounded w-3/4"></div>
+                        <div className="h-4 bg-muted rounded w-full"></div>
+                        <div className="h-4 bg-muted rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="space-y-6">
                 {recentArticles.map(article => (
-                  <Link key={article.id} href={`/article/${article.id}`}
+                  <Link key={article.id} href={getContentUrl(article)}
                         className="group flex flex-col md:flex-row gap-4 bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all">
                     <div className="md:w-1/3">
                       <div className="relative h-48 md:h-32 rounded-lg overflow-hidden">
                         <Image
-                          src={article.imageUrl}
+                          src={article.imageUrl || '/api/placeholder/400/300'}
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -329,22 +288,16 @@ const PoliticsPage: React.FC = () => {
                       </p>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <div className="flex items-center space-x-4">
-                          <span>{article.author}</span>
-                          <span>{article.publishedAt}</span>
+                          <span>{article.author || 'Staff Writer'}</span>
+                          <span>{formatPublishedTime(article.published_at)}</span>
                         </div>
-                        <span>{article.readTime}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {article.tags.map(tag => (
-                          <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                            {tag}
-                          </span>
-                        ))}
+                        <span>{article.readingTime || 5} min read</span>
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
+              )}
 
               {/* Load More */}
               <div className="text-center mt-8">
@@ -365,7 +318,6 @@ const PoliticsPage: React.FC = () => {
                   <Link key={topic.name} href={`/search?q=${encodeURIComponent(topic.name)}`}
                         className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors">
                     <span className="text-foreground">{topic.name}</span>
-                    <span className="text-muted-foreground text-sm">{topic.count}</span>
                   </Link>
                 ))}
               </div>

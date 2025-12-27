@@ -4,6 +4,27 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+import CommentSection from '@/components/CommentSection';
+
+interface ArticleData extends Partial<Article> {
+  content?: string;
+  summary?: string;
+  tags?: string[];
+  viewCount?: number;
+  shareCount?: number;
+  readingTime?: number;
+  isBreaking?: boolean;
+  author?: string;
+  category?: {
+    id: string;
+    name: string;
+    slug: string;
+    color: string;
+    icon?: string;
+  };
+}
 
 const ArticleDetailPage: React.FC = () => {
   const params = useParams();
@@ -11,94 +32,47 @@ const ArticleDetailPage: React.FC = () => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
+  const [article, setArticle] = useState<ArticleData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
 
-  // Mock article data
-  const article = {
-    id: 1,
-    title: "AI Revolution Continues: New Breakthrough in Machine Learning Transforms Healthcare Diagnostics",
-    summary: "Researchers at Stanford University announce a groundbreaking AI system that can diagnose rare diseases with 95% accuracy, potentially revolutionizing healthcare worldwide.",
-    content: `
-      <p>In a groundbreaking development that could transform the landscape of medical diagnostics, researchers at Stanford University have unveiled an artificial intelligence system capable of diagnosing rare diseases with unprecedented accuracy.</p>
-      
-      <p>The new AI system, dubbed "MedAI-Pro," has demonstrated an impressive 95% accuracy rate in identifying rare genetic disorders, autoimmune conditions, and complex syndromes that often stump even experienced physicians. This breakthrough represents a significant leap forward in the application of machine learning to healthcare.</p>
-      
-      <h2>Revolutionary Technology</h2>
-      
-      <p>The system works by analyzing a combination of patient symptoms, medical history, genetic markers, and imaging data. Unlike traditional diagnostic approaches that rely heavily on physician experience and intuition, MedAI-Pro processes vast amounts of medical literature and case studies to identify patterns invisible to the human eye.</p>
-      
-      <p>"What makes this system truly revolutionary is its ability to consider thousands of variables simultaneously," explains Dr. Sarah Chen, lead researcher on the project. "It can identify subtle correlations between symptoms that might seem unrelated to human physicians."</p>
-      
-      <h2>Real-World Impact</h2>
-      
-      <p>The implications of this technology extend far beyond academic research. For patients suffering from rare diseases, early and accurate diagnosis can mean the difference between effective treatment and years of uncertainty.</p>
-      
-      <p>Current statistics show that patients with rare diseases often wait an average of 7 years for an accurate diagnosis, visiting multiple specialists and undergoing numerous tests. MedAI-Pro could potentially reduce this timeline to weeks or even days.</p>
-      
-      <h2>Clinical Trials and Future Implementation</h2>
-      
-      <p>The research team has already begun clinical trials at three major medical centers across the United States. Initial results from the pilot program show promising outcomes, with the AI system successfully identifying conditions that had previously gone undiagnosed for months or years.</p>
-      
-      <p>Dr. Michael Rodriguez, Chief of Medicine at UCLA Medical Center, who is overseeing one of the trial sites, notes: "We've seen cases where MedAI-Pro identified rare genetic disorders in children who had been seen by dozens of specialists without a definitive diagnosis."</p>
-      
-      <h2>Challenges and Considerations</h2>
-      
-      <p>Despite the promising results, the researchers acknowledge several challenges that must be addressed before widespread implementation. These include ensuring patient data privacy, integrating the system with existing hospital infrastructure, and training medical staff to work effectively with AI-assisted diagnostics.</p>
-      
-      <p>Regulatory approval from the FDA will also be required before the system can be deployed in clinical settings. The research team expects this process to take approximately 18-24 months.</p>
-      
-      <h2>Looking Ahead</h2>
-      
-      <p>As the medical field continues to embrace artificial intelligence, developments like MedAI-Pro represent just the beginning of a technological revolution in healthcare. The potential for AI to augment human expertise and improve patient outcomes appears virtually limitless.</p>
-      
-      <p>The research team plans to expand the system's capabilities to include more common diseases and conditions, with the ultimate goal of creating a comprehensive diagnostic assistant that could be used in medical facilities worldwide.</p>
-    `,
-    imageUrl: '/api/placeholder/1200/600',
-    category: 'Technology',
-    publishedAt: '2024-08-02T14:30:00Z',
-    updatedAt: '2024-08-02T15:45:00Z',
-    readingTime: 8,
-    author: {
-      name: 'Dr. Alex Kumar',
-      bio: 'Medical technology journalist with 15 years of experience covering AI in healthcare.',
-      avatar: '/api/placeholder/150/150'
-    },
-    tags: ['AI', 'Healthcare', 'Machine Learning', 'Medical Technology', 'Stanford University'],
-    isBreaking: true,
-    viewCount: 12847,
-    shareCount: 342
-  };
+  // Load article from database
+  useEffect(() => {
+    const loadArticle = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const loadedArticle = await dbApi.getArticle(slug);
+        if (loadedArticle) {
+          setArticle(loadedArticle as ArticleData);
+          // Load related articles from same category
+          if (loadedArticle.category?.slug) {
+            const related = await dbApi.getArticlesByCategory(loadedArticle.category.slug, 3);
+            // Filter out current article
+            setRelatedArticles(related.filter(a => a.slug !== slug));
+          }
+        } else {
+          setError('Article not found');
+        }
+      } catch (err) {
+        console.error('Error loading article:', err);
+        setError('Failed to load article');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const relatedArticles = [
-    {
-      id: 2,
-      title: 'The Future of Telemedicine in Rural Areas',
-      imageUrl: '/api/placeholder/300/200',
-      category: 'Healthcare',
-      readingTime: 5
-    },
-    {
-      id: 3,
-      title: 'How AI is Revolutionizing Drug Discovery',
-      imageUrl: '/api/placeholder/300/200',
-      category: 'Technology',
-      readingTime: 6
-    },
-    {
-      id: 4,
-      title: 'Medical Ethics in the Age of Artificial Intelligence',
-      imageUrl: '/api/placeholder/300/200',
-      category: 'Healthcare',
-      readingTime: 7
-    }
-  ];
+    loadArticle();
+  }, [slug]);
 
   // Track reading progress
   useEffect(() => {
     const handleScroll = () => {
-      const article = document.getElementById('article-content');
-      if (article) {
+      const articleElement = document.getElementById('article-content');
+      if (articleElement) {
         const scrollTop = window.scrollY;
-        const docHeight = article.offsetHeight;
+        const docHeight = articleElement.offsetHeight;
         const winHeight = window.innerHeight;
         const scrollPercent = scrollTop / (docHeight - winHeight);
         const progress = Math.min(100, Math.max(0, scrollPercent * 100));
@@ -110,8 +84,9 @@ const ArticleDetailPage: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -121,8 +96,9 @@ const ArticleDetailPage: React.FC = () => {
   };
 
   const shareArticle = (platform: string) => {
+    if (!article) return;
     const url = window.location.href;
-    const title = article.title;
+    const title = article.title || '';
     
     switch (platform) {
       case 'twitter':
@@ -141,6 +117,54 @@ const ArticleDetailPage: React.FC = () => {
     }
     setShowShareMenu(false);
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto py-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="animate-pulse">
+              <div className="h-8 bg-muted rounded w-1/4 mb-4"></div>
+              <div className="h-12 bg-muted rounded w-3/4 mb-4"></div>
+              <div className="h-6 bg-muted rounded w-1/2 mb-8"></div>
+              <div className="h-96 bg-muted rounded mb-8"></div>
+              <div className="space-y-4">
+                <div className="h-4 bg-muted rounded"></div>
+                <div className="h-4 bg-muted rounded w-5/6"></div>
+                <div className="h-4 bg-muted rounded w-4/6"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !article) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">📰</div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Article Not Found</h3>
+          <p className="text-muted-foreground mb-4">{error || 'This article may have been removed or is not available.'}</p>
+          <Link
+            href="/"
+            className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90"
+          >
+            Go to Homepage
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const categoryName = article.category?.name || 'News';
+  const categorySlug = article.category?.slug || 'news';
+  const authorName = article.author || 'NewsTRNT Staff';
+  const articleTags = article.tags || [];
+  const publishedAt = article.published_at || new Date();
 
   return (
     <div className="min-h-screen bg-background">
@@ -161,8 +185,8 @@ const ArticleDetailPage: React.FC = () => {
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Link href="/" className="hover:text-primary">Home</Link>
                 <span>/</span>
-                <Link href={`/category/${article.category.toLowerCase()}`} className="hover:text-primary">
-                  {article.category}
+                <Link href={`/category/${categorySlug}`} className="hover:text-primary">
+                  {categoryName}
                 </Link>
                 <span>/</span>
                 <span className="text-foreground">Article</span>
@@ -178,13 +202,10 @@ const ArticleDetailPage: React.FC = () => {
                   </span>
                 )}
                 <span className="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 px-3 py-1 rounded-lg text-sm font-semibold">
-                  {article.category}
+                  {categoryName}
                 </span>
                 <span className="text-muted-foreground text-sm">
-                  {article.readingTime} min read
-                </span>
-                <span className="text-muted-foreground text-sm">
-                  {article.viewCount.toLocaleString()} views
+                  {article.readingTime || 5} min read
                 </span>
               </div>
               
@@ -193,22 +214,18 @@ const ArticleDetailPage: React.FC = () => {
               </h1>
               
               <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
-                {article.summary}
+                {article.summary || article.excerpt || ''}
               </p>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <Image
-                    src={article.author.avatar}
-                    alt={article.author.name}
-                    width={48}
-                    height={48}
-                    className="rounded-full"
-                  />
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                    <span className="text-xl">👤</span>
+                  </div>
                   <div>
-                    <div className="font-semibold text-foreground">{article.author.name}</div>
+                    <div className="font-semibold text-foreground">{authorName}</div>
                     <div className="text-sm text-muted-foreground">
-                      Published {formatDate(article.publishedAt)}
+                      Published {formatDate(publishedAt)}
                     </div>
                   </div>
                 </div>
@@ -270,8 +287,8 @@ const ArticleDetailPage: React.FC = () => {
             <div className="mb-8">
               <div className="relative w-full h-96 md:h-[500px]">
                 <Image
-                  src={article.imageUrl}
-                  alt={article.title}
+                  src={article.imageUrl || '/api/placeholder/800/500'}
+                  alt={article.title || 'Article image'}
                   fill
                   className="object-cover rounded-lg"
                   priority
@@ -301,22 +318,26 @@ const ArticleDetailPage: React.FC = () => {
                     prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
                     prose-blockquote:text-muted-foreground prose-blockquote:border-l-primary prose-blockquote:italic
                     dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: article.content }}
+                  dangerouslySetInnerHTML={{ __html: article.content || '' }}
                 />
 
                 {/* Tags */}
                 <div className="mt-8 pt-8 border-t border-border">
                   <h3 className="text-lg font-semibold text-foreground mb-4">Tags</h3>
                   <div className="flex flex-wrap gap-2">
-                    {article.tags.map((tag) => (
-                      <Link
-                        key={tag}
-                        href={`/search?q=${encodeURIComponent(tag)}`}
-                        className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-primary/10 hover:text-primary transition-colors"
-                      >
-                        #{tag}
-                      </Link>
-                    ))}
+                    {articleTags.length > 0 ? (
+                      articleTags.map((tag) => (
+                        <Link
+                          key={tag}
+                          href={`/search?q=${encodeURIComponent(tag)}`}
+                          className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-primary/10 hover:text-primary transition-colors"
+                        >
+                          #{tag}
+                        </Link>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground text-sm">No tags</span>
+                    )}
                   </div>
                 </div>
 
@@ -324,23 +345,24 @@ const ArticleDetailPage: React.FC = () => {
                 <div className="mt-8 pt-8 border-t border-border">
                   <div className="bg-muted/50 rounded-lg p-6">
                     <div className="flex items-start space-x-4">
-                      <Image
-                        src={article.author.avatar}
-                        alt={article.author.name}
-                        width={80}
-                        height={80}
-                        className="rounded-full"
-                      />
+                      <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-3xl">👤</span>
+                      </div>
                       <div>
                         <h3 className="text-lg font-semibold text-foreground mb-2">
-                          About {article.author.name}
+                          About {authorName}
                         </h3>
                         <p className="text-muted-foreground text-sm">
-                          {article.author.bio}
+                          NewsTRNT contributor delivering quality journalism and insightful news coverage.
                         </p>
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Comments Section */}
+                <div className="mt-8">
+                  <CommentSection articleId={article.id || ''} />
                 </div>
               </div>
 
@@ -350,28 +372,36 @@ const ArticleDetailPage: React.FC = () => {
                 <div className="bg-card rounded-lg shadow-sm p-6 sticky top-20 border border-border">
                   <h3 className="text-lg font-bold text-foreground mb-4">Related Articles</h3>
                   <div className="space-y-4">
-                    {relatedArticles.map((relatedArticle) => (
-                      <Link key={relatedArticle.id} href={`/article/${relatedArticle.id}`}>
-                        <div className="group cursor-pointer">
-                          <div className="relative w-full h-24 mb-2">
-                            <Image
-                              src={relatedArticle.imageUrl}
-                              alt={relatedArticle.title}
-                              fill
-                              className="object-cover rounded"
-                            />
+                    {relatedArticles.length > 0 ? (
+                      relatedArticles.map((relatedArticle) => (
+                        <Link key={relatedArticle.id} href={getContentUrl(relatedArticle)}>
+                          <div className="group cursor-pointer">
+                            <div className="relative w-full h-24 mb-2 bg-muted rounded overflow-hidden">
+                              {relatedArticle.imageUrl ? (
+                                <Image
+                                  src={relatedArticle.imageUrl}
+                                  alt={relatedArticle.title}
+                                  fill
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-2xl">📰</div>
+                              )}
+                            </div>
+                            <h4 className="font-medium text-foreground text-sm group-hover:text-primary line-clamp-2">
+                              {relatedArticle.title}
+                            </h4>
+                            <div className="flex items-center space-x-2 mt-1 text-xs text-muted-foreground">
+                              <span>{relatedArticle.category?.name || 'News'}</span>
+                              <span>•</span>
+                              <span>{relatedArticle.readingTime || 5} min read</span>
+                            </div>
                           </div>
-                          <h4 className="font-medium text-foreground text-sm group-hover:text-primary line-clamp-2">
-                            {relatedArticle.title}
-                          </h4>
-                          <div className="flex items-center space-x-2 mt-1 text-xs text-muted-foreground">
-                            <span>{relatedArticle.category}</span>
-                            <span>•</span>
-                            <span>{relatedArticle.readingTime} min read</span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm">No related articles found</p>
+                    )}
                   </div>
                 </div>
               </div>

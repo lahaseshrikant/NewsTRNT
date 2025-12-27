@@ -136,31 +136,6 @@ const SitemapPage: React.FC = () => {
             ))}
           </div>
           
-          {/* Quick Stats */}
-          <div className="mt-12 bg-card rounded-lg border border-border p-8">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-6">Platform Statistics</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-1">38+</div>
-                  <div className="text-sm text-muted-foreground">Total Pages</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-1">8</div>
-                  <div className="text-sm text-muted-foreground">News Categories</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-1">6</div>
-                  <div className="text-sm text-muted-foreground">Core Services</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-1">100%</div>
-                  <div className="text-sm text-muted-foreground">Mobile Responsive</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
           {/* Search Suggestion */}
           <div className="mt-8 text-center">
             <p className="text-muted-foreground mb-4">

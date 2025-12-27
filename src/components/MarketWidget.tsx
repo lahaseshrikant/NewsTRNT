@@ -124,6 +124,15 @@ export default function MarketWidget({
     );
   }
 
+  // Debug logging
+  console.log('[MarketWidget] State:', {
+    location: location?.country,
+    indicesCount: indices.length,
+    indices: indices.map(i => i.symbol),
+    isLoading,
+    error,
+  });
+
   const tabs = [
     { id: 'indices' as const, label: 'Indices', show: true, count: indices.length },
     { id: 'commodities' as const, label: 'Commodities', show: showCommodities, count: commodities.length },
@@ -246,26 +255,46 @@ export default function MarketWidget({
           <IndexList indices={indices.slice(0, maxItems)} />
         )}
         {activeTab === 'commodities' && (
-          <CommodityList commodities={commodities.slice(0, maxItems)} />
+          <CommodityList commodities={commodities.slice(0, maxItems)} localCurrency={selectedCurrency.code} />
         )}
         {activeTab === 'currencies' && (
           <CurrencyList currencies={currencies.slice(0, maxItems)} localCurrency={selectedCurrency.code} />
         )}
         {activeTab === 'crypto' && (
-          <CryptoList cryptocurrencies={cryptocurrencies.slice(0, maxItems)} />
+          <CryptoList cryptocurrencies={cryptocurrencies.slice(0, maxItems)} localCurrency={selectedCurrency.code} />
         )}
       </div>
     </div>
   );
 }
 
-// Helper function to format currency
-function formatCurrency(value: number, currencyCode: string): string {
+// Helper function to format currency - handles NaN and undefined
+function formatCurrency(value: number | undefined | null, currencyCode: string): string {
+  if (value === undefined || value === null || isNaN(value)) {
+    return '—';
+  }
   const symbol = Object.values(CURRENCY_SYMBOLS).find(c => c.code === currencyCode)?.symbol || '$';
   return `${symbol}${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-// Index List Component
+// Helper function to safely format number with toFixed - handles NaN
+function safeToFixed(value: number | undefined | null, decimals: number = 2): string {
+  if (value === undefined || value === null || isNaN(value)) {
+    return '0.00';
+  }
+  return value.toFixed(decimals);
+}
+
+// Helper to format change with sign
+function formatChange(value: number | undefined | null, decimals: number = 2): string {
+  if (value === undefined || value === null || isNaN(value)) {
+    return '0.00';
+  }
+  const prefix = value >= 0 ? '+' : '';
+  return `${prefix}${value.toFixed(decimals)}`;
+}
+
+// Index List Component - Enhanced with priority badges
 function IndexList({ indices }: { indices: MarketIndex[] }) {
   if (indices.length === 0) {
     return <EmptyState message="No indices available" />;
@@ -273,220 +302,237 @@ function IndexList({ indices }: { indices: MarketIndex[] }) {
 
   return (
     <div className="space-y-3">
-      {indices.map(index => (
-        <div
-          key={index.id}
-          className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors"
-        >
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground truncate">
-              {index.symbol}
-            </p>
-            <p className="text-sm text-muted-foreground truncate">
-              {index.name}
-            </p>
+      {indices.map((index, idx) => {
+        // Type assertion for extended properties from API
+        const extendedIndex = index as MarketIndex & { 
+          isLocal?: boolean; 
+          isGlobalPopular?: boolean;
+          priority?: number;
+        };
+        
+        return (
+          <div
+            key={index.id}
+            className={`flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors ${
+              extendedIndex.isLocal ? 'bg-primary/5 border-l-2 border-primary' : ''
+            }`}
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-foreground truncate">
+                  {index.symbol}
+                </p>
+                {/* Priority badges */}
+                {extendedIndex.isLocal && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded">
+                    LOCAL
+                  </span>
+                )}
+                {extendedIndex.isGlobalPopular && !extendedIndex.isLocal && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 rounded">
+                    GLOBAL
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground truncate">
+                {index.name}
+              </p>
+            </div>
+            <div className="text-right ml-4">
+              <p className="font-semibold text-foreground">
+                {formatCurrency(index.value, index.currency)}
+              </p>
+              <p className={`text-sm font-medium ${
+                (index.change ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {formatChange(index.change)} ({safeToFixed(index.changePercent)}%)
+              </p>
+            </div>
+            <MarketStatus isOpen={index.isOpen} />
           </div>
-          <div className="text-right ml-4">
-            <p className="font-semibold text-foreground">
-              {formatCurrency(index.value, index.currency)}
-            </p>
-            <p className={`text-sm font-medium ${
-              index.change >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {index.change >= 0 ? '+' : ''}{index.change.toFixed(2)} ({index.changePercent.toFixed(2)}%)
-            </p>
-          </div>
-          <MarketStatus isOpen={index.isOpen} />
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-// Commodity List Component
-function CommodityList({ commodities }: { commodities: Commodity[] }) {
+// Commodity List Component - Enhanced with local currency
+function CommodityList({ commodities, localCurrency }: { commodities: Commodity[]; localCurrency?: string }) {
   if (commodities.length === 0) {
     return <EmptyState message="No commodities available" />;
   }
 
   return (
     <div className="space-y-3">
-      {commodities.map(commodity => (
-        <div
-          key={commodity.id}
-          className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors"
-        >
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground truncate">
-              {commodity.name}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              per {commodity.unit}
-            </p>
+      {commodities.map(commodity => {
+        // Type assertion for extended properties
+        const extendedCommodity = commodity as Commodity & {
+          valueLocal?: number;
+          localCurrency?: string;
+        };
+        
+        return (
+          <div
+            key={commodity.id}
+            className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-foreground truncate">
+                {commodity.name}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                per {commodity.unit}
+              </p>
+            </div>
+            <div className="text-right ml-4">
+              <p className="font-semibold text-foreground">
+                ${safeToFixed(commodity.value)}
+              </p>
+              {/* Show local currency if available and different from USD */}
+              {extendedCommodity.valueLocal && extendedCommodity.localCurrency && extendedCommodity.localCurrency !== 'USD' && (
+                <p className="text-xs text-muted-foreground">
+                  ≈ {formatCurrency(extendedCommodity.valueLocal, extendedCommodity.localCurrency)}
+                </p>
+              )}
+              <p className={`text-sm font-medium ${
+                (commodity.change ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {formatChange(commodity.change)} ({safeToFixed(commodity.changePercent)}%)
+              </p>
+            </div>
           </div>
-          <div className="text-right ml-4">
-            <p className="font-semibold text-foreground">
-              {formatCurrency(commodity.value, commodity.currency)}
-            </p>
-            <p className={`text-sm font-medium ${
-              commodity.change >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {commodity.change >= 0 ? '+' : ''}{commodity.change.toFixed(2)} ({commodity.changePercent.toFixed(2)}%)
-            </p>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-// Currency List Component - Shows conversion rates for local currency
+// Currency List Component - Shows real currency rates from database
 function CurrencyList({ currencies, localCurrency }: { currencies: Currency[]; localCurrency?: string }) {
-  // If we have a local currency, create conversion rates for it
-  const conversionRates = localCurrency ? [
-    { from: localCurrency, to: 'USD', label: `${localCurrency} to US Dollar` },
-    { from: localCurrency, to: 'EUR', label: `${localCurrency} to Euro` },
-    { from: localCurrency, to: 'GBP', label: `${localCurrency} to British Pound` },
-    { from: localCurrency, to: 'JPY', label: `${localCurrency} to Japanese Yen` },
-    { from: localCurrency, to: 'CNY', label: `${localCurrency} to Chinese Yuan` },
-    { from: localCurrency, to: 'AUD', label: `${localCurrency} to Australian Dollar` },
-    { from: localCurrency, to: 'CAD', label: `${localCurrency} to Canadian Dollar` },
-    { from: localCurrency, to: 'CHF', label: `${localCurrency} to Swiss Franc` },
-  ].filter(rate => rate.from !== rate.to) : [];
-
-  // Currency conversion rates (mock data)
-  const CURRENCY_RATES: Record<string, number> = {
-    USD: 1, INR: 83.12, GBP: 0.79, EUR: 0.92, JPY: 149.50, CNY: 7.24,
-    AUD: 1.53, CAD: 1.36, BRL: 4.98, MXN: 17.15, RUB: 92.50, KRW: 1310.50,
-    CHF: 0.88, HKD: 7.82, SGD: 1.34, SAR: 3.75, AED: 3.67, ZAR: 18.20,
-  };
-
-  // Calculate conversion rate
-  const getConversionRate = (from: string, to: string): number => {
-    const fromRate = CURRENCY_RATES[from] || 1;
-    const toRate = CURRENCY_RATES[to] || 1;
-    return toRate / fromRate;
-  };
-
-  if (conversionRates.length > 0) {
-    return (
-      <div className="space-y-3">
-        <div className="text-sm text-muted-foreground mb-4">
-          Exchange rates for {localCurrency}
-        </div>
-        {conversionRates.map((rate, index) => {
-          const conversionRate = getConversionRate(rate.from, rate.to);
-          const previousRate = conversionRate * (1 + (Math.random() - 0.5) * 0.01);
-          const change = conversionRate - previousRate;
-          const changePercent = (change / previousRate) * 100;
-          
-          return (
-            <div
-              key={`${rate.from}-${rate.to}-${index}`}
-              className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground">
-                  {rate.from}/{rate.to}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {rate.label}
-                </p>
-              </div>
-              <div className="text-right ml-4">
-                <p className="font-semibold text-foreground">
-                  {conversionRate.toFixed(4)}
-                </p>
-                <p className={`text-sm font-medium ${
-                  change >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {change >= 0 ? '+' : ''}{change.toFixed(4)} ({changePercent.toFixed(2)}%)
-                </p>
-              </div>
-              <div className="ml-2">
-                <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                </svg>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // Fallback to default currencies if no local currency
+  // Use real currency data from API - no mock data
   if (currencies.length === 0) {
-    return <EmptyState message="No currencies available" />;
+    return <EmptyState message="No currency data available. Ensure market data is updating." />;
   }
 
   return (
     <div className="space-y-3">
-      {currencies.map(currency => (
-        <div
-          key={currency.id}
-          className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors"
-        >
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground">
-              {currency.pair}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {currency.baseCurrency} / {currency.quoteCurrency}
-            </p>
-          </div>
-          <div className="text-right ml-4">
-            <p className="font-semibold text-foreground">
-              {currency.rate.toFixed(4)}
-            </p>
-            <p className={`text-sm font-medium ${
-              currency.change >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {currency.change >= 0 ? '+' : ''}{currency.change.toFixed(4)} ({currency.changePercent.toFixed(2)}%)
-            </p>
-          </div>
+      {localCurrency && (
+        <div className="text-sm text-muted-foreground mb-4">
+          Exchange rates from {localCurrency}
         </div>
-      ))}
+      )}
+      {currencies.map(currency => {
+        // Type assertion for extended properties
+        const extendedCurrency = currency as Currency & {
+          isPopular?: boolean;
+          priority?: number;
+        };
+        
+        return (
+          <div
+            key={currency.id}
+            className={`flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors ${
+              extendedCurrency.isPopular ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''
+            }`}
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-foreground">
+                  {currency.pair}
+                </p>
+                {extendedCurrency.isPopular && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded">
+                    MAJOR
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                1 {currency.baseCurrency} = {safeToFixed(currency.rate, 4)} {currency.quoteCurrency}
+              </p>
+            </div>
+            <div className="text-right ml-4">
+              <p className="font-semibold text-foreground text-lg">
+                {safeToFixed(currency.rate, 4)}
+              </p>
+            </div>
+            <div className="ml-2">
+              <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+              </svg>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-// Crypto List Component
-function CryptoList({ cryptocurrencies }: { cryptocurrencies: CryptoCurrency[] }) {
+// Crypto List Component - Enhanced with local currency and popularity badges
+function CryptoList({ cryptocurrencies, localCurrency }: { cryptocurrencies: CryptoCurrency[]; localCurrency?: string }) {
   if (cryptocurrencies.length === 0) {
     return <EmptyState message="No cryptocurrencies available" />;
   }
 
   return (
     <div className="space-y-3">
-      {cryptocurrencies.map(crypto => (
-        <div
-          key={crypto.id}
-          className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors"
-        >
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground">
-              {crypto.symbol}
-            </p>
-            <p className="text-sm text-muted-foreground truncate">
-              {crypto.name}
-            </p>
+      {cryptocurrencies.map(crypto => {
+        // Type assertion for extended properties
+        const extendedCrypto = crypto as CryptoCurrency & {
+          valueLocal?: number;
+          localCurrency?: string;
+          isPopular?: boolean;
+          priority?: number;
+        };
+        
+        return (
+          <div
+            key={crypto.id}
+            className={`flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors ${
+              extendedCrypto.isPopular ? 'bg-amber-50/50 dark:bg-amber-950/20' : ''
+            }`}
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-foreground">
+                  {crypto.symbol}
+                </p>
+                {extendedCrypto.priority === 1 && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 rounded">
+                    #1
+                  </span>
+                )}
+                {extendedCrypto.priority === 2 && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded">
+                    #2
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground truncate">
+                {crypto.name}
+              </p>
+            </div>
+            <div className="text-right ml-4">
+              <p className="font-semibold text-foreground">
+                ${safeToFixed(crypto.value, crypto.value < 1 ? 6 : 2)}
+              </p>
+              {/* Show local currency if available and different from USD */}
+              {extendedCrypto.valueLocal && extendedCrypto.localCurrency && extendedCrypto.localCurrency !== 'USD' && (
+                <p className="text-xs text-muted-foreground">
+                  ≈ {formatCurrency(extendedCrypto.valueLocal, extendedCrypto.localCurrency)}
+                </p>
+              )}
+              <p className={`text-sm font-medium ${
+                (crypto.changePercent ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {formatChange(crypto.changePercent)}%
+              </p>
+            </div>
+            <div className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded">
+              24/7
+            </div>
           </div>
-          <div className="text-right ml-4">
-            <p className="font-semibold text-foreground">
-              {formatCurrency(crypto.value, crypto.currency)}
-            </p>
-            <p className={`text-sm font-medium ${
-              crypto.change >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {crypto.change >= 0 ? '+' : ''}{crypto.changePercent.toFixed(2)}%
-            </p>
-          </div>
-          <div className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-            24/7
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

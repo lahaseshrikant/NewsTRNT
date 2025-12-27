@@ -18,7 +18,7 @@ I've integrated real market data APIs into your news platform! Here's what's rea
 - ✅ `src/app/api/market/crypto/route.ts` - Updated for real crypto data
 - ✅ `src/app/api/market/currencies/route.ts` - Updated for real exchange rates
 - ✅ `src/app/api/market/test-connectivity/route.ts` - API test endpoint
-- ✅ `src/app/test-market-api/page.tsx` - Beautiful test UI
+- ✅ `src/app/admin/market-data/page.tsx` - Beautiful admin monitoring UI
 - ✅ `.env.local` - Environment variables added
 - ✅ `REAL-MARKET-DATA-SETUP.md` - Complete documentation
 
@@ -29,7 +29,7 @@ I've integrated real market data APIs into your news platform! Here's what's rea
 npm run dev
 ```
 
-Visit: **http://localhost:3000/test-market-api**
+Visit: **http://localhost:3000/admin/market-data**
 
 You'll see:
 - ✅ CoinGecko (Crypto) - Already working!
@@ -56,7 +56,7 @@ ENABLE_REAL_MARKET_DATA="true"
 npm run dev
 ```
 
-Visit: **http://localhost:3000/test-market-api** again
+Visit: **http://localhost:3000/admin/market-data** again
 
 Now you should see 3/4 or 4/4 APIs connected! 🎉
 
@@ -175,7 +175,7 @@ Full documentation available in:
 ### "No data showing"
 - Check `.env.local` has correct API keys
 - Restart dev server after changing `.env.local`
-- Visit `/test-market-api` to check connectivity
+- Visit `/admin/market-data` to check connectivity
 
 ### "Rate limit exceeded"
 - Wait a minute and try again
@@ -213,6 +213,6 @@ Your market data integration is complete! The app now:
 - ✅ Shows real prices in local currencies
 - ✅ Updates automatically in real-time
 
-**Start here**: http://localhost:3000/test-market-api
+**Start here**: http://localhost:3000/admin/market-data
 
 Have fun with real market data! 📈🚀

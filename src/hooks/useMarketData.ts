@@ -50,10 +50,16 @@ export function useMarketData(options: UseMarketDataOptions = {}): UseMarketData
 
       // Get user location
       const userLocation = await getUserLocation();
+      console.log('[useMarketData] Location detected:', userLocation);
       setLocation(userLocation);
 
       // Fetch market data for user's country
       const marketData = await getMarketDataByCountry(userLocation.country);
+      console.log('[useMarketData] Market data received:', {
+        country: userLocation.country,
+        indicesCount: marketData.indices.length,
+        indices: marketData.indices.map(i => i.symbol),
+      });
 
       setIndices(marketData.indices);
       setCommodities(marketData.commodities);

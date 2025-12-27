@@ -12,6 +12,9 @@ import categoryRoutes from './routes/categories';
 import webstoriesRoutes from './routes/webstories';
 import healthRoutes from './routes/health';
 import debugRoutes from './routes/debug';
+import statsRoutes from './routes/stats';
+import commentsRoutes from './routes/comments';
+import userPreferencesRoutes from './routes/user-preferences';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -68,6 +71,9 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/webstories', webstoriesRoutes);
 app.use('/api', healthRoutes);
 app.use('/api/debug', debugRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/comments', commentsRoutes);
+app.use('/api/user', userPreferencesRoutes);
 
 // Health check (legacy endpoint for compatibility)
 app.get('/api/health', (req, res) => {

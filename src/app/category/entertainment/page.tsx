@@ -4,13 +4,43 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+
+const formatPublishedTime = (publishedAt: string | Date) => {
+  const now = new Date();
+  const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
+  const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'Just now';
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 48) return 'Yesterday';
+  return `${Math.floor(diffInHours / 24)} days ago`;
+};
 
 const EntertainmentCategoryPage: React.FC = () => {
   const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'analysis' | 'opinion'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
-  const [articles, setArticles] = useState<any[]>([]);
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        setLoading(true);
+        const articles = await dbApi.getArticlesByCategory('entertainment', 30);
+        if (Array.isArray(articles)) {
+          setAllArticles(articles);
+        }
+      } catch (error) {
+        console.error('Error loading articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArticles();
+  }, []);
 
   const contentTypes = [
     { value: 'all', label: 'All Content' },
@@ -28,111 +58,15 @@ const EntertainmentCategoryPage: React.FC = () => {
   ];
 
   const subCategories = [
-    { id: 'all', label: 'All Entertainment', count: 245 },
-    { id: 'movies', label: 'Movies', count: 78 },
-    { id: 'music', label: 'Music', count: 62 },
-    { id: 'tv', label: 'TV Shows', count: 54 },
-    { id: 'celebrity', label: 'Celebrity News', count: 51 }
+    { id: 'all', label: 'All Entertainment', count: allArticles.length },
+    { id: 'movies', label: 'Movies', count: allArticles.filter(a => a.category?.slug === 'movies').length || 0 },
+    { id: 'music', label: 'Music', count: allArticles.filter(a => a.category?.slug === 'music').length || 0 },
+    { id: 'tv', label: 'TV Shows', count: allArticles.filter(a => a.category?.slug === 'tv').length || 0 },
+    { id: 'celebrity', label: 'Celebrity News', count: allArticles.filter(a => a.category?.slug === 'celebrity').length || 0 }
   ];
-
-  // Mock entertainment articles data
-  const entertainmentArticles = [
-    {
-      id: 1,
-      title: 'Marvel Studios Announces Phase 6 Timeline with Surprising New Characters',
-      summary: 'Kevin Feige reveals unexpected heroes joining the MCU in upcoming films, including classic comic book favorites.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '2 hours ago',
-      readingTime: 5,
-      isBreaking: true,
-      author: 'Jessica Martinez',
-      category: 'Movies',
-      contentType: 'news' as const,
-      subCategory: 'movies',
-      views: 15200
-    },
-    {
-      id: 2,
-      title: 'Grammy Awards 2025: Complete Winners List and Show Highlights',
-      summary: 'Music\'s biggest night celebrates diverse talents with record-breaking performances and emotional acceptance speeches.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '4 hours ago',
-      readingTime: 7,
-      isBreaking: false,
-      author: 'David Thompson',
-      category: 'Music',
-      contentType: 'article' as const,
-      subCategory: 'music',
-      views: 11800
-    },
-    {
-      id: 3,
-      title: 'Netflix Original Series Breaks Streaming Records in First Week',
-      summary: 'New sci-fi thriller surpasses 100 million hours watched, becoming platform\'s most successful debut.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '6 hours ago',
-      readingTime: 4,
-      isBreaking: false,
-      author: 'Amanda Clark',
-      category: 'TV Shows',
-      contentType: 'news' as const,
-      subCategory: 'tv',
-      views: 9400
-    },
-    {
-      id: 4,
-      title: 'Broadway Reopens Historic Theater After $50 Million Renovation',
-      summary: 'Legendary venue returns with state-of-the-art technology while preserving century-old architectural charm.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '8 hours ago',
-      readingTime: 3,
-      isBreaking: false,
-      author: 'Robert Lee',
-      category: 'Theater',
-      contentType: 'review' as const,
-      subCategory: 'celebrity',
-      views: 6700
-    },
-    {
-      id: 5,
-      title: 'AI Technology Revolutionizes Film Production with Virtual Sets',
-      summary: 'Major studios adopt advanced LED wall technology, reducing costs and environmental impact.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '12 hours ago',
-      readingTime: 6,
-      isBreaking: false,
-      author: 'Sarah Williams',
-      category: 'Technology',
-      contentType: 'analysis' as const,
-      subCategory: 'movies',
-      views: 8200
-    },
-    {
-      id: 6,
-      title: 'International Film Festival Announces Diverse Lineup for 2025',
-      summary: 'Cannes Film Festival features record number of female directors and emerging market productions.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '1 day ago',
-      readingTime: 4,
-      isBreaking: false,
-      author: 'Michelle Garcia',
-      category: 'Film Festivals',
-      contentType: 'article' as const,
-      subCategory: 'movies',
-      views: 5900
-    }
-  ];
-
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setArticles(entertainmentArticles);
-      setLoading(false);
-    }, 800);
-  }, []);
 
   const filteredArticles = () => {
-    let filtered = [...entertainmentArticles];
+    let filtered = [...allArticles];
 
     // Filter by content type
     if (contentType !== 'all') {
@@ -141,14 +75,14 @@ const EntertainmentCategoryPage: React.FC = () => {
 
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
+      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
     }
 
     // Sort articles
     if (sortBy === 'trending') {
-      filtered.sort((a, b) => b.views - a.views);
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
     } else if (sortBy === 'popular') {
-      filtered.sort((a, b) => b.readingTime - a.readingTime);
+      filtered.sort((a, b) => (b.readingTime || 0) - (a.readingTime || 0));
     } else if (sortBy === 'breaking') {
       filtered = filtered.filter(article => article.isBreaking);
     }
@@ -193,12 +127,6 @@ const EntertainmentCategoryPage: React.FC = () => {
                 Movies, music, TV & celebrity news
               </p>
             </div>
-            <div className="hidden lg:block">
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
-                <div className="text-lg font-bold text-primary">245</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
-              </div>
-            </div>
           </div>
 
           {/* Content type tabs moved below header into compact filter bar */}
@@ -216,9 +144,6 @@ const EntertainmentCategoryPage: React.FC = () => {
                 }`}
               >
                 {subCat.label}
-                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
-                  {subCat.count}
-                </span>
               </button>
             ))}
           </div>
@@ -278,7 +203,7 @@ const EntertainmentCategoryPage: React.FC = () => {
                   <div className={`flex ${index === 0 && sortBy === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
                     <div className={`relative ${index === 0 && sortBy === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
                       <Image
-                        src={article.imageUrl}
+                        src={article.imageUrl || '/api/placeholder/600/300'}
                         alt={article.title}
                         width={600}
                         height={300}
@@ -296,12 +221,12 @@ const EntertainmentCategoryPage: React.FC = () => {
                     <div className={`p-6 flex-1 ${index === 0 && sortBy === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
                       <div className="flex items-center space-x-2 mb-3">
                         <span className="bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/20 dark:text-fuchsia-300 px-2 py-1 rounded text-xs font-medium">
-                          {article.category}
+                          {article.category?.name || 'Entertainment'}
                         </span>
-                        <span className="text-muted-foreground text-sm">{article.readingTime} min read</span>
+                        <span className="text-muted-foreground text-sm">{article.readingTime || 5} min read</span>
                       </div>
                       
-                      <Link href={`/article/${article.id}`}>
+                      <Link href={getContentUrl(article)}>
                         <h2 className={`font-bold text-foreground mb-3 hover:text-primary cursor-pointer transition-colors ${
                           index === 0 && sortBy === 'latest' ? 'text-2xl' : 'text-lg'
                         }`}>
@@ -314,8 +239,8 @@ const EntertainmentCategoryPage: React.FC = () => {
                       </p>
                       
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>By {article.author}</span>
-                        <span>{article.publishedAt}</span>
+                        <span>By {article.author || 'Staff Writer'}</span>
+                        <span>{formatPublishedTime(article.published_at)}</span>
                       </div>
                     </div>
                   </div>
@@ -342,9 +267,6 @@ const EntertainmentCategoryPage: React.FC = () => {
                       className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors"
                     >
                       <span className="font-medium text-foreground">{category.name}</span>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${category.color}`}>
-                        {category.count}
-                      </span>
                     </Link>
                   ))}
                 </div>
@@ -356,17 +278,14 @@ const EntertainmentCategoryPage: React.FC = () => {
                   <div className="text-3xl mb-3">🔥</div>
                   <h3 className="text-lg font-bold text-foreground mb-2">Trending Now</h3>
                   <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between p-2 bg-background/50 rounded">
+                    <div className="p-2 bg-background/50 rounded">
                       <span className="text-foreground">#MarvelPhase6</span>
-                      <span className="text-muted-foreground">125K tweets</span>
                     </div>
-                    <div className="flex items-center justify-between p-2 bg-background/50 rounded">
+                    <div className="p-2 bg-background/50 rounded">
                       <span className="text-foreground">#Grammys2025</span>
-                      <span className="text-muted-foreground">89K tweets</span>
                     </div>
-                    <div className="flex items-center justify-between p-2 bg-background/50 rounded">
+                    <div className="p-2 bg-background/50 rounded">
                       <span className="text-foreground">#NetflixOriginal</span>
-                      <span className="text-muted-foreground">67K tweets</span>
                     </div>
                   </div>
                 </div>

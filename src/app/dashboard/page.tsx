@@ -16,58 +16,81 @@ import {
 } from '@heroicons/react/24/outline';
 import ArticleCard from '@/components/ArticleCard';
 import Loading from '@/components/Loading';
+import { dbApi, Article } from '@/lib/database-real';
+
+interface DashboardArticle {
+  id: string;
+  title: string;
+  summary: string;
+  category: string;
+  publishedAt: string;
+  readingTime: number;
+  imageUrl: string;
+  slug: string;
+  isBreaking: boolean;
+  likes: number;
+  views: number;
+  comments: number;
+}
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(true);
+  const [recentReads, setRecentReads] = useState<DashboardArticle[]>([]);
   
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Mock user data
-  const userData = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    avatar: '/api/placeholder/150/150',
-    totalReads: 247,
-    savedArticles: 23,
-    readingStreak: 7,
-    totalReadingTime: 1420 // minutes
+  // Format relative time
+  const formatRelativeTime = (dateString: string | Date) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    return date.toLocaleDateString();
   };
 
-  const recentReads = [
-    {
-      id: 1,
-      title: 'AI Revolution in Healthcare',
-      summary: 'Latest breakthroughs in AI-powered medical diagnosis.',
-      category: 'Technology',
-      publishedAt: '2 hours ago',
-      readingTime: 5,
-      imageUrl: '/api/placeholder/400/200',
-      slug: 'ai-revolution-healthcare',
-      isBreaking: false,
-      likes: 124,
-      views: 2341,
-      comments: 32
-    },
-    {
-      id: 2,
-      title: 'Global Climate Summit Agreement',
-      summary: 'World leaders unite to establish carbon reduction targets.',
-      category: 'Environment',
-      publishedAt: '1 day ago',
-      readingTime: 3,
-      imageUrl: '/api/placeholder/400/200',
-      slug: 'climate-summit-agreement',
-      isBreaking: false,
-      likes: 89,
-      views: 1567,
-      comments: 18
-    }
-  ];
+  // Load articles from database
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const articles = await dbApi.getArticles({ limit: 5 });
+        const formattedArticles: DashboardArticle[] = articles.map((article: Article) => ({
+          id: article.id,
+          title: article.title,
+          summary: article.summary || article.excerpt || '',
+          category: article.category?.name || 'Uncategorized',
+          publishedAt: formatRelativeTime(article.published_at),
+          readingTime: article.readingTime || 3,
+          imageUrl: article.imageUrl || '/api/placeholder/400/200',
+          slug: article.slug,
+          isBreaking: article.isBreaking || false,
+          likes: article.likes || 0,
+          views: article.views || 0,
+          comments: 0
+        }));
+        setRecentReads(formattedArticles);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // User data - would come from auth context in a real app
+  const userData = {
+    name: 'User',
+    email: 'user@example.com',
+    avatar: '/api/placeholder/150/150',
+    totalReads: recentReads.length,
+    savedArticles: 0,
+    readingStreak: 1,
+    totalReadingTime: 0
+  };
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: ChartBarIcon },
@@ -119,45 +142,6 @@ export default function DashboardPage() {
           <div className="text-center">
             <div className="text-2xl font-bold">{Math.round(userData.totalReadingTime / 60)}h</div>
             <div className="text-sm text-blue-100">Reading Time</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <EyeIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-semibold text-foreground">Today's Reads</h3>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">12</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
-              <ClockIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-semibold text-foreground">Reading Time</h3>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">1h 23m</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-          <div className="flex items-center">
-            <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
-              <FireIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-semibold text-foreground">Streak</h3>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{userData.readingStreak} days</p>
-            </div>
           </div>
         </div>
       </div>

@@ -944,12 +944,247 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
   }
 });
 
+// GET /api/articles/type/:contentType - Get articles by content type (public)
+router.get('/type/:contentType', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    const { contentType } = req.params;
+    const {
+      page = '1',
+      limit = '20',
+      category
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build where clause
+    const where: any = {
+      contentType,
+      isDeleted: false,
+      isPublished: true,
+      publishedAt: { lte: new Date() }
+    };
+
+    // Optional category filter
+    if (category && category !== 'all') {
+      where.category = {
+        slug: category as string
+      };
+    }
+
+    const articles = await prisma.article.findMany({
+      where,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true
+          }
+        },
+        createdByUser: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        }
+      },
+      orderBy: {
+        publishedAt: 'desc'
+      },
+      skip,
+      take: limitNum
+    });
+
+    const total = await prisma.article.count({ where });
+
+    const transformedArticles = articles.map(article => ({
+      ...article,
+      status: 'published',
+      author: article.createdByUser?.fullName || article.author || 'NewsTRNT Staff',
+      authorType: article.authorType || 'staff',
+      contentType: article.contentType || 'article'
+    }));
+
+    res.json({
+      success: true,
+      articles: transformedArticles,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+        hasNext: pageNum < Math.ceil(total / limitNum),
+        hasPrev: pageNum > 1
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching articles by content type:', error);
+    res.status(500).json({ error: 'Failed to fetch articles by content type' });
+  }
+});
+
+// GET /api/articles/category/:slug - Get articles by category (public)
+router.get('/category/:slug', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    const { slug } = req.params;
+    const {
+      limit = '20',
+      contentType
+    } = req.query;
+
+    const limitNum = parseInt(limit as string);
+
+    // Find category by slug
+    const category = await prisma.category.findUnique({
+      where: { slug }
+    });
+
+    if (!category) {
+      res.json({
+        success: true,
+        articles: []
+      });
+      return;
+    }
+
+    // Build where clause
+    const where: any = {
+      categoryId: category.id,
+      isDeleted: false,
+      isPublished: true,
+      publishedAt: { lte: new Date() }
+    };
+
+    if (contentType && contentType !== 'all') {
+      where.contentType = contentType as string;
+    }
+
+    const articles = await prisma.article.findMany({
+      where,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true
+          }
+        },
+        createdByUser: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        }
+      },
+      orderBy: {
+        publishedAt: 'desc'
+      },
+      take: limitNum
+    });
+
+    const transformedArticles = articles.map(article => ({
+      ...article,
+      status: 'published',
+      author: article.createdByUser?.fullName || article.author || 'NewsTRNT Staff',
+      authorType: article.authorType || 'staff',
+      contentType: article.contentType || 'article'
+    }));
+
+    res.json(transformedArticles);
+
+  } catch (error) {
+    console.error('Error fetching articles by category:', error);
+    res.status(500).json({ error: 'Failed to fetch articles by category' });
+  }
+});
+
+// GET /api/articles/search - Search articles (public)
+router.get('/search', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    const {
+      q = '',
+      limit = '20',
+      contentType
+    } = req.query;
+
+    const limitNum = parseInt(limit as string);
+    const searchQuery = (q as string).trim();
+
+    if (!searchQuery) {
+      res.json({
+        success: true,
+        articles: []
+      });
+      return;
+    }
+
+    // Build where clause
+    const where: any = {
+      isDeleted: false,
+      isPublished: true,
+      publishedAt: { lte: new Date() },
+      OR: [
+        { title: { contains: searchQuery, mode: 'insensitive' } },
+        { content: { contains: searchQuery, mode: 'insensitive' } },
+        { summary: { contains: searchQuery, mode: 'insensitive' } }
+      ]
+    };
+
+    if (contentType && contentType !== 'all') {
+      where.contentType = contentType as string;
+    }
+
+    const articles = await prisma.article.findMany({
+      where,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true
+          }
+        },
+        createdByUser: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        }
+      },
+      orderBy: {
+        publishedAt: 'desc'
+      },
+      take: limitNum
+    });
+
+    const transformedArticles = articles.map(article => ({
+      ...article,
+      status: 'published',
+      author: article.createdByUser?.fullName || article.author || 'NewsTRNT Staff',
+      authorType: article.authorType || 'staff',
+      contentType: article.contentType || 'article'
+    }));
+
+    res.json(transformedArticles);
+
+  } catch (error) {
+    console.error('Error searching articles:', error);
+    res.status(500).json({ error: 'Failed to search articles' });
+  }
+});
+
 // GET /api/articles/:slug - Get single published article by slug (no auth required)
 router.get('/:slug', optionalAuth, async (req: AuthRequest, res) => {
   try {
     const { slug } = req.params;
 
-    const article = await prisma.article.findUnique({
+    const article = await prisma.article.findFirst({
       where: { 
         slug,
         isPublished: true,
@@ -990,8 +1225,9 @@ router.get('/:slug', optionalAuth, async (req: AuthRequest, res) => {
     const transformedArticle = {
       ...article,
       status: 'published',
-      author: article.createdByUser,
-      tags: article.tags.map((articleTag: any) => articleTag.tag.name)
+      author: article.author || article.createdByUser?.fullName || 'NewsTRNT Staff',
+      tags: article.tags.map((articleTag: any) => articleTag.tag.name),
+      views: article.viewCount + 1
     };
 
     res.json({

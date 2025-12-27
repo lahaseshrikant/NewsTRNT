@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
 import ContactInfo from '@/components/ContactInfo';
-import { siteConfig, getContactByDepartment, siteMetrics } from '@/config/site';
+import { siteConfig, getContactByDepartment } from '@/config/site';
 
 const AdvertisePage: React.FC = () => {
   const [selectedPackage, setSelectedPackage] = useState('premium');
@@ -121,11 +121,12 @@ const AdvertisePage: React.FC = () => {
     }
   ];
 
+  // Professional value propositions instead of showing raw numbers
   const audienceData = [
-    { metric: 'Monthly Visitors', value: siteMetrics.monthlyVisitors, icon: '👥' },
-    { metric: 'Page Views', value: siteMetrics.pageViews, icon: '📊' },
-    { metric: 'Email Subscribers', value: siteMetrics.emailSubscribers, icon: '📧' },
-    { metric: 'Social Followers', value: siteMetrics.socialFollowers, icon: '📱' }
+    { metric: 'Targeted Reach', value: 'Engaged Readers', icon: '👥' },
+    { metric: 'Quality Content', value: 'AI-Curated', icon: '📊' },
+    { metric: 'Multi-Platform', value: 'Web & Mobile', icon: '📧' },
+    { metric: 'Growing Audience', value: 'Expanding Daily', icon: '📱' }
   ];
 
   const demographics = [
@@ -169,9 +170,6 @@ const AdvertisePage: React.FC = () => {
             <h2 className="text-3xl font-bold text-foreground mb-4">Our Reach</h2>
             <p className="text-lg text-muted-foreground">
               Connect with our highly engaged, educated audience
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Average session time: {siteMetrics.averageSessionTime} | Returning users: {siteMetrics.returningUsers}
             </p>
           </div>
 
@@ -308,7 +306,7 @@ const AdvertisePage: React.FC = () => {
                 {
                   icon: '📈',
                   title: 'High Engagement',
-                  description: `Our readers are highly engaged with average session times of ${siteMetrics.averageSessionTime}`
+                  description: 'Our readers are highly engaged with quality content curated by AI technology'
                 },
                 {
                   icon: '💡',
