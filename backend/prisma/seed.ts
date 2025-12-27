@@ -274,6 +274,244 @@ The trend shows no signs of slowing, with industry experts predicting we could s
       isFeatured: true,
       readingTime: 6,
       tags: [tags[2], tags[3]] // Startups, Innovation
+    },
+    // Politics Article
+    {
+      title: 'Historic Election Reform Bill Passes Congress with Bipartisan Support',
+      slug: 'historic-election-reform-bill-passes-congress',
+      summary: 'Landmark legislation aims to modernize voting infrastructure and increase accessibility for all Americans.',
+      content: `In a rare display of bipartisan cooperation, Congress has passed the most comprehensive election reform legislation in decades, promising to modernize voting systems and expand access to the ballot box.
+
+The Election Modernization and Accessibility Act passed the House 312-118 and the Senate 72-28, securing enough votes to override any potential veto.
+
+**Key Provisions Include:**
+
+• **Automatic Voter Registration**: Citizens will be automatically registered when obtaining driver's licenses or government IDs
+• **Early Voting Expansion**: Mandates at least 14 days of early voting in all states
+• **Voting Infrastructure Upgrade**: $5 billion for states to upgrade aging voting machines and cybersecurity
+• **Mail-In Voting Standards**: Establishes uniform standards for mail-in ballot processing
+
+"This is what democracy looks like when we work together," said Senator Maria Gonzalez, the bill's lead sponsor. "We've created a framework that makes voting easier while maintaining security."
+
+The legislation comes after years of contentious debate over voting rights and election security. Supporters argue it strikes a careful balance between accessibility and integrity.
+
+However, critics on both sides remain concerned. Some argue the bill doesn't go far enough in protecting voting rights, while others worry about potential fraud risks.
+
+Implementation will be phased in over the next two years, with full compliance required by the 2026 midterm elections.`,
+      categoryId: categories[1].id, // Politics
+      createdBy: adminUser.id,
+      imageUrl: '/api/placeholder/800/400',
+      isBreaking: false,
+      isFeatured: true,
+      isTrending: true,
+      readingTime: 4,
+      tags: [tags[0]] // Breaking
+    },
+    // Health Article
+    {
+      title: 'Revolutionary mRNA Vaccine Shows 98% Effectiveness Against New Flu Strain',
+      slug: 'mrna-vaccine-98-effectiveness-new-flu-strain',
+      summary: 'Building on COVID-19 vaccine technology, scientists develop highly effective universal flu vaccine.',
+      content: `Scientists have announced a breakthrough in influenza prevention, with a new mRNA-based vaccine demonstrating 98% effectiveness against multiple flu strains in Phase 3 clinical trials.
+
+The vaccine, developed by a collaboration between Moderna and the National Institutes of Health, represents a major advancement in flu prevention technology.
+
+**Trial Results:**
+
+• **98% Efficacy**: Against all tested flu strains including H1N1, H3N2, and influenza B
+• **85,000 Participants**: The largest flu vaccine trial in history
+• **Long-lasting Protection**: Immunity maintained for at least 18 months
+• **Minimal Side Effects**: Similar to existing COVID-19 vaccines
+
+"This is the holy grail of flu vaccines," said Dr. Anthony Marcus, lead researcher on the trial. "We're potentially looking at a single shot that could replace annual flu vaccinations."
+
+The vaccine works by targeting conserved regions of the influenza virus that rarely mutate, providing broad protection against current and future strains.
+
+**Public Health Impact:**
+
+Seasonal flu kills between 290,000 and 650,000 people globally each year. A highly effective universal vaccine could prevent the majority of these deaths.
+
+The FDA has granted fast-track designation, with potential approval expected by Fall 2025. Manufacturing capacity is already being scaled to meet anticipated global demand.`,
+      categoryId: categories[4].id, // Health
+      createdBy: adminUser.id,
+      imageUrl: '/api/placeholder/800/400',
+      isBreaking: true,
+      isFeatured: true,
+      readingTime: 4,
+      tags: [tags[0], tags[3]] // Breaking, Innovation
+    },
+    // Sports Article
+    {
+      title: 'Underdog Team Wins Championship in Historic Overtime Thriller',
+      slug: 'underdog-team-wins-championship-overtime-thriller',
+      summary: 'In one of the greatest games ever played, the underdogs complete an improbable journey to claim the title.',
+      content: `In a finish that will be replayed for generations, the underdog team completed their Cinderella run with a dramatic overtime victory to claim the championship title.
+
+The game, which many are already calling the greatest in the sport's history, featured multiple lead changes, buzzer-beating shots, and a performance for the ages.
+
+**Game Highlights:**
+
+• **Final Score**: 112-109 in double overtime
+• **MVP Performance**: Star player scored 47 points, including the game-winning shot
+• **Comeback Kings**: Team overcame a 15-point deficit in the fourth quarter
+• **Record Viewership**: 48 million viewers, the most-watched championship in a decade
+
+"I can't believe this is real," said the team captain, fighting back tears. "We were 200-to-1 odds at the start of the season. Nobody believed in us except us."
+
+The victory caps an remarkable season for the franchise, which hadn't won a championship in 52 years. Fans who had waited their entire lives flooded the streets in celebration.
+
+**Historic Context:**
+
+The team becomes the first 8th seed to win the championship since the league's expansion. Their playoff run included victories over three teams that had been ranked #1 during the regular season.
+
+A victory parade is scheduled for downtown this weekend, with officials expecting over 1 million fans to attend.`,
+      categoryId: categories[5].id, // Sports
+      createdBy: adminUser.id,
+      imageUrl: '/api/placeholder/800/400',
+      isBreaking: false,
+      isFeatured: false,
+      isTrending: true,
+      readingTime: 4,
+      tags: [tags[0]] // Breaking
+    },
+    // Science Article
+    {
+      title: 'Scientists Achieve Nuclear Fusion Milestone: Net Energy Gain Confirmed',
+      slug: 'scientists-achieve-nuclear-fusion-milestone-net-energy-gain',
+      summary: 'Breakthrough at national laboratory produces more energy than consumed, marking pivotal moment for clean energy.',
+      content: `In what scientists are calling a "Wright Brothers moment" for clean energy, researchers at the National Ignition Facility have achieved a confirmed net energy gain from nuclear fusion for the first time in history.
+
+The breakthrough, which has been decades in the making, could eventually lead to virtually limitless clean energy.
+
+**The Achievement:**
+
+• **Energy Output**: 3.15 megajoules produced from 2.05 megajoules of laser input
+• **Net Gain**: 54% more energy out than put in
+• **Reproducibility**: Successfully replicated in three subsequent experiments
+• **Temperature**: Achieved conditions hotter than the center of the sun
+
+"This is the moment we've been working toward for 60 years," said Dr. Kim Budil, director of Lawrence Livermore National Laboratory. "We have proven that fusion ignition is possible."
+
+**How It Works:**
+
+Unlike nuclear fission (which powers current nuclear plants by splitting atoms), fusion combines light atoms under extreme pressure and heat to release energy – the same process that powers the sun.
+
+**Path to Commercial Power:**
+
+While today's achievement is historic, commercial fusion power plants are still likely 20-30 years away. The next step involves developing reactors that can sustain fusion reactions continuously.
+
+The breakthrough has already sparked a surge in private investment, with several fusion startups reporting record funding rounds in the days following the announcement.`,
+      categoryId: categories[3].id, // Science
+      createdBy: adminUser.id,
+      imageUrl: '/api/placeholder/800/400',
+      isBreaking: true,
+      isFeatured: true,
+      isTrending: true,
+      readingTime: 5,
+      tags: [tags[0], tags[3]] // Breaking, Innovation
+    },
+    // More Tech Articles
+    {
+      title: 'Apple Unveils Revolutionary AR Glasses at Surprise Event',
+      slug: 'apple-unveils-revolutionary-ar-glasses-surprise-event',
+      summary: 'The long-rumored Apple Glass finally arrives, promising to transform how we interact with the digital world.',
+      content: `Apple has officially entered the augmented reality market with the unveiling of Apple Glass, a sleek pair of AR glasses that CEO Tim Cook called "the most advanced consumer electronics device ever created."
+
+The surprise announcement, made at Apple's Cupertino headquarters, sent the company's stock to all-time highs and sparked predictions of a new era in personal computing.
+
+**Key Features:**
+
+• **All-Day Battery**: 12 hours of continuous use
+• **Prescription Compatible**: Works with most prescription lens types
+• **Spatial Computing**: Full integration with Apple's ecosystem
+• **Privacy-First Design**: No camera indicator lights, strict data controls
+
+"This isn't about replacing your iPhone," Cook explained. "This is about seamlessly blending digital information with your physical world."
+
+The glasses feature transparent displays that overlay digital content onto the real world, from navigation arrows on sidewalks to floating message notifications.
+
+**Price and Availability:**
+
+• **Apple Glass**: Starting at $1,299
+• **Available**: March 2025
+• **Pre-orders**: Begin January 15
+
+Industry analysts predict Apple Glass could generate $10-15 billion in first-year sales, creating a new major product category for the company.`,
+      categoryId: categories[0].id, // Technology
+      createdBy: adminUser.id,
+      imageUrl: '/api/placeholder/800/400',
+      isBreaking: false,
+      isFeatured: true,
+      isTrending: true,
+      readingTime: 4,
+      tags: [tags[1], tags[3]] // AI, Innovation
+    },
+    // Business News
+    {
+      title: 'Federal Reserve Announces Interest Rate Pivot, Markets Rally',
+      slug: 'federal-reserve-announces-interest-rate-pivot-markets-rally',
+      summary: 'Central bank signals end of rate hiking cycle, triggering broad market gains.',
+      content: `The Federal Reserve has announced a significant shift in monetary policy, signaling the end of its aggressive rate-hiking campaign and sending financial markets to record highs.
+
+Fed Chair Jerome Powell's statement indicated that inflation has been sufficiently contained and that the central bank will begin cutting rates in the first quarter of next year.
+
+**Market Reaction:**
+
+• **S&P 500**: Up 2.8%, largest single-day gain in two years
+• **Nasdaq**: Up 3.5%, tech stocks lead the rally
+• **10-Year Treasury**: Yield drops to 3.8%
+• **Bitcoin**: Surges past $50,000
+
+"We've achieved what we set out to do," Powell said in his press conference. "The economy is cooling at an appropriate pace, and inflation is trending back to our 2% target."
+
+**Rate Cut Expectations:**
+
+Markets are now pricing in 4-5 rate cuts over the next 12 months, bringing the fed funds rate from the current 5.25-5.50% range down to around 4%.
+
+**Economic Outlook:**
+
+The Fed's updated projections show:
+• GDP Growth: 2.1% for 2025
+• Unemployment: 4.2% expected peak
+• Core Inflation: 2.4% by year-end 2025
+
+Economists broadly welcomed the pivot, though some cautioned that declaring victory over inflation may be premature.`,
+      categoryId: categories[2].id, // Business
+      createdBy: adminUser.id,
+      imageUrl: '/api/placeholder/800/400',
+      isBreaking: true,
+      isFeatured: false,
+      isTrending: true,
+      readingTime: 4,
+      tags: [tags[0]] // Breaking
+    },
+    // Health Short News
+    {
+      title: 'New Study Links Daily Walking to 40% Lower Heart Disease Risk',
+      slug: 'new-study-links-daily-walking-lower-heart-disease-risk',
+      summary: 'Research confirms that even moderate daily exercise significantly reduces cardiovascular risk.',
+      content: `A comprehensive study involving 150,000 participants has found that walking just 30 minutes a day reduces heart disease risk by 40%, reinforcing the power of simple, accessible exercise.
+
+The research, published in the Journal of the American Heart Association, tracked participants over 15 years.
+
+**Key Findings:**
+
+• **40% Risk Reduction**: For those walking 30+ minutes daily
+• **25% Reduction**: For those walking 15-30 minutes daily
+• **Dose Response**: More walking generally equals more benefit
+• **Age Independent**: Benefits observed across all age groups
+
+"You don't need a gym membership or expensive equipment," said lead researcher Dr. Helen Park. "Walking is medicine, and it's free."
+
+The study also found that breaking up walks throughout the day is just as effective as one continuous walk, making it easier for people with busy schedules to incorporate exercise.`,
+      categoryId: categories[4].id, // Health
+      createdBy: adminUser.id,
+      imageUrl: '/api/placeholder/800/400',
+      isBreaking: false,
+      isFeatured: false,
+      isTrending: false,
+      readingTime: 3,
+      tags: []
     }
   ];
 
@@ -282,9 +520,13 @@ The trend shows no signs of slowing, with industry experts predicting we could s
     
     const article = await prisma.article.upsert({
       where: { slug: articleWithoutTags.slug },
-      update: {},
+      update: {
+        isPublished: true,
+        publishedAt: new Date()
+      },
       create: {
         ...articleWithoutTags,
+        isPublished: true,
         publishedAt: new Date()
       }
     });
@@ -309,7 +551,7 @@ The trend shows no signs of slowing, with industry experts predicting we could s
     console.log('✅ Article created:', article.title);
   }
 
-  // Create Web Stories
+  // Create Web Stories with full slide data matching frontend interface
   const webStories = [
     {
       title: 'Climate Summit 2024: Key Highlights',
@@ -317,22 +559,54 @@ The trend shows no signs of slowing, with industry experts predicting we could s
       categoryId: categories[3].id, // Science
       slides: [
         {
+          id: 'slide-1',
           type: 'image',
-          content: '/api/placeholder/400/600',
-          text: 'Climate Summit 2024 brings world leaders together',
-          duration: 15
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          content: {
+            headline: 'Climate Summit 2024',
+            text: 'World leaders gather in Dubai for crucial climate discussions that could shape our planet\'s future',
+            image: '/api/placeholder/400/700'
+          },
+          duration: 6000
         },
         {
-          type: 'image',
-          content: '/api/placeholder/400/600',
-          text: '$500B pledged for renewable energy initiatives',
-          duration: 15
+          id: 'slide-2',
+          type: 'text',
+          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+          content: {
+            headline: '195 Countries Participate',
+            text: 'The largest climate summit in history brings together world leaders, activists, and scientists to address the climate crisis'
+          },
+          duration: 5000
         },
         {
+          id: 'slide-3',
           type: 'image',
-          content: '/api/placeholder/400/600',
-          text: 'Historic agreement on carbon emission reduction',
-          duration: 15
+          background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+          content: {
+            headline: '$100B Climate Fund Launched',
+            text: 'Historic funding commitment to help developing nations transition to renewable energy',
+            image: '/api/placeholder/400/700',
+            cta: {
+              text: 'See More',
+              url: '/web-stories'
+            }
+          },
+          duration: 6000
+        },
+        {
+          id: 'slide-4',
+          type: 'text',
+          background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+          content: {
+            headline: 'What\'s Next?',
+            text: 'Countries have 6 months to submit their updated climate action plans. The next summit will be held in 2025.',
+            cta: {
+              text: 'Stay Updated',
+              url: '/newsletter'
+            }
+          },
+          duration: 5000
         }
       ],
       status: 'published',
@@ -352,39 +626,269 @@ The trend shows no signs of slowing, with industry experts predicting we could s
       categoryId: categories[0].id, // Technology
       slides: [
         {
+          id: 'slide-1',
           type: 'image',
-          content: '/api/placeholder/400/600',
-          text: 'AI transforms medical diagnosis accuracy',
-          duration: 15
+          background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+          content: {
+            headline: 'AI Transforms Healthcare',
+            text: 'Revolutionary breakthroughs in medical diagnosis',
+            image: '/api/placeholder/400/600'
+          },
+          duration: 6000
         },
         {
-          type: 'image',
-          content: '/api/placeholder/400/600',
-          text: 'Machine learning predicts diseases early',
-          duration: 15
+          id: 'slide-2',
+          type: 'text',
+          background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+          content: {
+            headline: '95% Accuracy Rate',
+            text: 'AI models now outperform human doctors in early detection of rare diseases'
+          },
+          duration: 5000
         },
         {
+          id: 'slide-3',
           type: 'image',
-          content: '/api/placeholder/400/600',
-          text: 'Robotic surgery reaches new precision levels',
-          duration: 15
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          content: {
+            headline: 'Robotic Surgery',
+            text: 'Precision surgeries with AI-assisted robotic systems',
+            image: '/api/placeholder/400/600'
+          },
+          duration: 6000
         },
         {
-          type: 'image',
-          content: '/api/placeholder/400/600',
-          text: 'Future of personalized medicine',
-          duration: 15
+          id: 'slide-4',
+          type: 'text',
+          background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+          content: {
+            headline: 'Future of Medicine',
+            text: 'Personalized treatments based on AI analysis of patient data',
+            cta: {
+              text: 'Learn More',
+              url: '/category/technology'
+            }
+          },
+          duration: 5000
         }
       ],
       status: 'published',
-      author: 'Tech Team',
+      author: 'Tech News',
       duration: 60,
       coverImage: '/api/placeholder/400/600',
       isFeature: false,
       priority: 'normal',
-      viewCount: 8320,
+      viewCount: 8920,
       likeCount: 654,
       shareCount: 187,
+      createdBy: adminUser.id
+    },
+    {
+      title: 'Space Mission Success',
+      slug: 'space-mission-success-2024',
+      categoryId: categories[3].id, // Science
+      slides: [
+        {
+          id: 'slide-1',
+          type: 'image',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          content: {
+            headline: 'Mars Mission Update',
+            text: 'Historic rover landing sends first images from the red planet',
+            image: '/api/placeholder/400/600'
+          },
+          duration: 6000
+        },
+        {
+          id: 'slide-2',
+          type: 'text',
+          background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+          content: {
+            headline: 'Water Discovery',
+            text: 'Scientists confirm presence of subsurface water ice'
+          },
+          duration: 5000
+        },
+        {
+          id: 'slide-3',
+          type: 'image',
+          background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+          content: {
+            headline: 'Next Steps',
+            text: 'Preparing for the first human mission to Mars by 2030',
+            image: '/api/placeholder/400/600',
+            cta: {
+              text: 'Explore More',
+              url: '/category/science'
+            }
+          },
+          duration: 6000
+        }
+      ],
+      status: 'published',
+      author: 'Space Desk',
+      duration: 50,
+      coverImage: '/api/placeholder/400/600',
+      isFeature: true,
+      priority: 'high',
+      viewCount: 15670,
+      likeCount: 1234,
+      shareCount: 456,
+      createdBy: adminUser.id
+    },
+    {
+      title: 'Economic Outlook 2024',
+      slug: 'economic-outlook-2024',
+      categoryId: categories[2].id, // Business
+      slides: [
+        {
+          id: 'slide-1',
+          type: 'text',
+          background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+          content: {
+            headline: 'Market Outlook 2024',
+            text: 'Expert predictions for the global economy'
+          },
+          duration: 5000
+        },
+        {
+          id: 'slide-2',
+          type: 'text',
+          background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+          content: {
+            headline: 'Growth Sectors',
+            text: 'Tech, healthcare, and renewable energy lead the way'
+          },
+          duration: 5000
+        },
+        {
+          id: 'slide-3',
+          type: 'text',
+          background: 'linear-gradient(135deg, #3182CE 0%, #63b3ed 100%)',
+          content: {
+            headline: 'Investment Tips',
+            text: 'Diversification remains key in volatile markets',
+            cta: {
+              text: 'Read Analysis',
+              url: '/category/business'
+            }
+          },
+          duration: 5000
+        }
+      ],
+      status: 'published',
+      author: 'Business Team',
+      duration: 40,
+      coverImage: '/api/placeholder/400/600',
+      isFeature: false,
+      priority: 'normal',
+      viewCount: 7430,
+      likeCount: 345,
+      shareCount: 123,
+      createdBy: adminUser.id
+    },
+    {
+      title: 'Sports Championship Finals',
+      slug: 'sports-championship-finals-2024',
+      categoryId: categories[5].id, // Sports
+      slides: [
+        {
+          id: 'slide-1',
+          type: 'image',
+          background: 'linear-gradient(135deg, #EA580C 0%, #f97316 100%)',
+          content: {
+            headline: 'Championship Finals',
+            text: 'The most anticipated matchup of the year',
+            image: '/api/placeholder/400/600'
+          },
+          duration: 5000
+        },
+        {
+          id: 'slide-2',
+          type: 'text',
+          background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+          content: {
+            headline: 'Record Attendance',
+            text: '100,000 fans pack the stadium for historic game'
+          },
+          duration: 5000
+        },
+        {
+          id: 'slide-3',
+          type: 'text',
+          background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+          content: {
+            headline: 'Final Score',
+            text: 'Underdogs clinch victory in overtime thriller',
+            cta: {
+              text: 'See Highlights',
+              url: '/category/sports'
+            }
+          },
+          duration: 5000
+        }
+      ],
+      status: 'published',
+      author: 'Sports Desk',
+      duration: 35,
+      coverImage: '/api/placeholder/400/600',
+      isFeature: true,
+      priority: 'high',
+      viewCount: 22100,
+      likeCount: 2345,
+      shareCount: 789,
+      createdBy: adminUser.id
+    },
+    {
+      title: 'Health & Wellness Trends',
+      slug: 'health-wellness-trends-2024',
+      categoryId: categories[4].id, // Health
+      slides: [
+        {
+          id: 'slide-1',
+          type: 'image',
+          background: 'linear-gradient(135deg, #DB2777 0%, #ec4899 100%)',
+          content: {
+            headline: 'Wellness Revolution',
+            text: 'New approaches to mental and physical health',
+            image: '/api/placeholder/400/600'
+          },
+          duration: 5000
+        },
+        {
+          id: 'slide-2',
+          type: 'text',
+          background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
+          content: {
+            headline: 'Mental Health Focus',
+            text: 'Workplaces prioritize employee wellbeing'
+          },
+          duration: 5000
+        },
+        {
+          id: 'slide-3',
+          type: 'text',
+          background: 'linear-gradient(135deg, #059669 0%, #34d399 100%)',
+          content: {
+            headline: 'Nutrition Science',
+            text: 'Personalized diets based on genetic testing',
+            cta: {
+              text: 'Learn More',
+              url: '/category/health'
+            }
+          },
+          duration: 5000
+        }
+      ],
+      status: 'published',
+      author: 'Health Team',
+      duration: 40,
+      coverImage: '/api/placeholder/400/600',
+      isFeature: false,
+      priority: 'normal',
+      viewCount: 9870,
+      likeCount: 567,
+      shareCount: 234,
       createdBy: adminUser.id
     },
     {
@@ -393,16 +897,25 @@ The trend shows no signs of slowing, with industry experts predicting we could s
       categoryId: categories[2].id, // Business
       slides: [
         {
+          id: 'slide-1',
           type: 'image',
-          content: '/api/placeholder/400/600',
-          text: '47 new unicorns emerge this quarter',
-          duration: 15
+          background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+          content: {
+            headline: 'Unicorn Boom',
+            text: '47 new unicorns emerge this quarter',
+            image: '/api/placeholder/400/600'
+          },
+          duration: 5000
         },
         {
-          type: 'image',
-          content: '/api/placeholder/400/600',
-          text: 'Record $150B in venture funding',
-          duration: 15
+          id: 'slide-2',
+          type: 'text',
+          background: 'linear-gradient(135deg, #3182CE 0%, #63b3ed 100%)',
+          content: {
+            headline: 'Record Funding',
+            text: '$150B in venture capital raised in 2024'
+          },
+          duration: 5000
         }
       ],
       status: 'draft',
@@ -414,6 +927,58 @@ The trend shows no signs of slowing, with industry experts predicting we could s
       viewCount: 0,
       likeCount: 0,
       shareCount: 0,
+      createdBy: adminUser.id
+    },
+    {
+      title: 'Political Landscape Update',
+      slug: 'political-landscape-2024',
+      categoryId: categories[1].id, // Politics
+      slides: [
+        {
+          id: 'slide-1',
+          type: 'image',
+          background: 'linear-gradient(135deg, #DC2626 0%, #ef4444 100%)',
+          content: {
+            headline: 'Election Updates',
+            text: 'Key developments in global elections',
+            image: '/api/placeholder/400/600'
+          },
+          duration: 5000
+        },
+        {
+          id: 'slide-2',
+          type: 'text',
+          background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+          content: {
+            headline: 'Policy Changes',
+            text: 'Major legislative updates across nations'
+          },
+          duration: 5000
+        },
+        {
+          id: 'slide-3',
+          type: 'text',
+          background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+          content: {
+            headline: 'What It Means',
+            text: 'Impact analysis of recent political shifts',
+            cta: {
+              text: 'Read More',
+              url: '/category/politics'
+            }
+          },
+          duration: 5000
+        }
+      ],
+      status: 'published',
+      author: 'Political Team',
+      duration: 45,
+      coverImage: '/api/placeholder/400/600',
+      isFeature: false,
+      priority: 'normal',
+      viewCount: 11230,
+      likeCount: 432,
+      shareCount: 321,
       createdBy: adminUser.id
     }
   ];

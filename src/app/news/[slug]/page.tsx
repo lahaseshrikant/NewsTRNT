@@ -26,7 +26,7 @@ interface ArticleData extends Partial<Article> {
   };
 }
 
-const ArticleDetailPage: React.FC = () => {
+const NewsDetailPage: React.FC = () => {
   const params = useParams();
   const slug = params.slug as string;
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -147,13 +147,13 @@ const ArticleDetailPage: React.FC = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📰</div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Article Not Found</h3>
-          <p className="text-muted-foreground mb-4">{error || 'This article may have been removed or is not available.'}</p>
+          <h3 className="text-lg font-semibold text-foreground mb-2">News Not Found</h3>
+          <p className="text-muted-foreground mb-4">{error || 'This news article may have been removed or is not available.'}</p>
           <Link
-            href="/"
+            href="/news"
             className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90"
           >
-            Go to Homepage
+            Browse News
           </Link>
         </div>
       </div>
@@ -171,25 +171,35 @@ const ArticleDetailPage: React.FC = () => {
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1 bg-muted/50 z-50">
         <div 
-          className="h-full bg-primary transition-all duration-100"
+          className="h-full bg-red-600 transition-all duration-100"
           style={{ width: `${readingProgress}%` }}
         ></div>
       </div>
 
+      {/* News Header Banner */}
+      <div className="bg-gradient-to-r from-red-600/10 to-orange-600/10 border-b border-border">
+        <div className="container mx-auto py-2">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="bg-red-600 text-white px-2 py-0.5 rounded text-xs font-bold">NEWS</span>
+            <span className="text-muted-foreground">Latest updates and breaking stories</span>
+          </div>
+        </div>
+      </div>
+
       {/* Article Header */}
       <article className="bg-card">
-  <div className="container mx-auto py-8">
+        <div className="container mx-auto py-8">
           <div className="max-w-4xl mx-auto">
             {/* Breadcrumb */}
             <nav className="mb-6">
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Link href="/" className="hover:text-primary">Home</Link>
                 <span>/</span>
+                <Link href="/news" className="hover:text-primary">News</Link>
+                <span>/</span>
                 <Link href={`/category/${categorySlug}`} className="hover:text-primary">
                   {categoryName}
                 </Link>
-                <span>/</span>
-                <span className="text-foreground">Article</span>
               </div>
             </nav>
 
@@ -197,15 +207,15 @@ const ArticleDetailPage: React.FC = () => {
             <div className="mb-6">
               <div className="flex items-center space-x-4 mb-4">
                 {article.isBreaking && (
-                  <span className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
-                    BREAKING
+                  <span className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold animate-pulse">
+                    🔴 BREAKING NEWS
                   </span>
                 )}
-                <span className="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 px-3 py-1 rounded-lg text-sm font-semibold">
+                <span className="bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 px-3 py-1 rounded-lg text-sm font-semibold">
                   {categoryName}
                 </span>
                 <span className="text-muted-foreground text-sm">
-                  {article.readingTime || 5} min read
+                  {article.readingTime || 3} min read
                 </span>
               </div>
               
@@ -219,7 +229,7 @@ const ArticleDetailPage: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-red-600/10 rounded-full flex items-center justify-center">
                     <span className="text-xl">👤</span>
                   </div>
                   <div>
@@ -234,7 +244,7 @@ const ArticleDetailPage: React.FC = () => {
                   <button
                     onClick={() => setIsBookmarked(!isBookmarked)}
                     className={`p-2 rounded-full transition-colors ${
-                      isBookmarked ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      isBookmarked ? 'bg-red-600/10 text-red-600' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     🔖
@@ -288,7 +298,7 @@ const ArticleDetailPage: React.FC = () => {
               <div className="relative w-full h-96 md:h-[500px]">
                 <Image
                   src={article.imageUrl || '/api/placeholder/800/500'}
-                  alt={article.title || 'Article image'}
+                  alt={article.title || 'News image'}
                   fill
                   className="object-cover rounded-lg"
                   priority
@@ -301,7 +311,7 @@ const ArticleDetailPage: React.FC = () => {
 
       {/* Article Content */}
       <div className="bg-card border-t border-border">
-  <div className="container mx-auto py-8">
+        <div className="container mx-auto py-8">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Main Content */}
@@ -316,7 +326,7 @@ const ArticleDetailPage: React.FC = () => {
                     prose-ul:text-foreground prose-ol:text-foreground prose-li:mb-2 prose-li:leading-relaxed
                     prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-b prose-h2:border-border prose-h2:pb-2
                     prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-                    prose-blockquote:text-muted-foreground prose-blockquote:border-l-primary prose-blockquote:italic
+                    prose-blockquote:text-muted-foreground prose-blockquote:border-l-red-600 prose-blockquote:italic
                     dark:prose-invert"
                   dangerouslySetInnerHTML={{ __html: article.content || '' }}
                 />
@@ -330,7 +340,7 @@ const ArticleDetailPage: React.FC = () => {
                         <Link
                           key={tag}
                           href={`/search?q=${encodeURIComponent(tag)}`}
-                          className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-primary/10 hover:text-primary transition-colors"
+                          className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-red-600/10 hover:text-red-600 transition-colors"
                         >
                           #{tag}
                         </Link>
@@ -343,9 +353,9 @@ const ArticleDetailPage: React.FC = () => {
 
                 {/* Author Bio */}
                 <div className="mt-8 pt-8 border-t border-border">
-                  <div className="bg-muted/50 rounded-lg p-6">
+                  <div className="bg-red-600/5 rounded-lg p-6 border border-red-600/10">
                     <div className="flex items-start space-x-4">
-                      <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-20 h-20 bg-red-600/10 rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-3xl">👤</span>
                       </div>
                       <div>
@@ -353,7 +363,7 @@ const ArticleDetailPage: React.FC = () => {
                           About {authorName}
                         </h3>
                         <p className="text-muted-foreground text-sm">
-                          NewsTRNT contributor delivering quality journalism and insightful news coverage.
+                          NewsTRNT contributor delivering quality journalism and breaking news coverage.
                         </p>
                       </div>
                     </div>
@@ -368,9 +378,9 @@ const ArticleDetailPage: React.FC = () => {
 
               {/* Sidebar */}
               <div className="lg:col-span-1">
-                {/* Related Articles */}
+                {/* Related News */}
                 <div className="bg-card rounded-lg shadow-sm p-6 sticky top-20 border border-border">
-                  <h3 className="text-lg font-bold text-foreground mb-4">Related Articles</h3>
+                  <h3 className="text-lg font-bold text-foreground mb-4">Related News</h3>
                   <div className="space-y-4">
                     {relatedArticles.length > 0 ? (
                       relatedArticles.map((relatedArticle) => (
@@ -388,20 +398,30 @@ const ArticleDetailPage: React.FC = () => {
                                 <div className="w-full h-full flex items-center justify-center text-2xl">📰</div>
                               )}
                             </div>
-                            <h4 className="font-medium text-foreground text-sm group-hover:text-primary line-clamp-2">
+                            <h4 className="font-medium text-foreground text-sm group-hover:text-red-600 line-clamp-2">
                               {relatedArticle.title}
                             </h4>
                             <div className="flex items-center space-x-2 mt-1 text-xs text-muted-foreground">
                               <span>{relatedArticle.category?.name || 'News'}</span>
                               <span>•</span>
-                              <span>{relatedArticle.readingTime || 5} min read</span>
+                              <span>{relatedArticle.readingTime || 3} min read</span>
                             </div>
                           </div>
                         </Link>
                       ))
                     ) : (
-                      <p className="text-muted-foreground text-sm">No related articles found</p>
+                      <p className="text-muted-foreground text-sm">No related news found</p>
                     )}
+                  </div>
+
+                  {/* More News Link */}
+                  <div className="mt-6 pt-4 border-t border-border">
+                    <Link
+                      href="/news"
+                      className="block text-center py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                    >
+                      More News →
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -413,4 +433,4 @@ const ArticleDetailPage: React.FC = () => {
   );
 };
 
-export default ArticleDetailPage;
+export default NewsDetailPage;

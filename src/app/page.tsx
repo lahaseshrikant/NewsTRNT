@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { dbApi, Article } from '../lib/database-real';
+import { dbApi, Article, WebStory } from '../lib/database-real';
 import { useCategories, Category } from '@/hooks/useCategories';
 import { getCategoryBadgeStyle, findCategoryByName } from '@/lib/categoryUtils';
+import { getContentUrl } from '@/lib/contentUtils';
 import NewsCard from '@/components/NewsCard';
 
 // Helper function to format published time
@@ -32,6 +33,7 @@ const HomePage: React.FC = () => {
   const [breakingNews, setBreakingNews] = useState<Article[]>([]);
   const [latestNews, setLatestNews] = useState<Article[]>([]);
   const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
+  const [webStories, setWebStories] = useState<WebStory[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Use the categories hook for dynamic category loading
@@ -61,17 +63,19 @@ const HomePage: React.FC = () => {
         setLoading(true);
         
         // Load different content types in parallel
-        const [breaking, news, featured, trending] = await Promise.all([
+        const [breaking, news, featured, trending, stories] = await Promise.all([
           dbApi.getBreakingNews(5),
           dbApi.getNews(8),
           dbApi.getFeaturedArticles(4),
-          dbApi.getTrendingArticles(6)
+          dbApi.getTrendingArticles(6),
+          dbApi.getWebStories({ limit: 6 })
         ]);
         
         if (Array.isArray(breaking)) setBreakingNews(breaking);
         if (Array.isArray(news)) setLatestNews(news);
         if (Array.isArray(featured)) setFeaturedArticles(featured);
         if (Array.isArray(trending)) setTrendingNews(trending);
+        if (Array.isArray(stories)) setWebStories(stories);
       } catch (error) {
         console.error('Error loading homepage data:', error);
       } finally {
@@ -93,46 +97,6 @@ const HomePage: React.FC = () => {
   // Mock user interests - in real app, this would come from user profile/preferences
   // Get user's top interests from dynamic categories (or use fallback)
   const userInterests = categories.slice(0, 4).map(cat => cat.name);
-  
-  // Generate personalized quick reads based on user interests
-  const personalizedQuickReads = [
-    {
-      id: 1,
-      title: "AI Breakthrough: New Chip Design Reduces Energy Consumption by 40%",
-      summary: "Revolutionary semiconductor architecture promises to make artificial intelligence more sustainable and accessible for everyday applications.",
-      time: "3 min ago",
-      words: "62 words",
-      category: "Technology",
-      userInterest: true
-    },
-    {
-      id: 2,
-      title: "Green Energy Investment Reaches Record $2.8 Trillion Globally",
-      summary: "Renewable energy sector sees unprecedented funding as countries accelerate transition to sustainable power sources.",
-      time: "12 min ago", 
-      words: "58 words",
-      category: "Environment",
-      userInterest: true
-    },
-    {
-      id: 3,
-      title: "New Study Links Mediterranean Diet to 25% Lower Heart Disease Risk",
-      summary: "Long-term research confirms significant cardiovascular benefits from traditional Mediterranean eating patterns and lifestyle choices.",
-      time: "25 min ago",
-      words: "55 words", 
-      category: "Health",
-      userInterest: true
-    },
-    {
-      id: 4,
-      title: "Startup Unicorns Hit All-Time High with 47 New Companies This Quarter",
-      summary: "Tech entrepreneurship thrives as venture capital funding creates record number of billion-dollar startup valuations.",
-      time: "45 min ago",
-      words: "59 words", 
-      category: "Business",
-      userInterest: true
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -198,7 +162,7 @@ const HomePage: React.FC = () => {
                   {breakingNews.map((article, index) => (
                     <Link 
                       key={article.id} 
-                      href={`/article/${article.slug}`}
+                      href={getContentUrl(article)}
                       className="inline-block hover:underline"
                     >
                       <span className="font-semibold">{article.title}</span>
@@ -228,7 +192,7 @@ const HomePage: React.FC = () => {
                   </div>
                 </div>
               ) : trendingNews.length > 0 ? (
-                <Link href={`/article/${trendingNews[0].slug}`}>
+                <Link href={getContentUrl(trendingNews[0])}>
                   <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-200 ease-in-out cursor-pointer group">
                     <div className="relative overflow-hidden" style={{ aspectRatio: '16/9', height: 'auto' }}>
                       <Image
@@ -262,7 +226,7 @@ const HomePage: React.FC = () => {
                           <div className="flex items-center space-x-4 text-sm">
                             <span>{formatPublishedTime(trendingNews[0].published_at)}</span>
                             <span>•</span>
-                            <span>{trendingNews[0].views} views</span>
+                            <span>{trendingNews[0].readingTime || 3} min read</span>
                           </div>
                         </div>
                       </div>
@@ -298,7 +262,7 @@ const HomePage: React.FC = () => {
                     </div>
                   ))
                 ) : (Array.isArray(trendingNews) ? trendingNews.slice(1) : []).map((article: Article) => (
-                  <Link key={article.id} href={`/article/${article.slug}`}>
+                  <Link key={article.id} href={getContentUrl(article)}>
                     <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:shadow-primary/10 hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 ease-out cursor-pointer group">
                       <div className="relative overflow-hidden" style={{ aspectRatio: '4/3', height: '200px' }}>
                         <Image
@@ -326,7 +290,7 @@ const HomePage: React.FC = () => {
                         </p>
                         <div className="flex items-center justify-between text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-200 ease-out">
                           <span>{formatPublishedTime(article.published_at)}</span>
-                          <span>{article.views} views</span>
+                          <span>{article.readingTime || 3} min read</span>
                         </div>
                       </div>
                     </div>
@@ -383,7 +347,7 @@ const HomePage: React.FC = () => {
                   ))
                 ) : (
                   featuredArticles.slice(0, 2).map((article) => (
-                    <Link key={article.id} href={`/article/${article.slug}`}>
+                    <Link key={article.id} href={getContentUrl(article)}>
                       <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-200 ease-in-out cursor-pointer group">
                         <div className="md:flex">
                           <div className="md:w-1/3 relative overflow-hidden" style={{ minHeight: '200px' }}>
@@ -436,66 +400,23 @@ const HomePage: React.FC = () => {
               </div>
               
               <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600" style={{ minHeight: '220px' }}>
-                {[
-                  {
-                    id: 'story-1',
-                    title: 'Climate Summit 2024',
-                    category: 'Environment',
-                    coverImage: '/api/placeholder/200/300',
-                    isNew: true,
-                    isTrending: true,
-                    duration: 45,
-                    views: 12500
-                  },
-                  {
-                    id: 'story-2', 
-                    title: 'AI in Healthcare',
-                    category: 'Technology',
-                    coverImage: '/api/placeholder/200/300',
-                    isNew: false,
-                    isTrending: true,
-                    duration: 60,
-                    views: 8900
-                  },
-                  {
-                    id: 'story-3',
-                    title: 'Space Mission',
-                    category: 'Science', 
-                    coverImage: '/api/placeholder/200/300',
-                    isNew: false,
-                    isTrending: false,
-                    duration: 50,
-                    views: 15600
-                  },
-                  {
-                    id: 'story-4',
-                    title: 'Market Update',
-                    category: 'Business',
-                    coverImage: '/api/placeholder/200/300',
-                    isNew: true,
-                    isTrending: false,
-                    duration: 40,
-                    views: 7400
-                  },
-                  {
-                    id: 'story-5',
-                    title: 'Sports Finals',
-                    category: 'Sports',
-                    coverImage: '/api/placeholder/200/300',
-                    isNew: false,
-                    isTrending: true,
-                    duration: 35,
-                    views: 22100
-                  }
-                ].map((story) => (
+                {loading ? (
+                  // Loading skeleton for web stories
+                  Array.from({ length: 5 }).map((_, index) => (
+                    <div key={index} className="flex-shrink-0 w-32">
+                      <div className="bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" style={{ aspectRatio: '9/16', height: '180px' }}></div>
+                    </div>
+                  ))
+                ) : webStories.length > 0 ? (
+                  webStories.map((story) => (
                   <Link 
                     key={story.id}
-                    href={`/web-stories/${story.id}`}
+                    href={`/web-stories/${story.slug}`}
                     className="flex-shrink-0 w-32 group"
                   >
                     <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200" style={{ aspectRatio: '9/16', height: '180px' }}>
                       <Image
-                        src={story.coverImage}
+                        src={story.coverImage || '/api/placeholder/200/300'}
                         alt={story.title}
                         width={128}
                         height={180}
@@ -544,8 +465,8 @@ const HomePage: React.FC = () => {
                         
                         <div className="flex items-center justify-between text-xs text-gray-300">
                           <div className="flex items-center space-x-1">
-                            <span>👁️</span>
-                            <span>{story.views >= 1000 ? `${(story.views / 1000).toFixed(1)}K` : story.views}</span>
+                            <span>⏱️</span>
+                            <span>{story.duration || 30}s</span>
                           </div>
                         </div>
                       </div>
@@ -562,7 +483,12 @@ const HomePage: React.FC = () => {
                       </div>
                     </div>
                   </Link>
-                ))}
+                ))
+                ) : (
+                  <div className="flex items-center justify-center w-full text-muted-foreground">
+                    <p>No web stories available</p>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -571,7 +497,7 @@ const HomePage: React.FC = () => {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-bold text-foreground">Quick Reads</h2>
-                  <p className="text-sm text-muted-foreground mt-1">Personalized for your interests: {userInterests.join(', ')}</p>
+                  <p className="text-sm text-muted-foreground mt-1">Top stories from: {userInterests.join(', ')}</p>
                 </div>
                 <Link href="/shorts" className="text-primary hover:text-blue-800 font-medium">
                   View All
@@ -580,41 +506,41 @@ const HomePage: React.FC = () => {
               
               <div className="bg-card border border-border rounded-lg shadow-sm p-6 hover:shadow-lg hover:shadow-primary/10 hover:border-primary/50 transition-all duration-300 ease-out">
                 <div className="space-y-4">
-                  {personalizedQuickReads.map((item) => (
+                  {loading ? (
+                    Array.from({ length: 4 }).map((_, index) => (
+                      <div key={index} className="flex items-center space-x-4 p-4 bg-muted rounded-lg animate-pulse">
+                        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    ))
+                  ) : latestNews.slice(0, 4).map((article, index) => (
                     <Link 
-                      key={item.id} 
-                      href="#" 
+                      key={article.id} 
+                      href={getContentUrl(article)} 
                       className="flex items-center space-x-4 p-4 hover:bg-muted/50 hover:shadow-sm hover:border-l-4 hover:border-l-primary rounded-lg transition-all duration-250 ease-out block group relative shadow-[-3px_3px_8px_rgba(75,85,99,0.4)] dark:shadow-[-2px_2px_6px_rgba(255,255,255,0.15)]"
                     >
                       <div className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold group-hover:scale-105 group-hover:shadow-sm transition-all duration-250 ease-out">
-                        {item.id}
+                        {index + 1}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                            item.category === 'Technology' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' :
-                            item.category === 'Environment' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
-                            item.category === 'Health' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' :
-                            'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300'
-                          }`}>
-                            {item.category}
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCategoryColor(article.category?.name || 'News', categories)}`}>
+                            {article.category?.name || 'News'}
                           </span>
-                          {item.userInterest && (
-                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-primary/20 text-primary border border-primary/30">
-                              ✨ For You
-                            </span>
-                          )}
                         </div>
-                        <h4 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors duration-250 ease-out">
-                          {item.title}
+                        <h4 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors duration-250 ease-out line-clamp-1">
+                          {article.title}
                         </h4>
-                        <p className="text-muted-foreground text-sm group-hover:text-foreground transition-colors duration-250 ease-out">
-                          {item.summary}
+                        <p className="text-muted-foreground text-sm group-hover:text-foreground transition-colors duration-250 ease-out line-clamp-2">
+                          {article.summary}
                         </p>
                         <div className="flex items-center space-x-2 mt-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors duration-250 ease-out">
-                          <span>{item.time}</span>
+                          <span>{formatPublishedTime(article.published_at)}</span>
                           <span>•</span>
-                          <span>{item.words}</span>
+                          <span>{article.readingTime || 3} min read</span>
                           <span className="text-primary hover:text-blue-800 cursor-pointer transition-all duration-200 ease-out hover:scale-105 hover:font-medium">🔊 Listen</span>
                         </div>
                       </div>

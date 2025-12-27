@@ -6,16 +6,20 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCategories } from '@/hooks/useCategories';
 import { getCategoryBadgeStyle } from '@/lib/categoryUtils';
+import { getContentUrl } from '@/lib/contentUtils';
+import { dbApi, Article } from '@/lib/database-real';
 
 interface SearchResult {
-  id: number;
+  id: string;
   title: string;
   summary: string;
   imageUrl: string;
   category: string;
+  slug: string;
   publishedAt: string;
   readingTime: number;
   relevanceScore: number;
+  contentType?: string;
 }
 
 const SearchPage: React.FC = () => {
@@ -28,43 +32,57 @@ const SearchPage: React.FC = () => {
   // Use dynamic categories for search suggestions
   const { categories: dynamicCategories } = useCategories();
 
-  // Mock search results
-  const mockResults = [
-    {
-      id: 1,
-      title: 'AI Revolution Continues: New Breakthrough in Machine Learning',
-      summary: 'Researchers announce a major breakthrough in machine learning algorithms that could dramatically improve AI efficiency.',
-      imageUrl: '/api/placeholder/400/200',
-      category: 'Technology',
-      publishedAt: '2 hours ago',
-      readingTime: 3,
-      relevanceScore: 95
-    },
-    {
-      id: 2,
-      title: 'Artificial Intelligence in Healthcare Shows Promise',
-      summary: 'New AI-powered diagnostic tools are helping doctors detect diseases earlier than ever before.',
-      imageUrl: '/api/placeholder/400/200',
-      category: 'Health',
-      publishedAt: '5 hours ago',
-      readingTime: 4,
-      relevanceScore: 87
-    }
-  ];
+  // Format relative time
+  const formatRelativeTime = (dateString: string | Date) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    return date.toLocaleDateString();
+  };
 
   useEffect(() => {
-    // Simulate API call
-    const timer = setTimeout(() => {
-      setResults(mockResults);
-      setLoading(false);
-    }, 1000);
+    const searchArticles = async () => {
+      if (!query.trim()) {
+        setResults([]);
+        setLoading(false);
+        return;
+      }
 
-    return () => clearTimeout(timer);
+      setLoading(true);
+      try {
+        const articles = await dbApi.searchArticles(query, 20);
+        const formattedResults: SearchResult[] = articles.map((article: Article, index: number) => ({
+          id: article.id,
+          title: article.title,
+          summary: article.summary || article.excerpt || '',
+          imageUrl: article.imageUrl || '/api/placeholder/400/200',
+          category: article.category?.name || 'Uncategorized',
+          slug: article.slug,
+          publishedAt: formatRelativeTime(article.published_at),
+          readingTime: article.readingTime || 3,
+          relevanceScore: Math.max(70, 100 - (index * 3)), // Relevance decreases by position
+          contentType: article.contentType
+        }));
+        setResults(formattedResults);
+      } catch (error) {
+        console.error('Error searching articles:', error);
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    searchArticles();
   }, [query]);
 
   const filters = [
-    { id: 'all', name: 'All Results', count: mockResults.length },
-    { id: 'articles', name: 'Articles', count: mockResults.length },
+    { id: 'all', name: 'All Results', count: results.length },
+    { id: 'articles', name: 'Articles', count: results.length },
     { id: 'videos', name: 'Videos', count: 0 },
     { id: 'images', name: 'Images', count: 0 }
   ];
@@ -98,9 +116,6 @@ const SearchPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-foreground mb-2">
             Search Results for "{query}"
           </h1>
-          <p className="text-muted-foreground">
-            Found {results.length} results in 0.03 seconds
-          </p>
         </div>
 
         {/* Search Filters */}
@@ -115,7 +130,7 @@ const SearchPage: React.FC = () => {
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
-              {filter.name} ({filter.count})
+              {filter.name}
             </button>
           ))}
         </div>
@@ -127,7 +142,11 @@ const SearchPage: React.FC = () => {
             {results.length > 0 ? (
               <div className="space-y-6">
                 {results.map((result) => (
-                  <div key={result.id} className="bg-card rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border border-border">
+                  <Link 
+                    key={result.id} 
+                    href={getContentUrl(result)}
+                    className="block bg-card rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border border-border"
+                  >
                     <div className="flex items-start space-x-4">
                       <div className="flex-shrink-0 w-24 h-24">
                         <Image
@@ -148,7 +167,7 @@ const SearchPage: React.FC = () => {
                             {result.relevanceScore}% match
                           </span>
                         </div>
-                        <h2 className="text-lg font-bold text-foreground mb-2 hover:text-primary cursor-pointer">
+                        <h2 className="text-lg font-bold text-foreground mb-2 hover:text-primary">
                           {result.title}
                         </h2>
                         <p className="text-muted-foreground text-sm mb-2">
@@ -159,7 +178,7 @@ const SearchPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (

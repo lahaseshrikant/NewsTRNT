@@ -15,6 +15,7 @@ import {
   BookmarkIcon as BookmarkSolidIcon,
   HeartIcon as HeartSolidIcon
 } from '@heroicons/react/24/solid';
+import { getContentUrl } from '@/lib/contentUtils';
 
 interface Article {
   id: number;
@@ -28,6 +29,7 @@ interface Article {
   readingTime: number;
   isBreaking?: boolean;
   slug: string;
+  contentType?: string;
   views?: number;
   likes?: number;
   comments?: number;
@@ -91,7 +93,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   if (variant === 'featured') {
     return (
       <article className="card-hover bg-card border border-border rounded-xl overflow-hidden shadow-lg">
-        <Link href={`/article/${article.slug}`}>
+        <Link href={getContentUrl(article)}>
           <div className="relative">
             <Image
               src={article.imageUrl}
@@ -114,7 +116,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         </Link>
         
         <div className="p-6">
-          <Link href={`/article/${article.slug}`}>
+          <Link href={getContentUrl(article)}>
             <h2 className="text-2xl font-bold text-foreground hover:text-primary transition-colors">
               {article.title}
             </h2>
@@ -138,10 +140,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           {showActions && (
             <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-                  <EyeIcon className="w-4 h-4" />
-                  <span>{article.views || 0}</span>
-                </div>
                 <div className="flex items-center space-x-1">
                   <button 
                     onClick={handleLike}
@@ -183,7 +181,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   if (variant === 'compact') {
     return (
       <article className="card-hover bg-card border border-border rounded-lg overflow-hidden shadow-md">
-        <Link href={`/article/${article.slug}`} className="flex">
+        <Link href={getContentUrl(article)} className="flex">
           <Image
             src={article.imageUrl}
             alt={article.title}
@@ -220,7 +218,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   if (variant === 'list') {
     return (
       <article className="card-hover bg-card border border-border rounded-lg overflow-hidden shadow-md">
-        <Link href={`/article/${article.slug}`} className="flex p-4">
+        <Link href={getContentUrl(article)} className="flex p-4">
           <div className="flex-1 mr-4">
             <div className="flex items-center space-x-2 mb-2">
               <span className={`px-2 py-1 rounded text-xs font-medium ${getCategoryColor(article.category)}`}>
@@ -260,10 +258,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <div className="px-4 pb-4">
             <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                <div className="flex items-center space-x-1">
-                  <EyeIcon className="w-4 h-4" />
-                  <span>{article.views || 0}</span>
-                </div>
                 <button 
                   onClick={handleLike}
                   className="flex items-center space-x-1 hover:text-red-500 dark:hover:text-red-400 transition-colors"
@@ -303,7 +297,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   // Default variant
   return (
     <article className="card-hover bg-card border border-border rounded-lg overflow-hidden shadow-md">
-      <Link href={`/article/${article.slug}`}>
+      <Link href={getContentUrl(article)}>
         <div className="relative">
           <Image
             src={article.imageUrl}
@@ -326,7 +320,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       </Link>
       
       <div className="p-4">
-        <Link href={`/article/${article.slug}`}>
+        <Link href={getContentUrl(article)}>
           <h3 className="text-lg font-semibold text-foreground mb-2 hover:text-primary transition-colors line-clamp-2">
             {article.title}
           </h3>
@@ -350,10 +344,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         {showActions && (
           <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3 text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex items-center space-x-1">
-                <EyeIcon className="w-4 h-4" />
-                <span>{article.views || 0}</span>
-              </div>
               <button 
                 onClick={handleLike}
                 className="flex items-center space-x-1 hover:text-red-500 dark:hover:text-red-400 transition-colors"

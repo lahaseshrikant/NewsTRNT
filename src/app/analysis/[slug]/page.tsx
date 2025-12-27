@@ -15,7 +15,6 @@ interface ArticleData extends Partial<Article> {
   viewCount?: number;
   shareCount?: number;
   readingTime?: number;
-  isBreaking?: boolean;
   author?: string;
   category?: {
     id: string;
@@ -26,7 +25,7 @@ interface ArticleData extends Partial<Article> {
   };
 }
 
-const ArticleDetailPage: React.FC = () => {
+const AnalysisDetailPage: React.FC = () => {
   const params = useParams();
   const slug = params.slug as string;
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -46,18 +45,15 @@ const ArticleDetailPage: React.FC = () => {
         const loadedArticle = await dbApi.getArticle(slug);
         if (loadedArticle) {
           setArticle(loadedArticle as ArticleData);
-          // Load related articles from same category
-          if (loadedArticle.category?.slug) {
-            const related = await dbApi.getArticlesByCategory(loadedArticle.category.slug, 3);
-            // Filter out current article
-            setRelatedArticles(related.filter(a => a.slug !== slug));
-          }
+          // Load related analysis pieces
+          const related = await dbApi.getAnalysisArticles(4);
+          setRelatedArticles(related.filter(a => a.slug !== slug).slice(0, 3));
         } else {
-          setError('Article not found');
+          setError('Analysis not found');
         }
       } catch (err) {
         console.error('Error loading article:', err);
-        setError('Failed to load article');
+        setError('Failed to load analysis');
       } finally {
         setLoading(false);
       }
@@ -89,9 +85,7 @@ const ArticleDetailPage: React.FC = () => {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: 'numeric'
     });
   };
 
@@ -146,23 +140,23 @@ const ArticleDetailPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">📰</div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Article Not Found</h3>
-          <p className="text-muted-foreground mb-4">{error || 'This article may have been removed or is not available.'}</p>
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Analysis Not Found</h3>
+          <p className="text-muted-foreground mb-4">{error || 'This analysis may have been removed or is not available.'}</p>
           <Link
-            href="/"
-            className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90"
+            href="/analysis"
+            className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700"
           >
-            Go to Homepage
+            Browse Analysis
           </Link>
         </div>
       </div>
     );
   }
 
-  const categoryName = article.category?.name || 'News';
-  const categorySlug = article.category?.slug || 'news';
-  const authorName = article.author || 'NewsTRNT Staff';
+  const categoryName = article.category?.name || 'Analysis';
+  const categorySlug = article.category?.slug || 'analysis';
+  const authorName = article.author || 'NewsTRNT Research';
   const articleTags = article.tags || [];
   const publishedAt = article.published_at || new Date();
 
@@ -171,41 +165,49 @@ const ArticleDetailPage: React.FC = () => {
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1 bg-muted/50 z-50">
         <div 
-          className="h-full bg-primary transition-all duration-100"
+          className="h-full bg-emerald-600 transition-all duration-100"
           style={{ width: `${readingProgress}%` }}
         ></div>
       </div>
 
+      {/* Analysis Header Banner */}
+      <div className="bg-gradient-to-r from-emerald-600/10 to-teal-600/10 border-b border-border">
+        <div className="container mx-auto py-2">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="bg-emerald-600 text-white px-2 py-0.5 rounded text-xs font-bold">ANALYSIS</span>
+            <span className="text-muted-foreground">Data-driven insights and in-depth research</span>
+          </div>
+        </div>
+      </div>
+
       {/* Article Header */}
       <article className="bg-card">
-  <div className="container mx-auto py-8">
+        <div className="container mx-auto py-8">
           <div className="max-w-4xl mx-auto">
             {/* Breadcrumb */}
             <nav className="mb-6">
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Link href="/" className="hover:text-primary">Home</Link>
                 <span>/</span>
+                <Link href="/analysis" className="hover:text-primary">Analysis</Link>
+                <span>/</span>
                 <Link href={`/category/${categorySlug}`} className="hover:text-primary">
                   {categoryName}
                 </Link>
-                <span>/</span>
-                <span className="text-foreground">Article</span>
               </div>
             </nav>
 
             {/* Article Meta */}
             <div className="mb-6">
               <div className="flex items-center space-x-4 mb-4">
-                {article.isBreaking && (
-                  <span className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
-                    BREAKING
-                  </span>
-                )}
-                <span className="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 px-3 py-1 rounded-lg text-sm font-semibold">
+                <span className="bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
+                  🔍 DEEP DIVE
+                </span>
+                <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-3 py-1 rounded-lg text-sm font-semibold">
                   {categoryName}
                 </span>
                 <span className="text-muted-foreground text-sm">
-                  {article.readingTime || 5} min read
+                  {article.readingTime || 12} min read
                 </span>
               </div>
               
@@ -219,8 +221,8 @@ const ArticleDetailPage: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-xl">👤</span>
+                  <div className="w-12 h-12 bg-emerald-600/10 rounded-full flex items-center justify-center">
+                    <span className="text-xl">📊</span>
                   </div>
                   <div>
                     <div className="font-semibold text-foreground">{authorName}</div>
@@ -234,7 +236,7 @@ const ArticleDetailPage: React.FC = () => {
                   <button
                     onClick={() => setIsBookmarked(!isBookmarked)}
                     className={`p-2 rounded-full transition-colors ${
-                      isBookmarked ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      isBookmarked ? 'bg-emerald-600/10 text-emerald-600' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     🔖
@@ -251,28 +253,16 @@ const ArticleDetailPage: React.FC = () => {
                     {showShareMenu && (
                       <div className="absolute right-0 mt-2 w-48 bg-card rounded-lg shadow-lg border border-border z-10">
                         <div className="py-2">
-                          <button
-                            onClick={() => shareArticle('twitter')}
-                            className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground"
-                          >
+                          <button onClick={() => shareArticle('twitter')} className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground">
                             Share on Twitter
                           </button>
-                          <button
-                            onClick={() => shareArticle('facebook')}
-                            className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground"
-                          >
+                          <button onClick={() => shareArticle('facebook')} className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground">
                             Share on Facebook
                           </button>
-                          <button
-                            onClick={() => shareArticle('linkedin')}
-                            className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground"
-                          >
+                          <button onClick={() => shareArticle('linkedin')} className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground">
                             Share on LinkedIn
                           </button>
-                          <button
-                            onClick={() => shareArticle('copy')}
-                            className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground"
-                          >
+                          <button onClick={() => shareArticle('copy')} className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground">
                             Copy Link
                           </button>
                         </div>
@@ -284,39 +274,62 @@ const ArticleDetailPage: React.FC = () => {
             </div>
 
             {/* Featured Image */}
-            <div className="mb-8">
-              <div className="relative w-full h-96 md:h-[500px]">
-                <Image
-                  src={article.imageUrl || '/api/placeholder/800/500'}
-                  alt={article.title || 'Article image'}
-                  fill
-                  className="object-cover rounded-lg"
-                  priority
-                />
+            {article.imageUrl && (
+              <div className="mb-8">
+                <div className="relative w-full h-96 md:h-[500px]">
+                  <Image
+                    src={article.imageUrl}
+                    alt={article.title || 'Analysis image'}
+                    fill
+                    className="object-cover rounded-lg"
+                    priority
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </article>
 
       {/* Article Content */}
       <div className="bg-card border-t border-border">
-  <div className="container mx-auto py-8">
+        <div className="container mx-auto py-8">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Main Content */}
               <div className="lg:col-span-3">
+                {/* Key Takeaways Box */}
+                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-6 mb-8">
+                  <h3 className="font-bold text-emerald-800 dark:text-emerald-300 mb-3 flex items-center gap-2">
+                    <span>📌</span> Key Takeaways
+                  </h3>
+                  <ul className="space-y-2 text-emerald-700 dark:text-emerald-400 text-sm">
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-600">•</span>
+                      <span>Data-driven analysis backed by research</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-600">•</span>
+                      <span>Expert insights and methodology explained</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-600">•</span>
+                      <span>Actionable conclusions and implications</span>
+                    </li>
+                  </ul>
+                </div>
+
                 <div 
                   id="article-content"
                   className="prose prose-lg max-w-none 
                     prose-headings:text-foreground prose-headings:font-bold prose-headings:leading-tight
                     prose-p:text-foreground prose-p:leading-relaxed prose-p:text-justify prose-p:mb-6
                     prose-strong:text-foreground prose-strong:font-semibold
-                    prose-a:text-primary prose-a:no-underline hover:prose-a:text-primary/80 hover:prose-a:underline
+                    prose-a:text-emerald-600 prose-a:no-underline hover:prose-a:text-emerald-500 hover:prose-a:underline
                     prose-ul:text-foreground prose-ol:text-foreground prose-li:mb-2 prose-li:leading-relaxed
                     prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-b prose-h2:border-border prose-h2:pb-2
                     prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-                    prose-blockquote:text-muted-foreground prose-blockquote:border-l-primary prose-blockquote:italic
+                    prose-blockquote:text-muted-foreground prose-blockquote:border-l-emerald-600 prose-blockquote:italic
                     dark:prose-invert"
                   dangerouslySetInnerHTML={{ __html: article.content || '' }}
                 />
@@ -330,7 +343,7 @@ const ArticleDetailPage: React.FC = () => {
                         <Link
                           key={tag}
                           href={`/search?q=${encodeURIComponent(tag)}`}
-                          className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-primary/10 hover:text-primary transition-colors"
+                          className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-emerald-600/10 hover:text-emerald-600 transition-colors"
                         >
                           #{tag}
                         </Link>
@@ -343,17 +356,17 @@ const ArticleDetailPage: React.FC = () => {
 
                 {/* Author Bio */}
                 <div className="mt-8 pt-8 border-t border-border">
-                  <div className="bg-muted/50 rounded-lg p-6">
+                  <div className="bg-emerald-600/5 rounded-lg p-6 border border-emerald-600/10">
                     <div className="flex items-start space-x-4">
-                      <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-3xl">👤</span>
+                      <div className="w-20 h-20 bg-emerald-600/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-3xl">📊</span>
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-foreground mb-2">
-                          About {authorName}
+                          {authorName}
                         </h3>
                         <p className="text-muted-foreground text-sm">
-                          NewsTRNT contributor delivering quality journalism and insightful news coverage.
+                          NewsTRNT Research Team. Providing data-driven analysis and in-depth insights on complex topics.
                         </p>
                       </div>
                     </div>
@@ -368,40 +381,34 @@ const ArticleDetailPage: React.FC = () => {
 
               {/* Sidebar */}
               <div className="lg:col-span-1">
-                {/* Related Articles */}
                 <div className="bg-card rounded-lg shadow-sm p-6 sticky top-20 border border-border">
-                  <h3 className="text-lg font-bold text-foreground mb-4">Related Articles</h3>
+                  <h3 className="text-lg font-bold text-foreground mb-4">Related Analysis</h3>
                   <div className="space-y-4">
                     {relatedArticles.length > 0 ? (
                       relatedArticles.map((relatedArticle) => (
                         <Link key={relatedArticle.id} href={getContentUrl(relatedArticle)}>
                           <div className="group cursor-pointer">
-                            <div className="relative w-full h-24 mb-2 bg-muted rounded overflow-hidden">
-                              {relatedArticle.imageUrl ? (
-                                <Image
-                                  src={relatedArticle.imageUrl}
-                                  alt={relatedArticle.title}
-                                  fill
-                                  className="object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-2xl">📰</div>
-                              )}
-                            </div>
-                            <h4 className="font-medium text-foreground text-sm group-hover:text-primary line-clamp-2">
+                            <h4 className="font-medium text-foreground text-sm group-hover:text-emerald-600 line-clamp-2 mb-1">
                               {relatedArticle.title}
                             </h4>
-                            <div className="flex items-center space-x-2 mt-1 text-xs text-muted-foreground">
-                              <span>{relatedArticle.category?.name || 'News'}</span>
-                              <span>•</span>
-                              <span>{relatedArticle.readingTime || 5} min read</span>
+                            <div className="text-xs text-muted-foreground">
+                              {relatedArticle.readingTime || 12} min read
                             </div>
                           </div>
                         </Link>
                       ))
                     ) : (
-                      <p className="text-muted-foreground text-sm">No related articles found</p>
+                      <p className="text-muted-foreground text-sm">No related analysis found</p>
                     )}
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-border">
+                    <Link
+                      href="/analysis"
+                      className="block text-center py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                    >
+                      More Analysis →
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -413,4 +420,4 @@ const ArticleDetailPage: React.FC = () => {
   );
 };
 
-export default ArticleDetailPage;
+export default AnalysisDetailPage;

@@ -1,70 +1,79 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCategories, Category } from '@/hooks/useCategories';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+
+interface SavedArticle {
+  id: string;
+  title: string;
+  summary: string;
+  imageUrl: string;
+  category: string;
+  publishedAt: string;
+  savedAt: string;
+  readingTime: number;
+  source: string;
+  isRead: boolean;
+  slug: string;
+  contentType?: string;
+}
 
 const SavedArticlesPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('saved_date');
+  const [savedArticles, setSavedArticles] = useState<SavedArticle[]>([]);
+  const [loading, setLoading] = useState(true);
   const { categories: dynamicCategories, loading: categoriesLoading } = useCategories();
 
-  // Mock saved articles data
-  const savedArticles = [
-    {
-      id: 1,
-      title: 'AI Revolution Continues: New Breakthrough in Machine Learning',
-      summary: 'Researchers announce a major breakthrough in machine learning algorithms.',
-      imageUrl: '/api/placeholder/400/200',
-      category: 'Technology',
-      publishedAt: '2 hours ago',
-      savedAt: '1 hour ago',
-      readingTime: 3,
-      source: 'TechNews',
-      isRead: false,
-      slug: 'ai-revolution-continues'
-    },
-    {
-      id: 2,
-      title: 'Global Climate Summit Reaches Historic Agreement',
-      summary: 'World leaders sign historic climate agreement with ambitious targets.',
-      imageUrl: '/api/placeholder/400/200',
-      category: 'World',
-      publishedAt: '4 hours ago',
-      savedAt: '3 hours ago',
-      readingTime: 4,
-      source: 'GlobalNews',
-      isRead: true,
-      slug: 'climate-summit-agreement'
-    },
-    {
-      id: 3,
-      title: 'Market Rally Continues as Tech Stocks Surge',
-      summary: 'Technology stocks lead market gains as investors show confidence.',
-      imageUrl: '/api/placeholder/400/200',
-      category: 'Business',
-      publishedAt: '6 hours ago',
-      savedAt: '5 hours ago',
-      readingTime: 2,
-      source: 'Business Weekly',
-      isRead: false,
-      slug: 'market-rally-tech-stocks'
-    },
-    {
-      id: 4,
-      title: 'Breakthrough in Quantum Computing Research',
-      summary: 'Scientists achieve new milestone in quantum computing capabilities.',
-      imageUrl: '/api/placeholder/400/200',
-      category: 'Science',
-      publishedAt: '1 day ago',
-      savedAt: '1 day ago',
-      readingTime: 5,
-      source: 'Science Today',
-      isRead: true,
-      slug: 'quantum-computing-breakthrough'
-    }
-  ];
+  // Format relative time
+  const formatRelativeTime = (dateString: string | Date) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    return date.toLocaleDateString();
+  };
+
+  // Load articles from database
+  useEffect(() => {
+    const loadSavedArticles = async () => {
+      setLoading(true);
+      try {
+        // For now, load latest articles as suggested reading
+        // TODO: Implement proper saved articles API with user authentication
+        const articles = await dbApi.getArticles({ limit: 10 });
+        const formattedArticles: SavedArticle[] = articles.map((article: Article) => ({
+          id: article.id,
+          title: article.title,
+          summary: article.summary || article.excerpt || '',
+          imageUrl: article.imageUrl || '/api/placeholder/400/200',
+          category: article.category?.name || 'Uncategorized',
+          publishedAt: formatRelativeTime(article.published_at),
+          savedAt: formatRelativeTime(article.published_at),
+          readingTime: article.readingTime || 3,
+          source: article.sourceName || 'NewsTRNT',
+          isRead: false,
+          slug: article.slug
+        }));
+        setSavedArticles(formattedArticles);
+      } catch (error) {
+        console.error('Error loading articles:', error);
+        setSavedArticles([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSavedArticles();
+  }, []);
 
   // Create categories list with 'all' option and dynamic categories
   const categories = ['all', ...dynamicCategories.map(cat => cat.name)];
@@ -79,15 +88,50 @@ const SavedArticlesPage: React.FC = () => {
     selectedCategory === 'all' || article.category === selectedCategory
   );
 
-  const handleRemoveArticle = (articleId: number) => {
-    // TODO: Implement remove from saved articles
+  const handleRemoveArticle = (articleId: string) => {
+    // TODO: Implement remove from saved articles with backend API
     console.log('Removing article:', articleId);
+    setSavedArticles(prev => prev.filter(a => a.id !== articleId));
   };
 
-  const handleMarkAsRead = (articleId: number) => {
-    // TODO: Implement mark as read
+  const handleMarkAsRead = (articleId: string) => {
+    // TODO: Implement mark as read with backend API
     console.log('Marking as read:', articleId);
+    setSavedArticles(prev => prev.map(a => 
+      a.id === articleId ? { ...a, isRead: !a.isRead } : a
+    ));
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white shadow-sm border-b border-gray-200">
+          <div className="container mx-auto py-6">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto py-8">
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-lg p-6 animate-pulse">
+                <div className="flex space-x-4">
+                  <div className="w-48 h-28 bg-gray-200 rounded"></div>
+                  <div className="flex-1 space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -98,7 +142,7 @@ const SavedArticlesPage: React.FC = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Saved Articles</h1>
               <p className="text-gray-600 mt-2">
-                {filteredArticles.length} articles saved for later reading
+                Your saved articles for later reading
               </p>
             </div>
             <Link 
@@ -205,7 +249,7 @@ const SavedArticlesPage: React.FC = () => {
                         </div>
                       </div>
 
-                      <Link href={`/article/${article.slug}`}>
+                      <Link href={getContentUrl(article)}>
                         <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 mb-2 line-clamp-2">
                           {article.title}
                         </h3>

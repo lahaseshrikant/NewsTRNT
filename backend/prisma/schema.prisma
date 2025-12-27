@@ -39,26 +39,29 @@ model User {
   interactions          UserInteraction[]
   webStories            WebStory[]               @relation("WebStoryAuthor")
   updatedWebStories     WebStory[]               @relation("WebStoryUpdater")
+  followedCategories    CategoryFollow[]
+  followedTopics        TopicFollow[]
 
   @@map("users")
 }
 
 model Category {
-  id          String     @id @default(uuid())
-  name        String     @unique
-  slug        String     @unique
+  id          String           @id @default(uuid())
+  name        String           @unique
+  slug        String           @unique
   description String?
-  color       String     @default("#000000")
+  color       String           @default("#000000")
   icon        String?
-  isActive    Boolean    @default(true) @map("is_active")
-  sortOrder   Int        @default(0) @map("sort_order")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-  deletedAt   DateTime?  @map("deleted_at")
-  deletedBy   String?    @map("deleted_by")
-  isDeleted   Boolean    @default(false) @map("is_deleted")
+  isActive    Boolean          @default(true) @map("is_active")
+  sortOrder   Int              @default(0) @map("sort_order")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  deletedAt   DateTime?        @map("deleted_at")
+  deletedBy   String?          @map("deleted_by")
+  isDeleted   Boolean          @default(false) @map("is_deleted")
   articles    Article[]
   webStories  WebStory[]
+  followers   CategoryFollow[]
 
   @@index([isDeleted])
   @@index([deletedAt])
@@ -167,22 +170,25 @@ model ArticleTag {
 }
 
 model Comment {
-  id         String    @id @default(uuid())
-  articleId  String    @map("article_id")
-  userId     String    @map("user_id")
-  parentId   String?   @map("parent_id")
-  content    String
-  isApproved Boolean   @default(true) @map("is_approved")
-  isFlagged  Boolean   @default(false) @map("is_flagged")
-  likeCount  Int       @default(0) @map("like_count")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
-  article    Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  parent     Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies    Comment[] @relation("CommentReplies")
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String    @id @default(uuid())
+  articleId     String    @map("article_id")
+  userId        String?   @map("user_id")
+  parentId      String?   @map("parent_id")
+  content       String
+  displayName   String?   @map("display_name")
+  isAnonymous   Boolean   @default(false) @map("is_anonymous")
+  isApproved    Boolean   @default(true) @map("is_approved")
+  isFlagged     Boolean   @default(false) @map("is_flagged")
+  likeCount     Int       @default(0) @map("like_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  article       Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  parent        Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies       Comment[] @relation("CommentReplies")
+  user          User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([articleId])
+  @@index([userId])
   @@map("comments")
 }
 
@@ -644,4 +650,34 @@ model CurrencyPairConfig {
   @@index([type])
   @@index([isActive])
   @@map("currency_pair_configs")
+}
+
+// User Personalization Models
+model CategoryFollow {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  categoryId String   @map("category_id")
+  followedAt DateTime @default(now()) @map("followed_at")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId])
+  @@index([userId])
+  @@index([categoryId])
+  @@map("category_follows")
+}
+
+model TopicFollow {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  topicName  String   @map("topic_name") // e.g., "cricket", "AI", "Tesla"
+  topicSlug  String   @map("topic_slug")
+  parentCategory String? @map("parent_category") // e.g., "sports" for cricket
+  followedAt DateTime @default(now()) @map("followed_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicSlug])
+  @@index([userId])
+  @@index([topicSlug])
+  @@map("topic_follows")
 }

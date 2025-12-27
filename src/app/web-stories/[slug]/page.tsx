@@ -4,46 +4,22 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-
-interface WebStorySlide {
-  id: string;
-  type: 'image' | 'video' | 'text';
-  background: string;
-  content: {
-    headline?: string;
-    text?: string;
-    image?: string;
-    video?: string;
-    cta?: {
-      text: string;
-      url: string;
-    };
-  };
-  duration?: number; // Made optional since we have a fallback
-}
-
-interface WebStory {
-  id: string;
-  title: string;
-  category: string;
-  slides: WebStorySlide[];
-  publishedAt: string;
-  author: string;
-  views: number;
-}
+import { dbApi, WebStory, WebStorySlide } from '@/lib/database-real';
 
 const WebStoryViewer: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const storyId = params.id as string;
+  const storySlug = params.slug as string;
   
   // Default slide duration (5 seconds) if not specified
   const DEFAULT_SLIDE_DURATION = 5000;
   
+  const [story, setStory] = useState<WebStory | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(true); // Start paused, then auto-start
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -55,72 +31,34 @@ const WebStoryViewer: React.FC = () => {
   // Minimum swipe distance for navigation
   const minSwipeDistance = 50;
 
-  // Mock story data - in real app, this would come from API
-  const story: WebStory = {
-    id: storyId,
-    title: 'Climate Summit 2024: Key Highlights',
-    category: 'Environment',
-    author: 'Environmental Team',
-    publishedAt: '2024-01-21T10:30:00Z',
-    views: 12540,
-    slides: [
-      {
-        id: 'slide-1',
-        type: 'image',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        content: {
-          headline: 'Climate Summit 2024',
-          text: 'World leaders gather in Dubai for crucial climate discussions that could shape our planet\'s future',
-          image: '/api/placeholder/400/700'
-        },
-        duration: 6000
-      },
-      {
-        id: 'slide-2',
-        type: 'text',
-        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-        content: {
-          headline: '195 Countries Participate',
-          text: 'The largest climate summit in history brings together world leaders, activists, and scientists to address the climate crisis',
-        },
-        duration: 5000
-      },
-      {
-        id: 'slide-3',
-        type: 'image',
-        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-        content: {
-          headline: '$100B Climate Fund Launched',
-          text: 'Historic funding commitment to help developing nations transition to renewable energy',
-          image: '/api/placeholder/400/700',
-          cta: {
-            text: 'See More',
-            url: '/web-stories'
-          }
-        },
-        duration: 6000
-      },
-      {
-        id: 'slide-4',
-        type: 'text',
-        background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-        content: {
-          headline: 'What\'s Next?',
-          text: 'Countries have 6 months to submit their updated climate action plans. The next summit will be held in 2025.',
-          cta: {
-            text: 'Stay Updated',
-            url: '/newsletter'
-          }
+  // Load story from database
+  useEffect(() => {
+    const loadStory = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const loadedStory = await dbApi.getWebStory(storySlug);
+        if (loadedStory) {
+          setStory(loadedStory);
+        } else {
+          setLoadError('Story not found');
         }
-        // No duration specified - will use DEFAULT_SLIDE_DURATION (5000ms)
+      } catch (err) {
+        console.error('Error loading story:', err);
+        setLoadError('Failed to load story');
+      } finally {
+        setIsLoading(false);
       }
-    ]
-  };
+    };
+
+    loadStory();
+  }, [storySlug]);
 
   // Calculate current slide and total slides with bounds checking
-  const totalSlides = story.slides.length;
+  const slides = story?.slides || [];
+  const totalSlides = slides.length;
   const currentSlide = currentSlideIndex >= 0 && currentSlideIndex < totalSlides 
-    ? story.slides[currentSlideIndex] 
+    ? slides[currentSlideIndex] 
     : null;
 
   console.log('Component state:', { currentSlideIndex, totalSlides, hasCurrentSlide: !!currentSlide });
@@ -193,9 +131,9 @@ const WebStoryViewer: React.FC = () => {
 
   // Auto-start the story when component mounts and loading is complete
   useEffect(() => {
-    console.log('Mount effect - isLoading:', isLoading);
+    console.log('Mount effect - isLoading:', isLoading, 'story:', !!story);
     
-    if (!isLoading) {
+    if (!isLoading && story && totalSlides > 0) {
       const timer = setTimeout(() => {
         console.log('Auto-starting story...');
         setIsPaused(false);
@@ -205,16 +143,85 @@ const WebStoryViewer: React.FC = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [isLoading]);
+  }, [isLoading, story, totalSlides]);
 
-  // Loading effect - shorter duration
+  // Navigation functions
+  const goToPreviousSlide = () => {
+    if (currentSlideIndex > 0) {
+      setCurrentSlideIndex(prev => prev - 1);
+      setProgress(0);
+      pausedTimeRef.current = 0;
+      setIsPaused(false);
+    }
+  };
+
+  const goToNextSlide = () => {
+    if (currentSlideIndex < totalSlides - 1) {
+      setCurrentSlideIndex(prev => prev + 1);
+      setProgress(0);
+      pausedTimeRef.current = 0;
+      setIsPaused(false);
+    } else if (totalSlides > 0) {
+      router.push('/web-stories');
+    }
+  };
+
+  // Keyboard navigation - must be called unconditionally (before any returns)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      console.log('Loading complete');
-      setIsLoading(false);
-    }, 500); // Reduced from 1000ms
-    return () => clearTimeout(timer);
-  }, []);
+    if (isLoading || loadError || !story) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          goToPreviousSlide();
+          break;
+        case 'ArrowRight':
+          goToNextSlide();
+          break;
+        case ' ':
+          e.preventDefault();
+          setIsPaused(prev => !prev);
+          break;
+        case 'Escape':
+          router.push('/web-stories');
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentSlideIndex, totalSlides, isPaused, router, isLoading, loadError, story]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-black flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-white border-t-transparent rounded-full mx-auto mb-4" />
+          <p>Loading story...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (loadError || !story || totalSlides === 0) {
+    return (
+      <div className="fixed inset-0 bg-black flex items-center justify-center">
+        <div className="text-white text-center max-w-md px-4">
+          <div className="text-6xl mb-4">📱</div>
+          <h2 className="text-xl font-bold mb-2">Story Not Found</h2>
+          <p className="text-gray-400 mb-6">{loadError || 'This story may have been removed or is not available.'}</p>
+          <Link
+            href="/web-stories"
+            className="inline-block bg-white text-black px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition-colors"
+          >
+            Browse All Stories
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // Handle touch/click navigation
   const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
@@ -224,13 +231,10 @@ const WebStoryViewer: React.FC = () => {
     const tapPosition = tapX / rect.width;
 
     if (tapPosition < 0.3) {
-      // Tap left - previous slide
       goToPreviousSlide();
     } else if (tapPosition > 0.7) {
-      // Tap right - next slide
       goToNextSlide();
     } else {
-      // Tap center - pause/resume
       setIsPaused(!isPaused);
       if (isPaused) {
         pausedTimeRef.current = 0;
@@ -264,67 +268,6 @@ const WebStoryViewer: React.FC = () => {
       goToPreviousSlide();
     }
   };
-
-  const goToPreviousSlide = () => {
-    if (currentSlideIndex > 0) {
-      setCurrentSlideIndex(prev => prev - 1);
-      setProgress(0);
-      pausedTimeRef.current = 0;
-      setIsPaused(false); // Resume auto-progression
-    }
-  };
-
-  const goToNextSlide = () => {
-    if (currentSlideIndex < totalSlides - 1) {
-      setCurrentSlideIndex(prev => prev + 1);
-      setProgress(0);
-      pausedTimeRef.current = 0;
-      setIsPaused(false); // Resume auto-progression
-    } else {
-      router.push('/web-stories');
-    }
-  };
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowLeft':
-          goToPreviousSlide();
-          break;
-        case 'ArrowRight':
-          goToNextSlide();
-          break;
-        case ' ':
-          e.preventDefault();
-          setIsPaused(!isPaused);
-          break;
-        case 'Escape':
-          router.push('/web-stories');
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSlideIndex, totalSlides, isPaused, router]);
-
-  // Loading effect
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p>Loading story...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Safety check for current slide
   if (!currentSlide) {

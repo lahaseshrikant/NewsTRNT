@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 
 const AboutPage: React.FC = () => {
+
   const teamMembers = [
     {
       name: 'Sarah Johnson',
@@ -69,9 +70,9 @@ const AboutPage: React.FC = () => {
             <div className="flex items-center justify-center space-x-2 text-blue-200">
               <span>Founded in 2024</span>
               <span>•</span>
-              <span>100,000+ Daily Readers</span>
+              <span>AI-Powered News Platform</span>
               <span>•</span>
-              <span>AI-Powered</span>
+              <span>Global Coverage</span>
             </div>
           </div>
         </div>

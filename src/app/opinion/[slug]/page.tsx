@@ -15,8 +15,9 @@ interface ArticleData extends Partial<Article> {
   viewCount?: number;
   shareCount?: number;
   readingTime?: number;
-  isBreaking?: boolean;
   author?: string;
+  authorBio?: string;
+  authorTitle?: string;
   category?: {
     id: string;
     name: string;
@@ -26,7 +27,7 @@ interface ArticleData extends Partial<Article> {
   };
 }
 
-const ArticleDetailPage: React.FC = () => {
+const OpinionDetailPage: React.FC = () => {
   const params = useParams();
   const slug = params.slug as string;
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -46,18 +47,16 @@ const ArticleDetailPage: React.FC = () => {
         const loadedArticle = await dbApi.getArticle(slug);
         if (loadedArticle) {
           setArticle(loadedArticle as ArticleData);
-          // Load related articles from same category
-          if (loadedArticle.category?.slug) {
-            const related = await dbApi.getArticlesByCategory(loadedArticle.category.slug, 3);
-            // Filter out current article
-            setRelatedArticles(related.filter(a => a.slug !== slug));
-          }
+          // Load related opinion pieces
+          const result = await dbApi.getArticlesByType('opinion', 4);
+          // Filter out current article
+          setRelatedArticles(result.articles.filter(a => a.slug !== slug).slice(0, 3));
         } else {
-          setError('Article not found');
+          setError('Opinion piece not found');
         }
       } catch (err) {
-        console.error('Error loading article:', err);
-        setError('Failed to load article');
+        console.error('Error loading opinion:', err);
+        setError('Failed to load opinion piece');
       } finally {
         setLoading(false);
       }
@@ -146,14 +145,14 @@ const ArticleDetailPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">📰</div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Article Not Found</h3>
-          <p className="text-muted-foreground mb-4">{error || 'This article may have been removed or is not available.'}</p>
+          <div className="text-6xl mb-4">�</div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Opinion Piece Not Found</h3>
+          <p className="text-muted-foreground mb-4">{error || 'This opinion piece may have been removed or is not available.'}</p>
           <Link
-            href="/"
-            className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90"
+            href="/opinion"
+            className="inline-block bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700"
           >
-            Go to Homepage
+            Browse Opinions
           </Link>
         </div>
       </div>
@@ -171,37 +170,45 @@ const ArticleDetailPage: React.FC = () => {
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1 bg-muted/50 z-50">
         <div 
-          className="h-full bg-primary transition-all duration-100"
+          className="h-full bg-amber-600 transition-all duration-100"
           style={{ width: `${readingProgress}%` }}
         ></div>
       </div>
 
+      {/* Opinion Header Banner */}
+      <div className="bg-gradient-to-r from-amber-600/10 to-orange-600/10 border-b border-border">
+        <div className="container mx-auto py-2">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="bg-amber-600 text-white px-2 py-0.5 rounded text-xs font-bold">OPINION</span>
+            <span className="text-muted-foreground">Perspectives and commentary from our columnists</span>
+          </div>
+        </div>
+      </div>
+
       {/* Article Header */}
       <article className="bg-card">
-  <div className="container mx-auto py-8">
+        <div className="container mx-auto py-8">
           <div className="max-w-4xl mx-auto">
             {/* Breadcrumb */}
             <nav className="mb-6">
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Link href="/" className="hover:text-primary">Home</Link>
                 <span>/</span>
+                <Link href="/opinion" className="hover:text-primary">Opinion</Link>
+                <span>/</span>
                 <Link href={`/category/${categorySlug}`} className="hover:text-primary">
                   {categoryName}
                 </Link>
-                <span>/</span>
-                <span className="text-foreground">Article</span>
               </div>
             </nav>
 
             {/* Article Meta */}
             <div className="mb-6">
               <div className="flex items-center space-x-4 mb-4">
-                {article.isBreaking && (
-                  <span className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
-                    BREAKING
-                  </span>
-                )}
-                <span className="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 px-3 py-1 rounded-lg text-sm font-semibold">
+                <span className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-3 py-1 rounded-lg text-sm font-semibold">
+                  Opinion
+                </span>
+                <span className="bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300 px-3 py-1 rounded-lg text-sm font-semibold">
                   {categoryName}
                 </span>
                 <span className="text-muted-foreground text-sm">
@@ -219,11 +226,14 @@ const ArticleDetailPage: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-xl">👤</span>
+                  <div className="w-12 h-12 bg-amber-600/10 rounded-full flex items-center justify-center">
+                    <span className="text-xl">✍️</span>
                   </div>
                   <div>
                     <div className="font-semibold text-foreground">{authorName}</div>
+                    <div className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                      {article.authorTitle || 'Columnist'}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       Published {formatDate(publishedAt)}
                     </div>
@@ -234,7 +244,7 @@ const ArticleDetailPage: React.FC = () => {
                   <button
                     onClick={() => setIsBookmarked(!isBookmarked)}
                     className={`p-2 rounded-full transition-colors ${
-                      isBookmarked ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      isBookmarked ? 'bg-amber-600/10 text-amber-600' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     🔖
@@ -288,7 +298,7 @@ const ArticleDetailPage: React.FC = () => {
               <div className="relative w-full h-96 md:h-[500px]">
                 <Image
                   src={article.imageUrl || '/api/placeholder/800/500'}
-                  alt={article.title || 'Article image'}
+                  alt={article.title || 'News image'}
                   fill
                   className="object-cover rounded-lg"
                   priority
@@ -301,7 +311,7 @@ const ArticleDetailPage: React.FC = () => {
 
       {/* Article Content */}
       <div className="bg-card border-t border-border">
-  <div className="container mx-auto py-8">
+        <div className="container mx-auto py-8">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Main Content */}
@@ -316,10 +326,17 @@ const ArticleDetailPage: React.FC = () => {
                     prose-ul:text-foreground prose-ol:text-foreground prose-li:mb-2 prose-li:leading-relaxed
                     prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-b prose-h2:border-border prose-h2:pb-2
                     prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-                    prose-blockquote:text-muted-foreground prose-blockquote:border-l-primary prose-blockquote:italic
+                    prose-blockquote:text-muted-foreground prose-blockquote:border-l-amber-600 prose-blockquote:italic
                     dark:prose-invert"
                   dangerouslySetInnerHTML={{ __html: article.content || '' }}
                 />
+
+                {/* Opinion Disclaimer */}
+                <div className="mt-8 p-4 bg-amber-600/10 border border-amber-600/20 rounded-lg">
+                  <p className="text-sm text-muted-foreground italic">
+                    💭 <strong>Note:</strong> The views expressed in this opinion piece are those of the author and do not necessarily represent the views of NewsTRNT.
+                  </p>
+                </div>
 
                 {/* Tags */}
                 <div className="mt-8 pt-8 border-t border-border">
@@ -330,7 +347,7 @@ const ArticleDetailPage: React.FC = () => {
                         <Link
                           key={tag}
                           href={`/search?q=${encodeURIComponent(tag)}`}
-                          className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-primary/10 hover:text-primary transition-colors"
+                          className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-amber-600/10 hover:text-amber-600 transition-colors"
                         >
                           #{tag}
                         </Link>
@@ -343,17 +360,20 @@ const ArticleDetailPage: React.FC = () => {
 
                 {/* Author Bio */}
                 <div className="mt-8 pt-8 border-t border-border">
-                  <div className="bg-muted/50 rounded-lg p-6">
+                  <div className="bg-amber-600/5 rounded-lg p-6 border border-amber-600/10">
                     <div className="flex items-start space-x-4">
-                      <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-3xl">👤</span>
+                      <div className="w-20 h-20 bg-amber-600/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-3xl">✍️</span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-foreground mb-2">
-                          About {authorName}
+                        <h3 className="text-lg font-semibold text-foreground mb-1">
+                          {authorName}
                         </h3>
+                        <p className="text-amber-600 dark:text-amber-400 font-medium text-sm mb-2">
+                          {article.authorTitle || 'Columnist at NewsTRNT'}
+                        </p>
                         <p className="text-muted-foreground text-sm">
-                          NewsTRNT contributor delivering quality journalism and insightful news coverage.
+                          {article.authorBio || 'A regular contributor to NewsTRNT, providing insightful commentary and analysis on current events.'}
                         </p>
                       </div>
                     </div>
@@ -368,9 +388,9 @@ const ArticleDetailPage: React.FC = () => {
 
               {/* Sidebar */}
               <div className="lg:col-span-1">
-                {/* Related Articles */}
+                {/* Related Opinions */}
                 <div className="bg-card rounded-lg shadow-sm p-6 sticky top-20 border border-border">
-                  <h3 className="text-lg font-bold text-foreground mb-4">Related Articles</h3>
+                  <h3 className="text-lg font-bold text-foreground mb-4">More Opinions</h3>
                   <div className="space-y-4">
                     {relatedArticles.length > 0 ? (
                       relatedArticles.map((relatedArticle) => (
@@ -385,14 +405,14 @@ const ArticleDetailPage: React.FC = () => {
                                   className="object-cover"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-2xl">📰</div>
+                                <div className="w-full h-full flex items-center justify-center text-2xl">💭</div>
                               )}
                             </div>
-                            <h4 className="font-medium text-foreground text-sm group-hover:text-primary line-clamp-2">
+                            <h4 className="font-medium text-foreground text-sm group-hover:text-amber-600 line-clamp-2">
                               {relatedArticle.title}
                             </h4>
                             <div className="flex items-center space-x-2 mt-1 text-xs text-muted-foreground">
-                              <span>{relatedArticle.category?.name || 'News'}</span>
+                              <span>{relatedArticle.author || 'Columnist'}</span>
                               <span>•</span>
                               <span>{relatedArticle.readingTime || 5} min read</span>
                             </div>
@@ -400,8 +420,18 @@ const ArticleDetailPage: React.FC = () => {
                         </Link>
                       ))
                     ) : (
-                      <p className="text-muted-foreground text-sm">No related articles found</p>
+                      <p className="text-muted-foreground text-sm">No related opinions found</p>
                     )}
+                  </div>
+
+                  {/* More Opinions Link */}
+                  <div className="mt-6 pt-4 border-t border-border">
+                    <Link
+                      href="/opinion"
+                      className="block text-center py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors"
+                    >
+                      More Opinions →
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -413,4 +443,4 @@ const ArticleDetailPage: React.FC = () => {
   );
 };
 
-export default ArticleDetailPage;
+export default OpinionDetailPage;

@@ -4,13 +4,43 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+
+const formatPublishedTime = (publishedAt: string | Date) => {
+  const now = new Date();
+  const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
+  const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'Just now';
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 48) return 'Yesterday';
+  return `${Math.floor(diffInHours / 24)} days ago`;
+};
 
 const HealthCategoryPage: React.FC = () => {
   const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'opinion' | 'analysis'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
-  const [articles, setArticles] = useState<any[]>([]);
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        setLoading(true);
+        const articles = await dbApi.getArticlesByCategory('health', 30);
+        if (Array.isArray(articles)) {
+          setAllArticles(articles);
+        }
+      } catch (error) {
+        console.error('Error loading articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArticles();
+  }, []);
 
   const contentTypes = [
     { value: 'all', label: 'All Content' },
@@ -28,121 +58,37 @@ const HealthCategoryPage: React.FC = () => {
   ];
 
   const subCategoryFilters = [
-    { id: 'all', label: 'All Health', count: 145 },
-    { id: 'medical', label: 'Medical Research', count: 56 },
-    { id: 'wellness', label: 'Wellness', count: 43 },
-    { id: 'mental', label: 'Mental Health', count: 28 },
-    { id: 'nutrition', label: 'Nutrition', count: 18 }
+    { id: 'all', label: 'All Health', count: allArticles.length },
+    { id: 'medical', label: 'Medical Research', count: allArticles.filter(a => a.category?.slug === 'medical').length || 0 },
+    { id: 'wellness', label: 'Wellness', count: allArticles.filter(a => a.category?.slug === 'wellness').length || 0 },
+    { id: 'mental', label: 'Mental Health', count: allArticles.filter(a => a.category?.slug === 'mental').length || 0 },
+    { id: 'nutrition', label: 'Nutrition', count: allArticles.filter(a => a.category?.slug === 'nutrition').length || 0 }
   ];
-
-  // Mock health articles data
-  const healthArticles = [
-    {
-      id: 1,
-      title: 'Breakthrough Gene Therapy Shows Promise for Alzheimer\'s Treatment',
-      summary: 'New clinical trials demonstrate significant improvement in cognitive function using innovative gene editing techniques.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '1 hour ago',
-      readingTime: 6,
-      isBreaking: true,
-      author: 'Dr. Sarah Mitchell',
-      category: 'Medical Research'
-    },
-    {
-      id: 2,
-      title: 'WHO Updates Global Health Guidelines for Mental Wellness',
-      summary: 'World Health Organization releases comprehensive framework for mental health support in post-pandemic era.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '3 hours ago',
-      readingTime: 4,
-      isBreaking: false,
-      author: 'Dr. Michael Zhang',
-      category: 'Global Health'
-    },
-    {
-      id: 3,
-      title: 'Revolutionary Cancer Immunotherapy Reaches Phase 3 Trials',
-      summary: 'Personalized cancer treatment shows 90% success rate in early testing phases.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '5 hours ago',
-      readingTime: 5,
-      isBreaking: false,
-      author: 'Dr. Emily Rodriguez',
-      category: 'Cancer Research'
-    },
-    {
-      id: 4,
-      title: 'Study Reveals Link Between Diet and Cognitive Decline Prevention',
-      summary: 'Mediterranean diet significantly reduces risk of dementia in long-term study of 50,000 participants.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '8 hours ago',
-      readingTime: 3,
-      isBreaking: false,
-      author: 'Dr. James Wilson',
-      category: 'Nutrition'
-    },
-    {
-      id: 5,
-      title: 'AI-Powered Early Detection System for Heart Disease Approved by FDA',
-      summary: 'Machine learning algorithm can predict heart attacks up to 5 years in advance with 95% accuracy.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '12 hours ago',
-      readingTime: 4,
-      isBreaking: false,
-      author: 'Dr. Lisa Chen',
-      category: 'Medical Technology'
-    },
-    {
-      id: 6,
-      title: 'Global Vaccine Initiative Targets Emerging Infectious Diseases',
-      summary: 'International coalition announces $2 billion investment in next-generation vaccine development.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '1 day ago',
-      readingTime: 5,
-      isBreaking: false,
-      author: 'Dr. Robert Kim',
-      category: 'Public Health'
-    }
-  ];
-
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setArticles(healthArticles);
-      setLoading(false);
-    }, 800);
-  }, []);
 
   const filteredArticles = () => {
-    let filtered = [...healthArticles];
+    let filtered = [...allArticles];
     
     // Filter by content type
     if (contentType !== 'all') {
-      filtered = filtered.filter(article => 
-        (article as any).contentType === contentType
-      );
+      filtered = filtered.filter(article => article.contentType === contentType);
     }
     
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => 
-        article.category === selectedSubCategory
-      );
+      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
     }
     
-    // Apply sort
-    switch (sortBy) {
-      case 'latest':
-        return filtered;
-      case 'trending':
-        return filtered.slice(0, 4);
-      case 'popular':
-        return filtered.slice(1, 5);
-      case 'breaking':
-        return filtered.filter(article => article.isBreaking);
-      default:
-        return filtered;
+    // Sort articles
+    if (sortBy === 'trending') {
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+    } else if (sortBy === 'popular') {
+      filtered.sort((a, b) => (b.readingTime || 0) - (a.readingTime || 0));
+    } else if (sortBy === 'breaking') {
+      filtered = filtered.filter(article => article.isBreaking);
     }
+    // 'latest' is default order
+
+    return filtered;
   };
 
   if (loading) {
@@ -181,12 +127,6 @@ const HealthCategoryPage: React.FC = () => {
                 Medical research, wellness & health insights
               </p>
             </div>
-            <div className="hidden lg:block">
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
-                <div className="text-lg font-bold text-primary">145</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
-              </div>
-            </div>
           </div>
 
           {/* Content type tabs moved below header into compact filter bar */}
@@ -204,9 +144,6 @@ const HealthCategoryPage: React.FC = () => {
                 }`}
               >
                 {subCat.label}
-                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
-                  {subCat.count}
-                </span>
               </button>
             ))}
           </div>
@@ -266,7 +203,7 @@ const HealthCategoryPage: React.FC = () => {
                   <div className={`flex ${index === 0 && sortBy === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
                     <div className={`relative ${index === 0 && sortBy === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
                       <Image
-                        src={article.imageUrl}
+                        src={article.imageUrl || '/api/placeholder/600/300'}
                         alt={article.title}
                         width={600}
                         height={300}
@@ -284,12 +221,12 @@ const HealthCategoryPage: React.FC = () => {
                     <div className={`p-6 flex-1 ${index === 0 && sortBy === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
                       <div className="flex items-center space-x-2 mb-3">
                         <span className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 px-2 py-1 rounded text-xs font-medium">
-                          {article.category}
+                          {article.category?.name || 'Health'}
                         </span>
-                        <span className="text-muted-foreground text-sm">{article.readingTime} min read</span>
+                        <span className="text-muted-foreground text-sm">{article.readingTime || 5} min read</span>
                       </div>
                       
-                      <Link href={`/article/${article.id}`}>
+                      <Link href={getContentUrl(article)}>
                         <h2 className={`font-bold text-foreground mb-3 hover:text-primary cursor-pointer transition-colors ${
                           index === 0 && sortBy === 'latest' ? 'text-2xl' : 'text-lg'
                         }`}>
@@ -302,8 +239,8 @@ const HealthCategoryPage: React.FC = () => {
                       </p>
                       
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>By {article.author}</span>
-                        <span>{article.publishedAt}</span>
+                        <span>By {article.author || 'Staff Writer'}</span>
+                        <span>{formatPublishedTime(article.published_at)}</span>
                       </div>
                     </div>
                   </div>
@@ -330,9 +267,6 @@ const HealthCategoryPage: React.FC = () => {
                       className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors"
                     >
                       <span className="font-medium text-foreground">{topic.name}</span>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${topic.color}`}>
-                        {topic.count}
-                      </span>
                     </Link>
                   ))}
                 </div>

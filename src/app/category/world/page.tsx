@@ -4,13 +4,43 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+
+const formatPublishedTime = (publishedAt: string | Date) => {
+  const now = new Date();
+  const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
+  const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'Just now';
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 48) return 'Yesterday';
+  return `${Math.floor(diffInHours / 24)} days ago`;
+};
 
 const WorldCategoryPage: React.FC = () => {
   const [contentType, setContentType] = useState<'all' | 'news' | 'article' | 'analysis' | 'opinion'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
-  const [articles, setArticles] = useState<any[]>([]);
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        setLoading(true);
+        const articles = await dbApi.getArticlesByCategory('world', 30);
+        if (Array.isArray(articles)) {
+          setAllArticles(articles);
+        }
+      } catch (error) {
+        console.error('Error loading articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArticles();
+  }, []);
 
   const contentTypes = [
     { value: 'all', label: 'All Content' },
@@ -28,117 +58,15 @@ const WorldCategoryPage: React.FC = () => {
   ];
 
   const subCategories = [
-    { id: 'all', label: 'All Regions', count: 198 },
-    { id: 'europe', label: 'Europe', count: 56 },
-    { id: 'asia', label: 'Asia', count: 48 },
-    { id: 'americas', label: 'Americas', count: 42 },
-    { id: 'africa-mideast', label: 'Africa & Middle East', count: 52 }
+    { id: 'all', label: 'All Regions', count: allArticles.length },
+    { id: 'europe', label: 'Europe', count: allArticles.filter(a => a.category?.slug === 'europe').length || 0 },
+    { id: 'asia', label: 'Asia', count: allArticles.filter(a => a.category?.slug === 'asia').length || 0 },
+    { id: 'americas', label: 'Americas', count: allArticles.filter(a => a.category?.slug === 'americas').length || 0 },
+    { id: 'africa-mideast', label: 'Africa & Middle East', count: allArticles.filter(a => a.category?.slug === 'africa-mideast').length || 0 }
   ];
-
-  // Mock world news articles data
-  const worldArticles = [
-    {
-      id: 1,
-      title: 'G20 Summit Reaches Historic Climate Agreement Despite Economic Tensions',
-      summary: 'World leaders commit to ambitious carbon reduction targets while addressing concerns about economic impact on developing nations.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '30 minutes ago',
-      readingTime: 8,
-      isBreaking: true,
-      author: 'Maria Rodriguez',
-      category: 'International Relations',
-      location: 'New Delhi, India',
-      contentType: 'news' as const,
-      subCategory: 'asia',
-      views: 18500
-    },
-    {
-      id: 2,
-      title: 'European Union Announces New Trade Partnership with Southeast Asia',
-      summary: 'Comprehensive trade deal promises to boost economic cooperation and reduce tariffs across multiple sectors.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '2 hours ago',
-      readingTime: 6,
-      isBreaking: false,
-      author: 'James Wilson',
-      category: 'Trade & Economy',
-      location: 'Brussels, Belgium',
-      contentType: 'analysis' as const,
-      subCategory: 'europe',
-      views: 14200
-    },
-    {
-      id: 3,
-      title: 'UN Peacekeeping Mission Expands in West Africa Amid Regional Conflicts',
-      summary: 'Security Council approves additional resources for stabilization efforts in response to escalating tensions.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '4 hours ago',
-      readingTime: 7,
-      isBreaking: false,
-      author: 'Fatima Al-Zahra',
-      category: 'Security & Defense',
-      location: 'New York, USA',
-      contentType: 'news' as const,
-      subCategory: 'africa-mideast',
-      views: 11300
-    },
-    {
-      id: 4,
-      title: 'Antarctic Research Reveals Accelerated Ice Sheet Melting Patterns',
-      summary: 'International scientific team documents unprecedented changes in polar ice formations over past decade.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '6 hours ago',
-      readingTime: 5,
-      isBreaking: false,
-      author: 'Dr. Erik Larsen',
-      category: 'Environment',
-      location: 'Antarctica',
-      contentType: 'article' as const,
-      subCategory: 'americas',
-      views: 9800
-    },
-    {
-      id: 5,
-      title: 'Middle East Peace Talks Resume After Six-Month Hiatus',
-      summary: 'Diplomatic efforts intensify as regional leaders gather for renewed negotiations mediated by international observers.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '8 hours ago',
-      readingTime: 6,
-      isBreaking: false,
-      author: 'Sarah Ahmed',
-      category: 'Diplomacy',
-      location: 'Geneva, Switzerland',
-      contentType: 'analysis' as const,
-      subCategory: 'africa-mideast',
-      views: 12600
-    },
-    {
-      id: 6,
-      title: 'Global Food Security Summit Addresses Rising Hunger Concerns',
-      summary: 'World leaders and aid organizations coordinate response to increasing food insecurity affecting 200 million people.',
-      imageUrl: '/api/placeholder/600/300',
-      publishedAt: '12 hours ago',
-      readingTime: 4,
-      isBreaking: false,
-      author: 'Michael Chen',
-      category: 'Humanitarian',
-      location: 'Rome, Italy',
-      contentType: 'news' as const,
-      subCategory: 'europe',
-      views: 7500
-    }
-  ];
-
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setArticles(worldArticles);
-      setLoading(false);
-    }, 800);
-  }, []);
 
   const filteredArticles = () => {
-    let filtered = [...worldArticles];
+    let filtered = [...allArticles];
 
     // Filter by content type
     if (contentType !== 'all') {
@@ -147,14 +75,14 @@ const WorldCategoryPage: React.FC = () => {
 
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
+      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
     }
 
     // Sort articles
     if (sortBy === 'trending') {
-      filtered.sort((a, b) => b.views - a.views);
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
     } else if (sortBy === 'popular') {
-      filtered.sort((a, b) => b.readingTime - a.readingTime);
+      filtered.sort((a, b) => (b.readingTime || 0) - (a.readingTime || 0));
     } else if (sortBy === 'breaking') {
       filtered = filtered.filter(article => article.isBreaking);
     }
@@ -199,12 +127,6 @@ const WorldCategoryPage: React.FC = () => {
                 Global news & international developments
               </p>
             </div>
-            <div className="hidden lg:block">
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
-                <div className="text-lg font-bold text-primary">198</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
-              </div>
-            </div>
           </div>
 
           {/* Content type tabs moved below header into compact filter bar */}
@@ -222,9 +144,6 @@ const WorldCategoryPage: React.FC = () => {
                 }`}
               >
                 {subCat.label}
-                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
-                  {subCat.count}
-                </span>
               </button>
             ))}
           </div>
@@ -284,7 +203,7 @@ const WorldCategoryPage: React.FC = () => {
                   <div className={`flex ${index === 0 && sortBy === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
                     <div className={`relative ${index === 0 && sortBy === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
                       <Image
-                        src={article.imageUrl}
+                        src={article.imageUrl || '/api/placeholder/600/300'}
                         alt={article.title}
                         width={600}
                         height={300}
@@ -297,20 +216,22 @@ const WorldCategoryPage: React.FC = () => {
                           BREAKING
                         </span>
                       )}
-                      <div className="absolute bottom-3 left-3 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                        📍 {article.location}
-                      </div>
+                      {article.sourceName && (
+                        <div className="absolute bottom-3 left-3 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                          📍 {article.sourceName}
+                        </div>
+                      )}
                     </div>
                     
                     <div className={`p-6 flex-1 ${index === 0 && sortBy === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
                       <div className="flex items-center space-x-2 mb-3">
                         <span className="bg-teal-100 text-teal-800 dark:bg-teal-900/20 dark:text-teal-300 px-2 py-1 rounded text-xs font-medium">
-                          {article.category}
+                          {article.category?.name || 'World'}
                         </span>
-                        <span className="text-muted-foreground text-sm">{article.readingTime} min read</span>
+                        <span className="text-muted-foreground text-sm">{article.readingTime || 5} min read</span>
                       </div>
                       
-                      <Link href={`/article/${article.id}`}>
+                      <Link href={getContentUrl(article)}>
                         <h2 className={`font-bold text-foreground mb-3 hover:text-primary cursor-pointer transition-colors ${
                           index === 0 && sortBy === 'latest' ? 'text-2xl' : 'text-lg'
                         }`}>
@@ -323,8 +244,8 @@ const WorldCategoryPage: React.FC = () => {
                       </p>
                       
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>By {article.author}</span>
-                        <span>{article.publishedAt}</span>
+                        <span>By {article.author || 'Staff Writer'}</span>
+                        <span>{formatPublishedTime(article.published_at)}</span>
                       </div>
                     </div>
                   </div>
@@ -354,9 +275,6 @@ const WorldCategoryPage: React.FC = () => {
                         <span>{region.flag}</span>
                         <span className="font-medium text-foreground">{region.name}</span>
                       </div>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${region.color}`}>
-                        {region.count}
-                      </span>
                     </Link>
                   ))}
                 </div>

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { dbApi } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
 // Note: We use a compact filter bar below the header instead of CategoryFilters
 
 // Types
@@ -18,6 +19,7 @@ interface Article {
   published_at: Date;
   isBreaking: boolean;
   isFeatured: boolean;
+  contentType?: string;
   readingTime?: number;
   author?: string;
   views: number;
@@ -212,10 +214,10 @@ const CategoryPage: React.FC = () => {
   const filteredArticles = getFilteredArticles();
 
   const filters = [
-    { id: 'latest', name: 'Latest', count: articles.length },
-    { id: 'trending', name: 'Trending', count: articles.filter(a => a.views > 100).length },
-    { id: 'popular', name: 'Popular', count: Math.min(10, articles.length) },
-    { id: 'breaking', name: 'Breaking', count: articles.filter(a => a.isBreaking).length }
+    { id: 'latest', name: 'Latest' },
+    { id: 'trending', name: 'Trending' },
+    { id: 'popular', name: 'Popular' },
+    { id: 'breaking', name: 'Breaking' }
   ];
 
   const categoryColorClass = getCategoryColorClass(category.color);
@@ -322,7 +324,7 @@ const CategoryPage: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="space-y-6">
                 {filteredArticles.map((article) => (
-                  <Link key={article.id} href={`/article/${article.slug}`} className="block">
+                  <Link key={article.id} href={getContentUrl(article)} className="block">
                     <div className="bg-card text-card-foreground border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer group">
                       <div className="md:flex">
                         {article.image_url && (

@@ -184,26 +184,6 @@ const PressPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Company Stats */}
-  <div className="container mx-auto py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">NewsTRNT by the Numbers</h2>
-            <p className="text-muted-foreground">Our impact on the news industry</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {companyStats.map((stat, index) => (
-              <div key={index} className="bg-card rounded-lg p-6 border border-border text-center">
-                <div className="text-3xl font-bold text-primary mb-2">{stat.value}</div>
-                <h3 className="text-lg font-semibold text-foreground mb-1">{stat.label}</h3>
-                <p className="text-sm text-muted-foreground">{stat.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Press Releases */}
       <div className="bg-card border-y border-border py-16">
   <div className="container mx-auto">
@@ -225,7 +205,7 @@ const PressPage: React.FC = () => {
                       : 'bg-background border border-border text-foreground hover:bg-muted/50'
                   }`}
                 >
-                  {category.name} ({category.count})
+                  {category.name}
                 </button>
               ))}
             </div>
@@ -416,15 +396,6 @@ const PressPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="font-medium">Headquarters:</span> San Francisco, CA
-                  </div>
-                  <div>
-                    <span className="font-medium">Employees:</span> 150+
-                  </div>
-                  <div>
-                    <span className="font-medium">Funding:</span> Series B, $50M
-                  </div>
-                  <div>
-                    <span className="font-medium">Users:</span> 10M+ monthly active
                   </div>
                 </div>
                 

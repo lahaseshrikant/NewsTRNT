@@ -1,9 +1,22 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
+import { dbApi, Article } from '@/lib/database-real';
+import { getContentUrl } from '@/lib/contentUtils';
+
+const formatPublishedTime = (publishedAt: string | Date) => {
+  const now = new Date();
+  const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
+  const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return 'Just now';
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 48) return 'Yesterday';
+  return `${Math.floor(diffInHours / 24)} days ago`;
+};
 
 const TechnologyPage: React.FC = () => {
   // Content Type and Sort Filters
@@ -12,6 +25,27 @@ const TechnologyPage: React.FC = () => {
   
   // Technology-specific sub-category filter
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
+  
+  // Database articles state
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        setLoading(true);
+        const articles = await dbApi.getArticlesByCategory('technology', 30);
+        if (Array.isArray(articles)) {
+          setAllArticles(articles);
+        }
+      } catch (error) {
+        console.error('Error loading articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArticles();
+  }, []);
 
   const contentTypes = [
     { value: 'all', label: 'All' },
@@ -29,99 +63,11 @@ const TechnologyPage: React.FC = () => {
   ];
 
   const subCategoryFilters = [
-    { id: 'all', label: 'All Tech', count: 234 },
-    { id: 'ai', label: 'AI & ML', count: 89 },
-    { id: 'startups', label: 'Startups', count: 67 },
-    { id: 'security', label: 'Cybersecurity', count: 45 },
-    { id: 'hardware', label: 'Hardware', count: 33 }
-  ];
-
-  // Combine all articles with filtering properties
-  const allArticles = [
-    {
-      id: 1,
-      title: "OpenAI Announces Revolutionary GPT-5 with 10x Performance Improvement",
-      summary: "The new language model promises unprecedented capabilities in reasoning, creativity, and multimodal understanding.",
-      imageUrl: "/api/placeholder/600/400",
-      publishedAt: "1 hour ago",
-      readTime: "5 min read",
-      author: "Alex Thompson",
-      tags: ["AI", "OpenAI", "GPT-5"],
-      isFeatured: true,
-      contentType: 'news' as const,
-      subCategory: 'ai',
-      views: 18000
-    },
-    {
-      id: 2,
-      title: "Apple Unveils Game-Changing Neural Processor for Next-Gen Devices",
-      summary: "The M4 chip features dedicated AI acceleration that could transform mobile computing and AR experiences.",
-      imageUrl: "/api/placeholder/600/400",
-      publishedAt: "3 hours ago",
-      readTime: "7 min read",
-      author: "Sarah Kim",
-      tags: ["Apple", "Hardware", "AI"],
-      isFeatured: true,
-      contentType: 'article' as const,
-      subCategory: 'hardware',
-      views: 14500
-    },
-    {
-      id: 3,
-      title: "Meta Launches Advanced VR Workspace Platform for Remote Teams",
-      summary: "Horizon Workrooms 3.0 introduces haptic feedback and ultra-realistic avatars for virtual collaboration.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "4 hours ago",
-      readTime: "6 min read",
-      author: "David Chen",
-      tags: ["Meta", "VR", "Remote Work"],
-      isFeatured: false,
-      contentType: 'news' as const,
-      subCategory: 'startups',
-      views: 9800
-    },
-    {
-      id: 4,
-      title: "Tesla's FSD Beta Achieves 99.9% Safety Rating in Latest Tests",
-      summary: "Full Self-Driving technology shows remarkable improvement in complex urban scenarios.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "6 hours ago",
-      readTime: "4 min read",
-      author: "Maria Rodriguez",
-      tags: ["Tesla", "Autonomous", "Safety"],
-      isFeatured: false,
-      contentType: 'analysis' as const,
-      subCategory: 'ai',
-      views: 11200
-    },
-    {
-      id: 5,
-      title: "Google Quantum Computer Breaks New Computational Barriers",
-      summary: "Sycamore processor demonstrates quantum supremacy in practical optimization problems.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "8 hours ago",
-      readTime: "8 min read",
-      author: "Robert Wilson",
-      tags: ["Google", "Quantum", "Computing"],
-      isFeatured: false,
-      contentType: 'article' as const,
-      subCategory: 'hardware',
-      views: 13500
-    },
-    {
-      id: 6,
-      title: "Cybersecurity Firm Discovers Major Vulnerability in IoT Devices",
-      summary: "Critical security flaw affects millions of smart home devices worldwide.",
-      imageUrl: "/api/placeholder/400/300",
-      publishedAt: "10 hours ago",
-      readTime: "5 min read",
-      author: "Lisa Park",
-      tags: ["Security", "IoT", "Vulnerability"],
-      isFeatured: false,
-      contentType: 'news' as const,
-      subCategory: 'security',
-      views: 10800
-    }
+    { id: 'all', label: 'All Tech', count: allArticles.length },
+    { id: 'ai', label: 'AI & ML', count: allArticles.filter(a => a.category?.slug === 'ai').length || 0 },
+    { id: 'startups', label: 'Startups', count: allArticles.filter(a => a.category?.slug === 'startups').length || 0 },
+    { id: 'security', label: 'Cybersecurity', count: allArticles.filter(a => a.category?.slug === 'security').length || 0 },
+    { id: 'hardware', label: 'Hardware', count: allArticles.filter(a => a.category?.slug === 'hardware').length || 0 }
   ];
 
   // Filtering logic
@@ -135,14 +81,14 @@ const TechnologyPage: React.FC = () => {
 
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.subCategory === selectedSubCategory);
+      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
     }
 
     // Sort articles
     if (sortBy === 'trending') {
-      filtered.sort((a, b) => b.views - a.views);
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
     } else if (sortBy === 'popular') {
-      filtered.sort((a, b) => parseInt(b.readTime) - parseInt(a.readTime));
+      filtered.sort((a, b) => (b.readingTime || 0) - (a.readingTime || 0));
     }
     // 'latest' is default order
 
@@ -187,12 +133,6 @@ const TechnologyPage: React.FC = () => {
                 Latest innovations & tech insights
               </p>
             </div>
-            <div className="hidden lg:block">
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
-                <div className="text-lg font-bold text-primary">234</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Articles</div>
-              </div>
-            </div>
           </div>
 
           {/* Content type tabs moved below header into compact filter bar */}
@@ -210,9 +150,6 @@ const TechnologyPage: React.FC = () => {
                 }`}
               >
                 {subCat.label}
-                <span className={`ml-1.5 text-[10px] ${selectedSubCategory === subCat.id ? 'opacity-80' : 'opacity-50'}`}>
-                  {subCat.count}
-                </span>
               </button>
             ))}
           </div>
@@ -269,13 +206,27 @@ const TechnologyPage: React.FC = () => {
             {/* Featured Articles */}
             <section className="mb-12">
               <h2 className="text-2xl font-bold text-foreground mb-6">Breaking Tech News</h2>
+              {loading ? (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="animate-pulse bg-card border border-border rounded-lg overflow-hidden">
+                      <div className="h-48 bg-muted"></div>
+                      <div className="p-6 space-y-3">
+                        <div className="h-6 bg-muted rounded w-3/4"></div>
+                        <div className="h-4 bg-muted rounded w-full"></div>
+                        <div className="h-4 bg-muted rounded w-2/3"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="grid md:grid-cols-2 gap-6">
                 {featuredArticles.map(article => (
-                  <Link key={article.id} href={`/article/${article.id}`} 
+                  <Link key={article.id} href={getContentUrl(article)} 
                         className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all">
                     <div className="relative h-48">
                       <Image
-                        src={article.imageUrl}
+                        src={article.imageUrl || '/api/placeholder/600/400'}
                         alt={article.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -295,35 +246,43 @@ const TechnologyPage: React.FC = () => {
                       </p>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <div className="flex items-center space-x-4">
-                          <span>{article.author}</span>
-                          <span>{article.publishedAt}</span>
+                          <span>{article.author || 'Staff Writer'}</span>
+                          <span>{formatPublishedTime(article.published_at)}</span>
                         </div>
-                        <span>{article.readTime}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {article.tags.map(tag => (
-                          <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                            {tag}
-                          </span>
-                        ))}
+                        <span>{article.readingTime || 5} min read</span>
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
+              )}
             </section>
 
             {/* Recent Articles */}
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-6">Latest Technology News</h2>
+              {loading ? (
+                <div className="space-y-6">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="animate-pulse flex flex-col md:flex-row gap-4 bg-card border border-border rounded-lg p-6">
+                      <div className="md:w-1/3 h-48 md:h-32 bg-muted rounded-lg"></div>
+                      <div className="md:w-2/3 space-y-3">
+                        <div className="h-5 bg-muted rounded w-3/4"></div>
+                        <div className="h-4 bg-muted rounded w-full"></div>
+                        <div className="h-4 bg-muted rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="space-y-6">
                 {recentArticles.map(article => (
-                  <Link key={article.id} href={`/article/${article.id}`}
+                  <Link key={article.id} href={getContentUrl(article)}
                         className="group flex flex-col md:flex-row gap-4 bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all">
                     <div className="md:w-1/3">
                       <div className="relative h-48 md:h-32 rounded-lg overflow-hidden">
                         <Image
-                          src={article.imageUrl}
+                          src={article.imageUrl || '/api/placeholder/400/300'}
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -339,22 +298,16 @@ const TechnologyPage: React.FC = () => {
                       </p>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <div className="flex items-center space-x-4">
-                          <span>{article.author}</span>
-                          <span>{article.publishedAt}</span>
+                          <span>{article.author || 'Staff Writer'}</span>
+                          <span>{formatPublishedTime(article.published_at)}</span>
                         </div>
-                        <span>{article.readTime}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {article.tags.map(tag => (
-                          <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-                            {tag}
-                          </span>
-                        ))}
+                        <span>{article.readingTime || 5} min read</span>
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
+              )}
 
               {/* Load More */}
               <div className="text-center mt-8">
@@ -393,7 +346,6 @@ const TechnologyPage: React.FC = () => {
                   <Link key={topic.name} href={`/search?q=${encodeURIComponent(topic.name)}`}
                         className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors">
                     <span className="text-foreground">{topic.name}</span>
-                    <span className="text-muted-foreground text-sm">{topic.count}</span>
                   </Link>
                 ))}
               </div>

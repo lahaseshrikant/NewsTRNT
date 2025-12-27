@@ -6,43 +6,16 @@ import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumb';
 import { useCategories } from '@/hooks/useCategories';
-
-interface WebStory {
-  id: string;
-  title: string;
-  category: string;
-  coverImage: string;
-  slides: WebStorySlide[];
-  publishedAt: string;
-  duration: number; // in seconds
-  author: string;
-  views: number;
-  isNew: boolean;
-  isTrending: boolean;
-}
-
-interface WebStorySlide {
-  id: string;
-  type: 'image' | 'video' | 'text';
-  background: string;
-  content: {
-    headline?: string;
-    text?: string;
-    image?: string;
-    video?: string;
-    animation?: string;
-  };
-  duration: number;
-}
+import { dbApi, WebStory } from '@/lib/database-real';
 
 const WebStoriesPage: React.FC = () => {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
   
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [currentStoryIndex, setCurrentStoryIndex] = useState<number | null>(null);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [webStories, setWebStories] = useState<WebStory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Use dynamic categories (active only)
   const { categories: dynamicCategories, loading: categoriesLoading } = useCategories();
@@ -54,189 +27,24 @@ const WebStoriesPage: React.FC = () => {
     }
   }, [categoryParam]);
 
-  // Mock Web Stories data
-  const webStories: WebStory[] = [
-    {
-      id: 'story-1',
-      title: 'Climate Summit 2024: Key Highlights',
-      category: 'Environment',
-      coverImage: '/api/placeholder/400/600',
-      publishedAt: '2024-01-21T10:30:00Z',
-      duration: 45,
-      author: 'Environmental Team',
-      views: 12540,
-      isNew: true,
-      isTrending: true,
-      slides: [
-        {
-          id: 'slide-1',
-          type: 'image',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          content: {
-            headline: 'Climate Summit 2024',
-            text: 'World leaders gather for crucial climate discussions',
-            image: '/api/placeholder/400/600'
-          },
-          duration: 5
-        },
-        {
-          id: 'slide-2',
-          type: 'text',
-          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-          content: {
-            headline: '195 Countries Participate',
-            text: 'Largest climate summit in history brings together world leaders'
-          },
-          duration: 4
-        },
-        {
-          id: 'slide-3',
-          type: 'image',
-          background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-          content: {
-            headline: '$100B Climate Fund',
-            text: 'Historic funding commitment for developing nations',
-            image: '/api/placeholder/400/600'
-          },
-          duration: 5
-        }
-      ]
-    },
-    {
-      id: 'story-2',
-      title: 'AI Revolution in Healthcare',
-      category: 'Technology',
-      coverImage: '/api/placeholder/400/600',
-      publishedAt: '2024-01-21T08:15:00Z',
-      duration: 60,
-      author: 'Tech News',
-      views: 8920,
-      isNew: false,
-      isTrending: true,
-      slides: [
-        {
-          id: 'slide-1',
-          type: 'image',
-          background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-          content: {
-            headline: 'AI Transforms Healthcare',
-            text: 'Revolutionary breakthroughs in medical diagnosis',
-            image: '/api/placeholder/400/600'
-          },
-          duration: 6
-        },
-        {
-          id: 'slide-2',
-          type: 'text',
-          background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-          content: {
-            headline: '95% Accuracy Rate',
-            text: 'AI models now outperform human doctors in early detection'
-          },
-          duration: 5
-        }
-      ]
-    },
-    {
-      id: 'story-3',
-      title: 'Space Mission Success',
-      category: 'Science',
-      coverImage: '/api/placeholder/400/600',
-      publishedAt: '2024-01-20T16:45:00Z',
-      duration: 50,
-      author: 'Space Desk',
-      views: 15670,
-      isNew: false,
-      isTrending: false,
-      slides: [
-        {
-          id: 'slide-1',
-          type: 'image',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          content: {
-            headline: 'Mars Mission Update',
-            text: 'Historic rover landing sends first images',
-            image: '/api/placeholder/400/600'
-          },
-          duration: 6
-        }
-      ]
-    },
-    {
-      id: 'story-4',
-      title: 'Economic Outlook 2024',
-      category: 'Business',
-      coverImage: '/api/placeholder/400/600',
-      publishedAt: '2024-01-20T12:30:00Z',
-      duration: 40,
-      author: 'Business Team',
-      views: 7430,
-      isNew: false,
-      isTrending: false,
-      slides: [
-        {
-          id: 'slide-1',
-          type: 'text',
-          background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-          content: {
-            headline: 'Market Outlook 2024',
-            text: 'Expert predictions for the global economy'
-          },
-          duration: 5
-        }
-      ]
-    },
-    {
-      id: 'story-5',
-      title: 'Sports Championship Finals',
-      category: 'Sports',
-      coverImage: '/api/placeholder/400/600',
-      publishedAt: '2024-01-19T20:00:00Z',
-      duration: 35,
-      author: 'Sports Desk',
-      views: 22100,
-      isNew: false,
-      isTrending: true,
-      slides: [
-        {
-          id: 'slide-1',
-          type: 'image',
-          background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-          content: {
-            headline: 'Championship Victory',
-            text: 'Thrilling final match decides the winner',
-            image: '/api/placeholder/400/600'
-          },
-          duration: 4
-        }
-      ]
-    },
-    {
-      id: 'story-6',
-      title: 'Celebrity Red Carpet Event',
-      category: 'Entertainment',
-      coverImage: '/api/placeholder/400/600',
-      publishedAt: '2024-01-19T18:30:00Z',
-      duration: 30,
-      author: 'Entertainment',
-      views: 18900,
-      isNew: false,
-      isTrending: false,
-      slides: [
-        {
-          id: 'slide-1',
-          type: 'image',
-          background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-          content: {
-            headline: 'Red Carpet Glamour',
-            text: 'Star-studded premiere showcases fashion',
-            image: '/api/placeholder/400/600'
-          },
-          duration: 5
-        }
-      ]
-    }
-  ];
+  // Load web stories from database
+  useEffect(() => {
+    const loadWebStories = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const stories = await dbApi.getWebStories({ limit: 50 });
+        setWebStories(stories);
+      } catch (err) {
+        console.error('Error loading web stories:', err);
+        setError('Failed to load web stories');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadWebStories();
+  }, []);
 
   // Create categories list with special items and dynamic categories
   const categories = [
@@ -281,6 +89,48 @@ const WebStoriesPage: React.FC = () => {
     return `${Math.floor(diffInSeconds / 86400)}d ago`;
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-border">
+          <div className="container mx-auto py-8">
+            <div className="max-w-4xl mx-auto text-center">
+              <h1 className="text-4xl font-bold text-foreground mb-4">📱 Web Stories</h1>
+              <p className="text-xl text-muted-foreground">Loading stories...</p>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto py-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="aspect-[9/19.5] bg-muted rounded-2xl animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Error loading stories</h3>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Show notification if came from "See More" */}
@@ -314,30 +164,6 @@ const WebStoriesPage: React.FC = () => {
   <div className="container mx-auto py-8">
         {/* Stats and Categories */}
         <div className="mb-8">
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-card border border-border rounded-lg p-4 text-center">
-              <div className="text-2xl mb-1">📱</div>
-              <div className="text-lg font-bold text-foreground">{webStories.length}</div>
-              <div className="text-sm text-muted-foreground">Stories</div>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-4 text-center">
-              <div className="text-2xl mb-1">🔥</div>
-              <div className="text-lg font-bold text-foreground">{webStories.filter(s => s.isTrending).length}</div>
-              <div className="text-sm text-muted-foreground">Trending</div>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-4 text-center">
-              <div className="text-2xl mb-1">👀</div>
-              <div className="text-lg font-bold text-foreground">{formatViews(webStories.reduce((sum, s) => sum + s.views, 0))}</div>
-              <div className="text-sm text-muted-foreground">Total Views</div>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-4 text-center">
-              <div className="text-2xl mb-1">🆕</div>
-              <div className="text-lg font-bold text-foreground">{webStories.filter(s => s.isNew).length}</div>
-              <div className="text-sm text-muted-foreground">New Today</div>
-            </div>
-          </div>
-
           {/* Category Filters */}
           <div className="flex flex-wrap gap-2">
             {categories.map(category => (
@@ -350,7 +176,7 @@ const WebStoriesPage: React.FC = () => {
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
               >
-                {category.label} ({category.count})
+                {category.label}
               </button>
             ))}
           </div>
@@ -361,7 +187,7 @@ const WebStoriesPage: React.FC = () => {
           {filteredStories.map((story, index) => (
             <Link
               key={story.id}
-              href={`/web-stories/${story.id}`}
+              href={`/web-stories/${story.slug}`}
               className="group relative aspect-[9/19.5] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300"
             >
               {/* Cover Image */}
@@ -410,8 +236,8 @@ const WebStoriesPage: React.FC = () => {
                 
                 <div className="flex items-center justify-between text-xs text-gray-300">
                   <div className="flex items-center space-x-1">
-                    <span>👁️</span>
-                    <span>{formatViews(story.views)}</span>
+                    <span>⏱️</span>
+                    <span>{story.duration || 30}s</span>
                   </div>
                   <span>{formatTimeAgo(story.publishedAt)}</span>
                 </div>
