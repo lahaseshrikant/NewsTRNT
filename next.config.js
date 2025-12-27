@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Performance optimizations
@@ -54,6 +56,14 @@ const nextConfig = {
         },
       };
     }
+
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      '@backend': path.resolve(__dirname, 'backend/src'),
+      // Ensure Next resolves Prisma client generated in backend
+      '@prisma/client': path.resolve(__dirname, 'backend/node_modules/@prisma/client'),
+    };
     
     return config;
   },

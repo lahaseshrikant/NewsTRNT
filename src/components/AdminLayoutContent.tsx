@@ -22,6 +22,7 @@ export default function AdminLayoutContent({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const { theme, setTheme, resolvedTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
@@ -153,17 +154,6 @@ export default function AdminLayoutContent({
       requiredPermission: 'content.read'
     },
     {
-      label: 'Logo Management',
-      href: '/admin/logo-manager',
-      icon: '🎨',
-      requireSuperAdmin: true,
-      children: [
-        { label: 'Logo Manager', href: '/admin/logo-manager', icon: '🎛️', requireSuperAdmin: true },
-        { label: 'Logo Gallery', href: '/admin/logo-gallery', icon: '🖼️', requireSuperAdmin: true },
-        { label: 'Logo History', href: '/admin/logo-history', icon: '📜', requireSuperAdmin: true }
-      ]
-    },
-    {
       label: 'Moderation',
       href: '/admin/moderation',
       icon: '💬',
@@ -172,6 +162,39 @@ export default function AdminLayoutContent({
         { label: 'Comments', href: '/admin/moderation', icon: '💬', requiredPermission: 'content.write' },
         { label: 'Reports', href: '/admin/moderation/reports', icon: '⚠️', requiredPermission: 'content.write' },
         { label: 'Spam Filter', href: '/admin/moderation/spam', icon: '🚫', requiredPermission: 'content.write' }
+      ]
+    },
+    {
+      label: 'External APIs',
+      href: '/admin/external-apis',
+      icon: '🔌',
+      requiredPermission: 'content.read',
+      children: [
+        { label: 'Market Data', href: '/admin/market-data', icon: '📈', requiredPermission: 'content.read' },
+        { label: 'API Testing', href: '/admin/api-test', icon: '🧪', requiredPermission: 'content.read' }
+      ]
+    },
+    {
+      label: 'Configuration',
+      href: '/admin/configuration',
+      icon: '⚙️',
+      requiredPermission: 'content.write',
+      children: [
+        {
+          label: 'Market Configuration',
+          href: '/admin/market-config',
+          icon: '📊',
+          requiredPermission: 'content.write',
+          children: [
+            { label: 'Stock Indices', href: '/admin/market-config/indices', icon: '📊', requiredPermission: 'content.write' },
+            { label: 'Cryptocurrencies', href: '/admin/market-config/cryptos', icon: '₿', requiredPermission: 'content.write' },
+            { label: 'Commodities', href: '/admin/market-config/commodities', icon: '🛢️', requiredPermission: 'content.write' },
+            { label: 'Currency Pairs', href: '/admin/market-config/currencies', icon: '💱', requiredPermission: 'content.write' }
+          ]
+        },
+        { label: 'Logo Manager', href: '/admin/logo-manager', icon: '🎨', requireSuperAdmin: true },
+        { label: 'Logo Gallery', href: '/admin/logo-gallery', icon: '🖼️', requireSuperAdmin: true },
+        { label: 'Logo History', href: '/admin/logo-history', icon: '📜', requireSuperAdmin: true }
       ]
     },
     {
@@ -198,44 +221,79 @@ export default function AdminLayoutContent({
     return pathname.startsWith(href);
   };
 
-  const renderNavigationItem = (item: NavigationItem, isChild = false) => {
+  const renderNavigationItem = (item: NavigationItem, isChild = false, isGrandchild = false) => {
     const isActive = isActiveLink(item.href);
     const hasChildren = item.children && item.children.length > 0;
     
+    const toggleExpand = (href: string) => {
+      setExpandedItems(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(href)) {
+          newSet.delete(href);
+        } else {
+          newSet.add(href);
+        }
+        return newSet;
+      });
+    };
+    
     return (
-      <div key={item.href} className={isChild ? 'ml-6' : ''}>
-        <Link
-          href={item.href}
-          className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden ${
-            isActive
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25'
-              : 'text-muted-foreground hover:text-primary hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20'
-          } ${isChild ? 'ml-2' : ''}`}
-          onClick={() => setSidebarOpen(false)}
-        >
-          <div className="flex items-center space-x-3 relative z-10">
-            <span className={`text-lg transition-transform duration-300 group-hover:scale-110 ${isActive ? 'drop-shadow-sm' : ''}`}>
-              {item.icon}
-            </span>
-            <span className="font-medium">{item.label}</span>
-          </div>
-          <div className="flex items-center space-x-2 relative z-10">
-            {item.badge && (
-              <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm animate-pulse">
-                {item.badge}
+      <div key={item.href} className={isGrandchild ? 'ml-4' : isChild ? 'ml-6' : ''}>
+        {hasChildren ? (
+          <button
+            onClick={() => toggleExpand(item.href)}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden text-left ${
+              isActive
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25'
+                : 'text-muted-foreground hover:text-primary hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20'
+            } ${isChild ? 'ml-2' : ''} ${isGrandchild ? 'ml-2 text-xs' : ''}`}
+          >
+            <div className="flex items-center space-x-3 relative z-10">
+              <span className={`${isGrandchild ? 'text-sm' : 'text-lg'} transition-transform duration-300 group-hover:scale-110 ${isActive ? 'drop-shadow-sm' : ''}`}>
+                {item.icon}
               </span>
-            )}
-            {hasChildren && !isChild && (
-              <span className={`text-xs transition-transform duration-300 ${isActive ? 'rotate-90' : 'group-hover:translate-x-1'}`}>
+              <span className="font-medium">{item.label}</span>
+            </div>
+            <div className="flex items-center space-x-2 relative z-10">
+              {item.badge && (
+                <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm animate-pulse">
+                  {item.badge}
+                </span>
+              )}
+              <span className={`text-xs transition-transform duration-300 ${expandedItems.has(item.href) ? 'rotate-90' : 'group-hover:translate-x-1'}`}>
                 ▶
               </span>
-            )}
-          </div>
-        </Link>
+            </div>
+          </button>
+        ) : (
+          <Link
+            href={item.href}
+            className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden ${
+              isActive
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25'
+                : 'text-muted-foreground hover:text-primary hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20'
+            } ${isChild ? 'ml-2' : ''} ${isGrandchild ? 'ml-2 text-xs' : ''}`}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <div className="flex items-center space-x-3 relative z-10">
+              <span className={`${isGrandchild ? 'text-sm' : 'text-lg'} transition-transform duration-300 group-hover:scale-110 ${isActive ? 'drop-shadow-sm' : ''}`}>
+                {item.icon}
+              </span>
+              <span className="font-medium">{item.label}</span>
+            </div>
+            <div className="flex items-center space-x-2 relative z-10">
+              {item.badge && (
+                <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm animate-pulse">
+                  {item.badge}
+                </span>
+              )}
+            </div>
+          </Link>
+        )}
         
-        {hasChildren && !isChild && isActive && (
+        {hasChildren && (expandedItems.has(item.href) || isActive) && (
           <div className="mt-2 space-y-1 animate-in slide-in-from-top-2 duration-300">
-            {item.children!.map(child => renderNavigationItem(child, true))}
+            {item.children!.map(child => renderNavigationItem(child, true, isChild))}
           </div>
         )}
       </div>
