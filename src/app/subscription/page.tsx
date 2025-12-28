@@ -57,7 +57,7 @@ const SubscriptionPage: React.FC = () => {
       description: 'For professionals who need comprehensive news intelligence',
       features: [
         'Everything in Premium',
-        'AI-powered news insights',
+        'Smart news insights',
         'Industry-specific feeds',
         'Real-time market data',
         'Expert analysis & reports',
@@ -77,9 +77,9 @@ const SubscriptionPage: React.FC = () => {
 
   const features = [
     {
-      icon: '🤖',
-      title: 'AI-Powered Personalization',
-      description: 'Our advanced AI learns your preferences to deliver perfectly curated news content.'
+      icon: '🎯',
+      title: 'Smart Personalization',
+      description: 'Our intelligent system learns your preferences to deliver perfectly curated news content.'
     },
     {
       icon: '⚡',
@@ -104,7 +104,7 @@ const SubscriptionPage: React.FC = () => {
     {
       icon: '🎯',
       title: 'Fact-Checking',
-      description: 'AI-powered fact-checking and source verification for reliable information.'
+      description: 'Rigorous fact-checking and source verification for reliable information.'
     }
   ];
 
@@ -152,7 +152,7 @@ const SubscriptionPage: React.FC = () => {
               Choose Your NewsTRNT Plan
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Get personalized news that matches your interests with our AI-powered platform
+              Get personalized news that matches your interests with our smart news platform
             </p>
             
             {/* Billing Toggle */}
@@ -281,7 +281,7 @@ const SubscriptionPage: React.FC = () => {
                 Why Choose NewsTRNT Premium?
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Experience the future of news consumption with our advanced AI-powered features
+                Experience the future of news consumption with our advanced smart features
                 designed to keep you informed and engaged.
               </p>
             </div>

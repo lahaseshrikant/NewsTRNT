@@ -15,7 +15,7 @@ const CareersPage: React.FC = () => {
       location: 'Remote / San Francisco',
       type: 'Full-time',
       salary: '$120,000 - $180,000',
-      description: 'Join our engineering team to build the next generation of AI-powered news platform.',
+      description: 'Join our engineering team to build the next generation of smart news platform.',
       requirements: [
         '5+ years of experience with React/Next.js',
         'Strong backend development skills (Node.js, Python)',
@@ -189,7 +189,7 @@ const CareersPage: React.FC = () => {
               Join Our Mission
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Help us revolutionize how the world consumes news with AI-powered personalization
+              Help us revolutionize how the world consumes news with smart personalization and independent journalism
             </p>
             <div className="flex items-center justify-center space-x-8 text-sm text-muted-foreground">
               <div className="flex items-center">

@@ -3,7 +3,7 @@ export const siteConfig = {
   // Basic Site Information
   name: "NewsTRNT",
   tagline: "The Road Not Taken",
-  description: "AI-powered news platform taking the path others won't - delivering truth, transparency, and the people's voice",
+  description: "Independent news platform bringing you diverse perspectives and underreported stories - the complete picture, powered by smart technology",
   url: "https://newstrnt.com",
   
   // Contact Information

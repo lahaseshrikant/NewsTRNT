@@ -124,7 +124,7 @@ const AdvertisePage: React.FC = () => {
   // Professional value propositions instead of showing raw numbers
   const audienceData = [
     { metric: 'Targeted Reach', value: 'Engaged Readers', icon: '👥' },
-    { metric: 'Quality Content', value: 'AI-Curated', icon: '📊' },
+    { metric: 'Quality Content', value: 'Expertly Curated', icon: '📊' },
     { metric: 'Multi-Platform', value: 'Web & Mobile', icon: '📧' },
     { metric: 'Growing Audience', value: 'Expanding Daily', icon: '📱' }
   ];

@@ -14,7 +14,7 @@ const PressPage: React.FC = () => {
   const pressReleases = [
     {
       id: 1,
-      title: 'NewsTRNT Raises $50M Series B to Revolutionize AI-Powered News Curation',
+      title: 'NewsTRNT Raises $50M Series B to Expand Independent News Platform',
       date: '2024-01-15',
       category: 'funding',
       excerpt: 'Leading news platform secures funding to expand AI capabilities and global reach, serving millions of users worldwide.',
@@ -22,10 +22,10 @@ const PressPage: React.FC = () => {
     },
     {
       id: 2,
-      title: 'NewsTRNT Launches Advanced AI Fact-Checking Feature',
+      title: 'NewsTRNT Launches Advanced Fact-Checking Feature',
       date: '2024-01-10',
       category: 'product',
-      excerpt: 'New AI-powered fact-checking system helps users identify misinformation and verify news sources in real-time.',
+      excerpt: 'New fact-checking system helps users identify misinformation and verify news sources in real-time.',
       downloadUrl: '/press/NewsTRNT-fact-checking-launch.pdf'
     },
     {
@@ -41,7 +41,7 @@ const PressPage: React.FC = () => {
       title: 'NewsTRNT Named "Best News App" by Tech Innovation Awards 2024',
       date: '2023-12-20',
       category: 'awards',
-      excerpt: 'Recognition for outstanding innovation in AI-powered news curation and personalization technology.',
+      excerpt: 'Recognition for outstanding innovation in smart news curation and personalization technology.',
       downloadUrl: '/press/NewsTRNT-tech-innovation-award.pdf'
     },
     {
@@ -49,7 +49,7 @@ const PressPage: React.FC = () => {
       title: 'NewsTRNT Surpasses 10 Million Active Users Milestone',
       date: '2023-12-15',
       category: 'milestones',
-      excerpt: 'Platform growth accelerates as more users adopt AI-curated news consumption for personalized information.',
+      excerpt: 'Platform growth accelerates as more users adopt personalized news consumption for comprehensive information.',
       downloadUrl: '/press/NewsTRNT-10m-users-milestone.pdf'
     }
   ];

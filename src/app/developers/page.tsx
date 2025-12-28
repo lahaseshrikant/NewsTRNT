@@ -81,7 +81,7 @@ const DevelopersPage: React.FC = () => {
       name: 'Search',
       method: 'POST',
       endpoint: '/api/v1/search',
-      description: 'Advanced article search with AI-powered relevance',
+      description: 'Advanced article search with intelligent relevance ranking',
       parameters: [
         { name: 'query', type: 'string', required: true, description: 'Search query' },
         { name: 'filters', type: 'object', required: false, description: 'Advanced filtering options' },
@@ -237,7 +237,7 @@ print(articles)`
               NewsTRNT API
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Powerful REST API for news data, AI-powered search, and real-time analytics
+              Powerful REST API for news data, intelligent search, and real-time analytics
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -298,10 +298,10 @@ print(articles)`
               </div>
               
               <div className="bg-card rounded-lg p-6 border border-border">
-                <div className="text-3xl mb-4">🤖</div>
-                <h3 className="text-xl font-bold text-foreground mb-2">AI-Powered</h3>
+                <div className="text-3xl mb-4">🎯</div>
+                <h3 className="text-xl font-bold text-foreground mb-2">Smart Technology</h3>
                 <p className="text-muted-foreground">
-                  Advanced AI for content analysis, sentiment detection, and smart recommendations.
+                  Advanced technology for content analysis, sentiment detection, and smart recommendations.
                 </p>
               </div>
               
