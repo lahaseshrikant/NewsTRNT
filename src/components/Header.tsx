@@ -596,18 +596,6 @@ const Header = () => {
 
   return (
     <>
-      {/* Breaking News Banner */}
-      <div className="bg-red-600 text-white py-2 overflow-hidden">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-center overflow-hidden">
-            <span className="text-sm font-semibold mr-2 flex-shrink-0">BREAKING:</span>
-            <div className="text-sm animate-pulse truncate">
-              Latest breaking news updates from around the world • Stay informed with real-time news coverage
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg sticky top-0 z-50 transition-colors duration-300">
         <div ref={containerRef} className="container mx-auto px-2 sm:px-4">
@@ -620,10 +608,10 @@ const Header = () => {
                   {renderDynamicLogo()}
                 </div>
                 <div className="hidden sm:flex flex-col justify-center min-w-0">
-                  <h1 className="text-base xl:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight whitespace-nowrap">
+                  <h1 className="text-base xl:text-lg font-bold text-white leading-tight whitespace-nowrap drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                     NewsTRNT
                   </h1>
-                  <p className="text-[10px] xl:text-xs text-muted-foreground leading-tight whitespace-nowrap">
+                  <p className="text-[10px] xl:text-xs text-white/90 leading-tight whitespace-nowrap drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                     The Road Not Taken
                   </p>
                 </div>
@@ -785,14 +773,14 @@ const Header = () => {
                 </button>
                 
                 {isSearchOpen && (
-                  <div className="absolute right-0 mt-2 w-72 sm:w-80 z-[100] bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 p-4">
+                  <div className="absolute right-0 mt-2 w-72 sm:w-80 z-[100] bg-slate-800/95 backdrop-blur-xl rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] p-4">
                     <form onSubmit={handleSearch}>
                       <input
                         type="text"
                         placeholder="Search news..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        className="w-full px-4 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-700 text-white placeholder-gray-400"
                         autoFocus
                       />
                     </form>
@@ -820,47 +808,47 @@ const Header = () => {
                 </button>
                 
                 {isNotificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 z-[100] bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2">
-                    <div className="px-4 py-3 border-b dark:border-gray-700">
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                  <div className="absolute right-0 mt-2 w-80 z-[100] bg-slate-800/95 backdrop-blur-xl rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] py-2">
+                    <div className="px-4 py-3">
+                      <h3 className="text-sm font-semibold text-white">Notifications</h3>
                     </div>
                     
                     <div className="max-h-96 overflow-y-auto">
-                      <div className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b dark:border-gray-700">
+                      <div className="px-4 py-3 hover:bg-slate-700/50">
                         <div className="flex items-start space-x-3">
                           <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                           <div className="flex-1">
-                            <p className="text-sm text-gray-900 dark:text-white">Breaking: Major tech announcement from Silicon Valley</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">2 minutes ago</p>
+                            <p className="text-sm text-white">Breaking: Major tech announcement from Silicon Valley</p>
+                            <p className="text-xs text-gray-400 mt-1">2 minutes ago</p>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b dark:border-gray-700">
+                      <div className="px-4 py-3 hover:bg-slate-700/50">
                         <div className="flex items-start space-x-3">
                           <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                           <div className="flex-1">
-                            <p className="text-sm text-gray-900 dark:text-white">Your daily news digest is ready</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">1 hour ago</p>
+                            <p className="text-sm text-white">Your daily news digest is ready</p>
+                            <p className="text-xs text-gray-400 mt-1">1 hour ago</p>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <div className="px-4 py-3 hover:bg-slate-700/50">
                         <div className="flex items-start space-x-3">
                           <div className="w-2 h-2 bg-gray-300 rounded-full mt-2 flex-shrink-0"></div>
                           <div className="flex-1">
-                            <p className="text-sm text-gray-900 dark:text-white">Climate summit reaches historic agreement</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">3 hours ago</p>
+                            <p className="text-sm text-white">Climate summit reaches historic agreement</p>
+                            <p className="text-xs text-gray-400 mt-1">3 hours ago</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="px-4 py-3 border-t dark:border-gray-700">
+                    <div className="px-4 py-3">
                       <Link
                         href="/notifications"
-                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        className="text-sm text-blue-400 hover:underline"
                         onClick={() => setIsNotificationsOpen(false)}
                       >
                         View all notifications
@@ -884,11 +872,11 @@ const Header = () => {
                 </button>
                 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 z-[100] bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2">
+                  <div className="absolute right-0 mt-2 w-64 z-[100] bg-slate-800/95 backdrop-blur-xl rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] py-2">
                     {isUserLoggedIn && currentUser ? (
                       <>
                         {/* Logged in user */}
-                        <div className="px-4 py-3 border-b dark:border-gray-700">
+                        <div className="px-4 py-3">
                           <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                               <span className="text-white font-semibold">
@@ -896,10 +884,10 @@ const Header = () => {
                               </span>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              <p className="text-sm font-medium text-white">
                                 {currentUser.name || 'User'}
                               </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                              <p className="text-xs text-gray-400">
                                 {currentUser.email || 'user@example.com'}
                               </p>
                             </div>
@@ -909,28 +897,28 @@ const Header = () => {
                         <div className="py-1">
                           <Link
                             href="/dashboard"
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700/50"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             📊 Dashboard
                           </Link>
                           <Link
                             href="/saved"
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700/50"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             🔖 Saved Articles
                           </Link>
                           <Link
                             href="/interests"
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700/50"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             ❤️ My Interests
                           </Link>
                           <Link
                             href="/settings"
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700/50"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             ⚙️ Settings
@@ -939,27 +927,27 @@ const Header = () => {
                           {/* Admin Section */}
                           {isAdmin && (
                             <>
-                              <div className="border-t dark:border-gray-700 my-1"></div>
+                              <div className="my-1"></div>
                               <div className="px-4 py-2">
-                                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Admin</p>
+                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Admin</p>
                               </div>
                               <Link
                                 href="/admin"
-                                className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                className="block px-4 py-2 text-sm text-blue-400 hover:bg-slate-700/50"
                                 onClick={() => setIsProfileOpen(false)}
                               >
                                 🏛️ Admin Panel
                               </Link>
                               <Link
                                 href="/admin/content/new"
-                                className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                className="block px-4 py-2 text-sm text-blue-400 hover:bg-slate-700/50"
                                 onClick={() => setIsProfileOpen(false)}
                               >
                                 ✏️ New Article
                               </Link>
                               <Link
                                 href="/admin/logo-manager"
-                                className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                className="block px-4 py-2 text-sm text-blue-400 hover:bg-slate-700/50"
                                 onClick={() => setIsProfileOpen(false)}
                               >
                                 🎨 Logo Manager
@@ -967,11 +955,11 @@ const Header = () => {
                             </>
                           )}
                           
-                          <div className="border-t dark:border-gray-700 my-1"></div>
+                          <div className="my-1"></div>
                           
                           {/* User Logout */}
                           <button
-                            className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                            className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700/50 transition-colors duration-200"
                             onClick={handleUserLogout}
                           >
                             🚪 Sign Out
@@ -980,14 +968,14 @@ const Header = () => {
                           {/* Admin Logout (if also admin) */}
                           {isAdmin && (
                             <button
-                              className="block w-full text-left px-4 py-2 text-sm text-orange-600 dark:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                              className="block w-full text-left px-4 py-2 text-sm text-orange-400 hover:bg-slate-700/50 transition-colors duration-200"
                               onClick={() => {
                                 setIsProfileOpen(false);
                                 logout();
                                 router.push('/');
                               }}
                             >
-                              � Admin Logout
+                              🔐 Admin Logout
                             </button>
                           )}
                         </div>
@@ -995,14 +983,14 @@ const Header = () => {
                     ) : (
                       <>
                         {/* Not logged in */}
-                        <div className="px-4 py-3 border-b dark:border-gray-700">
+                        <div className="px-4 py-3">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
+                            <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center">
                               <span className="text-white font-semibold">?</span>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">Guest</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">Not signed in</p>
+                              <p className="text-sm font-medium text-white">Guest</p>
+                              <p className="text-xs text-gray-400">Not signed in</p>
                             </div>
                           </div>
                         </div>
@@ -1010,24 +998,24 @@ const Header = () => {
                         <div className="py-1">
                           <Link
                             href="/auth/signin"
-                            className="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
+                            className="block px-4 py-2 text-sm text-blue-400 hover:bg-slate-700/50 font-medium"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             🚀 Sign In
                           </Link>
                           <Link
                             href="/auth/signup"
-                            className="block px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
+                            className="block px-4 py-2 text-sm text-green-400 hover:bg-slate-700/50 font-medium"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             ✨ Join NewsTRNT
                           </Link>
                           
-                          <div className="border-t dark:border-gray-700 my-1"></div>
+                          <div className="my-1"></div>
                           
                           <Link
                             href="/about"
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700/50"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             ℹ️ About NewsTRNT

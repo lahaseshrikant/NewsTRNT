@@ -14,7 +14,7 @@ export default function ThemeToggle() {
 
   return (
     <div className="relative">
-      <div className="flex items-center space-x-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1">
+      <div className="flex items-center space-x-1 bg-black/20 dark:bg-gray-800/50 backdrop-blur-md rounded-lg p-1 dark:border dark:border-gray-700/50">
         {themes.map(({ value, icon: Icon, label }) => (
           <button
             key={value}
@@ -22,8 +22,8 @@ export default function ThemeToggle() {
             className={`
               flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200
               ${theme === value
-                ? 'bg-blue-500 text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-white hover:text-white hover:bg-white/20'
               }
             `}
             title={label}
