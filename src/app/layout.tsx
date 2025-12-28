@@ -29,13 +29,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://NewsTRNT.com",
     title: "NewsTRNT - The Road Not Taken",
-    description: "Stay informed with AI-curated news, personalized feeds, and breaking updates from trusted sources worldwide.",
+    description: "Independent journalism bringing you diverse perspectives and underreported stories. The complete picture with breaking news and in-depth coverage.",
     siteName: "NewsTRNT",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NewsTRNT - Your world. Your interests. Your news.",
-    description: "Stay informed with AI-curated news, personalized feeds, and breaking updates from trusted sources worldwide.",
+    title: "NewsTRNT - The Road Not Taken",
+    description: "Independent journalism bringing you diverse perspectives and underreported stories. The complete picture with breaking news and in-depth coverage.",
   },
 };
 

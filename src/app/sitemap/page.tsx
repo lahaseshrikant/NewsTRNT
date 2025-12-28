@@ -34,7 +34,7 @@ const SitemapPage: React.FC = () => {
       title: 'Services & Products',
       icon: '🛠️',
       links: [
-        { name: 'All Services', href: '/services', description: 'Complete suite of AI-powered news services' },
+        { name: 'All Services', href: '/services', description: 'Complete suite of smart news services' },
         { name: 'API & Developers', href: '/developers', description: 'API documentation and developer resources' },
         { name: 'AI News Curation', href: '/services#ai-curation', description: 'Personalized news recommendation engine' },
         { name: 'Breaking News Alerts', href: '/services#breaking-alerts', description: 'Real-time news notifications' },

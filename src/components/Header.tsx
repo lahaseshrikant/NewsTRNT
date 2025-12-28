@@ -597,21 +597,22 @@ const Header = () => {
   return (
     <>
       {/* Main Header */}
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg sticky top-0 z-50 transition-colors duration-300">
+      <header className="bg-background border-b border-border shadow-sm fixed top-0 left-0 right-0 z-50 transition-colors duration-300">
         <div ref={containerRef} className="container mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-between h-16 gap-4 sm:gap-6">
             {/* Logo */}
             <div className="flex items-center flex-shrink-0">
-              <Link href="/" className="flex items-center space-x-2 py-2">
+              <Link href="/" className="flex items-center space-x-3 py-2 group">
                 {/* Dynamic NewsTRNT Logo */}
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 relative">
                   {renderDynamicLogo()}
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                 </div>
                 <div className="hidden sm:flex flex-col justify-center min-w-0">
-                  <h1 className="text-base xl:text-lg font-bold text-white leading-tight whitespace-nowrap drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                  <h1 className="text-lg xl:text-xl font-black text-foreground leading-tight whitespace-nowrap group-hover:text-primary transition-colors">
                     NewsTRNT
                   </h1>
-                  <p className="text-[10px] xl:text-xs text-white/90 leading-tight whitespace-nowrap drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                  <p className="text-[10px] xl:text-xs text-muted-foreground font-medium leading-tight whitespace-nowrap">
                     The Road Not Taken
                   </p>
                 </div>
@@ -639,7 +640,7 @@ const Header = () => {
                           setIsNotificationsOpen(false);
                           setIsSearchOpen(false);
                         }}
-                        className="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-1.5 lg:px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap"
+                        className="flex items-center text-foreground hover:text-primary px-1.5 lg:px-2 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap"
                       >
                         {item.name}
                         <svg
@@ -660,13 +661,13 @@ const Header = () => {
                           ? 'opacity-100 scale-100 translate-y-0' 
                           : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                       }`}>
-                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2">
+                        <div className="dropdown-card py-2">
                           {item.submenu.map((subItem) => (
                             <Link
                               key={subItem.name}
                               href={subItem.href}
                               onClick={() => setOpenDropdown(null)}
-                              className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
+                              className="dropdown-item"
                             >
                               {subItem.name}
                             </Link>
@@ -677,10 +678,10 @@ const Header = () => {
                   ) : (
                     <Link
                       href={item.href}
-                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-1.5 lg:px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap relative"
+                      className="text-foreground hover:text-primary px-1.5 lg:px-2 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap relative"
                     >
                       {item.name === 'Stories' && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
                       )}
                       {item.name}
                     </Link>
@@ -698,12 +699,12 @@ const Header = () => {
                       setIsNotificationsOpen(false);
                       setIsSearchOpen(false);
                     }}
-                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-1.5 lg:px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap relative"
+                    className="flex items-center text-foreground hover:text-primary px-1.5 lg:px-2 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap relative"
                   >
                     <EllipsisHorizontalIcon className="h-5 w-5" />
                     <span className="ml-1 hidden lg:inline">More</span>
                     {hiddenItems.length > 0 && (
-                      <span className="ml-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs font-medium px-1.5 py-0.5 rounded-full">
+                      <span className="ml-1 bg-primary/10 text-primary text-xs font-bold px-1.5 py-0.5 rounded-full">
                         {hiddenItems.length}
                       </span>
                     )}
@@ -725,27 +726,27 @@ const Header = () => {
                       ? 'opacity-100 scale-100 translate-y-0' 
                       : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                   }`}>
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2">
+                    <div className="dropdown-card py-2">
                       {hiddenItems.map((item) => (
                         <Link
                           key={item.name}
                           href={item.href}
                           onClick={() => setOpenDropdown(null)}
-                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
+                          className="dropdown-item"
                         >
-                          {item.name === 'Stories' && <span className="w-2 h-2 bg-blue-500 rounded-full inline-block mr-2"></span>}
+                          {item.name === 'Stories' && <span className="w-2 h-2 bg-primary rounded-full inline-block mr-2"></span>}
                           {item.name}
                         </Link>
                       ))}
                       {hiddenItems.length > 0 && (
-                        <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                        <div className="dropdown-divider"></div>
                       )}
                       {moreMenuItems.map((item) => (
                         <Link
                           key={item.name}
                           href={item.href}
                           onClick={() => setOpenDropdown(null)}
-                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
+                          className="dropdown-item"
                         >
                           {item.name}
                         </Link>
@@ -758,7 +759,7 @@ const Header = () => {
             </div>
 
             {/* Right side icons */}
-            <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 flex-shrink-0 relative z-10 min-w-max ml-4 sm:ml-6 pl-4 sm:pl-6 border-l border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 flex-shrink-0 relative z-10 min-w-max ml-4 sm:ml-6 pl-4 sm:pl-6 border-l border-border">
               {/* Search */}
               <div className="relative z-20" ref={searchRef}>
                 <button
@@ -767,20 +768,20 @@ const Header = () => {
                     setIsProfileOpen(false);
                     setIsNotificationsOpen(false);
                   }}
-                  className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                  className="p-1.5 sm:p-2 text-muted-foreground hover:text-primary transition-colors"
                 >
                   <MagnifyingGlassIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
                 
                 {isSearchOpen && (
-                  <div className="absolute right-0 mt-2 w-72 sm:w-80 z-[100] bg-slate-800/95 backdrop-blur-xl rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] p-4">
+                  <div className="absolute right-0 mt-2 w-72 sm:w-80 z-[100] dropdown-card p-4">
                     <form onSubmit={handleSearch}>
                       <input
                         type="text"
                         placeholder="Search news..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full px-4 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-700 text-white placeholder-gray-400"
+                        className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-secondary text-foreground placeholder-muted-foreground"
                         autoFocus
                       />
                     </form>
@@ -801,54 +802,54 @@ const Header = () => {
                     setIsProfileOpen(false);
                     setIsSearchOpen(false);
                   }}
-                  className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors relative"
+                  className="p-1.5 sm:p-2 text-muted-foreground hover:text-primary transition-colors relative"
                 >
                   <BellIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-2 w-2 sm:h-3 sm:w-3 bg-red-500 rounded-full"></span>
+                  <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-2 w-2 sm:h-3 sm:w-3 bg-primary rounded-full animate-pulse"></span>
                 </button>
                 
                 {isNotificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 z-[100] bg-slate-800/95 backdrop-blur-xl rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] py-2">
-                    <div className="px-4 py-3">
-                      <h3 className="text-sm font-semibold text-white">Notifications</h3>
+                  <div className="absolute right-0 mt-2 w-80 z-[100] dropdown-card py-2">
+                    <div className="px-4 py-3 border-b border-border">
+                      <h3 className="text-sm font-bold text-foreground">Notifications</h3>
                     </div>
                     
                     <div className="max-h-96 overflow-y-auto">
-                      <div className="px-4 py-3 hover:bg-slate-700/50">
+                      <div className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer">
                         <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                          <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
                           <div className="flex-1">
-                            <p className="text-sm text-white">Breaking: Major tech announcement from Silicon Valley</p>
-                            <p className="text-xs text-gray-400 mt-1">2 minutes ago</p>
+                            <p className="text-sm text-foreground">Breaking: Major tech announcement from Silicon Valley</p>
+                            <p className="text-xs text-muted-foreground mt-1">2 minutes ago</p>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="px-4 py-3 hover:bg-slate-700/50">
+                      <div className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer">
                         <div className="flex items-start space-x-3">
                           <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                           <div className="flex-1">
-                            <p className="text-sm text-white">Your daily news digest is ready</p>
-                            <p className="text-xs text-gray-400 mt-1">1 hour ago</p>
+                            <p className="text-sm text-foreground">Your daily news digest is ready</p>
+                            <p className="text-xs text-muted-foreground mt-1">1 hour ago</p>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="px-4 py-3 hover:bg-slate-700/50">
+                      <div className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer">
                         <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-gray-300 rounded-full mt-2 flex-shrink-0"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
                           <div className="flex-1">
-                            <p className="text-sm text-white">Climate summit reaches historic agreement</p>
-                            <p className="text-xs text-gray-400 mt-1">3 hours ago</p>
+                            <p className="text-sm text-foreground">Climate summit reaches historic agreement</p>
+                            <p className="text-xs text-muted-foreground mt-1">3 hours ago</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="px-4 py-3">
+                    <div className="px-4 py-3 border-t border-border">
                       <Link
                         href="/notifications"
-                        className="text-sm text-blue-400 hover:underline"
+                        className="text-sm text-primary hover:underline font-medium"
                         onClick={() => setIsNotificationsOpen(false)}
                       >
                         View all notifications
@@ -866,28 +867,28 @@ const Header = () => {
                     setIsNotificationsOpen(false);
                     setIsSearchOpen(false);
                   }}
-                  className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                  className="p-1.5 sm:p-2 text-muted-foreground hover:text-primary transition-colors"
                 >
                   <UserCircleIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
                 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 z-[100] bg-slate-800/95 backdrop-blur-xl rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] py-2">
+                  <div className="absolute right-0 mt-2 w-64 z-[100] dropdown-card py-2">
                     {isUserLoggedIn && currentUser ? (
                       <>
                         {/* Logged in user */}
-                        <div className="px-4 py-3">
+                        <div className="px-4 py-3 border-b border-border">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                              <span className="text-white font-semibold">
+                            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                              <span className="text-white font-bold">
                                 {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                               </span>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-white">
+                              <p className="text-sm font-semibold text-foreground">
                                 {currentUser.name || 'User'}
                               </p>
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-muted-foreground">
                                 {currentUser.email || 'user@example.com'}
                               </p>
                             </div>
@@ -897,28 +898,28 @@ const Header = () => {
                         <div className="py-1">
                           <Link
                             href="/dashboard"
-                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700/50"
+                            className="dropdown-item"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             📊 Dashboard
                           </Link>
                           <Link
                             href="/saved"
-                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700/50"
+                            className="dropdown-item"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             🔖 Saved Articles
                           </Link>
                           <Link
                             href="/interests"
-                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700/50"
+                            className="dropdown-item"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             ❤️ My Interests
                           </Link>
                           <Link
                             href="/settings"
-                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700/50"
+                            className="dropdown-item"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             ⚙️ Settings
@@ -927,27 +928,27 @@ const Header = () => {
                           {/* Admin Section */}
                           {isAdmin && (
                             <>
-                              <div className="my-1"></div>
+                              <div className="dropdown-divider"></div>
                               <div className="px-4 py-2">
-                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Admin</p>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Admin</p>
                               </div>
                               <Link
                                 href="/admin"
-                                className="block px-4 py-2 text-sm text-blue-400 hover:bg-slate-700/50"
+                                className="dropdown-item !text-primary"
                                 onClick={() => setIsProfileOpen(false)}
                               >
                                 🏛️ Admin Panel
                               </Link>
                               <Link
                                 href="/admin/content/new"
-                                className="block px-4 py-2 text-sm text-blue-400 hover:bg-slate-700/50"
+                                className="dropdown-item !text-primary"
                                 onClick={() => setIsProfileOpen(false)}
                               >
                                 ✏️ New Article
                               </Link>
                               <Link
                                 href="/admin/logo-manager"
-                                className="block px-4 py-2 text-sm text-blue-400 hover:bg-slate-700/50"
+                                className="dropdown-item !text-primary"
                                 onClick={() => setIsProfileOpen(false)}
                               >
                                 🎨 Logo Manager
@@ -955,11 +956,11 @@ const Header = () => {
                             </>
                           )}
                           
-                          <div className="my-1"></div>
+                          <div className="dropdown-divider"></div>
                           
                           {/* User Logout */}
                           <button
-                            className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700/50 transition-colors duration-200"
+                            className="block w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
                             onClick={handleUserLogout}
                           >
                             🚪 Sign Out
@@ -968,7 +969,7 @@ const Header = () => {
                           {/* Admin Logout (if also admin) */}
                           {isAdmin && (
                             <button
-                              className="block w-full text-left px-4 py-2 text-sm text-orange-400 hover:bg-slate-700/50 transition-colors duration-200"
+                              className="block w-full text-left px-4 py-2.5 text-sm text-orange-500 hover:bg-orange-500/10 transition-colors"
                               onClick={() => {
                                 setIsProfileOpen(false);
                                 logout();
@@ -983,14 +984,14 @@ const Header = () => {
                     ) : (
                       <>
                         {/* Not logged in */}
-                        <div className="px-4 py-3">
+                        <div className="px-4 py-3 border-b border-border">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center">
-                              <span className="text-white font-semibold">?</span>
+                            <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                              <span className="text-muted-foreground font-semibold">?</span>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-white">Guest</p>
-                              <p className="text-xs text-gray-400">Not signed in</p>
+                              <p className="text-sm font-semibold text-foreground">Guest</p>
+                              <p className="text-xs text-muted-foreground">Not signed in</p>
                             </div>
                           </div>
                         </div>
@@ -998,24 +999,24 @@ const Header = () => {
                         <div className="py-1">
                           <Link
                             href="/auth/signin"
-                            className="block px-4 py-2 text-sm text-blue-400 hover:bg-slate-700/50 font-medium"
+                            className="dropdown-item !text-primary font-medium"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             🚀 Sign In
                           </Link>
                           <Link
                             href="/auth/signup"
-                            className="block px-4 py-2 text-sm text-green-400 hover:bg-slate-700/50 font-medium"
+                            className="dropdown-item !text-green-600 dark:!text-green-400 font-medium"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             ✨ Join NewsTRNT
                           </Link>
                           
-                          <div className="my-1"></div>
+                          <div className="dropdown-divider"></div>
                           
                           <Link
                             href="/about"
-                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700/50"
+                            className="dropdown-item"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             ℹ️ About NewsTRNT
@@ -1030,7 +1031,7 @@ const Header = () => {
               {/* Mobile menu button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                className="md:hidden p-1.5 sm:p-2 text-muted-foreground hover:text-primary transition-colors"
               >
                 {isMenuOpen ? (
                   <XMarkIcon className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -1042,17 +1043,28 @@ const Header = () => {
           </div>
 
           {/* Mobile Navigation with smooth slide */}
-          <div className={`md:hidden border-t dark:border-gray-700 transition-all duration-300 ease-in-out ${
+          <div className={`md:hidden border-t border-border transition-all duration-300 ease-in-out ${
             isMenuOpen ? 'max-h-screen opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'
           }`}>
-            <nav className="flex flex-col space-y-2 py-4">
+            <nav className="flex flex-col space-y-1 py-4">
+              {/* Mobile Header Bar - Date & Theme */}
+              <div className="flex items-center justify-between px-3 py-2 mb-2 bg-secondary/50 rounded-lg mx-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-sm">📅</span>
+                  <span className="text-xs font-medium">
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </span>
+                </div>
+                <ThemeToggle />
+              </div>
+              
               {sortedItems.map((item) => (
                 <div key={item.name}>
                   {item.submenu ? (
                     <>
                       <button
                         onClick={() => setOpenDropdown(openDropdown === `mobile-${item.name}` ? null : `mobile-${item.name}`)}
-                        className="w-full flex items-center justify-between text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                        className="w-full flex items-center justify-between text-foreground hover:text-primary px-3 py-2.5 rounded-md text-base font-semibold transition-colors"
                       >
                         {item.name}
                         <svg
@@ -1078,7 +1090,7 @@ const Header = () => {
                             <Link
                               key={subItem.name}
                               href={subItem.href}
-                              className="block text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 px-3 py-2 text-sm transition-colors duration-150"
+                              className="block text-muted-foreground hover:text-primary px-3 py-2 text-sm transition-colors"
                               onClick={() => {
                                 setIsMenuOpen(false);
                                 setOpenDropdown(null);
@@ -1093,11 +1105,11 @@ const Header = () => {
                   ) : (
                     <Link
                       href={item.href}
-                      className="text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 flex items-center"
+                      className="text-foreground hover:text-primary px-3 py-2.5 rounded-md text-base font-semibold transition-colors flex items-center"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {item.name === 'Stories' && (
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                        <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
                       )}
                       {item.name}
                     </Link>
@@ -1105,35 +1117,35 @@ const Header = () => {
                 </div>
               ))}
               
-              <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+              <div className="border-t border-border mt-2 pt-2">
                 {/* Admin Mobile Buttons */}
                 {isAdmin && (
                   <>
                     <div className="px-3 py-2">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Admin</p>
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Admin</p>
                     </div>
                     <Link
                       href="/admin"
-                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 block"
+                      className="text-primary hover:text-red-700 px-3 py-2.5 rounded-md text-base font-semibold transition-colors block"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       🏛️ Admin Panel
                     </Link>
                     <Link
                       href="/admin/content/new"
-                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 block"
+                      className="text-primary hover:text-red-700 px-3 py-2.5 rounded-md text-base font-semibold transition-colors block"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       ✏️ New Article
                     </Link>
                     <Link
                       href="/admin/logo-manager"
-                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 block"
+                      className="text-primary hover:text-red-700 px-3 py-2.5 rounded-md text-base font-semibold transition-colors block"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       🎨 Logo Manager
                     </Link>
-                    <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2"></div>
+                    <div className="border-t border-border mt-2 pt-2"></div>
                   </>
                 )}
                 
@@ -1141,7 +1153,7 @@ const Header = () => {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm transition-colors duration-200 block"
+                    className="text-muted-foreground hover:text-primary px-3 py-2.5 rounded-md text-sm font-medium transition-colors block"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.name}
@@ -1149,22 +1161,22 @@ const Header = () => {
                 ))}
                 
                 {/* Mobile Auth Section */}
-                <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                <div className="border-t border-border mt-2 pt-2">
                   {isUserLoggedIn && currentUser ? (
                     <>
                       {/* Logged in user info */}
-                      <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 mb-2">
+                      <div className="px-3 py-2 border-b border-border mb-2">
                         <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                            <span className="text-white text-sm font-semibold">
+                          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">
                               {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                             </span>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            <p className="text-sm font-semibold text-foreground">
                               {currentUser.name || 'User'}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <p className="text-xs text-muted-foreground">
                               {currentUser.email || 'user@example.com'}
                             </p>
                           </div>
@@ -1173,7 +1185,7 @@ const Header = () => {
                       
                       {/* User Logout */}
                       <button
-                        className="w-full text-left px-3 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"
+                        className="w-full text-left px-3 py-2.5 text-red-500 hover:bg-red-500/10 transition-colors text-sm font-semibold"
                         onClick={() => {
                           setIsMenuOpen(false);
                           handleUserLogout();
@@ -1187,14 +1199,14 @@ const Header = () => {
                       {/* Not logged in - show sign in options */}
                       <Link
                         href="/auth/signin"
-                        className="block px-3 py-2 text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"
+                        className="block px-3 py-2.5 text-primary hover:bg-primary/10 transition-colors text-sm font-semibold"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         🚀 Sign In
                       </Link>
                       <Link
                         href="/auth/signup"
-                        className="block px-3 py-2 text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"
+                        className="block px-3 py-2.5 text-green-500 hover:bg-green-500/10 transition-colors text-sm font-semibold"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         ✨ Join NewsTRNT
@@ -1203,24 +1215,17 @@ const Header = () => {
                   )}
                 </div>
                 
-                <div className="px-3 py-2 sm:hidden">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-400 text-sm">Theme</span>
-                    <ThemeToggle />
-                  </div>
-                </div>
-                
                 {/* Mobile Admin Logout */}
                 {isAdmin && (
                   <button
-                    className="w-full text-left px-3 py-2 text-orange-600 dark:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-sm font-medium border-t border-gray-200 dark:border-gray-700 mt-2 pt-2"
+                    className="w-full text-left px-3 py-2.5 text-orange-500 hover:bg-orange-500/10 transition-colors text-sm font-semibold border-t border-border mt-2 pt-2"
                     onClick={() => {
                       setIsMenuOpen(false);
                       logout();
                       router.push('/');
                     }}
                   >
-                    � Admin Logout
+                    🔐 Admin Logout
                   </button>
                 )}
               </div>

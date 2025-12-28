@@ -9,7 +9,7 @@ const QuickNav: React.FC = () => {
       name: 'Services',
       href: '/services',
       icon: '🛠️',
-      description: 'AI-powered news solutions'
+      description: 'Smart news solutions'
     },
     {
       name: 'API',

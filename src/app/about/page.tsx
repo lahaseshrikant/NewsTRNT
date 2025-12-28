@@ -70,7 +70,7 @@ const AboutPage: React.FC = () => {
             <div className="flex items-center justify-center space-x-2 text-blue-200">
               <span>Founded in 2024</span>
               <span>•</span>
-              <span>AI-Powered News Platform</span>
+              <span>Independent News Platform</span>
               <span>•</span>
               <span>Global Coverage</span>
             </div>
@@ -108,10 +108,10 @@ const AboutPage: React.FC = () => {
               </div>
               <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg p-8 border border-border">
                 <div className="text-center">
-                  <div className="text-4xl mb-4">🧠</div>
-                  <h4 className="text-lg font-semibold text-foreground mb-2">AI-Powered Insights</h4>
+                  <div className="text-4xl mb-4">🎯</div>
+                  <h4 className="text-lg font-semibold text-foreground mb-2">Smart Insights</h4>
                   <p className="text-muted-foreground text-sm">
-                    Advanced machine learning algorithms analyze global news patterns to surface 
+                    Advanced technology analyzes global news patterns to surface 
                     the most relevant stories for you.
                   </p>
                 </div>
@@ -225,7 +225,7 @@ const AboutPage: React.FC = () => {
               Join the Future of News
             </h2>
             <p className="text-xl text-primary-foreground/80 mb-8">
-              Experience personalized, AI-curated news that adapts to your interests and keeps you informed.
+              Experience personalized news that adapts to your interests and keeps you informed with diverse perspectives.
             </p>
             <div className="space-x-4">
               <button className="bg-primary-foreground text-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary-foreground/90 transition-colors">

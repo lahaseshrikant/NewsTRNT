@@ -17,7 +17,7 @@ const HelpPage: React.FC = () => {
         {
           id: 'what-is-NewsTRNT',
           question: 'What is NewsTRNT?',
-          answer: 'NewsTRNT is an AI-powered news platform that delivers personalized news content tailored to your interests. We aggregate news from multiple sources and use artificial intelligence to provide you with the most relevant and timely information.'
+          answer: 'NewsTRNT is an independent news platform committed to bringing you diverse perspectives and stories that deserve attention. We aggregate news from multiple sources and use smart technology to help you discover comprehensive, balanced coverage across all topics.'
         },
         {
           id: 'how-to-create-account',
@@ -27,19 +27,19 @@ const HelpPage: React.FC = () => {
         {
           id: 'free-vs-premium',
           question: 'What\'s the difference between free and premium accounts?',
-          answer: 'Free accounts get access to basic news articles and limited personalization. Premium accounts include advanced AI curation, breaking news alerts, ad-free reading, offline access, and exclusive in-depth analysis articles.'
+          answer: 'Free accounts get access to basic news articles and limited personalization. Premium accounts include smart curation, breaking news alerts, ad-free reading, offline access, and exclusive in-depth analysis articles.'
         }
       ]
     },
     {
       id: 'personalization',
-      title: 'Personalization & AI',
-      icon: '🤖',
+      title: 'Personalization & Smart Features',
+      icon: '🎯',
       faqs: [
         {
           id: 'how-ai-works',
-          question: 'How does the AI personalization work?',
-          answer: 'Our AI analyzes your reading patterns, interests, and interaction history to curate news specifically for you. The more you use NewsTRNT, the better it gets at understanding your preferences and delivering relevant content.'
+          question: 'How does the personalization work?',
+          answer: 'Our smart system analyzes your reading patterns, interests, and interaction history to curate news specifically for you. The more you use NewsTRNT, the better it gets at understanding your preferences and delivering relevant content.'
         },
         {
           id: 'customize-interests',
@@ -49,7 +49,7 @@ const HelpPage: React.FC = () => {
         {
           id: 'reset-recommendations',
           question: 'Can I reset my news recommendations?',
-          answer: 'Yes, you can reset your AI preferences in Settings > Privacy & Data. This will clear your reading history and start fresh with personalization based on your selected interests.'
+          answer: 'Yes, you can reset your preferences in Settings > Privacy & Data. This will clear your reading history and start fresh with personalization based on your selected interests.'
         }
       ]
     },

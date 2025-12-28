@@ -10,8 +10,8 @@ const ServicesPage: React.FC = () => {
   const services = [
     {
       id: 'ai-curation',
-      title: 'AI News Curation',
-      description: 'Advanced artificial intelligence algorithms that personalize your news feed based on your interests, reading patterns, and preferences.',
+      title: 'Smart News Curation',
+      description: 'Intelligent algorithms that personalize your news feed based on your interests, reading patterns, and preferences.',
       icon: '🤖',
       features: [
         'Personalized content recommendations',
@@ -85,8 +85,8 @@ const ServicesPage: React.FC = () => {
     },
     {
       id: 'content-creation',
-      title: 'AI Content Creation',
-      description: 'Automated content generation, summarization, and translation services powered by advanced language models.',
+      title: 'Smart Content Tools',
+      description: 'Automated content summarization, translation services, and editorial tools powered by advanced technology.',
       icon: '✍️',
       features: [
         'Article summarization',
@@ -105,7 +105,7 @@ const ServicesPage: React.FC = () => {
       name: 'Sarah Johnson',
       company: 'TechCorp Media',
       role: 'Chief Digital Officer',
-      quote: 'NewsTRNT\'s API has transformed how we deliver news to our customers. The AI curation is incredibly accurate.',
+      quote: 'NewsTRNT\'s API has transformed how we deliver news to our customers. The smart curation is incredibly accurate.',
       avatar: '/api/placeholder/100/100'
     },
     {
@@ -134,7 +134,7 @@ const ServicesPage: React.FC = () => {
               NewsTRNT Services
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Powerful AI-driven news solutions for individuals, businesses, and developers
+              Powerful smart news solutions for individuals, businesses, and developers
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -160,7 +160,7 @@ const ServicesPage: React.FC = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Our Services</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Choose from our comprehensive suite of news and AI-powered services designed to meet your specific needs.
+              Choose from our comprehensive suite of news and smart technology services designed to meet your specific needs.
             </p>
           </div>
 

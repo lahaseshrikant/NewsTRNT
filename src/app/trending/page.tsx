@@ -265,7 +265,7 @@ const TrendingPage: React.FC = () => {
                 </div>
                 <div className="flex items-start space-x-3">
                   <span className="text-primary">🎯</span>
-                  <p>AI-powered curation for most relevant stories</p>
+                  <p>Smart curation for most relevant stories</p>
                 </div>
               </div>
             </div>

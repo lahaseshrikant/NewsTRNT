@@ -36,7 +36,7 @@ const TermsPage: React.FC = () => {
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4 border-b border-border pb-2">2. Description of Service</h2>
                 <p className="text-muted-foreground leading-relaxed text-justify">
-                  NewsTRNT is an AI-powered news aggregation platform that provides users with personalized news content, 
+                  NewsTRNT is an independent news aggregation platform that provides users with personalized news content, 
                   breaking news alerts, and comprehensive coverage across multiple categories including politics, technology, 
                   business, sports, entertainment, health, science, and world news.
                 </p>
