@@ -1,50 +1,52 @@
 // API route for managing individual currency pair
-// PUT: Update currency pair
-// DELETE: Delete currency pair
+// Proxies to backend API
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@backend/config/database';
-import { clearConfigCache } from '@/lib/market-config';
+import { verifyAdminAuth } from '@/lib/api-middleware';
+
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
-  try {
-    const body = await request.json();
-    const { id } = params;
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
 
-    // Normalize and validate payload
-    const updateData: any = {};
-    
-    if (body.pair) updateData.pair = body.pair;
-    if (body.name) updateData.name = body.name;
-    if (body.base) updateData.base = body.base.toUpperCase();
-    if (body.quote) updateData.quote = body.quote.toUpperCase();
-    if (body.type) updateData.type = body.type;
-    if (body.isActive !== undefined) updateData.isActive = body.isActive;
-    if (body.sortOrder !== undefined && body.sortOrder !== null && !Number.isNaN(Number(body.sortOrder))) {
-      updateData.sortOrder = Number(body.sortOrder);
+  try {
+    const { id } = await context.params;
+    const body = await request.json();
+
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/currencies/${id}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    );
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Backend endpoint not available' },
+        { status: response.status }
+      );
     }
 
-    // @ts-ignore
-    const updatedPair = await prisma.currencyPairConfig.update({
-      where: { id },
-      data: updateData,
-    });
-
-    // Clear cache after update
-    clearConfigCache();
-
-    return NextResponse.json({
-      success: true,
-      pair: updatedPair,
-      message: 'Currency pair updated successfully',
-    });
+    return NextResponse.json(await response.json());
   } catch (error) {
-    console.error('Error updating currency pair config:', error);
+    console.error('Error updating currency config:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update currency pair configuration' },
+      { success: false, error: 'Failed to update currency configuration' },
       { status: 500 }
     );
   }
@@ -52,27 +54,41 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
-  try {
-    const { id } = params;
-
-    // @ts-ignore
-    await prisma.currencyPairConfig.delete({
-      where: { id },
-    });
-
-    // Clear cache after deletion
-    clearConfigCache();
-
-    return NextResponse.json({
-      success: true,
-      message: 'Currency pair deleted successfully',
-    });
-  } catch (error) {
-    console.error('Error deleting currency pair config:', error);
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
     return NextResponse.json(
-      { success: false, error: 'Failed to delete currency pair configuration' },
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const { id } = await context.params;
+
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/currencies/${id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Backend endpoint not available' },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json(await response.json());
+  } catch (error) {
+    console.error('Error deleting currency config:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete currency configuration' },
       { status: 500 }
     );
   }

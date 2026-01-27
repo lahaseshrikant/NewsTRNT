@@ -1,14 +1,16 @@
-import prisma from '@backend/config/database';
-import type { Prisma } from '@prisma/client';
+// Provider preferences management - simplified version without database dependency
+// Preferences are stored in-memory with default values
+// For persistent storage, configure via environment variables or call backend API
 
 export type ProviderCategory = 'indices' | 'cryptocurrencies' | 'currencies' | 'commodities';
 export type FallbackStrategy = 'sequential';
 
-interface ProviderPreferencePayload {
+interface ProviderPreference {
   category: ProviderCategory;
   providerOrder: string[];
-  fallbackStrategy?: FallbackStrategy;
-  metadata?: Prisma.InputJsonValue;
+  fallbackStrategy: FallbackStrategy;
+  metadata: Record<string, unknown>;
+  updatedAt?: Date;
 }
 
 const DEFAULT_PROVIDER_ORDER: Record<ProviderCategory, string[]> = {
@@ -25,42 +27,38 @@ const VALID_PROVIDERS: Record<ProviderCategory, string[]> = {
   commodities: ['alphavantage', 'fmp', 'twelvedata'],
 };
 
+// In-memory storage for preferences (resets on server restart)
+const preferencesCache: Map<ProviderCategory, ProviderPreference> = new Map();
+
 export function getValidProviders(category: ProviderCategory): string[] {
   return VALID_PROVIDERS[category];
 }
 
-export async function getProviderPreference(category: ProviderCategory) {
-  const record = await prisma.marketProviderPreference.findUnique({
-    where: { category },
-  });
-
-  if (!record) {
-    return {
-      category,
-      providerOrder: DEFAULT_PROVIDER_ORDER[category],
-      fallbackStrategy: 'sequential' as FallbackStrategy,
-      metadata: {},
-    };
+export async function getProviderPreference(category: ProviderCategory): Promise<ProviderPreference> {
+  // Check cache first
+  const cached = preferencesCache.get(category);
+  if (cached) {
+    return cached;
   }
 
+  // Return default preference
   return {
     category,
-    providerOrder: record.providerOrder.length > 0 ? record.providerOrder : DEFAULT_PROVIDER_ORDER[category],
-    fallbackStrategy: (record.fallbackStrategy as FallbackStrategy) || 'sequential',
-    metadata: (record.metadata as Record<string, unknown>) || {},
-    updatedAt: record.updatedAt,
+    providerOrder: DEFAULT_PROVIDER_ORDER[category],
+    fallbackStrategy: 'sequential',
+    metadata: {},
   };
 }
 
-export async function getAllProviderPreferences() {
+export async function getAllProviderPreferences(): Promise<Record<ProviderCategory, ProviderPreference>> {
   const categories: ProviderCategory[] = ['indices', 'cryptocurrencies', 'currencies', 'commodities'];
 
-  const entries = await Promise.all(categories.map((category) => getProviderPreference(category)));
+  const entries = await Promise.all(categories.map((cat) => getProviderPreference(cat)));
 
-  return entries.reduce<Record<ProviderCategory, Awaited<ReturnType<typeof getProviderPreference>>>>((acc, entry) => {
-    acc[entry.category as ProviderCategory] = entry as Awaited<ReturnType<typeof getProviderPreference>>;
+  return entries.reduce<Record<ProviderCategory, ProviderPreference>>((acc, entry) => {
+    acc[entry.category] = entry;
     return acc;
-  }, {} as Record<ProviderCategory, Awaited<ReturnType<typeof getProviderPreference>>>);
+  }, {} as Record<ProviderCategory, ProviderPreference>);
 }
 
 function sanitizeOrder(category: ProviderCategory, inputOrder: string[]): string[] {
@@ -69,13 +67,14 @@ function sanitizeOrder(category: ProviderCategory, inputOrder: string[]): string
 
   const normalized = inputOrder
     .map((id) => id?.toLowerCase().trim())
-    .filter((id): id is string => Boolean(id) && valid.includes(id as string))
+    .filter((id): id is string => Boolean(id) && valid.includes(id))
     .filter((id) => {
       if (seen.has(id)) return false;
       seen.add(id);
       return true;
     });
 
+  // Add any missing providers at the end
   for (const provider of valid) {
     if (!seen.has(provider)) {
       normalized.push(provider);
@@ -85,35 +84,32 @@ function sanitizeOrder(category: ProviderCategory, inputOrder: string[]): string
   return normalized;
 }
 
-export async function updateProviderPreference(payload: ProviderPreferencePayload) {
-  const fallbackStrategy: FallbackStrategy = payload.fallbackStrategy ?? 'sequential';
-  const providerOrder = sanitizeOrder(payload.category, payload.providerOrder);
-  const metadata: Prisma.InputJsonValue = payload.metadata ?? {};
-
-  const record = await prisma.marketProviderPreference.upsert({
-    where: { category: payload.category },
-    update: {
-      providerOrder,
-      fallbackStrategy,
-      metadata,
-    },
-    create: {
-      category: payload.category,
-      providerOrder,
-      fallbackStrategy,
-      metadata,
-    },
-  });
-
-  return {
-    category: record.category as ProviderCategory,
-    providerOrder: record.providerOrder,
-    fallbackStrategy: record.fallbackStrategy as FallbackStrategy,
-    metadata: (record.metadata as Record<string, unknown>) || {},
-    updatedAt: record.updatedAt,
-  };
+interface UpdatePayload {
+  category: ProviderCategory;
+  providerOrder: string[];
+  fallbackStrategy?: FallbackStrategy;
+  metadata?: Record<string, unknown>;
 }
 
-export function getDefaultProviderOrder(category: ProviderCategory) {
+export async function updateProviderPreference(payload: UpdatePayload): Promise<ProviderPreference> {
+  const fallbackStrategy: FallbackStrategy = payload.fallbackStrategy ?? 'sequential';
+  const providerOrder = sanitizeOrder(payload.category, payload.providerOrder);
+  const metadata = payload.metadata ?? {};
+
+  const preference: ProviderPreference = {
+    category: payload.category,
+    providerOrder,
+    fallbackStrategy,
+    metadata,
+    updatedAt: new Date(),
+  };
+
+  // Store in cache
+  preferencesCache.set(payload.category, preference);
+
+  return preference;
+}
+
+export function getDefaultProviderOrder(category: ProviderCategory): string[] {
   return DEFAULT_PROVIDER_ORDER[category];
 }

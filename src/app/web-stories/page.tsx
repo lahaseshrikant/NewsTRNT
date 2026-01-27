@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -8,7 +8,7 @@ import Breadcrumb from '@/components/Breadcrumb';
 import { useCategories } from '@/hooks/useCategories';
 import { dbApi, WebStory } from '@/lib/database-real';
 
-const WebStoriesPage: React.FC = () => {
+const WebStoriesContent: React.FC = () => {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
   
@@ -278,6 +278,20 @@ const WebStoriesPage: React.FC = () => {
         )}
       </div>
     </div>
+  );
+};
+
+const WebStoriesPage: React.FC = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 py-12">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-pulse">Loading web stories...</div>
+        </div>
+      </div>
+    }>
+      <WebStoriesContent />
+    </Suspense>
   );
 };
 

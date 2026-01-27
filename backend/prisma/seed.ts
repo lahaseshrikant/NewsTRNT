@@ -79,7 +79,11 @@ async function main() {
   console.log('✅ Categories created:', categories.length);
 
   // Create Admin User
-  const hashedPassword = await bcrypt.hash('admin123', 12);
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || (process.env.NODE_ENV === 'development' ? 'DevAdmin123!' : null);
+  if (!adminPassword) {
+    throw new Error('SEED_ADMIN_PASSWORD must be set in production!');
+  }
+  const hashedPassword = await bcrypt.hash(adminPassword, 12);
   
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@NewsTRNT.com' },
@@ -101,7 +105,11 @@ async function main() {
   console.log('✅ Admin user created:', adminUser.email);
 
   // Create Test User
-  const testUserPassword = await bcrypt.hash('testuser123', 12);
+  const testPassword = process.env.SEED_TEST_PASSWORD || (process.env.NODE_ENV === 'development' ? 'TestUser123!' : null);
+  if (!testPassword) {
+    throw new Error('SEED_TEST_PASSWORD must be set in production!');
+  }
+  const testUserPassword = await bcrypt.hash(testPassword, 12);
   
   const testUser = await prisma.user.upsert({
     where: { email: 'user@NewsTRNT.com' },
@@ -998,8 +1006,8 @@ The study also found that breaking up walks throughout the day is just as effect
 
   console.log('🌱 Database seed completed successfully!');
   console.log('\n📋 Login Credentials:');
-  console.log('Admin: admin@NewsTRNT.com / admin123');
-  console.log('User: user@NewsTRNT.com / testuser123');
+  console.log('Admin: admin@NewsTRNT.com / [SEED_ADMIN_PASSWORD]');
+  console.log('User: user@NewsTRNT.com / [SEED_TEST_PASSWORD]');
 }
 
 main()

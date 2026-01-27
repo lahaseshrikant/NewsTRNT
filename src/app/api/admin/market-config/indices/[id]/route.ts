@@ -1,45 +1,48 @@
 // API route for managing individual market index
-// PUT: Update index
-// DELETE: Delete index
+// Proxies to backend API
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@backend/config/database';
-import { clearConfigCache } from '@/lib/market-config';
+import { verifyAdminAuth } from '@/lib/api-middleware';
+
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
+    const { id } = await context.params;
     const body = await request.json();
-    const { id } = params;
 
-    // @ts-ignore
-    const updatedIndex = await prisma.marketIndexConfig.update({
-      where: { id },
-      data: {
-        ...(body.symbol && { symbol: body.symbol }),
-        ...(body.name && { name: body.name }),
-        ...(body.country && { country: body.country }),
-        ...(body.region && { region: body.region }),
-        ...(body.exchange && { exchange: body.exchange }),
-        ...(body.currency && { currency: body.currency }),
-        ...(body.timezone && { timezone: body.timezone }),
-        ...(body.marketHours && { marketHours: body.marketHours }),
-        ...(body.isActive !== undefined && { isActive: body.isActive }),
-        ...(body.isGlobal !== undefined && { isGlobal: body.isGlobal }),
-        ...(body.sortOrder !== undefined && { sortOrder: body.sortOrder }),
-      },
-    });
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/indices/${id}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    );
 
-    // Clear cache after update
-    clearConfigCache();
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Backend endpoint not available' },
+        { status: response.status }
+      );
+    }
 
-    return NextResponse.json({
-      success: true,
-      index: updatedIndex,
-      message: 'Index updated successfully',
-    });
+    return NextResponse.json(await response.json());
   } catch (error) {
     console.error('Error updating market index config:', error);
     return NextResponse.json(
@@ -51,23 +54,37 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
-    const { id } = params;
+    const { id } = await context.params;
 
-    // @ts-ignore
-    await prisma.marketIndexConfig.delete({
-      where: { id },
-    });
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/indices/${id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-    // Clear cache after deletion
-    clearConfigCache();
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Backend endpoint not available' },
+        { status: response.status }
+      );
+    }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Index deleted successfully',
-    });
+    return NextResponse.json(await response.json());
   } catch (error) {
     console.error('Error deleting market index config:', error);
     return NextResponse.json(

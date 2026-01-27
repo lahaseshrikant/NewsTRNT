@@ -1815,7 +1815,7 @@ const LogoManager = () => {
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      onClick={saveCurrentLogoToHistory}
+                      onClick={() => saveCurrentLogoToHistory()}
                       className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
                     >
                       📸 Quick Save
@@ -1893,7 +1893,8 @@ const LogoManager = () => {
                                   onError={(e) => {
                                     console.log('Image failed to load:', logo.dataUrl);
                                     e.currentTarget.style.display = 'none';
-                                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                                    const sibling = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                    if (sibling) sibling.style.display = 'flex';
                                   }}
                                 />
                               ) : logo.format === 'html' ? (

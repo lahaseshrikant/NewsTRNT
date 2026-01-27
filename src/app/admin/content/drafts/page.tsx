@@ -55,17 +55,8 @@ const Drafts: React.FC = () => {
       console.log('🔐 Auth check:', { isAuthenticated, email: session?.email });
       
       if (!isAuthenticated) {
-        console.log('❌ Not authenticated, attempting auto-login...');
-        // Try to auto-login with default admin credentials
-        const loginResult = UnifiedAdminAuth.login('superadmin@newstrnt.com', 'NewsTRNT!SuperAdmin#2025');
-        if (!loginResult.success) {
-          // Try regular admin
-          const adminResult = UnifiedAdminAuth.login('admin@newstrnt.com', 'NewsTRNT!Admin#2025');
-          if (!adminResult.success) {
-            throw new Error('Authentication required. Please login first.');
-          }
-        }
-        console.log('✅ Auto-login successful');
+        console.log('❌ Not authenticated, redirecting to login...');
+        throw new Error('Authentication required. Please login first.');
       }
       
       console.log('🔍 Fetching drafts...', { searchTerm, sortBy, contentType });

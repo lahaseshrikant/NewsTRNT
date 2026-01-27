@@ -2,7 +2,19 @@
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
-import UnifiedAdminAuth from '@/lib/unified-admin-auth';
+
+// Client-side only: session storage keys
+const SESSION_STORAGE_KEY = 'admin_session';
+const SESSION_ID_KEY = 'admin_session_id';
+
+interface AdminSession {
+  userId: string;
+  email: string;
+  role: string;
+  permissions: string[];
+  loginTime: number;
+  expiresAt: number;
+}
 
 interface UnifiedAdminGuardProps {
   children: ReactNode;
@@ -20,28 +32,48 @@ const UnifiedAdminGuard = ({
   const [loading, setLoading] = useState(true);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-  const [adminInfo, setAdminInfo] = useState<any>(null);
+  const [adminInfo, setAdminInfo] = useState<AdminSession | null>(null);
 
   useEffect(() => {
     checkAuth();
   }, [requiredPermission, requireSuperAdmin]);
 
   const checkAuth = () => {
-    const { isAuthenticated, session } = UnifiedAdminAuth.isAuthenticated();
-    
-    if (isAuthenticated && session) {
-      setIsAuthenticated(true);
-      setAdminInfo(session);
+    // Check client-side session storage
+    try {
+      const sessionData = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
       
-      // Check permissions
-      if (requireSuperAdmin) {
-        setHasPermission(session.role === 'SUPER_ADMIN');
-      } else if (requiredPermission) {
-        setHasPermission(session.permissions.includes(requiredPermission));
+      if (sessionData && sessionId) {
+        const session: AdminSession = JSON.parse(sessionData);
+        
+        // Check if session is expired
+        if (session.expiresAt > Date.now()) {
+          setIsAuthenticated(true);
+          setAdminInfo(session);
+          
+          // Check permissions
+          if (requireSuperAdmin) {
+            setHasPermission(session.role === 'SUPER_ADMIN');
+          } else if (requiredPermission) {
+            setHasPermission(session.permissions.includes(requiredPermission));
+          } else {
+            setHasPermission(true);
+          }
+        } else {
+          // Session expired, clear it
+          sessionStorage.removeItem(SESSION_STORAGE_KEY);
+          sessionStorage.removeItem(SESSION_ID_KEY);
+          setIsAuthenticated(false);
+          setHasPermission(false);
+          setAdminInfo(null);
+        }
       } else {
-        setHasPermission(true); // Just need to be admin
+        setIsAuthenticated(false);
+        setHasPermission(false);
+        setAdminInfo(null);
       }
-    } else {
+    } catch {
       setIsAuthenticated(false);
       setHasPermission(false);
       setAdminInfo(null);
@@ -50,22 +82,41 @@ const UnifiedAdminGuard = ({
     setLoading(false);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    const result = UnifiedAdminAuth.login(loginData.email, loginData.password);
-    
-    if (result.success) {
-      checkAuth(); // Refresh auth state
-    } else {
-      setError(result.error || 'Login failed');
+    try {
+      // Call server-side API for login (where env vars are available)
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginData)
+      });
+
+      const result = await response.json();
+      
+      if (result.success && result.session) {
+        // Store session in sessionStorage (client-side only)
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(result.session));
+        sessionStorage.setItem(SESSION_ID_KEY, result.sessionId);
+        checkAuth(); // Refresh auth state
+      } else {
+        setError(result.error || 'Login failed');
+        setLoginData(prev => ({ ...prev, password: '' }));
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
       setLoginData(prev => ({ ...prev, password: '' }));
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleLogout = () => {
-    UnifiedAdminAuth.logout();
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    sessionStorage.removeItem(SESSION_ID_KEY);
     setIsAuthenticated(false);
     setHasPermission(false);
     setAdminInfo(null);
@@ -143,28 +194,17 @@ const UnifiedAdminGuard = ({
               </button>
             </form>
 
-            {/* Credentials display */}
+            {/* Development hint - no credentials shown */}
+            {process.env.NODE_ENV === 'development' && (
             <div className="mt-6 p-4 bg-slate-50 dark:bg-gray-700 rounded-lg">
-              <p className="text-sm text-gray-600 dark:text-slate-400 text-center mb-3">
-                Admin Credentials:
+              <p className="text-sm text-gray-600 dark:text-slate-400 text-center">
+                💡 Use credentials from your <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded">.env.local</code> file
               </p>
-              <div className="space-y-3">
-                <div className="text-center">
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Regular Admin:</p>
-                  <div className="text-sm space-y-1">
-                    <div className="text-gray-800 dark:text-gray-200 font-mono">admin@newstrnt.com</div>
-                    <div className="text-gray-800 dark:text-gray-200 font-mono">NewsTRNT!Admin#2025</div>
-                  </div>
-                </div>
-                <div className="border-t border-slate-200 dark:border-slate-500 pt-3">
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-1 text-center">Super Admin:</p>
-                  <div className="text-sm space-y-1 text-center">
-                    <div className="text-gray-800 dark:text-gray-200 font-mono">superadmin@newstrnt.com</div>
-                    <div className="text-gray-800 dark:text-gray-200 font-mono">NewsTRNT!SuperAdmin#2025</div>
-                  </div>
-                </div>
-              </div>
+              <p className="text-xs text-gray-500 dark:text-slate-500 text-center mt-2">
+                See SUPER_ADMIN_EMAIL / SUPER_ADMIN_PASSWORD or ADMIN_EMAIL / ADMIN_PASSWORD
+              </p>
             </div>
+            )}
 
             {/* Back link */}
             <div className="mt-6 text-center">

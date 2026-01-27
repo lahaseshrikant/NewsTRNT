@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -22,7 +22,7 @@ interface SearchResult {
   contentType?: string;
 }
 
-const SearchPage: React.FC = () => {
+const SearchContent: React.FC = () => {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -243,6 +243,20 @@ const SearchPage: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const SearchPage: React.FC = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-pulse">Loading search results...</div>
+        </div>
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 };
 

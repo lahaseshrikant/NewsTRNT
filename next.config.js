@@ -61,8 +61,6 @@ const nextConfig = {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       '@backend': path.resolve(__dirname, 'backend/src'),
-      // Ensure Next resolves Prisma client generated in backend
-      '@prisma/client': path.resolve(__dirname, 'backend/node_modules/@prisma/client'),
     };
     
     return config;

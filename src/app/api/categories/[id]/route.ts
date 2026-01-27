@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-interface RouteContext {
-  params: { id: string };
-}
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
@@ -13,7 +13,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const authHeader = request.headers.get('Authorization');
     
     // Forward the request to the backend API
-    const response = await fetch(`http://localhost:5000/api/categories/${id}`, {
+    const response = await fetch(`${BACKEND_API_URL}/categories/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const authHeader = request.headers.get('Authorization');
     
     // Build backend URL with query parameters
-    const backendUrl = `http://localhost:5000/api/categories/${id}${permanent ? `?permanent=${permanent}` : ''}`;
+    const backendUrl = `${BACKEND_API_URL}/categories/${id}${permanent ? `?permanent=${permanent}` : ''}`;
     
     // Forward the request to the backend API
     const response = await fetch(backendUrl, {

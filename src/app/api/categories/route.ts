@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 export async function GET(request: NextRequest) {
   try {
     // Get query parameters from the request
@@ -14,7 +16,7 @@ export async function GET(request: NextRequest) {
     });
     
     // Fetch categories from backend API
-    const response = await fetch(`http://localhost:5000/api/categories?${queryParams.toString()}`, {
+    const response = await fetch(`${BACKEND_API_URL}/categories?${queryParams.toString()}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

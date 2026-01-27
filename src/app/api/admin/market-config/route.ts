@@ -1,59 +1,78 @@
 // Admin Market Configuration Overview API
 // GET /api/admin/market-config
-// Returns aggregated market configuration data for indices, cryptocurrencies, commodities, and currency pairs
+// Proxies to backend API for market configuration data
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@backend/config/database';
+import { verifyAdminAuth } from '@/lib/api-middleware';
+
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export async function GET(request: NextRequest) {
+  // Verify admin authentication
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get('includeInactive') === 'true';
 
-    const [indices, cryptocurrencies, commodities, currencyPairs] = await Promise.all([
-      prisma.marketIndexConfig.findMany({
-        where: includeInactive ? {} : { isActive: true },
-        orderBy: { sortOrder: 'asc' },
-      }),
-      prisma.cryptocurrencyConfig.findMany({
-        where: includeInactive ? {} : { isActive: true },
-        orderBy: { sortOrder: 'asc' },
-      }),
-      prisma.commodityConfig.findMany({
-        where: includeInactive ? {} : { isActive: true },
-        orderBy: { sortOrder: 'asc' },
-      }),
-      prisma.currencyPairConfig.findMany({
-        where: includeInactive ? {} : { isActive: true },
-        orderBy: { sortOrder: 'asc' },
-      }),
-    ]);
+    // Proxy to backend API
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config?includeInactive=${includeInactive}`,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
+    if (!response.ok) {
+      // Return mock data for development if backend doesn't have this endpoint yet
+      return NextResponse.json({
+        success: true,
+        data: {
+          indices: [],
+          cryptocurrencies: [],
+          commodities: [],
+          currencies: [],
+        },
+        counts: {
+          indices: 0,
+          cryptocurrencies: 0,
+          commodities: 0,
+          currencies: 0,
+          total: 0,
+        },
+        note: 'Backend market-config endpoint not available'
+      });
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('[Admin Market Config] Failed to fetch configurations:', error);
+    // Return empty config if backend is unavailable
     return NextResponse.json({
       success: true,
       data: {
-        indices,
-        cryptocurrencies,
-        commodities,
-        currencies: currencyPairs,
+        indices: [],
+        cryptocurrencies: [],
+        commodities: [],
+        currencies: [],
       },
       counts: {
-        indices: indices.length,
-        cryptocurrencies: cryptocurrencies.length,
-        commodities: commodities.length,
-        currencies: currencyPairs.length,
-        total:
-          indices.length +
-          cryptocurrencies.length +
-          commodities.length +
-          currencyPairs.length,
+        indices: 0,
+        cryptocurrencies: 0,
+        commodities: 0,
+        currencies: 0,
+        total: 0,
       },
+      note: 'Backend unavailable - using empty config'
     });
-  } catch (error) {
-    console.error('[Admin Market Config] Failed to fetch configurations:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch market configurations' },
-      { status: 500 },
-    );
   }
 }

@@ -157,10 +157,21 @@ export const dbApi = {
 
   // User interactions
   async incrementViewCount(articleId: string) {
+    // First get the current view count
+    const { data: article, error: fetchError } = await supabase
+      .from('articles')
+      .select('view_count')
+      .eq('id', articleId)
+      .single()
+    
+    if (fetchError || !article) {
+      return { error: fetchError }
+    }
+
     const { error } = await supabase
       .from('articles')
       .update({ 
-        view_count: supabase.sql`view_count + 1`,
+        view_count: (article.view_count || 0) + 1,
         updated_at: new Date().toISOString()
       })
       .eq('id', articleId)
@@ -180,11 +191,22 @@ export const dbApi = {
     
     if (interactionError) return { error: interactionError }
     
+    // First get the current like count
+    const { data: article, error: fetchError } = await supabase
+      .from('articles')
+      .select('like_count')
+      .eq('id', articleId)
+      .single()
+    
+    if (fetchError || !article) {
+      return { error: fetchError }
+    }
+
     // Increment like count
     const { error } = await supabase
       .from('articles')
       .update({ 
-        like_count: supabase.sql`like_count + 1`,
+        like_count: (article.like_count || 0) + 1,
         updated_at: new Date().toISOString()
       })
       .eq('id', articleId)

@@ -1,6 +1,6 @@
 // Debug endpoint to check market data
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@backend/config/database';
+// Database access moved to backend - this is a debug endpoint
 
 // Symbol to country mapping (Yahoo format symbols)
 const SYMBOL_TO_COUNTRY: Record<string, string> = {
@@ -56,36 +56,15 @@ const SYMBOL_TO_COUNTRY: Record<string, string> = {
 
 export async function GET(request: NextRequest) {
   try {
-    // Get all indices from database
-    const indices = await prisma.marketIndex.findMany({
-      select: {
-        symbol: true,
-        name: true,
-        country: true,
-        value: true,
-      },
-      orderBy: { symbol: 'asc' },
-    });
-
-    // Group by country
-    const byCountry: Record<string, typeof indices> = {};
-    for (const idx of indices) {
-      const country = idx.country || 'UNKNOWN';
-      if (!byCountry[country]) {
-        byCountry[country] = [];
-      }
-      byCountry[country].push(idx);
-    }
-
+    // Database access moved to backend
+    // Return info about available debug endpoints
     return NextResponse.json({
       success: true,
-      totalIndices: indices.length,
-      byCountry: Object.entries(byCountry).map(([country, items]) => ({
-        country,
-        count: items.length,
-        symbols: items.map(i => i.symbol),
-      })),
-      allSymbols: indices.map(i => i.symbol),
+      message: 'Debug endpoint - database access moved to backend',
+      note: 'Use backend API for database queries',
+      totalIndices: 0,
+      byCountry: [],
+      allSymbols: [],
     });
   } catch (error) {
     console.error('[Debug API] Error:', error);
@@ -99,30 +78,12 @@ export async function GET(request: NextRequest) {
 // POST - Fix country codes for existing indices
 export async function POST(request: NextRequest) {
   try {
-    const indices = await prisma.marketIndex.findMany({
-      where: { country: 'UNKNOWN' },
-      select: { id: true, symbol: true },
-    });
-
-    let updated = 0;
-    const updates: { symbol: string; country: string }[] = [];
-
-    for (const idx of indices) {
-      const country = SYMBOL_TO_COUNTRY[idx.symbol];
-      if (country) {
-        await prisma.marketIndex.update({
-          where: { id: idx.id },
-          data: { country },
-        });
-        updated++;
-        updates.push({ symbol: idx.symbol, country });
-      }
-    }
-
+    // Database access moved to backend
     return NextResponse.json({
-      success: true,
-      message: `Fixed country codes for ${updated} indices`,
-      updates,
+      success: false,
+      message: 'Database operations moved to backend API',
+      note: 'Use backend API /api/admin/market-config for updates',
+      updates: [],
     });
   } catch (error) {
     console.error('[Debug API] Error fixing countries:', error);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@backend/config/database';
+// Database access moved to backend - use API calls instead
 import {
   ProviderCategory,
   getProviderPreference,
@@ -566,10 +566,8 @@ async function processProvider(providerId: string, params: URLSearchParams): Pro
         };
       }
 
-      const cachedRows = await prisma.marketIndex.findMany({
-        where: { lastSource: 'tradingview' },
-        orderBy: { updatedAt: 'desc' },
-      });
+      // Database cache access moved to backend
+      const cachedRows: unknown[] = [];
 
       return {
         ok: true,

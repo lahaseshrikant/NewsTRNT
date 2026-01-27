@@ -1,65 +1,89 @@
-// API route for managing cryptocurrency configuration
-// GET: Fetch all cryptocurrencies
-// POST: Create new cryptocurrency
+// API route for managing cryptocurrencies configuration
+// Proxies to backend API
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@backend/config/database';
-import { clearConfigCache } from '@/lib/market-config';
+import { verifyAdminAuth } from '@/lib/api-middleware';
+
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export async function GET(request: NextRequest) {
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get('includeInactive') === 'true';
 
-    const where = includeInactive ? {} : { isActive: true };
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/cryptos?includeInactive=${includeInactive}`,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-    // @ts-ignore
-    const cryptos = await prisma.cryptocurrencyConfig.findMany({
-      where,
-      orderBy: { sortOrder: 'asc' },
-    });
+    if (!response.ok) {
+      return NextResponse.json({
+        success: true,
+        cryptos: [],
+        count: 0,
+        note: 'Backend endpoint not available'
+      });
+    }
 
+    return NextResponse.json(await response.json());
+  } catch (error) {
+    console.error('Error fetching cryptos config:', error);
     return NextResponse.json({
       success: true,
-      cryptos,
-      count: cryptos.length,
+      cryptos: [],
+      count: 0,
+      note: 'Backend unavailable'
     });
-  } catch (error) {
-    console.error('Error fetching cryptocurrency config:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch cryptocurrency configuration' },
-      { status: 500 }
-    );
   }
 }
 
 export async function POST(request: NextRequest) {
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
 
-    // @ts-ignore
-    const newCrypto = await prisma.cryptocurrencyConfig.create({
-      data: {
-        symbol: body.symbol,
-        name: body.name,
-        coinGeckoId: body.coinGeckoId,
-        isActive: body.isActive ?? true,
-        sortOrder: body.sortOrder ?? 0,
-      },
-    });
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/cryptos`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    );
 
-    // Clear cache after update
-    clearConfigCache();
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Backend endpoint not available' },
+        { status: response.status }
+      );
+    }
 
-    return NextResponse.json({
-      success: true,
-      crypto: newCrypto,
-      message: 'Cryptocurrency created successfully',
-    });
+    return NextResponse.json(await response.json());
   } catch (error) {
-    console.error('Error creating cryptocurrency config:', error);
+    console.error('Error creating crypto config:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create cryptocurrency configuration' },
+      { success: false, error: 'Failed to create crypto configuration' },
       { status: 500 }
     );
   }

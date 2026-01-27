@@ -7,7 +7,9 @@ async function callBackendAPI(endpoint: string, options: RequestInit = {}) {
   throw new Error('Use direct backend API calls with JWT tokens instead of Next.js proxy');
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+type RouteContext = { params: Promise<{ id: string }> };
+
+export async function GET(request: NextRequest, context: RouteContext) {
   return NextResponse.json(
     { 
       error: 'Route not found',
@@ -17,7 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   );
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   return NextResponse.json(
     { 
       error: 'Route not found',

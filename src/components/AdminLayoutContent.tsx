@@ -356,8 +356,10 @@ export default function AdminLayoutContent({
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground group-hover:text-blue-600 transition-colors">Admin User</p>
-                  <p className="text-xs text-muted-foreground truncate">admin@NewsTRNT.com</p>
+                  <p className="text-sm font-semibold text-foreground group-hover:text-blue-600 transition-colors">
+                    {adminSession?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin User'}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{adminSession?.email || 'admin'}</p>
                 </div>
                 <button 
                   onClick={handleLogout}

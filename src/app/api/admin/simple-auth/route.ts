@@ -1,12 +1,30 @@
 // src/app/api/admin/simple-auth/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import UnifiedAdminAuth from '@/lib/unified-admin-auth';
+import { checkRateLimit } from '@/lib/api-middleware';
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password, action } = await request.json();
 
+    // Rate limit login attempts (5 per minute)
     if (action === 'login') {
+      const identifier = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                         request.headers.get('x-real-ip') || 
+                         'anonymous';
+      const rateLimit = checkRateLimit(request, { 
+        maxRequests: 5, 
+        windowMs: 60000,
+        identifier: `simple-auth:${identifier}`
+      });
+      
+      if (!rateLimit.allowed) {
+        return NextResponse.json(
+          { success: false, error: 'Too many login attempts. Please wait.' },
+          { status: 429 }
+        );
+      }
+
       const result = UnifiedAdminAuth.login(email, password);
       
       if (result.success && result.session) {

@@ -188,7 +188,7 @@ export async function GET(
         high: crypto.high24h ?? undefined,
         low: crypto.low24h ?? undefined,
         volume: crypto.volume24h ?? undefined,
-        currency: crypto.currency,
+        currency: 'USD',
         lastUpdated: crypto.lastUpdated.toISOString(),
         isOpen: true,
         marketCap: crypto.marketCap ? crypto.marketCap.toString() : undefined,

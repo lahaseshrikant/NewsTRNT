@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+type RouteContext = { params: Promise<{ id: string }> };
+
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     
     // Get authorization header from request
     const authHeader = request.headers.get('Authorization');
@@ -18,7 +22,7 @@ export async function POST(
     }
     
     // Forward the request to the backend API
-    const response = await fetch(`http://localhost:5000/api/categories/${id}/restore`, {
+    const response = await fetch(`${BACKEND_API_URL}/categories/${id}/restore`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

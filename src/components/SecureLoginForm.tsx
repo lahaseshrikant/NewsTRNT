@@ -266,23 +266,20 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
             </button>
           </form>
 
-          {/* Security info */}
+          {/* Security info - development only */}
+          {process.env.NODE_ENV === 'development' && (
           <div className="mt-6 pt-6 border-t border-gray-700">
             <div className="text-center">
               <p className="text-sm text-gray-400 mb-3">
-                🔐 Default Credentials (Change Immediately):
+                🔐 Use credentials from your .env.local file:
               </p>
               <div className="space-y-1 text-xs bg-gray-900 p-3 rounded">
-                <div className="text-blue-400">📧 superadmin@newstrnt.com</div>
-                <div className="text-green-400">🔑 NewsTRNT!SuperAdmin#2025$Secure</div>
-                <div className="text-purple-400 mt-2">📧 admin@newstrnt.com</div>
-                <div className="text-yellow-400">🔑 NewsTRNT!Admin#2025$Safe</div>
+                <div className="text-blue-400">SUPER_ADMIN_EMAIL / SUPER_ADMIN_PASSWORD</div>
+                <div className="text-purple-400 mt-2">ADMIN_EMAIL / ADMIN_PASSWORD</div>
               </div>
-              <p className="text-xs text-red-400 mt-2">
-                ⚠️ These are temporary passwords for development only!
-              </p>
             </div>
           </div>
+          )}
 
           {/* Security features */}
           <div className="mt-6 text-center">

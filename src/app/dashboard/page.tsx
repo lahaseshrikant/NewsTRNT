@@ -16,7 +16,8 @@ import {
 } from '@heroicons/react/24/outline';
 import ArticleCard from '@/components/ArticleCard';
 import Loading from '@/components/Loading';
-import { dbApi, Article } from '@/lib/database-real';
+import { dbApi } from '@/lib/database-real';
+import type { Article } from '@/lib/database-real';
 
 interface DashboardArticle {
   id: string;
@@ -154,12 +155,14 @@ export default function DashboardPage() {
         </h3>
         <div className="space-y-4">
           {recentReads.map((article) => (
-            <ArticleCard 
+            <Link 
               key={article.id} 
-              article={article} 
-              variant="compact" 
-              showActions={false}
-            />
+              href={`/article/${article.slug}`}
+              className="block p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+            >
+              <h4 className="font-medium text-foreground line-clamp-2">{article.title}</h4>
+              <p className="text-sm text-muted-foreground mt-1">{article.category} • {article.publishedAt}</p>
+            </Link>
           ))}
         </div>
       </div>

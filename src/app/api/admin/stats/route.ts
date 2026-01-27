@@ -1,9 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyAdminAuth } from '@/lib/api-middleware';
 
 // Backend API URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Verify admin authentication
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
     // Fetch real stats from the backend
     const [statsResponse, articlesResponse] = await Promise.all([

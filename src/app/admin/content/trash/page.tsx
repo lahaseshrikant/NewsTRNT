@@ -128,13 +128,13 @@ const TrashPage = () => {
       
       // Handle any API errors
       if (!articlesResult.success) {
-        console.warn('Failed to fetch articles from trash:', articlesResult.error?.message);
+        console.warn('Failed to fetch articles from trash:', articlesResult.error);
       }
       if (!categoriesResult.success) {
-        console.warn('Failed to fetch categories from trash:', categoriesResult.error?.message);
+        console.warn('Failed to fetch categories from trash:', categoriesResult.error);
       }
       if (!webstoriesResult.success) {
-        console.warn('Failed to fetch web stories from trash:', webstoriesResult.error?.message);
+        console.warn('Failed to fetch web stories from trash:', webstoriesResult.error);
       }
     } catch (error) {
       console.error('Error fetching trash items:', error);

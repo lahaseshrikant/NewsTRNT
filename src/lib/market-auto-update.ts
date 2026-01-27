@@ -115,9 +115,15 @@ export function startMarketDataUpdates() {
     console.log('[Auto-Update] 🧹 Refreshing TradingView fallback snapshot...');
     try {
       const result = await refreshTradingViewFallback();
-      console.log(
-        `[Auto-Update] ✅ TradingView fallback refreshed: ${result.successCount} indices updated (missed ${result.missCount})`,
-      );
+      if ('successCount' in result) {
+        console.log(
+          `[Auto-Update] ✅ TradingView fallback refreshed: ${result.successCount} indices updated (missed ${result.missCount})`,
+        );
+      } else {
+        console.log(
+          `[Auto-Update] ✅ TradingView fallback refreshed via ${result.mode} mode`,
+        );
+      }
     } catch (error) {
       console.error('[Auto-Update] ❌ TradingView fallback refresh failed:', error);
     }

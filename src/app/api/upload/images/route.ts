@@ -2,8 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { verifyAdminAuth, checkRateLimit } from '@/lib/api-middleware';
+
+// Allowed image types
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(request: NextRequest) {
+  // Rate limiting: 20 uploads per minute per IP
+  const rateLimit = checkRateLimit(request, { maxRequests: 20, windowMs: 60000 });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Too many upload requests. Please wait.' },
+      { status: 429 }
+    );
+  }
+
+  // Verify admin authentication
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { success: false, error: 'Authentication required for uploads' },
+      { status: 401 }
+    );
+  }
+
   try {
     const data = await request.formData();
     const file: File | null = data.get('image') as unknown as File;
@@ -15,27 +38,38 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
+    // Validate file type (stricter check)
+    if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json({
         success: false,
-        error: 'Only image files are allowed'
+        error: 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP, SVG'
       }, { status: 400 });
     }
 
-    // Validate file size (limit to 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json({
         success: false,
         error: 'File size too large. Maximum 5MB allowed.'
       }, { status: 400 });
     }
 
-    // Create unique filename
+    // Validate filename (prevent path traversal)
+    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileExtension = originalName.split('.').pop()?.toLowerCase() || 'jpg';
+    
+    // Only allow safe extensions
+    if (!['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(fileExtension)) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid file extension'
+      }, { status: 400 });
+    }
+
+    // Create unique filename with sanitized extension
     const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `${timestamp}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+    const randomStr = Math.random().toString(36).substring(2, 10);
+    const fileName = `${timestamp}-${randomStr}.${fileExtension}`;
 
     // Create upload directory if it doesn't exist
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'images');

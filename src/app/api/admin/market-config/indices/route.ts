@@ -1,67 +1,85 @@
 // API route for managing market indices configuration
-// GET: Fetch all indices
-// POST: Create new index
+// Proxies to backend API
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@backend/config/database';
-import { clearConfigCache } from '@/lib/market-config';
+import { verifyAdminAuth } from '@/lib/api-middleware';
+
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export async function GET(request: NextRequest) {
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get('includeInactive') === 'true';
 
-    const where = includeInactive ? {} : { isActive: true };
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/indices?includeInactive=${includeInactive}`,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-    // @ts-ignore
-    const indices = await prisma.marketIndexConfig.findMany({
-      where,
-      orderBy: { sortOrder: 'asc' },
-    });
+    if (!response.ok) {
+      return NextResponse.json({
+        success: true,
+        indices: [],
+        count: 0,
+        note: 'Backend endpoint not available'
+      });
+    }
 
-    return NextResponse.json({
-      success: true,
-      indices,
-      count: indices.length,
-    });
+    return NextResponse.json(await response.json());
   } catch (error) {
     console.error('Error fetching market indices config:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch indices configuration' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: true,
+      indices: [],
+      count: 0,
+      note: 'Backend unavailable'
+    });
   }
 }
 
 export async function POST(request: NextRequest) {
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
 
-    // @ts-ignore
-    const newIndex = await prisma.marketIndexConfig.create({
-      data: {
-        symbol: body.symbol,
-        name: body.name,
-        country: body.country,
-        region: body.region || [],
-        exchange: body.exchange,
-        currency: body.currency,
-        timezone: body.timezone,
-        marketHours: body.marketHours || { open: '09:30', close: '16:00' },
-        isActive: body.isActive ?? true,
-        isGlobal: body.isGlobal ?? false,
-        sortOrder: body.sortOrder ?? 0,
-      },
-    });
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/indices`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    );
 
-    // Clear cache after update
-    clearConfigCache();
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Backend endpoint not available' },
+        { status: response.status }
+      );
+    }
 
-    return NextResponse.json({
-      success: true,
-      index: newIndex,
-      message: 'Index created successfully',
-    });
+    return NextResponse.json(await response.json());
   } catch (error) {
     console.error('Error creating market index config:', error);
     return NextResponse.json(

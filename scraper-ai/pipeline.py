@@ -45,11 +45,14 @@ class NewsTRNTPipeline:
     def connect_database(self):
         """Connect to PostgreSQL database"""
         try:
+            db_password = os.getenv('DB_PASSWORD')
+            if not db_password:
+                raise ValueError('DB_PASSWORD environment variable must be set!')
             self.db_connection = psycopg2.connect(
                 host=os.getenv('DB_HOST', 'localhost'),
                 database=os.getenv('DB_NAME', 'NewsTRNT'),
                 user=os.getenv('DB_USER', 'admin'),
-                password=os.getenv('DB_PASSWORD', 'password123'),
+                password=db_password,
                 port=os.getenv('DB_PORT', '5432')
             )
             logger.info("✅ Connected to database successfully")
@@ -73,10 +76,11 @@ class NewsTRNTPipeline:
             short_content = await self.summarizer.generate_short_summary(article_data['content'])
             
             # Classify topic and determine category
-            category = self.topic_classifier.classify_article(article_data['content'])
+            classification = self.topic_classifier.classify(article_data['title'], article_data['content'])
+            category = classification.category
             
             # Generate SEO metadata
-            seo_data = self.seo_optimizer.optimize_article(
+            seo_data = self.seo_optimizer.optimize(
                 title=article_data['title'],
                 content=article_data['content'],
                 summary=summary
@@ -93,13 +97,13 @@ class NewsTRNTPipeline:
                 'short_content': short_content,
                 'category_slug': category,
                 'reading_time': reading_time,
-                'seo_title': seo_data['title'],
-                'seo_description': seo_data['description'],
-                'seo_keywords': seo_data['keywords'],
+                'seo_title': seo_data.optimized_title,
+                'seo_description': seo_data.optimized_meta_description,
+                'seo_keywords': seo_data.keywords,
                 'ai_generated': False,
                 'ai_summary': True,
                 'ai_metadata': {
-                    'confidence_score': seo_data.get('confidence', 0.8),
+                    'confidence_score': seo_data.score / 100.0,  # Convert 0-100 score to 0-1
                     'processing_timestamp': datetime.utcnow().isoformat(),
                     'model_version': '1.0'
                 }

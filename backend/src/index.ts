@@ -15,6 +15,7 @@ import debugRoutes from './routes/debug';
 import statsRoutes from './routes/stats';
 import commentsRoutes from './routes/comments';
 import userPreferencesRoutes from './routes/user-preferences';
+import marketRoutes from './routes/market';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -74,6 +75,7 @@ app.use('/api/debug', debugRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/user', userPreferencesRoutes);
+app.use('/api/market', marketRoutes);
 
 // Health check (legacy endpoint for compatibility)
 app.get('/api/health', (req, res) => {

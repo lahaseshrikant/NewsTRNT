@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 export async function GET(request: NextRequest) {
   try {
     // Get authorization header from request
@@ -13,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Forward the request to the backend API
-    const response = await fetch('http://localhost:5000/api/categories/trash', {
+    const response = await fetch(`${BACKEND_API_URL}/categories/trash`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

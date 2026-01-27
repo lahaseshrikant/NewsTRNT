@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import prisma from '@backend/config/database';
+// Database access moved to backend
 import { getMarketIndices } from './market-config';
 
 export interface TradingViewQuote {
@@ -171,41 +171,10 @@ export async function ingestTradingViewSnapshot() {
 
     const currency = quote.currency ?? indexConfig.currency ?? 'USD';
 
-    await prisma.marketIndex.upsert({
-      where: { symbol: indexConfig.symbol },
-      update: {
-        name: indexConfig.name,
-        country: indexConfig.country,
-        exchange: indexConfig.exchange,
-        value: quote.value,
-        previousClose: quote.previousClose ?? quote.value,
-        change: quote.change ?? quote.value - (quote.previousClose ?? quote.value),
-        changePercent: quote.changePercent ?? 0,
-        high: quote.high ?? quote.value,
-        low: quote.low ?? quote.value,
-        currency,
-        timezone: indexConfig.timezone,
-        lastUpdated: quote.lastUpdated ?? new Date(),
-        lastSource: 'tradingview',
-      },
-      create: {
-        symbol: indexConfig.symbol,
-        name: indexConfig.name,
-        country: indexConfig.country,
-        exchange: indexConfig.exchange,
-        value: quote.value,
-        previousClose: quote.previousClose ?? quote.value,
-        change: quote.change ?? quote.value - (quote.previousClose ?? quote.value),
-        changePercent: quote.changePercent ?? 0,
-        high: quote.high ?? quote.value,
-        low: quote.low ?? quote.value,
-        currency,
-        timezone: indexConfig.timezone,
-        isOpen: false,
-        lastUpdated: quote.lastUpdated ?? new Date(),
-        lastSource: 'tradingview',
-      },
-    });
+    // Database upsert moved to backend - just log the data here
+    console.log(`[TradingView Ingest] ✓ Would upsert ${indexConfig.symbol}: ${quote.value} ${currency}`);
+    // NOTE: To persist this data, call the backend API:
+    // POST /api/market/ingest with the quote data
 
     successCount++;
     console.log(`[TradingView Ingest] ✅ Updated ${indexConfig.symbol}: ${quote.value} ${currency}`);

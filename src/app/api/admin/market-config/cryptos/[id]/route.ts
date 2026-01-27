@@ -1,43 +1,52 @@
 // API route for managing individual cryptocurrency
-// PUT: Update cryptocurrency
-// DELETE: Delete cryptocurrency
+// Proxies to backend API
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@backend/config/database';
-import { clearConfigCache } from '@/lib/market-config';
+import { verifyAdminAuth } from '@/lib/api-middleware';
+
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
-  try {
-    const body = await request.json();
-    const { id } = params;
-
-    // @ts-ignore
-    const updatedCrypto = await prisma.cryptocurrencyConfig.update({
-      where: { id },
-      data: {
-        ...(body.symbol && { symbol: body.symbol }),
-        ...(body.name && { name: body.name }),
-        ...(body.coinGeckoId && { coinGeckoId: body.coinGeckoId }),
-        ...(body.isActive !== undefined && { isActive: body.isActive }),
-        ...(body.sortOrder !== undefined && { sortOrder: body.sortOrder }),
-      },
-    });
-
-    // Clear cache after update
-    clearConfigCache();
-
-    return NextResponse.json({
-      success: true,
-      crypto: updatedCrypto,
-      message: 'Cryptocurrency updated successfully',
-    });
-  } catch (error) {
-    console.error('Error updating cryptocurrency config:', error);
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
     return NextResponse.json(
-      { success: false, error: 'Failed to update cryptocurrency configuration' },
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const { id } = await context.params;
+    const body = await request.json();
+
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/cryptos/${id}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    );
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Backend endpoint not available' },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json(await response.json());
+  } catch (error) {
+    console.error('Error updating crypto config:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to update crypto configuration' },
       { status: 500 }
     );
   }
@@ -45,27 +54,41 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
-  try {
-    const { id } = params;
-
-    // @ts-ignore
-    await prisma.cryptocurrencyConfig.delete({
-      where: { id },
-    });
-
-    // Clear cache after deletion
-    clearConfigCache();
-
-    return NextResponse.json({
-      success: true,
-      message: 'Cryptocurrency deleted successfully',
-    });
-  } catch (error) {
-    console.error('Error deleting cryptocurrency config:', error);
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
     return NextResponse.json(
-      { success: false, error: 'Failed to delete cryptocurrency configuration' },
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const { id } = await context.params;
+
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/cryptos/${id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Backend endpoint not available' },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json(await response.json());
+  } catch (error) {
+    console.error('Error deleting crypto config:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete crypto configuration' },
       { status: 500 }
     );
   }

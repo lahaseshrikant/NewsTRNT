@@ -1,8 +1,7 @@
-// Market configuration from database - replaces hardcoded config files
-// Admin can now manage indices/cryptos/commodities through UI
-// @ts-nocheck - Prisma client types
+// Market configuration - fetches from backend API
+// Admin can manage indices/cryptos/commodities through UI
 
-import prisma from '@backend/config/database';
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface MarketIndexConfig {
   symbol: string;
@@ -46,7 +45,7 @@ interface CurrencyPairConfig {
   sortOrder: number;
 }
 
-// Cache configuration in memory for 5 minutes to reduce database queries
+// Cache configuration in memory for 5 minutes to reduce API calls
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 let configCache: {
   indices?: { data: MarketIndexConfig[]; timestamp: number };
@@ -60,7 +59,14 @@ function isCacheValid(timestamp: number): boolean {
 }
 
 /**
- * Get all active market indices from database
+ * Clear the config cache - useful after updates
+ */
+export function clearConfigCache(): void {
+  configCache = {};
+}
+
+/**
+ * Get all active market indices from backend API
  * Sorted by sortOrder, cached for 5 minutes
  */
 export async function getMarketIndices(options?: {
@@ -68,45 +74,28 @@ export async function getMarketIndices(options?: {
   region?: string;
   includeInactive?: boolean;
 }): Promise<MarketIndexConfig[]> {
-  const cacheKey = `${options?.country || ''}_${options?.region || ''}_${options?.includeInactive || false}`;
-  
   if (configCache.indices && isCacheValid(configCache.indices.timestamp) && !options) {
     return configCache.indices.data;
   }
 
   try {
-    const where: any = {};
-    
-    if (!options?.includeInactive) {
-      where.isActive = true;
-    }
-    
-    if (options?.country) {
-      where.country = options.country;
-    }
-    
-    if (options?.region) {
-      where.region = { has: options.region };
+    const params = new URLSearchParams();
+    if (options?.includeInactive) params.set('includeInactive', 'true');
+    if (options?.country) params.set('country', options.country);
+    if (options?.region) params.set('region', options.region);
+
+    const response = await fetch(
+      `${BACKEND_API_URL}/market/config/indices?${params.toString()}`,
+      { cache: 'no-store' }
+    );
+
+    if (!response.ok) {
+      console.warn('Backend indices config unavailable, using empty array');
+      return [];
     }
 
-    const indices = await prisma.marketIndexConfig.findMany({
-      where,
-      orderBy: { sortOrder: 'asc' },
-    });
-
-    const data = indices.map((idx) => ({
-      symbol: idx.symbol,
-      name: idx.name,
-      country: idx.country,
-      region: idx.region,
-      exchange: idx.exchange,
-      currency: idx.currency,
-      timezone: idx.timezone,
-      marketHours: idx.marketHours as { open: string; close: string },
-      isActive: idx.isActive,
-      isGlobal: idx.isGlobal,
-      sortOrder: idx.sortOrder,
-    }));
+    const result = await response.json();
+    const data = result.indices || result.data || [];
 
     // Cache only if no filters applied
     if (!options) {
@@ -116,120 +105,93 @@ export async function getMarketIndices(options?: {
     return data;
   } catch (error) {
     console.error('Error fetching market indices config:', error);
-    // Return empty array instead of throwing to prevent breaking the app
     return [];
   }
 }
 
 /**
- * Get indices by country code
+ * Get indices grouped by country
  */
-export async function getIndicesByCountry(countryCode: string): Promise<MarketIndexConfig[]> {
-  return getMarketIndices({ country: countryCode });
-}
+export async function getIndicesByCountry(): Promise<Record<string, MarketIndexConfig[]>> {
+  const indices = await getMarketIndices();
+  const byCountry: Record<string, MarketIndexConfig[]> = {};
 
-/**
- * Get global indices (shown in dashboard overview)
- */
-export async function getGlobalIndices(): Promise<MarketIndexConfig[]> {
-  try {
-    const indices = await prisma.marketIndexConfig.findMany({
-      where: { isActive: true, isGlobal: true },
-      orderBy: { sortOrder: 'asc' },
-    });
-
-    return indices.map((idx) => ({
-      symbol: idx.symbol,
-      name: idx.name,
-      country: idx.country,
-      region: idx.region,
-      exchange: idx.exchange,
-      currency: idx.currency,
-      timezone: idx.timezone,
-      marketHours: idx.marketHours as { open: string; close: string },
-      isActive: idx.isActive,
-      isGlobal: idx.isGlobal,
-      sortOrder: idx.sortOrder,
-    }));
-  } catch (error) {
-    console.error('Error fetching global indices:', error);
-    return [];
+  for (const idx of indices) {
+    if (!byCountry[idx.country]) {
+      byCountry[idx.country] = [];
+    }
+    byCountry[idx.country].push(idx);
   }
+
+  return byCountry;
 }
 
 /**
- * Get all active cryptocurrencies from database
+ * Get all active cryptocurrencies from backend API
  */
-export async function getCryptocurrencies(includeInactive = false): Promise<CryptoConfig[]> {
-  if (configCache.cryptos && isCacheValid(configCache.cryptos.timestamp) && !includeInactive) {
+export async function getCryptocurrencies(options?: {
+  includeInactive?: boolean;
+}): Promise<CryptoConfig[]> {
+  if (configCache.cryptos && isCacheValid(configCache.cryptos.timestamp) && !options) {
     return configCache.cryptos.data;
   }
 
   try {
-    const where = includeInactive ? {} : { isActive: true };
-    
-    const cryptos = await prisma.cryptocurrencyConfig.findMany({
-      where,
-      orderBy: { sortOrder: 'asc' },
-    });
+    const params = new URLSearchParams();
+    if (options?.includeInactive) params.set('includeInactive', 'true');
 
-    const data = cryptos.map((c) => ({
-      symbol: c.symbol,
-      name: c.name,
-      coinGeckoId: c.coinGeckoId,
-      isActive: c.isActive,
-      sortOrder: c.sortOrder,
-    }));
+    const response = await fetch(
+      `${BACKEND_API_URL}/market/config/cryptos?${params.toString()}`,
+      { cache: 'no-store' }
+    );
 
-    if (!includeInactive) {
+    if (!response.ok) {
+      console.warn('Backend crypto config unavailable, using empty array');
+      return [];
+    }
+
+    const result = await response.json();
+    const data = result.cryptos || result.data || [];
+
+    if (!options) {
       configCache.cryptos = { data, timestamp: Date.now() };
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching cryptocurrency config:', error);
+    console.error('Error fetching crypto config:', error);
     return [];
   }
 }
 
 /**
- * Get all active commodities from database
+ * Get all active commodities from backend API
  */
 export async function getCommodities(options?: {
   category?: string;
   includeInactive?: boolean;
 }): Promise<CommodityConfig[]> {
-  const cacheKey = `${options?.category || ''}_${options?.includeInactive || false}`;
-  
   if (configCache.commodities && isCacheValid(configCache.commodities.timestamp) && !options) {
     return configCache.commodities.data;
   }
 
   try {
-    const where: any = {};
-    
-    if (!options?.includeInactive) {
-      where.isActive = true;
-    }
-    
-    if (options?.category) {
-      where.category = options.category;
+    const params = new URLSearchParams();
+    if (options?.includeInactive) params.set('includeInactive', 'true');
+    if (options?.category) params.set('category', options.category);
+
+    const response = await fetch(
+      `${BACKEND_API_URL}/market/config/commodities?${params.toString()}`,
+      { cache: 'no-store' }
+    );
+
+    if (!response.ok) {
+      console.warn('Backend commodities config unavailable, using empty array');
+      return [];
     }
 
-    const commodities = await prisma.commodityConfig.findMany({
-      where,
-      orderBy: { sortOrder: 'asc' },
-    });
-
-    const data = commodities.map((c) => ({
-      symbol: c.symbol,
-      name: c.name,
-      category: c.category,
-      unit: c.unit,
-      currency: c.currency,
-      isActive: c.isActive,
-      sortOrder: c.sortOrder,
-    }));
+    const result = await response.json();
+    const data = result.commodities || result.data || [];
 
     if (!options) {
       configCache.commodities = { data, timestamp: Date.now() };
@@ -237,49 +199,39 @@ export async function getCommodities(options?: {
 
     return data;
   } catch (error) {
-    console.error('Error fetching commodity config:', error);
+    console.error('Error fetching commodities config:', error);
     return [];
   }
 }
 
 /**
- * Get all active currency pairs from database
+ * Get all active currency pairs from backend API
  */
 export async function getCurrencyPairs(options?: {
-  type?: 'major' | 'cross' | 'emerging';
+  type?: string;
   includeInactive?: boolean;
 }): Promise<CurrencyPairConfig[]> {
-  const cacheKey = `${options?.type || ''}_${options?.includeInactive || false}`;
-  
   if (configCache.currencies && isCacheValid(configCache.currencies.timestamp) && !options) {
     return configCache.currencies.data;
   }
 
   try {
-    const where: any = {};
-    
-    if (!options?.includeInactive) {
-      where.isActive = true;
-    }
-    
-    if (options?.type) {
-      where.type = options.type;
+    const params = new URLSearchParams();
+    if (options?.includeInactive) params.set('includeInactive', 'true');
+    if (options?.type) params.set('type', options.type);
+
+    const response = await fetch(
+      `${BACKEND_API_URL}/market/config/currencies?${params.toString()}`,
+      { cache: 'no-store' }
+    );
+
+    if (!response.ok) {
+      console.warn('Backend currencies config unavailable, using empty array');
+      return [];
     }
 
-    const pairs = await prisma.currencyPairConfig.findMany({
-      where,
-      orderBy: { sortOrder: 'asc' },
-    });
-
-    const data = pairs.map((p) => ({
-      pair: p.pair,
-      name: p.name,
-      base: p.base,
-      quote: p.quote,
-      type: p.type,
-      isActive: p.isActive,
-      sortOrder: p.sortOrder,
-    }));
+    const result = await response.json();
+    const data = result.currencies || result.data || [];
 
     if (!options) {
       configCache.currencies = { data, timestamp: Date.now() };
@@ -287,31 +239,46 @@ export async function getCurrencyPairs(options?: {
 
     return data;
   } catch (error) {
-    console.error('Error fetching currency pair config:', error);
+    console.error('Error fetching currency pairs config:', error);
     return [];
   }
 }
 
 /**
- * Clear configuration cache (call after admin updates)
+ * Get all market configuration in one call
  */
-export function clearConfigCache() {
-  configCache = {};
-}
-
-/**
- * Get all symbols that should be updated by auto-update service
- */
-export async function getActiveSymbols() {
-  const [indices, cryptos, commodities] = await Promise.all([
+export async function getAllMarketConfig(): Promise<{
+  indices: MarketIndexConfig[];
+  cryptos: CryptoConfig[];
+  commodities: CommodityConfig[];
+  currencies: CurrencyPairConfig[];
+}> {
+  const [indices, cryptos, commodities, currencies] = await Promise.all([
     getMarketIndices(),
     getCryptocurrencies(),
     getCommodities(),
+    getCurrencyPairs(),
   ]);
 
+  return { indices, cryptos, commodities, currencies };
+}
+
+/**
+ * Get active symbols for each market type
+ * Used by auto-update service to know what to fetch
+ */
+export async function getActiveSymbols(): Promise<{
+  indices: string[];
+  cryptos: string[];
+  commodities: string[];
+  currencies: string[];
+}> {
+  const config = await getAllMarketConfig();
+  
   return {
-    indices: indices.map((i) => i.symbol),
-    cryptos: cryptos.map((c) => c.symbol),
-    commodities: commodities.map((c) => c.symbol),
+    indices: config.indices.map(i => i.symbol),
+    cryptos: config.cryptos.map(c => c.symbol),
+    commodities: config.commodities.map(c => c.symbol),
+    currencies: config.currencies.map(c => c.pair),
   };
 }

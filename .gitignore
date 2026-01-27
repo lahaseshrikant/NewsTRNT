@@ -132,11 +132,15 @@ ipython_config.py
 # ===========================================
 # DATABASE & ENVIRONMENT
 # ===========================================
-# Environment variables
+# Ignore ALL .env files (contain secrets)
 .env*
+backend/.env*
+scraper-ai/.env*
+
+# ONLY commit .env.example templates
 !.env.example
-backend/.env
-backend/.env.*
+!backend/.env.example
+!scraper-ai/.env.example
 
 # Database files
 *.db

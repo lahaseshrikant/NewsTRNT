@@ -1,41 +1,48 @@
 // API route for managing individual commodity
-// PUT: Update commodity
-// DELETE: Delete commodity
+// Proxies to backend API
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@backend/config/database';
-import { clearConfigCache } from '@/lib/market-config';
+import { verifyAdminAuth } from '@/lib/api-middleware';
+
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
+    const { id } = await context.params;
     const body = await request.json();
-    const { id } = params;
 
-    // @ts-ignore
-    const updatedCommodity = await prisma.commodityConfig.update({
-      where: { id },
-      data: {
-        ...(body.symbol && { symbol: body.symbol }),
-        ...(body.name && { name: body.name }),
-        ...(body.category && { category: body.category }),
-        ...(body.unit && { unit: body.unit }),
-        ...(body.currency && { currency: body.currency }),
-        ...(body.isActive !== undefined && { isActive: body.isActive }),
-        ...(body.sortOrder !== undefined && { sortOrder: body.sortOrder }),
-      },
-    });
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/commodities/${id}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    );
 
-    // Clear cache after update
-    clearConfigCache();
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Backend endpoint not available' },
+        { status: response.status }
+      );
+    }
 
-    return NextResponse.json({
-      success: true,
-      commodity: updatedCommodity,
-      message: 'Commodity updated successfully',
-    });
+    return NextResponse.json(await response.json());
   } catch (error) {
     console.error('Error updating commodity config:', error);
     return NextResponse.json(
@@ -47,23 +54,37 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
+  const auth = verifyAdminAuth(request);
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Admin authentication required' },
+      { status: 401 }
+    );
+  }
+
   try {
-    const { id } = params;
+    const { id } = await context.params;
 
-    // @ts-ignore
-    await prisma.commodityConfig.delete({
-      where: { id },
-    });
+    const response = await fetch(
+      `${BACKEND_API_URL}/admin/market-config/commodities/${id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-    // Clear cache after deletion
-    clearConfigCache();
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Backend endpoint not available' },
+        { status: response.status }
+      );
+    }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Commodity deleted successfully',
-    });
+    return NextResponse.json(await response.json());
   } catch (error) {
     console.error('Error deleting commodity config:', error);
     return NextResponse.json(

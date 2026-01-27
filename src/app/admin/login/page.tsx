@@ -139,27 +139,23 @@ export default function AdminLogin() {
             </button>
           </form>
 
+          {process.env.NODE_ENV === 'development' && (
           <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <p className="text-sm text-slate-600 dark:text-slate-400 text-center mb-3">Admin Types:</p>
             <div className="space-y-3">
               <div className="text-center">
                 <p className="text-xs text-blue-600 dark:text-blue-400 mb-1 font-semibold">👨‍💼 ADMIN</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Content, Users, Analytics</p>
-                <div className="text-sm space-y-1">
-                  <div className="text-slate-800 dark:text-slate-200 font-mono">admin@NewsTRNT.com</div>
-                  <div className="text-slate-800 dark:text-slate-200 font-mono">NewsTRNT!Admin#2025</div>
-                </div>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Use ADMIN_EMAIL from .env.local</p>
               </div>
               <div className="border-t border-gray-200 dark:border-gray-600 pt-3">
                 <p className="text-xs text-purple-600 dark:text-purple-400 mb-1 font-semibold text-center">👑 SUPER ADMIN</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 text-center">System, Logo, Database</p>
-                <div className="text-sm space-y-1 text-center">
-                  <div className="text-slate-800 dark:text-slate-200 font-mono">superadmin@NewsTRNT.com</div>
-                  <div className="text-slate-800 dark:text-slate-200 font-mono">NewsTRNT!SuperAdmin#2025</div>
-                </div>
+                <p className="text-xs text-gray-500 dark:text-slate-400 text-center">Use SUPER_ADMIN_EMAIL from .env.local</p>
               </div>
             </div>
           </div>
+          )}
 
           <div className="mt-6 text-center">
             <p className="text-xs text-slate-500 dark:text-slate-400">

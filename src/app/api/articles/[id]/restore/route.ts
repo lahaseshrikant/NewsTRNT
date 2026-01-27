@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+type RouteContext = { params: Promise<{ id: string }> };
+
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     
     // Get authorization header from request
     const authHeader = request.headers.get('Authorization');

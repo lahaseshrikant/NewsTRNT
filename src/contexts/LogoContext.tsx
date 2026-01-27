@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, ReactElement } from 'react';
 
 interface LogoConfig {
   type: 'image' | 'code' | 'text';
@@ -31,7 +31,7 @@ interface LogoConfig {
 interface LogoContextType {
   currentLogo: LogoConfig;
   setCurrentLogo: (logo: LogoConfig) => void;
-  renderLogo: (size?: 'small' | 'medium' | 'large', className?: string) => JSX.Element;
+  renderLogo: (size?: 'small' | 'medium' | 'large', className?: string) => ReactElement;
 }
 
 const defaultLogo: LogoConfig = {
