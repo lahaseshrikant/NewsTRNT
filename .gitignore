@@ -333,3 +333,29 @@ database/backup/
 # Performance and monitoring
 .DS_Store
 .vscode/settings.json
+# ===========================================
+# DEPRECATED & TEMPORARY FILES
+# ===========================================
+# Deprecated folder (old code, drafts, tests)
+deprecated/
+
+# Portfolio folder (separate repo for showcase)
+portfolio/
+
+# Temporary/scratch files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# Debug files
+debug-*.html
+debug-*.js
+
+# Test scripts in root
+test-*.js
+
+# Build artifacts
+tsconfig.tsbuildinfo
+*.tsbuildinfo
