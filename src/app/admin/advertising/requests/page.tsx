@@ -1,7 +1,7 @@
 // src/app/admin/advertising/requests/page.tsx - Ad Requests Management
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/admin/RouteGuard';
 import { getEmailString } from '@/lib/utils';
 
@@ -12,12 +12,11 @@ interface AdRequest {
   contactEmail: string;
   phone?: string;
   adType: 'banner' | 'sidebar' | 'sponsored' | 'native' | 'video';
-  budget: { min: number; max: number; currency: string };
+  budget: number;
   duration: string;
-  targetAudience: string;
   message: string;
   status: 'pending' | 'reviewing' | 'approved' | 'rejected' | 'negotiating';
-  submittedAt: string;
+  createdAt: string;
   notes?: string;
 }
 
@@ -27,69 +26,29 @@ function AdRequestsContent() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedRequest, setSelectedRequest] = useState<AdRequest | null>(null);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setRequests([
-        {
-          id: '1',
-          companyName: 'TechCorp Solutions',
-          contactName: 'Sarah Johnson',
-          contactEmail: 'sarah@techcorp.com',
-          phone: '+1 555-0123',
-          adType: 'banner',
-          budget: { min: 5000, max: 10000, currency: 'USD' },
-          duration: '3 months',
-          targetAudience: 'Tech professionals, developers',
-          message: 'Looking to advertise our new SaaS product to your tech-savvy audience.',
-          status: 'pending',
-          submittedAt: new Date().toISOString()
-        },
-        {
-          id: '2',
-          companyName: 'Green Energy Inc',
-          contactName: 'Michael Chen',
-          contactEmail: 'mchen@greenenergy.com',
-          adType: 'sponsored',
-          budget: { min: 15000, max: 25000, currency: 'USD' },
-          duration: '6 months',
-          targetAudience: 'Environmentally conscious readers',
-          message: 'Interested in sponsored content about renewable energy.',
-          status: 'reviewing',
-          submittedAt: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          id: '3',
-          companyName: 'Fashion Forward',
-          contactName: 'Emma Davis',
-          contactEmail: 'emma@fashionforward.com',
-          phone: '+1 555-0456',
-          adType: 'native',
-          budget: { min: 3000, max: 5000, currency: 'USD' },
-          duration: '1 month',
-          targetAudience: 'Fashion enthusiasts, millennials',
-          message: 'Want to run native ads for our spring collection launch.',
-          status: 'approved',
-          submittedAt: new Date(Date.now() - 172800000).toISOString(),
-          notes: 'Approved for homepage sidebar placement'
-        },
-        {
-          id: '4',
-          companyName: 'CryptoExchange',
-          contactName: 'Alex Thompson',
-          contactEmail: 'alex@cryptoex.com',
-          adType: 'banner',
-          budget: { min: 20000, max: 50000, currency: 'USD' },
-          duration: '12 months',
-          targetAudience: 'Investors, crypto enthusiasts',
-          message: 'Large-scale advertising campaign for our new platform.',
-          status: 'negotiating',
-          submittedAt: new Date(Date.now() - 259200000).toISOString(),
-          notes: 'Discussing premium placement options'
-        },
-      ]);
+  const fetchRequests = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/advertising/requests`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setRequests(data.requests || []);
+      }
+    } catch (error) {
+      console.error('Error fetching ad requests:', error);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
   const getStatusColor = (status: AdRequest['status']) => {
     const colors = {
@@ -107,9 +66,25 @@ function AdRequestsContent() {
     return icons[type];
   };
 
-  const handleStatusChange = (id: string, newStatus: AdRequest['status']) => {
-    setRequests(requests.map(r => r.id === id ? { ...r, status: newStatus } : r));
-    setSelectedRequest(null);
+  const handleStatusChange = async (id: string, newStatus: AdRequest['status']) => {
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/advertising/requests/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      if (response.ok) {
+        setRequests(requests.map(r => r.id === id ? { ...r, status: newStatus } : r));
+        setSelectedRequest(null);
+      }
+    } catch (error) {
+      console.error('Error updating request:', error);
+    }
   };
 
   const filteredRequests = requests.filter(r => filterStatus === 'all' || r.status === filterStatus);
@@ -153,7 +128,7 @@ function AdRequestsContent() {
         <div className="bg-card border border-border rounded-xl p-4">
           <p className="text-sm text-muted-foreground">Potential Revenue</p>
           <p className="text-2xl font-bold text-blue-600">
-            ${requests.reduce((acc, r) => acc + r.budget.max, 0).toLocaleString()}
+            ${requests.reduce((acc, r) => acc + (r.budget || 0), 0).toLocaleString()}
           </p>
         </div>
       </div>
@@ -180,6 +155,12 @@ function AdRequestsContent() {
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
           </div>
+        ) : filteredRequests.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <span className="text-4xl mb-4">📭</span>
+            <h3 className="text-lg font-medium text-foreground mb-2">No Ad Requests</h3>
+            <p className="text-muted-foreground">No advertising requests to display</p>
+          </div>
         ) : (
           <div className="divide-y divide-border">
             {filteredRequests.map(request => (
@@ -203,7 +184,7 @@ function AdRequestsContent() {
                       <p className="text-sm text-muted-foreground">{request.contactName} • {getEmailString(request.contactEmail)}</p>
                       <div className="flex items-center gap-4 mt-2 text-sm">
                         <span className="text-green-600 font-medium">
-                          ${request.budget.min.toLocaleString()} - ${request.budget.max.toLocaleString()}
+                          ${(request.budget || 0).toLocaleString()}
                         </span>
                         <span className="text-muted-foreground">📅 {request.duration}</span>
                         <span className="text-muted-foreground">{request.adType}</span>
@@ -211,7 +192,7 @@ function AdRequestsContent() {
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(request.submittedAt).toLocaleDateString()}
+                    {new Date(request.createdAt).toLocaleDateString()}
                   </div>
                 </div>
               </div>
@@ -246,16 +227,16 @@ function AdRequestsContent() {
                 <div>
                   <label className="text-sm text-muted-foreground">Budget</label>
                   <p className="font-medium text-green-600">
-                    ${selectedRequest.budget.min.toLocaleString()} - ${selectedRequest.budget.max.toLocaleString()} {selectedRequest.budget.currency}
+                    ${(selectedRequest.budget || 0).toLocaleString()}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Duration</label>
-                  <p className="font-medium text-foreground">{selectedRequest.duration}</p>
+                  <p className="font-medium text-foreground">{selectedRequest.duration || 'Not specified'}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground">Target Audience</label>
-                  <p className="font-medium text-foreground">{selectedRequest.targetAudience}</p>
+                  <label className="text-sm text-muted-foreground">Status</label>
+                  <p className={`inline-block text-xs px-2 py-0.5 rounded-full ${getStatusColor(selectedRequest.status)}`}>{selectedRequest.status}</p>
                 </div>
               </div>
               <div>

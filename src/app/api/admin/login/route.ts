@@ -207,10 +207,23 @@ export async function POST(request: NextRequest) {
     // Log successful login (for audit trail)
     console.log(`[AUTH] Login successful: ${matchedUser.email} (${matchedUser.role}) at ${new Date().toISOString()}`);
 
+    // Generate a base64 token for API authorization that matches backend expectations
+    const tokenPayload = {
+      userId: matchedUser.id,
+      email: matchedUser.email,
+      role: matchedUser.role,
+      isAdmin: true,
+      sessionId: session.sessionId,
+      timestamp: now,
+      permissions: roleConfig.permissions
+    };
+    const token = Buffer.from(JSON.stringify(tokenPayload)).toString('base64');
+
     return NextResponse.json({
       success: true,
       session,
       sessionId: session.sessionId,
+      token, // Token for API calls
       redirectTo: roleConfig.dashboardPath
     });
   } catch (error) {

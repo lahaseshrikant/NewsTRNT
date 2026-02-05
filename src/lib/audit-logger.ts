@@ -77,8 +77,11 @@ const ACTION_SEVERITY: Record<AuditAction, AuditSeverity> = {
   USER_DELETE: 'CRITICAL',
   USER_BAN: 'WARNING',
   USER_UNBAN: 'INFO',
+  USER_STATUS_CHANGE: 'INFO',
+  USER_BULK_ACTION: 'WARNING',
   ROLE_ASSIGN: 'WARNING',
   ROLE_REVOKE: 'WARNING',
+  ROLE_CHANGE: 'WARNING',
   PERMISSION_GRANT: 'CRITICAL',
   PERMISSION_REVOKE: 'CRITICAL',
   ARTICLE_CREATE: 'INFO',
@@ -91,6 +94,7 @@ const ACTION_SEVERITY: Record<AuditAction, AuditSeverity> = {
   CATEGORY_UPDATE: 'INFO',
   CATEGORY_DELETE: 'WARNING',
   CONFIG_UPDATE: 'CRITICAL',
+  CONFIG_CHANGE: 'CRITICAL',
   SYSTEM_BACKUP: 'INFO',
   SYSTEM_RESTORE: 'CRITICAL',
   API_ACCESS: 'INFO',
@@ -276,7 +280,7 @@ class AuditLogger {
         filtered = filtered.filter(log => log.userId === filters.userId);
       }
       if (filters.userEmail) {
-        filtered = filtered.filter(log => log.userEmail.includes(filters.userEmail));
+        filtered = filtered.filter(log => log.userEmail.includes(filters.userEmail!));
       }
       if (filters.userRole) {
         filtered = filtered.filter(log => log.userRole === filters.userRole);

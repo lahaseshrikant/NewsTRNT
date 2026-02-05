@@ -101,9 +101,11 @@ function SecuritySettingsContent() {
       
       AuditLogger.log({
         action: 'CONFIG_CHANGE',
+        userId: 'current-user',
+        userEmail: 'admin@example.com', 
+        userRole: 'ADMIN',
         resource: 'security-settings',
-        details: `Updated security settings: ${activeTab}`,
-        severity: 'HIGH'
+        details: { updated: activeTab }
       });
       
       alert('Security settings saved successfully!');

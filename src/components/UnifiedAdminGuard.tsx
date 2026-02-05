@@ -53,6 +53,22 @@ const UnifiedAdminGuard = ({
           setIsAuthenticated(true);
           setAdminInfo(session);
           
+          // Ensure admin token is available for API calls
+          if (!localStorage.getItem('adminToken') && !localStorage.getItem('token')) {
+            const tokenPayload = {
+              userId: session.userId,
+              email: session.email,
+              role: session.role,
+              isAdmin: true,
+              sessionId: (session as any).sessionId || sessionId || '',
+              timestamp: (session as any).timestamp || session.loginTime || Date.now(),
+              permissions: session.permissions || []
+            };
+            const token = btoa(JSON.stringify(tokenPayload));
+            localStorage.setItem('adminToken', token);
+            localStorage.setItem('token', token);
+          }
+          
           // Sync to sessionStorage if only found in localStorage
           if (!sessionStorage.getItem(SESSION_STORAGE_KEY)) {
             sessionStorage.setItem(SESSION_STORAGE_KEY, sessionData);

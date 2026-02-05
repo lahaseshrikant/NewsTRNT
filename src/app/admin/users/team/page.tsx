@@ -30,6 +30,11 @@ function TeamManagementContent() {
   const [filterRole, setFilterRole] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('ADMIN');
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState(false);
 
   // Fetch team members from API
   const fetchTeam = useCallback(async () => {
@@ -88,6 +93,55 @@ function TeamManagementContent() {
       setLoading(false);
     }
   }, [searchTerm]);
+
+  // Send invite
+  const handleSendInvite = async () => {
+    if (!inviteEmail) {
+      setInviteError('Email is required');
+      return;
+    }
+
+    setInviteLoading(true);
+    setInviteError(null);
+
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      if (!token) {
+        setInviteError('Authentication required');
+        setInviteLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/admin/team/invite`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: inviteEmail,
+          role: inviteRole
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to send invite');
+      }
+
+      setInviteSuccess(true);
+      setInviteEmail('');
+      setTimeout(() => {
+        setShowInviteModal(false);
+        setInviteSuccess(false);
+        fetchTeam();
+      }, 2000);
+    } catch (err: any) {
+      setInviteError(err.message || 'Failed to send invite');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchTeam();
@@ -244,8 +298,8 @@ function TeamManagementContent() {
                         {member.avatar ? (
                           <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
                         ) : (
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${roleConfig.bgColor}`}>
-                            <span className="text-lg">{roleConfig.icon}</span>
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${roleConfig?.bgColor ?? 'bg-gray-100'}`}>
+                            <span className="text-lg">{roleConfig?.icon ?? '👤'}</span>
                           </div>
                         )}
                         <div>
@@ -318,11 +372,11 @@ function TeamManagementContent() {
         <h2 className="text-lg font-semibold text-foreground mb-4">Role Permissions Reference</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(ROLES).map(([role, config]) => (
-            <div key={role} className={`p-4 rounded-lg border ${config.bgColor} border-opacity-50`}>
+            <div key={role} className={`p-4 rounded-lg border ${config?.bgColor ?? 'bg-gray-100'} border-opacity-50`}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">{config.icon}</span>
-                <span className={`font-semibold ${config.color}`}>{config.displayName}</span>
-                <span className="text-xs bg-white/50 dark:bg-black/20 px-2 py-0.5 rounded">Lvl {config.level}</span>
+                <span className="text-xl">{config?.icon ?? '👤'}</span>
+                <span className={`font-semibold ${config?.color ?? 'text-gray-700'}`}>{config?.displayName ?? role}</span>
+                <span className="text-xs bg-white/50 dark:bg-black/20 px-2 py-0.5 rounded">Lvl {config?.level ?? 0}</span>
               </div>
               <p className="text-sm text-muted-foreground mb-3">{config.description}</p>
               <div className="text-xs text-muted-foreground">
@@ -338,38 +392,68 @@ function TeamManagementContent() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowInviteModal(false)}>
           <div className="bg-card rounded-xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
             <h2 className="text-xl font-bold text-foreground mb-4">Invite Team Member</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Email</label>
-                <input 
-                  type="email" 
-                  placeholder="email@example.com"
-                  className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground"
-                />
+            
+            {inviteSuccess ? (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">✅</div>
+                <p className="text-green-600 dark:text-green-400">Invitation sent successfully!</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Role</label>
-                <select className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground">
-                  {Object.entries(ROLES)
-                    .filter(([role]) => role !== 'SUPER_ADMIN')
-                    .map(([role, config]) => (
-                      <option key={role} value={role}>{config.displayName}</option>
-                    ))
-                  }
-                </select>
+            ) : (
+              <div className="space-y-4">
+                {inviteError && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-red-600 dark:text-red-400 text-sm">{inviteError}</p>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Email</label>
+                  <input 
+                    type="email" 
+                    placeholder="email@example.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground"
+                    disabled={inviteLoading}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Role</label>
+                  <select 
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground"
+                    disabled={inviteLoading}
+                  >
+                    {Object.entries(ROLES)
+                      .filter(([role]) => role !== 'SUPER_ADMIN')
+                      .map(([role, config]) => (
+                        <option key={role} value={role}>{config.displayName}</option>
+                      ))
+                    }
+                  </select>
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button 
+                    onClick={() => {
+                      setShowInviteModal(false);
+                      setInviteError(null);
+                      setInviteEmail('');
+                    }}
+                    className="flex-1 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors"
+                    disabled={inviteLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleSendInvite}
+                    disabled={inviteLoading || !inviteEmail}
+                    className="flex-1 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {inviteLoading ? 'Sending...' : 'Send Invite'}
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-3 pt-4">
-                <button 
-                  onClick={() => setShowInviteModal(false)}
-                  className="flex-1 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors"
-                >
-                  Cancel
-                </button>
-                <button className="flex-1 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-                  Send Invite
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}

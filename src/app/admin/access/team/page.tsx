@@ -469,7 +469,13 @@ function TeamManagementContent() {
             </thead>
             <tbody className="divide-y divide-border">
               {filteredMembers.map((member) => {
-                const roleConfig = ROLE_DEFINITIONS[member.role];
+                const roleConfig = ROLE_DEFINITIONS[member.role as UserRole] ?? ROLE_DEFINITIONS.VIEWER;
+                // Log unexpected/unknown role values in dev to help debug API issues
+                if (process.env.NODE_ENV !== 'production' && !ROLE_DEFINITIONS[member.role as UserRole]) {
+                  // eslint-disable-next-line no-console
+                  console.warn('TeamManagement: unknown role from API', member.role, 'falling back to', roleConfig.name);
+                }
+
                 return (
                   <tr key={member.id} className="hover:bg-muted/30 transition-colors">
                     <td className="p-4">
@@ -482,7 +488,7 @@ function TeamManagementContent() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full ${roleConfig.bgColor} flex items-center justify-center text-lg`}>
+                        <div className={`w-10 h-10 rounded-full ${roleConfig?.bgColor ?? 'bg-gray-100'} flex items-center justify-center text-lg`}>
                           {member.avatar || member.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -495,7 +501,7 @@ function TeamManagementContent() {
                       <select
                         value={member.role}
                         onChange={(e) => handleChangeRole(member.id, e.target.value as UserRole)}
-                        className={`px-3 py-1 rounded-lg border-0 text-sm font-medium ${roleConfig.bgColor} ${roleConfig.color}`}
+                          className={`px-3 py-1 rounded-lg border-0 text-sm font-medium ${roleConfig?.bgColor ?? 'bg-gray-100'} ${roleConfig?.color ?? 'text-gray-700'}`}
                         disabled={member.role === 'SUPER_ADMIN'}
                       >
                         {ROLE_HIERARCHY.map(role => (

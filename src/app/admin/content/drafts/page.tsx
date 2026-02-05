@@ -162,47 +162,13 @@ const Drafts: React.FC = () => {
       
       setError(errorMessage);
       
-      // Use fallback data on error
-      console.log('📋 Using fallback data due to API error');
-      setDrafts(getFallbackDrafts());
+      // Set empty array on error - no fallback mock data
+      console.log('📋 No drafts available - API error');
+      setDrafts([]);
     } finally {
       setLoading(false);
     }
   };
-
-  // Fallback mock data
-  const getFallbackDrafts = (): Draft[] => [
-    {
-      id: '1',
-      title: 'The Future of Quantum Computing',
-      content: 'Quantum computing represents a paradigm shift in computational power. Unlike classical computers that use bits as the smallest unit of data...',
-      summary: 'An overview of quantum computing technology and its potential impact.',
-      category: { name: 'Technology' },
-      tags: ['quantum', 'computing', 'technology', 'future'],
-      author: { fullName: 'John Doe' },
-      updatedAt: '2024-01-15T14:30:00Z',
-      createdAt: '2024-01-15T10:00:00Z',
-      wordCount: 1250,
-      autoSaved: true,
-      status: 'draft',
-      imageUrl: null
-    },
-    {
-      id: '2',
-      title: 'Sustainable Energy Solutions for 2024',
-      content: 'As the world continues to grapple with climate change, sustainable energy solutions have become more critical than ever...',
-      summary: 'Exploring renewable energy trends for the upcoming year.',
-      category: { name: 'Environment' },
-      tags: ['energy', 'sustainability', 'climate'],
-      author: { fullName: 'Jane Smith' },
-      updatedAt: '2024-01-14T16:45:00Z',
-      createdAt: '2024-01-14T12:00:00Z',
-      wordCount: 890,
-      autoSaved: false,
-      status: 'draft',
-      imageUrl: null
-    }
-  ];
 
   // Load drafts on component mount and when search/sort changes
   useEffect(() => {

@@ -33,7 +33,7 @@ export function PermissionGate({
 }
 
 interface RoleGateProps {
-  role: UserRole | UserRole[];
+  role?: UserRole | UserRole[];
   minLevel?: number;
   fallback?: ReactNode;
   children: ReactNode;
@@ -56,13 +56,19 @@ export function RoleGate({
     if (!RBACAuth.hasMinRoleLevel(minLevel)) {
       return <>{fallback}</>;
     }
+    // If only minLevel is specified (no role), and level check passes, render children
+    if (!role) {
+      return <>{children}</>;
+    }
   }
   
-  // Check specific role(s)
-  const roles = Array.isArray(role) ? role : [role];
-  const hasRole = roles.some(r => RBACAuth.hasRole(r));
+  // Check specific role(s) if specified
+  if (role) {
+    const roles = Array.isArray(role) ? role : [role];
+    const hasRole = roles.some(r => RBACAuth.hasRole(r));
+    if (!hasRole) return <>{fallback}</>;
+  }
   
-  if (!hasRole) return <>{fallback}</>;
   return <>{children}</>;
 }
 

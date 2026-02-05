@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Attempt authentication using UnifiedAdminAuth
-    const result = UnifiedAdminAuth.login(email, password);
+    const result = await UnifiedAdminAuth.login(email, password);
 
     if (result.success && result.session) {
       // Create a basic token for compatibility with existing frontend

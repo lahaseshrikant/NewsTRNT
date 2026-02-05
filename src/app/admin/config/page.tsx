@@ -1,9 +1,37 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { siteConfig } from '@/config/site';
 import Breadcrumb from '@/components/Breadcrumb';
 import { showToast } from '@/lib/toast';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+// Helper function to safely get nested object values
+const getNestedValue = (obj: any, path: string, defaultValue: any = ''): any => {
+  const keys = path.split('.');
+  let current = obj;
+  for (const key of keys) {
+    if (current === null || current === undefined || typeof current !== 'object') {
+      return defaultValue;
+    }
+    current = current[key];
+  }
+  return current ?? defaultValue;
+};
+
+// Helper function to safely get nested object
+const getNestedObject = (obj: any, path: string): any => {
+  const keys = path.split('.');
+  let current = obj;
+  for (const key of keys) {
+    if (current === null || current === undefined || typeof current !== 'object') {
+      return {};
+    }
+    current = current[key];
+  }
+  return current || {};
+};
 
 interface ConfigSection {
   id: string;
@@ -22,11 +50,72 @@ interface ChangePreview {
 const AdminConfigPage: React.FC = () => {
   const [activeSection, setActiveSection] = useState('contact');
   const [config, setConfig] = useState(siteConfig);
-  const [originalConfig] = useState(siteConfig);
+  const [originalConfig, setOriginalConfig] = useState(siteConfig);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [changes, setChanges] = useState<ChangePreview[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load saved config from database
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/admin/site-config`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.config && Object.keys(data.config).length > 0) {
+            // Deep clone the default config first
+            const mergedConfig = JSON.parse(JSON.stringify(siteConfig));
+            
+            // Deep merge function
+            const deepMerge = (target: any, source: any, path: string[]) => {
+              const keys = path;
+              if (keys.length === 0) return;
+              
+              let current = target;
+              for (let i = 0; i < keys.length - 1; i++) {
+                if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+                  current[keys[i]] = {};
+                }
+                current = current[keys[i]];
+              }
+              if (current) {
+                current[keys[keys.length - 1]] = source;
+              }
+            };
+            
+            Object.entries(data.config).forEach(([key, value]) => {
+              try {
+                // Value is already parsed by JSON response, use it directly
+                const parsed = value;
+                const keys = key.split('.');
+                deepMerge(mergedConfig, parsed, keys);
+              } catch (e) {
+                console.error('Error merging config key:', key, e);
+              }
+            });
+            setConfig(mergedConfig);
+            // Also set as original so we can detect changes from loaded state
+            setOriginalConfig(JSON.parse(JSON.stringify(mergedConfig)));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading site config:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadConfig();
+  }, []);
 
   const configSections: ConfigSection[] = [
     {
@@ -94,13 +183,26 @@ const AdminConfigPage: React.FC = () => {
     const changesDetected: ChangePreview[] = [];
     
     const compareObjects = (original: any, current: any, prefix = ''): void => {
+      if (!current || typeof current !== 'object') return;
+      
       Object.keys(current).forEach(key => {
         const fullKey = prefix ? `${prefix}.${key}` : key;
-        const originalValue = original[key];
+        const originalValue = original?.[key];
         const currentValue = current[key];
         
         if (typeof currentValue === 'object' && currentValue !== null && !Array.isArray(currentValue)) {
-          compareObjects(originalValue, currentValue, fullKey);
+          // Only recurse if originalValue is also an object, otherwise treat as a change
+          if (typeof originalValue === 'object' && originalValue !== null) {
+            compareObjects(originalValue, currentValue, fullKey);
+          } else {
+            // The structure changed or originalValue was undefined
+            changesDetected.push({
+              field: fullKey,
+              currentValue: originalValue,
+              newValue: currentValue,
+              affectedPages: getAffectedPages(fullKey)
+            });
+          }
         } else if (JSON.stringify(originalValue) !== JSON.stringify(currentValue)) {
           changesDetected.push({
             field: fullKey,
@@ -126,22 +228,52 @@ const AdminConfigPage: React.FC = () => {
     setIsSaving(true);
     
     try {
-      // Simulate API call to save configuration
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      console.log('Config save - Token found:', !!token, 'Token preview:', token ? token.substring(0, 20) + '...' : 'none');
       
-      // In a real application, you would:
-      // 1. Send the config to your backend API
-      // 2. Update the database
-      // 3. Trigger a site rebuild or hot reload
-      // 4. Update CDN cache if needed
+      if (!token) {
+        throw new Error('No authentication token found. Please log in again.');
+      }
       
+      const detectedChanges = detectChanges();
+      
+      // Save each changed field to the database
+      for (const change of detectedChanges) {
+        const response = await fetch(`${API_BASE_URL}/api/admin/site-config/${encodeURIComponent(change.field)}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            value: change.newValue, // Send as-is, Prisma Json type handles serialization
+            type: typeof change.newValue === 'boolean' ? 'boolean' : 
+                  typeof change.newValue === 'number' ? 'number' : 'string',
+            label: change.field.split('.').pop() || change.field,
+            group: activeSection,
+            isPublic: true
+          })
+        });
+        
+        console.log('Config save response for', change.field, 'Status:', response.status, 'OK:', response.ok);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Failed to save config:', change.field, 'Status:', response.status, 'Response:', errorText);
+          throw new Error(`Failed to save ${change.field}: ${response.status} ${errorText}`);
+        }
+      }
+      
+      // Update originalConfig to match current config (no more pending changes)
+      setOriginalConfig(JSON.parse(JSON.stringify(config)));
+      setHasChanges(false);
       setLastSaved(new Date());
       setShowPreview(false);
       
-      // Show success notification
       showToast('Configuration saved successfully! Changes are now live on the site.', 'success');
       
     } catch (error) {
+      console.error('Error saving config:', error);
       showToast('Error saving configuration. Please try again.', 'error');
     } finally {
       setIsSaving(false);
@@ -150,15 +282,26 @@ const AdminConfigPage: React.FC = () => {
 
   const updateConfig = (section: string, field: string, value: any) => {
     setConfig(prev => {
-      const newConfig = { ...prev } as any;
-      const keys = field.split('.');
+      // Deep clone the config to avoid mutation issues
+      const newConfig = JSON.parse(JSON.stringify(prev));
+      
+      // Combine section and field to get the full path
+      const fullPath = section ? `${section}.${field}` : field;
+      const keys = fullPath.split('.');
       let current = newConfig;
       
+      // Navigate to the parent object, creating intermediate objects if needed
       for (let i = 0; i < keys.length - 1; i++) {
+        if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+          current[keys[i]] = {};
+        }
         current = current[keys[i]];
       }
       
-      current[keys[keys.length - 1]] = value;
+      // Set the value
+      if (current) {
+        current[keys[keys.length - 1]] = value;
+      }
       return newConfig;
     });
   };
@@ -175,7 +318,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Email</label>
             <input
               type="email"
-              value={config.contact.general.email}
+              value={getNestedValue(config, 'contact.general.email')}
               onChange={(e) => updateConfig('contact', 'general.email', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -184,7 +327,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Phone</label>
             <input
               type="tel"
-              value={config.contact.general.phone}
+              value={getNestedValue(config, 'contact.general.phone')}
               onChange={(e) => updateConfig('contact', 'general.phone', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -194,7 +337,7 @@ const AdminConfigPage: React.FC = () => {
           <label className="block text-sm font-medium text-foreground mb-2">Street Address</label>
           <input
             type="text"
-            value={config.contact.general.address.street}
+            value={getNestedValue(config, 'contact.general.address.street')}
             onChange={(e) => updateConfig('contact', 'general.address.street', e.target.value)}
             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
           />
@@ -204,7 +347,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">City</label>
             <input
               type="text"
-              value={config.contact.general.address.city}
+              value={getNestedValue(config, 'contact.general.address.city')}
               onChange={(e) => updateConfig('contact', 'general.address.city', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -213,7 +356,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">State</label>
             <input
               type="text"
-              value={config.contact.general.address.state}
+              value={getNestedValue(config, 'contact.general.address.state')}
               onChange={(e) => updateConfig('contact', 'general.address.state', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -222,7 +365,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">ZIP</label>
             <input
               type="text"
-              value={config.contact.general.address.zip}
+              value={getNestedValue(config, 'contact.general.address.zip')}
               onChange={(e) => updateConfig('contact', 'general.address.zip', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -231,7 +374,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Country</label>
             <input
               type="text"
-              value={config.contact.general.address.country}
+              value={getNestedValue(config, 'contact.general.address.country')}
               onChange={(e) => updateConfig('contact', 'general.address.country', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -240,7 +383,7 @@ const AdminConfigPage: React.FC = () => {
       </div>
 
       {/* Department Contacts */}
-      {Object.entries(config.contact.departments).map(([dept, contact]) => (
+      {Object.entries(getNestedObject(config, 'contact.departments')).map(([dept, contact]: [string, any]) => (
         <div key={dept} className="bg-muted/20 rounded-lg p-4">
           <h4 className="font-medium text-foreground mb-4 capitalize">{dept} Department</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -248,7 +391,7 @@ const AdminConfigPage: React.FC = () => {
               <label className="block text-sm font-medium text-foreground mb-2">Name</label>
               <input
                 type="text"
-                value={contact.name}
+                value={contact?.name || ''}
                 onChange={(e) => updateConfig('contact', `departments.${dept}.name`, e.target.value)}
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
               />
@@ -257,7 +400,7 @@ const AdminConfigPage: React.FC = () => {
               <label className="block text-sm font-medium text-foreground mb-2">Email</label>
               <input
                 type="email"
-                value={contact.email}
+                value={contact?.email || ''}
                 onChange={(e) => updateConfig('contact', `departments.${dept}.email`, e.target.value)}
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
               />
@@ -266,7 +409,7 @@ const AdminConfigPage: React.FC = () => {
               <label className="block text-sm font-medium text-foreground mb-2">Phone</label>
               <input
                 type="tel"
-                value={contact.phone}
+                value={contact?.phone || ''}
                 onChange={(e) => updateConfig('contact', `departments.${dept}.phone`, e.target.value)}
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
               />
@@ -287,7 +430,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Business Name</label>
             <input
               type="text"
-              value={config.name}
+              value={getNestedValue(config, 'name')}
               onChange={(e) => updateConfig('business', 'name', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -296,7 +439,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Tagline</label>
             <input
               type="text"
-              value={config.tagline}
+              value={getNestedValue(config, 'tagline')}
               onChange={(e) => updateConfig('business', 'tagline', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -306,7 +449,7 @@ const AdminConfigPage: React.FC = () => {
         <div className="mt-4">
           <label className="block text-sm font-medium text-foreground mb-2">Description</label>
           <textarea
-            value={config.description}
+            value={getNestedValue(config, 'description')}
             onChange={(e) => updateConfig('business', 'description', e.target.value)}
             rows={3}
             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
@@ -318,7 +461,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Website URL</label>
             <input
               type="url"
-              value={config.url}
+              value={getNestedValue(config, 'url')}
               onChange={(e) => updateConfig('business', 'url', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -327,7 +470,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Weekday Hours</label>
             <input
               type="text"
-              value={config.business.businessHours.weekdays}
+              value={getNestedValue(config, 'business.businessHours.weekdays')}
               onChange={(e) => updateConfig('business', 'businessHours.weekdays', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -336,7 +479,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Weekend Hours</label>
             <input
               type="text"
-              value={config.business.businessHours.weekends}
+              value={getNestedValue(config, 'business.businessHours.weekends')}
               onChange={(e) => updateConfig('business', 'businessHours.weekends', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -356,7 +499,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Monthly Visitors</label>
             <input
               type="text"
-              value={config.metrics.monthlyVisitors}
+              value={getNestedValue(config, 'metrics.monthlyVisitors')}
               onChange={(e) => updateConfig('metrics', 'monthlyVisitors', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -365,7 +508,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Page Views</label>
             <input
               type="text"
-              value={config.metrics.pageViews}
+              value={getNestedValue(config, 'metrics.pageViews')}
               onChange={(e) => updateConfig('metrics', 'pageViews', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -374,7 +517,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Email Subscribers</label>
             <input
               type="text"
-              value={config.metrics.emailSubscribers}
+              value={getNestedValue(config, 'metrics.emailSubscribers')}
               onChange={(e) => updateConfig('metrics', 'emailSubscribers', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -385,7 +528,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Social Followers</label>
             <input
               type="text"
-              value={config.metrics.socialFollowers}
+              value={getNestedValue(config, 'metrics.socialFollowers')}
               onChange={(e) => updateConfig('metrics', 'socialFollowers', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -394,7 +537,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Average Session Time</label>
             <input
               type="text"
-              value={config.metrics.averageSessionTime}
+              value={getNestedValue(config, 'metrics.averageSessionTime')}
               onChange={(e) => updateConfig('metrics', 'averageSessionTime', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -403,7 +546,7 @@ const AdminConfigPage: React.FC = () => {
             <label className="block text-sm font-medium text-foreground mb-2">Bounce Rate</label>
             <input
               type="text"
-              value={config.metrics.bounceRate}
+              value={getNestedValue(config, 'metrics.bounceRate')}
               onChange={(e) => updateConfig('metrics', 'bounceRate', e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
             />
@@ -419,12 +562,12 @@ const AdminConfigPage: React.FC = () => {
       
       <div className="bg-muted/20 rounded-lg p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Object.entries(config.social).map(([platform, url]) => (
+          {Object.entries(getNestedObject(config, 'social')).map(([platform, url]: [string, any]) => (
             <div key={platform}>
               <label className="block text-sm font-medium text-foreground mb-2 capitalize">{platform}</label>
               <input
                 type="url"
-                value={url as string}
+                value={(url as string) || ''}
                 onChange={(e) => updateConfig('social', platform, e.target.value)}
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground"
                 placeholder={`https://${platform}.com/yourhandle`}
@@ -442,7 +585,7 @@ const AdminConfigPage: React.FC = () => {
       
       <div className="bg-muted/20 rounded-lg p-4">
         <div className="space-y-4">
-          {Object.entries(config.features).map(([feature, enabled]) => (
+          {Object.entries(getNestedObject(config, 'features')).map(([feature, enabled]: [string, any]) => (
             <div key={feature} className="flex items-center justify-between p-3 bg-background rounded-lg">
               <div>
                 <div className="font-medium text-foreground capitalize">
@@ -461,7 +604,7 @@ const AdminConfigPage: React.FC = () => {
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={enabled}
+                  checked={!!enabled}
                   onChange={(e) => updateConfig('features', feature, e.target.checked)}
                   className="sr-only peer"
                 />
@@ -485,7 +628,17 @@ const AdminConfigPage: React.FC = () => {
     }
   };
 
-  const hasChanges = detectChanges().length > 0;
+  // Only detect changes when user clicks Preview or Save, not on every render
+  const [hasChanges, setHasChanges] = useState(false);
+  
+  // Check for changes when config updates (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const changesDetected = detectChanges();
+      setHasChanges(changesDetected.length > 0);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [config]);
 
   return (
     <div className="min-h-screen bg-background">

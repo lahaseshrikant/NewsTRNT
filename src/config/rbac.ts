@@ -294,6 +294,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     children: [
       { id: 'content-hub', label: 'Content Hub', href: '/admin/content', icon: '🏠', requiredPermissions: ['content.view'] },
       { id: 'articles', label: 'Articles', href: '/admin/content/articles', icon: '📄', requiredPermissions: ['content.view'] },
+      { id: 'new-article', label: 'New Article', href: '/admin/content/new', icon: '✨', requiredPermissions: ['content.create'] },
       { id: 'web-stories', label: 'Web Stories', href: '/admin/content/web-stories', icon: '📱', requiredPermissions: ['content.view'] },
       { id: 'content-calendar', label: 'Content Calendar', href: '/admin/content/calendar', icon: '📅', requiredPermissions: ['content.view'] },
       { id: 'content-workflow', label: 'Workflow', href: '/admin/content/workflow', icon: '📋', requiredPermissions: ['content.view'] },
@@ -314,7 +315,9 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     children: [
       { id: 'all-users', label: 'All Users', href: '/admin/users', icon: '👤', requiredPermissions: ['users.view'] },
       { id: 'subscribers', label: 'Subscribers', href: '/admin/users/subscribers', icon: '📧', requiredPermissions: ['users.view'] },
-      { id: 'user-activity', label: 'User Activity', href: '/admin/users/activity', icon: '📊', requiredPermissions: ['users.view'] }
+      { id: 'user-activity', label: 'User Activity', href: '/admin/users/activity', icon: '📊', requiredPermissions: ['users.view'] },
+      { id: 'user-permissions', label: 'User Permissions', href: '/admin/users/permissions', icon: '🔑', requiredRole: 'SUPER_ADMIN' },
+      { id: 'user-team', label: 'Team Members', href: '/admin/users/team', icon: '👨‍💼', requiredRole: 'SUPER_ADMIN' }
     ]
   },
   {
@@ -407,8 +410,11 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     requiredPermissions: ['config.view'],
     description: 'System configuration',
     children: [
-      { id: 'market-config', label: 'Market Data', href: '/admin/market-config', icon: '📊', requiredPermissions: ['config.market_data'] },
-      { id: 'logo-manager', label: 'Branding', href: '/admin/logo-manager', icon: '🎨', requiredPermissions: ['config.branding'] },
+      { id: 'market-config', label: 'Market Data Config', href: '/admin/market-config', icon: '📊', requiredPermissions: ['config.market_data'] },
+      { id: 'market-data', label: 'Market Data View', href: '/admin/market-data', icon: '📈', requiredPermissions: ['config.market_data'] },
+      { id: 'logo-manager', label: 'Logo Manager', href: '/admin/logo-manager', icon: '🎨', requiredPermissions: ['config.branding'] },
+      { id: 'logo-gallery', label: 'Logo Gallery', href: '/admin/logo-gallery', icon: '🖼️', requiredPermissions: ['config.branding'] },
+      { id: 'logo-history', label: 'Logo History', href: '/admin/logo-history', icon: '📜', requiredPermissions: ['config.branding'] },
       { id: 'external-apis', label: 'External APIs', href: '/admin/external-apis', icon: '🔌', requiredPermissions: ['config.edit'] }
     ]
   },
@@ -424,7 +430,23 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       { id: 'system-settings', label: 'Settings', href: '/admin/system/settings', icon: '🔧', requiredRole: 'SUPER_ADMIN' },
       { id: 'security', label: 'Security', href: '/admin/system/security', icon: '🛡️', requiredRole: 'SUPER_ADMIN' },
       { id: 'integrations', label: 'Integrations', href: '/admin/system/integrations', icon: '🔗', requiredRole: 'SUPER_ADMIN' },
-      { id: 'backup', label: 'Backup & Restore', href: '/admin/system/backup', icon: '💾', requiredRole: 'SUPER_ADMIN' }
+      { id: 'backup', label: 'Backup & Restore', href: '/admin/system/backup', icon: '💾', requiredRole: 'SUPER_ADMIN' },
+      { id: 'audit-logs', label: 'Audit Logs', href: '/admin/system/audit-logs', icon: '📋', requiredRole: 'SUPER_ADMIN' },
+      { id: 'system-users', label: 'System Users', href: '/admin/system/users', icon: '👥', requiredRole: 'SUPER_ADMIN' },
+      { id: 'system-roles', label: 'System Roles', href: '/admin/system/roles', icon: '🎭', requiredRole: 'SUPER_ADMIN' }
+    ]
+  },
+  {
+    id: 'developer',
+    label: 'Developer Tools',
+    href: '/admin/debug',
+    icon: '🛠️',
+    requiredRole: 'SUPER_ADMIN',
+    description: 'Developer and debugging tools',
+    children: [
+      { id: 'debug', label: 'Debug Console', href: '/admin/debug', icon: '🐛', requiredRole: 'SUPER_ADMIN' },
+      { id: 'api-test', label: 'API Tester', href: '/admin/api-test', icon: '🧪', requiredRole: 'SUPER_ADMIN' },
+      { id: 'help', label: 'Help & Docs', href: '/admin/help', icon: '❓', requiredPermissions: ['dashboard.view'] }
     ]
   }
 ];

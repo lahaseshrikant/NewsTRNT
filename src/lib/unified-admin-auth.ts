@@ -125,12 +125,18 @@ class UnifiedAdminAuth {
       });
 
       const result = await response.json();
-      console.log('🔐 Login API response:', { success: result.success, hasSession: !!result.session });
+      console.log('🔐 Login API response:', { success: result.success, hasSession: !!result.session, hasToken: !!result.token });
       
       if (result.success && result.session) {
         // Store session in localStorage
         console.log('💾 Storing session with keys:', Object.keys(result.session));
         localStorage.setItem(this.SESSION_KEY, JSON.stringify(result.session));
+        
+        // Also store the token if provided by the API
+        if (result.token) {
+          localStorage.setItem('adminToken', result.token);
+          localStorage.setItem('token', result.token);
+        }
         
         // Verify storage
         const stored = localStorage.getItem(this.SESSION_KEY);

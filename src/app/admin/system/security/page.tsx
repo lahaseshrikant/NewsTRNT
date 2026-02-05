@@ -41,6 +41,8 @@ function SecurityContent() {
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [stats, setStats] = useState<SecurityStats>({ securityScore: 0, failedLogins24h: 0, blockedIps: 0, activeSessions: 0 });
   const [settings, setSettings] = useState<SecuritySettings>({
     mfaRequired: false,
@@ -94,6 +96,34 @@ function SecurityContent() {
       setLoading(false);
     }
   }, []);
+
+  const saveSecuritySettings = async () => {
+    setSaving(true);
+    setSaveSuccess(false);
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/admin/system/security/settings`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(settings)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save settings');
+      }
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error('Error saving security settings:', err);
+      setError('Failed to save security settings');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     fetchSecurityData();
@@ -386,8 +416,12 @@ function SecurityContent() {
             </div>
           </div>
           
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Save Security Policies
+          <button 
+            onClick={saveSecuritySettings}
+            disabled={saving}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {saving ? 'Saving...' : saveSuccess ? '✓ Saved!' : 'Save Security Policies'}
           </button>
         </div>
       )}
@@ -461,6 +495,14 @@ function SecurityContent() {
               </button>
             </div>
           </div>
+          
+          <button 
+            onClick={saveSecuritySettings}
+            disabled={saving}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {saving ? 'Saving...' : saveSuccess ? '✓ Saved!' : 'Save Firewall Settings'}
+          </button>
         </div>
       )}
     </div>

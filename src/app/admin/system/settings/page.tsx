@@ -102,7 +102,31 @@ function SystemSettingsContent() {
   const loadSettings = async () => {
     setLoading(true);
     try {
-      // Try to load from localStorage first (for demo purposes)
+      // Try to load from API first
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      if (token) {
+        const response = await fetch(`${API_URL}/admin/settings`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Convert array of settings to structured object
+          if (data.settings && data.settings.length > 0) {
+            const settingsMap: Record<string, any> = {};
+            data.settings.forEach((s: any) => {
+              settingsMap[s.key] = s.value;
+            });
+            // Merge with defaults
+            if (settingsMap.security) setSettings(prev => ({ ...prev, security: { ...prev.security, ...settingsMap.security } }));
+            if (settingsMap.notifications) setSettings(prev => ({ ...prev, notifications: { ...prev.notifications, ...settingsMap.notifications } }));
+            if (settingsMap.content) setSettings(prev => ({ ...prev, content: { ...prev.content, ...settingsMap.content } }));
+          }
+        }
+      }
+      // Fallback to localStorage
       const saved = localStorage.getItem('newstrnt_system_settings');
       if (saved) {
         setSettings(JSON.parse(saved));
@@ -117,7 +141,25 @@ function SystemSettingsContent() {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      // Save to localStorage (for demo purposes)
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      if (token) {
+        // Save each section as a separate setting
+        const settingsToSave = [
+          { key: 'security', value: settings.security, category: 'security' },
+          { key: 'notifications', value: settings.notifications, category: 'notifications' },
+          { key: 'content', value: settings.content, category: 'content' }
+        ];
+        
+        await fetch(`${API_URL}/admin/settings/bulk`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ settings: settingsToSave })
+        });
+      }
+      // Also save to localStorage as backup
       localStorage.setItem('newstrnt_system_settings', JSON.stringify(settings));
       AuditLogger.logFromSession('CONFIG_CHANGE', { resource: 'settings', details: { section: activeTab, settings: settings[activeTab] } });
       setHasChanges(false);

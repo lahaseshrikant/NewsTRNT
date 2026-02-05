@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
 import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
 import { getEmailString } from '@/lib/utils';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 interface User {
   id: string;
@@ -34,70 +36,17 @@ interface Role {
 }
 
 const UserPermissions: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john.doe@newstrnt.com',
-      role: 'admin',
-      status: 'active',
-      lastLogin: '2024-01-15T09:30:00Z',
-      createdAt: '2024-01-01T10:00:00Z',
-      permissions: [
-        { id: 'content.create', name: 'Create Content', description: 'Create new articles and posts', category: 'content', granted: true },
-        { id: 'content.edit', name: 'Edit Content', description: 'Edit existing content', category: 'content', granted: true },
-        { id: 'content.delete', name: 'Delete Content', description: 'Delete articles and posts', category: 'content', granted: true },
-        { id: 'users.view', name: 'View Users', description: 'View user list and profiles', category: 'users', granted: true },
-        { id: 'users.manage', name: 'Manage Users', description: 'Create, edit, and delete users', category: 'users', granted: true },
-        { id: 'system.settings', name: 'System Settings', description: 'Access system configuration', category: 'system', granted: true },
-        { id: 'analytics.view', name: 'View Analytics', description: 'Access analytics and reports', category: 'analytics', granted: true }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane.smith@newstrnt.com',
-      role: 'editor',
-      status: 'active',
-      lastLogin: '2024-01-14T14:20:00Z',
-      createdAt: '2024-01-02T11:30:00Z',
-      permissions: [
-        { id: 'content.create', name: 'Create Content', description: 'Create new articles and posts', category: 'content', granted: true },
-        { id: 'content.edit', name: 'Edit Content', description: 'Edit existing content', category: 'content', granted: true },
-        { id: 'content.delete', name: 'Delete Content', description: 'Delete articles and posts', category: 'content', granted: false },
-        { id: 'users.view', name: 'View Users', description: 'View user list and profiles', category: 'users', granted: true },
-        { id: 'users.manage', name: 'Manage Users', description: 'Create, edit, and delete users', category: 'users', granted: false },
-        { id: 'system.settings', name: 'System Settings', description: 'Access system configuration', category: 'system', granted: false },
-        { id: 'analytics.view', name: 'View Analytics', description: 'Access analytics and reports', category: 'analytics', granted: true }
-      ]
-    },
-    {
-      id: '3',
-      name: 'Mike Johnson',
-      email: 'mike.johnson@newstrnt.com',
-      role: 'author',
-      status: 'active',
-      lastLogin: '2024-01-13T16:45:00Z',
-      createdAt: '2024-01-05T09:15:00Z',
-      permissions: [
-        { id: 'content.create', name: 'Create Content', description: 'Create new articles and posts', category: 'content', granted: true },
-        { id: 'content.edit', name: 'Edit Content', description: 'Edit existing content', category: 'content', granted: false },
-        { id: 'content.delete', name: 'Delete Content', description: 'Delete articles and posts', category: 'content', granted: false },
-        { id: 'users.view', name: 'View Users', description: 'View user list and profiles', category: 'users', granted: false },
-        { id: 'users.manage', name: 'Manage Users', description: 'Create, edit, and delete users', category: 'users', granted: false },
-        { id: 'system.settings', name: 'System Settings', description: 'Access system configuration', category: 'system', granted: false },
-        { id: 'analytics.view', name: 'View Analytics', description: 'Access analytics and reports', category: 'analytics', granted: false }
-      ]
-    }
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [roles, setRoles] = useState<Role[]>([
+  const [roles] = useState<Role[]>([
     {
       id: 'admin',
       name: 'Administrator',
       description: 'Full access to all system features',
       permissions: ['content.create', 'content.edit', 'content.delete', 'users.view', 'users.manage', 'system.settings', 'analytics.view'],
-      userCount: 1,
+      userCount: 0,
       color: '#EF4444'
     },
     {
@@ -105,7 +54,7 @@ const UserPermissions: React.FC = () => {
       name: 'Editor',
       description: 'Content management and user viewing permissions',
       permissions: ['content.create', 'content.edit', 'users.view', 'analytics.view'],
-      userCount: 1,
+      userCount: 0,
       color: '#3B82F6'
     },
     {
@@ -113,7 +62,7 @@ const UserPermissions: React.FC = () => {
       name: 'Author',
       description: 'Content creation permissions only',
       permissions: ['content.create'],
-      userCount: 1,
+      userCount: 0,
       color: '#10B981'
     },
     {
@@ -125,6 +74,98 @@ const UserPermissions: React.FC = () => {
       color: '#6B7280'
     }
   ]);
+
+  // Fetch users from API
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      let token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      
+      if (!token) {
+        const sessionData = localStorage.getItem('newstrnt_admin_session');
+        if (sessionData) {
+          const session = JSON.parse(sessionData);
+          const tokenPayload = {
+            userId: session.userId,
+            email: session.email,
+            role: session.role,
+            isAdmin: true,
+            sessionId: session.sessionId,
+            timestamp: session.timestamp || Date.now(),
+            permissions: session.permissions || []
+          };
+          token = btoa(JSON.stringify(tokenPayload));
+          localStorage.setItem('adminToken', token);
+        }
+      }
+      
+      if (!token) {
+        setError('Authentication required. Please log in.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/admin/users?limit=50`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+
+      const data = await response.json();
+      
+      // Transform API data to include permissions based on role
+      const transformedUsers: User[] = (data.users || []).map((user: any) => ({
+        id: user.id,
+        name: user.name || user.fullName || 'Unknown',
+        email: user.email,
+        role: user.isAdmin ? 'admin' : 'subscriber',
+        status: user.status || 'active',
+        lastLogin: user.lastLogin || new Date().toISOString(),
+        createdAt: user.joinDate || new Date().toISOString(),
+        permissions: getPermissionsForRole(user.isAdmin ? 'admin' : 'subscriber')
+      }));
+      
+      setUsers(transformedUsers);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError('Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getPermissionsForRole = (role: string): Permission[] => {
+    const allPermissions = [
+      { id: 'content.create', name: 'Create Content', description: 'Create new articles and posts', category: 'content' as const },
+      { id: 'content.edit', name: 'Edit Content', description: 'Edit existing content', category: 'content' as const },
+      { id: 'content.delete', name: 'Delete Content', description: 'Delete articles and posts', category: 'content' as const },
+      { id: 'users.view', name: 'View Users', description: 'View user list and profiles', category: 'users' as const },
+      { id: 'users.manage', name: 'Manage Users', description: 'Create, edit, and delete users', category: 'users' as const },
+      { id: 'system.settings', name: 'System Settings', description: 'Access system configuration', category: 'system' as const },
+      { id: 'analytics.view', name: 'View Analytics', description: 'Access analytics and reports', category: 'analytics' as const }
+    ];
+    
+    const rolePermissions: Record<string, string[]> = {
+      admin: ['content.create', 'content.edit', 'content.delete', 'users.view', 'users.manage', 'system.settings', 'analytics.view'],
+      editor: ['content.create', 'content.edit', 'users.view', 'analytics.view'],
+      author: ['content.create'],
+      subscriber: []
+    };
+    
+    const granted = rolePermissions[role] || [];
+    return allPermissions.map(p => ({ ...p, granted: granted.includes(p.id) }));
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
@@ -311,7 +352,29 @@ const UserPermissions: React.FC = () => {
             </div>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="p-8 text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+              <p className="mt-2 text-muted-foreground">Loading users...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <div className="p-8 text-center">
+              <div className="text-red-500 mb-4">⚠️ {error}</div>
+              <button
+                onClick={fetchUsers}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
           {/* Users Table */}
+          {!loading && !error && (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted">
@@ -334,7 +397,13 @@ const UserPermissions: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {filteredUsers.map((user) => (
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                      No users found
+                    </td>
+                  </tr>
+                ) : filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-muted/60 transition-colors duration-200">
                     <td className="px-6 py-4">
                       <div>
@@ -382,6 +451,7 @@ const UserPermissions: React.FC = () => {
               </tbody>
             </table>
           </div>
+          )}
         </div>
       </div>
 

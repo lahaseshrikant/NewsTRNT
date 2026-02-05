@@ -681,3 +681,236 @@ model TopicFollow {
   @@index([topicSlug])
   @@map("topic_follows")
 }
+
+// =============================================================================
+// ADMIN PORTAL MODELS - For data persistence in admin features
+// =============================================================================
+
+// Email/Newsletter Templates
+model EmailTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  subject     String
+  type        String   @default("newsletter") // newsletter, transactional, promotional
+  content     String   @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdBy   String?  @map("created_by")
+
+  @@index([type])
+  @@index([isActive])
+  @@map("email_templates")
+}
+
+// System Backups
+model SystemBackup {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   @default("full") // full, incremental, database, files
+  status      String   @default("pending") // pending, running, completed, failed
+  size        String?  // Size of backup file
+  path        String?  // Storage path
+  createdAt   DateTime @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
+  createdBy   String?  @map("created_by")
+  notes       String?
+
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("system_backups")
+}
+
+// Advertising Requests
+model AdRequest {
+  id            String   @id @default(uuid())
+  companyName   String   @map("company_name")
+  contactName   String   @map("contact_name")
+  contactEmail  String   @map("contact_email")
+  phone         String?
+  adType        String   @map("ad_type") // banner, sponsored, native, video
+  budget        Float
+  duration      String?  // e.g., "30 days", "1 month"
+  message       String?  @db.Text
+  status        String   @default("pending") // pending, approved, rejected, negotiating
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  processedBy   String?  @map("processed_by")
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("ad_requests")
+}
+
+// Advertising Campaigns (for performance tracking)
+model AdCampaign {
+  id            String    @id @default(uuid())
+  name          String
+  advertiser    String
+  type          String    @default("banner") // banner, sidebar, sponsored, native, video
+  status        String    @default("active") // active, paused, ended, scheduled
+  impressions   Int       @default(0)
+  clicks        Int       @default(0)
+  revenue       Float     @default(0)
+  budget        Float?
+  startDate     DateTime  @map("start_date")
+  endDate       DateTime? @map("end_date")
+  targetUrl     String?   @map("target_url")
+  bannerUrl     String?   @map("banner_url")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([startDate])
+  @@map("ad_campaigns")
+}
+
+// Third-party Integrations
+model Integration {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  type        String   // analytics, social, ai, payments, email
+  status      String   @default("disconnected") // connected, disconnected, error
+  config      Json     @default("{}")
+  apiKey      String?  @map("api_key")
+  isActive    Boolean  @default(false) @map("is_active")
+  lastSyncAt  DateTime? @map("last_sync_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([status])
+  @@map("integrations")
+}
+
+// Spam Filter Rules
+model SpamRule {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // keyword, pattern, ip, email
+  pattern     String   // The actual rule pattern
+  action      String   @default("block") // block, flag, quarantine
+  isActive    Boolean  @default(true) @map("is_active")
+  hitCount    Int      @default(0) @map("hit_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdBy   String?  @map("created_by")
+
+  @@index([type])
+  @@index([isActive])
+  @@map("spam_rules")
+}
+
+// Security Events Log
+model SecurityEvent {
+  id          String   @id @default(uuid())
+  eventType   String   @map("event_type") // login, failed_login, password_change, suspicious_activity
+  severity    String   @default("info") // info, warning, critical
+  userId      String?  @map("user_id")
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  details     Json     @default("{}")
+  resolved    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([eventType])
+  @@index([severity])
+  @@index([createdAt])
+  @@map("security_events")
+}
+
+// Media Library
+model MediaFile {
+  id          String   @id @default(uuid())
+  filename    String
+  originalName String  @map("original_name")
+  mimeType    String   @map("mime_type")
+  size        Int      // Size in bytes
+  url         String
+  thumbnailUrl String?  @map("thumbnail_url")
+  folder      String   @default("uploads")
+  alt         String?
+  caption     String?
+  isPublic    Boolean  @default(true) @map("is_public")
+  usageCount  Int      @default(0) @map("usage_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  uploadedBy  String?  @map("uploaded_by")
+
+  @@index([folder])
+  @@index([mimeType])
+  @@index([createdAt])
+  @@map("media_files")
+}
+
+// Content Moderation Reports
+model ModerationReport {
+  id            String   @id @default(uuid())
+  contentType   String   @map("content_type") // article, comment, user
+  contentId     String   @map("content_id")
+  reason        String   // spam, inappropriate, misinformation, copyright
+  description   String?  @db.Text
+  reportedBy    String?  @map("reported_by")
+  status        String   @default("pending") // pending, reviewed, resolved, dismissed
+  resolution    String?  // warned, removed, banned, cleared
+  reviewedBy    String?  @map("reviewed_by")
+  reviewedAt    DateTime? @map("reviewed_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([contentType])
+  @@index([status])
+  @@index([createdAt])
+  @@map("moderation_reports")
+}
+
+// System Settings - Key-value store for system configuration
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  category    String   @default("general") // general, security, email, performance, api
+  description String?
+  isSecret    Boolean  @default(false) @map("is_secret")
+  updatedBy   String?  @map("updated_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@map("system_settings")
+}
+
+// Team Invitations
+model TeamInvite {
+  id          String   @id @default(uuid())
+  email       String
+  role        String   // ADMIN, EDITOR, AUTHOR, etc.
+  token       String   @unique
+  status      String   @default("pending") // pending, accepted, expired, cancelled
+  invitedBy   String   @map("invited_by")
+  expiresAt   DateTime @map("expires_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([email])
+  @@index([status])
+  @@index([token])
+  @@map("team_invites")
+}
+
+// Site Configuration - For branding, logos, site-wide settings
+model SiteConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  type        String   @default("string") // string, number, boolean, json, image
+  label       String?
+  group       String   @default("general") // general, branding, seo, social, footer
+  isPublic    Boolean  @default(true) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([group])
+  @@map("site_config")
+}

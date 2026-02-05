@@ -381,7 +381,7 @@ function NewsletterTemplatesContent() {
 
 export default function NewsletterTemplatesPage() {
   return (
-    <AdminRoute requiredPermissions={['newsletter.manage_templates']}>
+    <AdminRoute>
       <NewsletterTemplatesContent />
     </AdminRoute>
   );

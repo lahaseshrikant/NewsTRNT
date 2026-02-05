@@ -1,7 +1,7 @@
 // src/app/admin/advertising/performance/page.tsx - Ad Performance Analytics
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/admin/RouteGuard';
 
 interface AdCampaign {
@@ -9,43 +9,65 @@ interface AdCampaign {
   name: string;
   advertiser: string;
   type: 'banner' | 'sidebar' | 'sponsored' | 'native' | 'video';
-  status: 'active' | 'paused' | 'ended';
+  status: 'active' | 'paused' | 'ended' | 'scheduled';
   impressions: number;
   clicks: number;
-  ctr: number;
-  spend: number;
   revenue: number;
   startDate: string;
-  endDate: string;
+  endDate?: string;
 }
 
 function AdPerformanceContent() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('30d');
-  const [campaigns] = useState<AdCampaign[]>([
-    { id: '1', name: 'Tech Product Launch', advertiser: 'TechCorp', type: 'banner', status: 'active', impressions: 125000, clicks: 3750, ctr: 3.0, spend: 0, revenue: 7500, startDate: '2026-01-15', endDate: '2026-04-15' },
-    { id: '2', name: 'Green Energy Awareness', advertiser: 'EcoGreen', type: 'sponsored', status: 'active', impressions: 85000, clicks: 4250, ctr: 5.0, spend: 0, revenue: 12000, startDate: '2026-01-01', endDate: '2026-06-30' },
-    { id: '3', name: 'Fashion Spring Sale', advertiser: 'StyleHub', type: 'native', status: 'active', impressions: 45000, clicks: 2025, ctr: 4.5, spend: 0, revenue: 4500, startDate: '2026-02-01', endDate: '2026-03-31' },
-    { id: '4', name: 'Finance App Promo', advertiser: 'FinTech Co', type: 'video', status: 'paused', impressions: 32000, clicks: 1280, ctr: 4.0, spend: 0, revenue: 3200, startDate: '2026-01-20', endDate: '2026-02-20' },
-    { id: '5', name: 'Holiday Campaign', advertiser: 'RetailMax', type: 'banner', status: 'ended', impressions: 250000, clicks: 5000, ctr: 2.0, spend: 0, revenue: 10000, startDate: '2025-12-01', endDate: '2025-12-31' },
-  ]);
+  const [campaigns, setCampaigns] = useState<AdCampaign[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const totalImpressions = campaigns.reduce((acc, c) => acc + c.impressions, 0);
-  const totalClicks = campaigns.reduce((acc, c) => acc + c.clicks, 0);
-  const totalRevenue = campaigns.reduce((acc, c) => acc + c.revenue, 0);
+  const fetchCampaigns = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/advertising/campaigns`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCampaigns(data.campaigns || []);
+      }
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, [fetchCampaigns]);
+
+  const totalImpressions = campaigns.reduce((acc, c) => acc + (c.impressions || 0), 0);
+  const totalClicks = campaigns.reduce((acc, c) => acc + (c.clicks || 0), 0);
+  const totalRevenue = campaigns.reduce((acc, c) => acc + (c.revenue || 0), 0);
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 
   const getStatusColor = (status: AdCampaign['status']) => {
-    const colors = {
+    const colors: Record<string, string> = {
       active: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
       paused: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-      ended: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+      ended: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
+      scheduled: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
     };
-    return colors[status];
+    return colors[status] || colors.ended;
   };
 
   const getTypeIcon = (type: AdCampaign['type']) => {
-    const icons = { banner: '🖼️', sidebar: '📐', sponsored: '📰', native: '📝', video: '🎬' };
-    return icons[type];
+    const icons: Record<string, string> = { banner: '🖼️', sidebar: '📐', sponsored: '📰', native: '📝', video: '🎬' };
+    return icons[type] || '📊';
+  };
+
+  const getCTR = (campaign: AdCampaign) => {
+    return campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
   };
 
   return (
@@ -154,15 +176,15 @@ function AdPerformanceContent() {
                       {campaign.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right font-medium">{campaign.impressions.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right font-medium">{campaign.clicks.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-medium">{(campaign.impressions || 0).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-medium">{(campaign.clicks || 0).toLocaleString()}</td>
                   <td className="px-4 py-3 text-right">
-                    <span className={`font-medium ${campaign.ctr >= 3 ? 'text-green-600' : campaign.ctr >= 2 ? 'text-yellow-600' : 'text-red-600'}`}>
-                      {campaign.ctr.toFixed(1)}%
+                    <span className={`font-medium ${getCTR(campaign) >= 3 ? 'text-green-600' : getCTR(campaign) >= 2 ? 'text-yellow-600' : 'text-red-600'}`}>
+                      {getCTR(campaign).toFixed(1)}%
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right font-medium text-green-600">
-                    ${campaign.revenue.toLocaleString()}
+                    ${(campaign.revenue || 0).toLocaleString()}
                   </td>
                 </tr>
               ))}
@@ -177,7 +199,7 @@ function AdPerformanceContent() {
           <h3 className="font-semibold text-foreground mb-4">Revenue by Ad Type</h3>
           <div className="space-y-4">
             {(['banner', 'sponsored', 'native', 'video'] as const).map(type => {
-              const typeRevenue = campaigns.filter(c => c.type === type).reduce((acc, c) => acc + c.revenue, 0);
+              const typeRevenue = campaigns.filter(c => c.type === type).reduce((acc, c) => acc + (c.revenue || 0), 0);
               const percentage = totalRevenue > 0 ? (typeRevenue / totalRevenue) * 100 : 0;
               return (
                 <div key={type} className="space-y-1">
@@ -199,25 +221,32 @@ function AdPerformanceContent() {
         
         <div className="bg-card border border-border rounded-xl p-6">
           <h3 className="font-semibold text-foreground mb-4">Top Performing Campaigns</h3>
-          <div className="space-y-3">
-            {campaigns
-              .sort((a, b) => b.ctr - a.ctr)
-              .slice(0, 5)
-              .map((campaign, index) => (
-                <div key={campaign.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center text-xs font-medium">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <p className="font-medium text-foreground text-sm">{campaign.name}</p>
-                      <p className="text-xs text-muted-foreground">{campaign.advertiser}</p>
+          {campaigns.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <span className="text-3xl mb-2 block">📊</span>
+              No campaigns yet
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {campaigns
+                .sort((a, b) => getCTR(b) - getCTR(a))
+                .slice(0, 5)
+                .map((campaign, index) => (
+                  <div key={campaign.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center text-xs font-medium">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className="font-medium text-foreground text-sm">{campaign.name}</p>
+                        <p className="text-xs text-muted-foreground">{campaign.advertiser}</p>
+                      </div>
                     </div>
+                    <span className="font-medium text-green-600">{getCTR(campaign).toFixed(1)}% CTR</span>
                   </div>
-                  <span className="font-medium text-green-600">{campaign.ctr.toFixed(1)}% CTR</span>
-                </div>
-              ))}
-          </div>
+                ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

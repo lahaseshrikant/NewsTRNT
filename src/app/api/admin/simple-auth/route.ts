@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const result = UnifiedAdminAuth.login(email, password);
+      const result = await UnifiedAdminAuth.login(email, password);
       
       if (result.success && result.session) {
         return NextResponse.json({

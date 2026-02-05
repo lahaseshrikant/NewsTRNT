@@ -64,8 +64,34 @@ const UserManagement: React.FC = () => {
     setError(null);
     
     try {
-      // Get auth token from localStorage
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      // Get auth token from localStorage - try multiple sources
+      let token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      
+      // If no token, try to generate from session
+      if (!token) {
+        const sessionData = localStorage.getItem('newstrnt_admin_session');
+        if (sessionData) {
+          try {
+            const session = JSON.parse(sessionData);
+            // Create a token from session data matching backend expectations
+            const tokenPayload = {
+              userId: session.userId,
+              email: session.email,
+              role: session.role,
+              isAdmin: true,
+              sessionId: session.sessionId,
+              timestamp: session.timestamp || Date.now(),
+              permissions: session.permissions || []
+            };
+            token = btoa(JSON.stringify(tokenPayload));
+            // Store it for future use
+            localStorage.setItem('adminToken', token);
+          } catch (e) {
+            console.error('Error parsing session:', e);
+          }
+        }
+      }
+      
       if (!token) {
         setError('Authentication required. Please log in.');
         setLoading(false);
