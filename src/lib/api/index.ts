@@ -79,25 +79,53 @@ class APIClient {
     // Try to get session from UnifiedAdminAuth
     if (typeof window !== 'undefined') {
       const { isAuthenticated, session } = UnifiedAdminAuth.isAuthenticated();
+      console.log('🔍 Auth check:', { isAuthenticated, hasSession: !!session, sessionFields: session ? Object.keys(session) : [] });
+      
+      // If unified auth fails, try direct localStorage read as fallback
+      let tokenData: any = null;
+      
       if (isAuthenticated && session) {
-        // Create a simple token for API authentication
-        const tokenData = {
+        tokenData = {
           email: session.email,
           role: session.role,
           userId: session.userId,
           sessionId: session.sessionId,
           timestamp: Date.now()
         };
+      } else {
+        // Direct fallback: read from localStorage
+        const rawSession = localStorage.getItem('newstrnt_admin_session');
+        console.warn('⚠️ UnifiedAdminAuth.isAuthenticated() returned false. Trying direct localStorage read.');
+        console.log('📦 Raw localStorage session:', rawSession);
         
-        // Use btoa for browser-compatible base64 encoding
-        const token = btoa(JSON.stringify(tokenData));
+        if (rawSession) {
+          try {
+            const parsed = JSON.parse(rawSession);
+            console.log('📦 Parsed session fields:', Object.keys(parsed));
+            if (parsed.email && parsed.role && parsed.userId) {
+              tokenData = {
+                email: parsed.email,
+                role: parsed.role,
+                userId: parsed.userId,
+                sessionId: parsed.sessionId || 'fallback-session',
+                timestamp: Date.now()
+              };
+              console.log('✅ Using fallback session from localStorage');
+            }
+          } catch (e) {
+            console.error('❌ Failed to parse localStorage session:', e);
+          }
+        }
+      }
+      
+      if (tokenData) {
+        console.log('🔐 Token data being sent:', tokenData);
+        // Use safe encoding for Unicode characters
+        const jsonStr = JSON.stringify(tokenData);
+        const token = btoa(unescape(encodeURIComponent(jsonStr)));
         headers['Authorization'] = `Bearer ${token}`;
       } else {
-        // Diagnostic: detect legacy JWT still lingering
-        const legacy = localStorage.getItem('newstrnt_admin_jwt_token') || localStorage.getItem('admin_token');
-        if (legacy) {
-          console.warn('⚠️ Legacy admin JWT token still present in storage. Unified session missing. Consider clearing storage.');
-        }
+        console.warn('⚠️ No valid session found - API request will be unauthenticated');
       }
     }
 

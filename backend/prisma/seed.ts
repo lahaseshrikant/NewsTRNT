@@ -79,9 +79,9 @@ async function main() {
   console.log('✅ Categories created:', categories.length);
 
   // Create Admin User
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD || (process.env.NODE_ENV === 'development' ? 'DevAdmin123!' : null);
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
   if (!adminPassword) {
-    throw new Error('SEED_ADMIN_PASSWORD must be set in production!');
+    throw new Error('SEED_ADMIN_PASSWORD environment variable must be set!');
   }
   const hashedPassword = await bcrypt.hash(adminPassword, 12);
   
@@ -105,9 +105,9 @@ async function main() {
   console.log('✅ Admin user created:', adminUser.email);
 
   // Create Test User
-  const testPassword = process.env.SEED_TEST_PASSWORD || (process.env.NODE_ENV === 'development' ? 'TestUser123!' : null);
+  const testPassword = process.env.SEED_TEST_PASSWORD;
   if (!testPassword) {
-    throw new Error('SEED_TEST_PASSWORD must be set in production!');
+    throw new Error('SEED_TEST_PASSWORD environment variable must be set!');
   }
   const testUserPassword = await bcrypt.hash(testPassword, 12);
   

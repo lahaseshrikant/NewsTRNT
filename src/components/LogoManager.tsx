@@ -119,9 +119,10 @@ const LogoManager = () => {
     }
     
     if (logoConfig.type === 'code' && logoConfig.customCode) {
-      // For code logos, save the actual code
+      // For code logos, save the actual code - use safe encoding for Unicode
+      const safeEncode = (str: string) => btoa(unescape(encodeURIComponent(str)));
       return {
-        dataUrl: `data:text/plain;base64,${btoa(logoConfig.customCode)}`,
+        dataUrl: `data:text/plain;base64,${safeEncode(logoConfig.customCode)}`,
         format: logoConfig.codeLanguage || 'svg',
         code: logoConfig.customCode
       };
@@ -129,7 +130,8 @@ const LogoManager = () => {
     
     // For typography/shape logos, capture the actual rendered HTML/CSS
     const actualRenderedCode = captureActualLogoCode(logoConfig);
-    const dataUrl = `data:text/html;base64,${btoa(actualRenderedCode)}`;
+    const safeEncode = (str: string) => btoa(unescape(encodeURIComponent(str)));
+    const dataUrl = `data:text/html;base64,${safeEncode(actualRenderedCode)}`;
     
     return {
       dataUrl,

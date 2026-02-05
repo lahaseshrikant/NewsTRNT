@@ -11,7 +11,15 @@ interface JWTPayload {
 }
 
 export class AdminJWTBridge {
-  private static JWT_SECRET = 'newstrnt-super-secret-jwt-key-2025'; // Match backend JWT_SECRET
+  // Client-side JWT signing key - this is for local session tracking only
+  // The actual server-side JWT verification uses the server's JWT_SECRET
+  private static JWT_SECRET = typeof window !== 'undefined' 
+    ? (localStorage.getItem('client_jwt_key') || (() => {
+        const key = 'client-jwt-' + Math.random().toString(36).slice(2);
+        localStorage.setItem('client_jwt_key', key);
+        return key;
+      })())
+    : 'server-side-placeholder';
   private static TOKEN_KEY = 'newstrnt_admin_jwt_token';
 
   /**
@@ -85,8 +93,8 @@ export class AdminJWTBridge {
   /**
    * Login with JWT token generation
    */
-  static login(email: string, password: string): { success: boolean; token?: string; error?: string } {
-    const result = UnifiedAdminAuth.login(email, password);
+  static async login(email: string, password: string): Promise<{ success: boolean; token?: string; error?: string }> {
+    const result = await UnifiedAdminAuth.login(email, password);
     
     if (result.success) {
       const token = this.generateJWTToken();

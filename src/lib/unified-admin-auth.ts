@@ -86,155 +86,63 @@ class UnifiedAdminAuth {
   private static readonly SESSION_DURATION = 2 * 60 * 60 * 1000; // 2 hours
 
   /**
-   * Secure password hashing using PBKDF2
-   * Uses 100,000 iterations with SHA-512 for production-grade security
-   */
-  private static hashPassword(password: string): string {
-    const salt = process.env.ADMIN_PASSWORD_SALT;
-    if (!salt && process.env.NODE_ENV === 'production') {
-      throw new Error('ADMIN_PASSWORD_SALT must be set in production!');
-    }
-    const effectiveSalt = salt || 'dev-only-salt-not-for-production';
-    const iterations = 100000;
-    const keyLength = 64;
-    const digest = 'sha512';
-    
-    const hash = crypto.pbkdf2Sync(password, effectiveSalt, iterations, keyLength, digest);
-    return hash.toString('hex');
-  }
-
-  /**
-   * Verify password against hash
-   */
-  private static verifyPassword(password: string, hash: string): boolean {
-    const computedHash = this.hashPassword(password);
-    // Timing-safe comparison to prevent timing attacks
-    try {
-      return crypto.timingSafeEqual(Buffer.from(computedHash), Buffer.from(hash));
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Get admin users from environment variables
-   * Format: ADMIN_USERS='[{"email":"admin@example.com","password":"secure_password","role":"ADMIN"}]'
-   */
-  private static getAdminUsersFromEnv(): AdminUser[] {
-    const users: AdminUser[] = [];
-    
-    // Super Admin from env
-    const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
-    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD;
-    
-    if (superAdminEmail && superAdminPassword) {
-      users.push({
-        id: 'super-admin-env',
-        email: superAdminEmail,
-        username: 'SuperAdmin',
-        passwordHash: this.hashPassword(superAdminPassword),
-        role: 'SUPER_ADMIN',
-        permissions: ROLE_PERMISSIONS.SUPER_ADMIN,
-        isActive: true,
-        lastLogin: null,
-        createdAt: new Date().toISOString()
-      });
-    }
-    
-    // Regular Admin from env
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    
-    if (adminEmail && adminPassword) {
-      users.push({
-        id: 'admin-env',
-        email: adminEmail,
-        username: 'Admin',
-        passwordHash: this.hashPassword(adminPassword),
-        role: 'ADMIN',
-        permissions: ROLE_PERMISSIONS.ADMIN,
-        isActive: true,
-        lastLogin: null,
-        createdAt: new Date().toISOString()
-      });
-    }
-    
-    // Fallback for development only (when no env vars set)
-    if (users.length === 0 && process.env.NODE_ENV === 'development') {
-      console.warn('⚠️ WARNING: Using development fallback admin credentials. Set SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD in production!');
-      users.push({
-        id: 'dev-super-admin',
-        email: 'admin@localhost',
-        username: 'DevAdmin',
-        passwordHash: this.hashPassword('devadmin123'),
-        role: 'SUPER_ADMIN',
-        permissions: ROLE_PERMISSIONS.SUPER_ADMIN,
-        isActive: true,
-        lastLogin: null,
-        createdAt: new Date().toISOString()
-      });
-    }
-    
-    return users;
-  }
-
-  /**
    * Generate cryptographically secure session ID
    */
   private static generateSessionId(): string {
-    return crypto.randomBytes(32).toString('hex');
+    // Use crypto API on server, fallback on client
+    if (typeof window === 'undefined') {
+      return crypto.randomBytes(32).toString('hex');
+    }
+    // Client-side fallback using Web Crypto API
+    const array = new Uint8Array(32);
+    globalThis.crypto.getRandomValues(array);
+    return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
   /**
    * Admin login with secure password verification
+   * Always uses server-side API for authentication (env vars are not accessible client-side)
+   * This method should ONLY be called from the client-side (browser)
    */
-  static login(email: string, password: string): AuthResult {
+  static async login(email: string, password: string): Promise<AuthResult> {
     try {
       // Input validation
       if (!email || !password) {
         return { success: false, error: 'Email and password are required' };
       }
 
-      // Normalize email
-      const normalizedEmail = email.toLowerCase().trim();
+      // This should only be called from client-side
+      if (typeof window === 'undefined') {
+        console.error('UnifiedAdminAuth.login() called on server side - this is not supported');
+        return { success: false, error: 'Authentication must be done client-side' };
+      }
+
+      // Use the server-side API for authentication
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+      console.log('🔐 Login API response:', { success: result.success, hasSession: !!result.session });
       
-      // Get admin users
-      const adminUsers = this.getAdminUsersFromEnv();
-      const user = adminUsers.find(u => u.email.toLowerCase() === normalizedEmail && u.isActive);
-      
-      if (!user) {
-        // Use constant time comparison even for non-existent users to prevent timing attacks
-        this.hashPassword('dummy_password_for_timing');
-        return { success: false, error: 'Invalid admin credentials' };
+      if (result.success && result.session) {
+        // Store session in localStorage
+        console.log('💾 Storing session with keys:', Object.keys(result.session));
+        localStorage.setItem(this.SESSION_KEY, JSON.stringify(result.session));
+        
+        // Verify storage
+        const stored = localStorage.getItem(this.SESSION_KEY);
+        console.log('✅ Session stored successfully:', stored ? 'Yes' : 'No');
+        
+        return { success: true, session: result.session };
       }
       
-      // Verify password
-      if (!this.verifyPassword(password, user.passwordHash)) {
-        return { success: false, error: 'Invalid admin credentials' };
-      }
-      
-      // Create session
-      const now = Date.now();
-      const session: AdminSession = {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        permissions: user.permissions,
-        loginTime: now,
-        expiresAt: now + this.SESSION_DURATION,
-        sessionId: this.generateSessionId(),
-        timestamp: now
-      };
-      
-      // Store session (client-side)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
-      }
-      
-      return { success: true, session };
+      return { success: false, error: result.error || 'Authentication failed' };
     } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, error: 'Authentication failed' };
+      console.error('API auth error:', error);
+      return { success: false, error: 'Authentication service unavailable' };
     }
   }
 
@@ -310,6 +218,9 @@ class UnifiedAdminAuth {
     const { isAuthenticated, session } = this.isAuthenticated();
     if (!isAuthenticated || !session) return false;
     
+    // Check for wildcard permission (super admin has all permissions)
+    if (session.permissions.includes('*')) return true;
+    
     return session.permissions.includes(permission);
   }
 
@@ -371,14 +282,17 @@ class UnifiedAdminAuth {
   }
 
   /**
-   * Get all admin users (Super Admin only, returns sanitized data)
+   * Get all admin users (Super Admin only)
+   * NOTE: In production, this should call an API endpoint to fetch users
    */
   static getAdminUsers(): Omit<AdminUser, 'passwordHash'>[] {
     if (!this.isSuperAdmin()) {
       throw new Error('Unauthorized: Super Admin access required');
     }
     
-    return this.getAdminUsersFromEnv().map(({ passwordHash, ...user }) => user);
+    // Return empty array - admin users should be fetched via API
+    // This is a placeholder for frontend type compatibility
+    return [];
   }
 }
 

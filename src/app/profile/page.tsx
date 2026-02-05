@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getEmailString } from '@/lib/utils';
 
 interface User {
   id: string;
@@ -59,7 +60,7 @@ export default function ProfilePage() {
             
             <div>
               <label className="text-sm text-muted-foreground">Email</label>
-              <p className="text-lg font-medium">{user.email}</p>
+              <p className="text-lg font-medium">{getEmailString(user.email)}</p>
             </div>
             
             <div>

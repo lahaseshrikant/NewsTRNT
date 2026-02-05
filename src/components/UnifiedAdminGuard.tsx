@@ -39,18 +39,27 @@ const UnifiedAdminGuard = ({
   }, [requiredPermission, requireSuperAdmin]);
 
   const checkAuth = () => {
-    // Check client-side session storage
+    // Check client-side session storage (also check localStorage for consistency)
     try {
-      const sessionData = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      const sessionData = sessionStorage.getItem(SESSION_STORAGE_KEY) || 
+                          localStorage.getItem('newstrnt_admin_session');
       const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
       
-      if (sessionData && sessionId) {
+      if (sessionData) {
         const session: AdminSession = JSON.parse(sessionData);
         
         // Check if session is expired
         if (session.expiresAt > Date.now()) {
           setIsAuthenticated(true);
           setAdminInfo(session);
+          
+          // Sync to sessionStorage if only found in localStorage
+          if (!sessionStorage.getItem(SESSION_STORAGE_KEY)) {
+            sessionStorage.setItem(SESSION_STORAGE_KEY, sessionData);
+            // sessionId is not part of AdminSession, so don't try to access it here
+            // Optionally, you can remove this line or handle sessionId differently if needed
+            sessionStorage.setItem(SESSION_ID_KEY, '');
+          }
           
           // Check permissions
           if (requireSuperAdmin) {
@@ -64,6 +73,7 @@ const UnifiedAdminGuard = ({
           // Session expired, clear it
           sessionStorage.removeItem(SESSION_STORAGE_KEY);
           sessionStorage.removeItem(SESSION_ID_KEY);
+          localStorage.removeItem('newstrnt_admin_session');
           setIsAuthenticated(false);
           setHasPermission(false);
           setAdminInfo(null);
@@ -101,6 +111,8 @@ const UnifiedAdminGuard = ({
         // Store session in sessionStorage (client-side only)
         sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(result.session));
         sessionStorage.setItem(SESSION_ID_KEY, result.sessionId);
+        // Also store in localStorage for consistency with UnifiedAdminAuth
+        localStorage.setItem('newstrnt_admin_session', JSON.stringify(result.session));
         checkAuth(); // Refresh auth state
       } else {
         setError(result.error || 'Login failed');
@@ -117,6 +129,7 @@ const UnifiedAdminGuard = ({
   const handleLogout = () => {
     sessionStorage.removeItem(SESSION_STORAGE_KEY);
     sessionStorage.removeItem(SESSION_ID_KEY);
+    localStorage.removeItem('newstrnt_admin_session');
     setIsAuthenticated(false);
     setHasPermission(false);
     setAdminInfo(null);

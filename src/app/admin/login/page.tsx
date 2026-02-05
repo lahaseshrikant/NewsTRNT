@@ -34,23 +34,27 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      // First authenticate with the existing system
-      const result = UnifiedAdminAuth.login(credentials.email, credentials.password);
+      // Authenticate with the unified system
+      const result = await UnifiedAdminAuth.login(credentials.email, credentials.password);
 
-      if (result.success) {
-        // Generate JWT token for backend API access
-        const jwtResult = await AdminJWTBridge.login(credentials.email, credentials.password);
+      if (result.success && result.session) {
+        // Session is already stored by UnifiedAdminAuth.login()
+        // Generate JWT token for backend API access (doesn't call login again)
+        const token = AdminJWTBridge.generateJWTToken();
         
-        if (jwtResult.success) {
+        if (token) {
           // Both authentication systems are now ready
           router.push('/admin');
         } else {
-          setError('Authentication successful, but backend connection failed. Please try again.');
+          // Still proceed - main session is valid
+          console.warn('JWT token generation failed, proceeding with session auth');
+          router.push('/admin');
         }
       } else {
         setError(result.error || 'Login failed');
       }
     } catch (error) {
+      console.error('Login error:', error);
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);

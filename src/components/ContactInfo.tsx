@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { getContactByDepartment, siteConfig } from '@/config/site';
+import { getEmailString } from '@/lib/utils';
 
 interface ContactInfoProps {
   department?: keyof typeof siteConfig.contact.departments | 'general';
@@ -31,11 +32,11 @@ const ContactInfo: React.FC<ContactInfoProps> = ({
     <div className={`text-center ${className}`}>
       <div className={`flex justify-center text-sm ${layoutClass}`}>
         <Link 
-          href={`mailto:${contactData.email}`} 
+          href={`mailto:${getEmailString(contactData.email)}`} 
           className="text-primary hover:text-primary/80 flex items-center space-x-1"
         >
           <span>📧</span>
-          <span>{contactData.email}</span>
+          <span>{getEmailString(contactData.email)}</span>
         </Link>
         <Link 
           href={`tel:${contactData.phone}`} 

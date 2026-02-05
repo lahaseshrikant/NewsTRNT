@@ -4,9 +4,10 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
-import { useAdmin } from '@/contexts/AdminContext';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useLogo } from '@/contexts/LogoContext';
 import { useCategories } from '@/hooks/useCategories';
+import { getEmailString } from '@/lib/utils';
 import {
   MagnifyingGlassIcon,
   BellIcon,
@@ -90,7 +91,7 @@ const Header = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   
   const router = useRouter();
-  const { isAdmin, logout } = useAdmin();
+  const { isAdmin, logout } = useAdminAuth();
   const { categories } = useCategories(); // Get active categories only
   
   // Memoize navigation array to prevent infinite re-renders
@@ -889,7 +890,7 @@ const Header = () => {
                                 {currentUser.name || 'User'}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {currentUser.email || 'user@example.com'}
+                                {getEmailString(currentUser.email) || 'user@example.com'}
                               </p>
                             </div>
                           </div>
@@ -1177,7 +1178,7 @@ const Header = () => {
                               {currentUser.name || 'User'}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {currentUser.email || 'user@example.com'}
+                              {getEmailString(currentUser.email) || 'user@example.com'}
                             </p>
                           </div>
                         </div>

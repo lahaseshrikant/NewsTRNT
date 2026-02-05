@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
+import { getEmailString } from '@/lib/utils';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 interface Newsletter {
   id: string;
@@ -25,74 +28,10 @@ interface Subscriber {
 
 const NewsletterManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'newsletters' | 'subscribers' | 'create'>('newsletters');
-  
-  const [newsletters] = useState<Newsletter[]>([
-    {
-      id: '1',
-      subject: 'Weekly News Digest - January 2024',
-      status: 'sent',
-      recipients: 45623,
-      openRate: 24.5,
-      clickRate: 3.2,
-      createdDate: '2024-01-08',
-      sentDate: '2024-01-08'
-    },
-    {
-      id: '2',
-      subject: 'Breaking: Major Tech Announcement',
-      status: 'sent',
-      recipients: 45623,
-      openRate: 32.1,
-      clickRate: 5.8,
-      createdDate: '2024-01-12',
-      sentDate: '2024-01-12'
-    },
-    {
-      id: '3',
-      subject: 'Monthly Roundup - Best Stories',
-      status: 'scheduled',
-      recipients: 46150,
-      openRate: 0,
-      clickRate: 0,
-      createdDate: '2024-01-15'
-    },
-    {
-      id: '4',
-      subject: 'Special Report: Climate Change',
-      status: 'draft',
-      recipients: 0,
-      openRate: 0,
-      clickRate: 0,
-      createdDate: '2024-01-16'
-    }
-  ]);
-
-  const [subscribers] = useState<Subscriber[]>([
-    {
-      id: '1',
-      email: 'john.doe@example.com',
-      name: 'John Doe',
-      subscriptionDate: '2023-12-01',
-      status: 'active',
-      source: 'Homepage'
-    },
-    {
-      id: '2',
-      email: 'jane.smith@example.com',
-      name: 'Jane Smith',
-      subscriptionDate: '2023-11-15',
-      status: 'active',
-      source: 'Article Page'
-    },
-    {
-      id: '3',
-      email: 'mike.johnson@example.com',
-      name: 'Mike Johnson',
-      subscriptionDate: '2024-01-10',
-      status: 'unsubscribed',
-      source: 'Social Media'
-    }
-  ]);
+  const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [newNewsletter, setNewNewsletter] = useState({
     subject: '',
@@ -100,6 +39,55 @@ const NewsletterManagement: React.FC = () => {
     scheduleDate: '',
     scheduleTime: ''
   });
+
+  const fetchData = useCallback(async () => {
+    setError(null);
+    
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication required. Please log in.');
+        setLoading(false);
+        return;
+      }
+
+      // Fetch subscribers
+      const subscribersResponse = await fetch(`${API_BASE_URL}/api/admin/subscribers`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (subscribersResponse.ok) {
+        const data = await subscribersResponse.json();
+        const mappedSubscribers: Subscriber[] = (data.subscribers || []).map((s: any) => ({
+          id: s.id,
+          email: s.email,
+          name: s.name || s.email.split('@')[0],
+          subscriptionDate: new Date(s.createdAt).toISOString().split('T')[0],
+          status: s.status?.toLowerCase() === 'active' ? 'active' : 
+                  s.status?.toLowerCase() === 'bounced' ? 'bounced' : 'unsubscribed',
+          source: s.source || 'Website'
+        }));
+        setSubscribers(mappedSubscribers);
+      }
+
+      // For newsletters, we'll use placeholder data until newsletter campaign API is built
+      // This shows the structure for future API integration
+      setNewsletters([]);
+
+    } catch (err) {
+      console.error('Error fetching newsletter data:', err);
+      setError('Failed to connect to server. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -117,6 +105,32 @@ const NewsletterManagement: React.FC = () => {
   const activeSubscribers = subscribers.filter(s => s.status === 'active').length;
   const avgOpenRate = newsletters.filter(n => n.status === 'sent').reduce((sum, n) => sum + n.openRate, 0) / newsletters.filter(n => n.status === 'sent').length || 0;
   const avgClickRate = newsletters.filter(n => n.status === 'sent').reduce((sum, n) => sum + n.clickRate, 0) / newsletters.filter(n => n.status === 'sent').length || 0;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background p-8">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center max-w-md mx-auto">
+          <span className="text-4xl mb-4 block">⚠️</span>
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Error Loading Data</h3>
+          <p className="text-red-600 dark:text-red-300 mb-4">{error}</p>
+          <button
+            onClick={fetchData}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -137,13 +151,16 @@ const NewsletterManagement: React.FC = () => {
           </div>
           <div className="flex space-x-3">
             <button 
+              onClick={fetchData}
+              className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90 transition-colors"
+            >
+              🔄 Refresh
+            </button>
+            <button 
               onClick={() => setActiveTab('create')}
               className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
             >
               ✏️ Create Newsletter
-            </button>
-            <button className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90 transition-colors">
-              📊 Export Data
             </button>
           </div>
         </div>
@@ -300,7 +317,7 @@ const NewsletterManagement: React.FC = () => {
                           <td className="p-4">
                             <div>
                               <div className="font-medium text-foreground">{subscriber.name}</div>
-                              <div className="text-sm text-muted-foreground">{subscriber.email}</div>
+                              <div className="text-sm text-muted-foreground">{getEmailString(subscriber.email)}</div>
                             </div>
                           </td>
                           <td className="p-4">

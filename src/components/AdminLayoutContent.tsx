@@ -3,18 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import UnifiedAdminAuth from '@/lib/unified-admin-auth';
+import RBACAuth from '@/lib/rbac-auth';
+import { ADMIN_NAVIGATION, NavItem, ROLES, UserRole, RBACUtils } from '@/config/rbac';
+import { getEmailString } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
-
-interface NavigationItem {
-  label: string;
-  href: string;
-  icon: string;
-  badge?: string;
-  children?: NavigationItem[];
-  requiredPermission?: string;
-  requireSuperAdmin?: boolean;
-}
+import { RoleBadge, CurrentUserRole, useRBAC } from '@/components/rbac';
 
 export default function AdminLayoutContent({
   children,
@@ -23,196 +16,30 @@ export default function AdminLayoutContent({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
   const { theme, setTheme, resolvedTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
+  const { session, role, roleLevel, isSuperAdmin, isAdmin, getRoleInfo } = useRBAC();
 
-  const [adminInfo, setAdminInfo] = useState<any>(null);
+  const [filteredNavItems, setFilteredNavItems] = useState<NavItem[]>([]);
 
-  // Get current admin info
+  // Get filtered navigation based on user's role
   useEffect(() => {
-    const currentAdmin = UnifiedAdminAuth.getCurrentAdmin();
-    setAdminInfo(currentAdmin);
-  }, []);
+    if (session?.role) {
+      const filtered = RBACUtils.filterNavigation(session.role as UserRole, ADMIN_NAVIGATION);
+      setFilteredNavItems(filtered);
+    }
+  }, [session]);
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
   const handleLogout = () => {
-    UnifiedAdminAuth.logout();
+    RBACAuth.logout();
     router.push('/admin/login');
   };
-
-  // Function to check if admin has permission for a navigation item
-  const hasPermission = (item: NavigationItem): boolean => {
-    if (!adminInfo) return false;
-    
-    // If requireSuperAdmin is true, check if user is super admin
-    if (item.requireSuperAdmin) {
-      return adminInfo.role === 'SUPER_ADMIN';
-    }
-    
-    // If requiredPermission is specified, check if user has that permission
-    if (item.requiredPermission) {
-      return UnifiedAdminAuth.hasPermission(item.requiredPermission);
-    }
-    
-    // If no specific permission required, allow access
-    return true;
-  };
-
-  // Filter navigation items based on permissions
-  const filterNavigationItems = (items: NavigationItem[]): NavigationItem[] => {
-    return items
-      .filter(item => hasPermission(item))
-      .map(item => ({
-        ...item,
-        children: item.children ? filterNavigationItems(item.children) : undefined
-      }))
-      .filter(item => !item.children || item.children.length > 0); // Remove items with no accessible children
-  };
-
-  const navigationItems: NavigationItem[] = [
-    {
-      label: 'Dashboard',
-      href: '/admin',
-      icon: '🏠',
-      requiredPermission: 'content.read'
-    },
-    {
-      label: 'Site Configuration',
-      href: '/admin/config',
-      icon: '⚙️',
-      badge: 'Essential',
-      requiredPermission: 'content.write'
-    },
-    {
-      label: 'Content Management',
-      href: '/admin/content',
-      icon: '📝',
-      requiredPermission: 'content.read',
-      children: [
-        { label: 'Content Hub', href: '/admin/content', icon: '🏠', requiredPermission: 'content.read' },
-        { label: 'Articles', href: '/admin/content/articles', icon: '�', requiredPermission: 'content.read' },
-        { label: 'Web Stories', href: '/admin/content/web-stories', icon: '📱', requiredPermission: 'content.read' },
-        { label: 'Categories', href: '/admin/content/categories', icon: '🏷️', requiredPermission: 'content.read' },
-        { label: 'Tags', href: '/admin/content/tags', icon: '🔖', requiredPermission: 'content.read' },
-        { label: 'Drafts', href: '/admin/content/drafts', icon: '✏️', requiredPermission: 'content.write' },
-        { label: 'Trash', href: '/admin/content/trash', icon: '🗑️', requiredPermission: 'content.write' }
-      ]
-    },
-    {
-      label: 'User Management',
-      href: '/admin/users',
-      icon: '👥',
-      requiredPermission: 'users.read',
-      children: [
-        { label: 'All Users', href: '/admin/users', icon: '👤', requiredPermission: 'users.read' },
-        { label: 'Subscribers', href: '/admin/users/subscribers', icon: '📧', requiredPermission: 'users.read' },
-        { label: 'Permissions', href: '/admin/users/permissions', icon: '🔐', requireSuperAdmin: true }
-      ]
-    },
-    {
-      label: 'Analytics & Reports',
-      href: '/admin/analytics',
-      icon: '📊',
-      requiredPermission: 'analytics.read',
-      children: [
-        { label: 'Overview', href: '/admin/analytics', icon: '📈', requiredPermission: 'analytics.read' },
-        { label: 'Traffic', href: '/admin/analytics/traffic', icon: '🌐', requiredPermission: 'analytics.read' },
-        { label: 'Content Performance', href: '/admin/analytics/content', icon: '📊', requiredPermission: 'analytics.read' },
-        { label: 'User Engagement', href: '/admin/analytics/engagement', icon: '🎯', requiredPermission: 'analytics.read' }
-      ]
-    },
-    {
-      label: 'Advertisement',
-      href: '/admin/advertising',
-      icon: '💼',
-      requiredPermission: 'content.read',
-      children: [
-        { label: 'Campaigns', href: '/admin/advertising', icon: '📢', requiredPermission: 'content.read' },
-        { label: 'Ad Requests', href: '/admin/advertising/requests', icon: '📋', requiredPermission: 'content.read' },
-        { label: 'Performance', href: '/admin/advertising/performance', icon: '📈', requiredPermission: 'analytics.read' }
-      ]
-    },
-    {
-      label: 'Newsletter',
-      href: '/admin/newsletter',
-      icon: '📧',
-      requiredPermission: 'content.read',
-      children: [
-        { label: 'Campaigns', href: '/admin/newsletter', icon: '📨', requiredPermission: 'content.read' },
-        { label: 'Templates', href: '/admin/newsletter/templates', icon: '📄', requiredPermission: 'content.write' },
-        { label: 'Subscribers', href: '/admin/newsletter/subscribers', icon: '👥', requiredPermission: 'users.read' }
-      ]
-    },
-    {
-      label: 'Media Library',
-      href: '/admin/media',
-      icon: '🎬',
-      requiredPermission: 'content.read'
-    },
-    {
-      label: 'Moderation',
-      href: '/admin/moderation',
-      icon: '💬',
-      requiredPermission: 'content.write',
-      children: [
-        { label: 'Comments', href: '/admin/moderation', icon: '💬', requiredPermission: 'content.write' },
-        { label: 'Reports', href: '/admin/moderation/reports', icon: '⚠️', requiredPermission: 'content.write' },
-        { label: 'Spam Filter', href: '/admin/moderation/spam', icon: '🚫', requiredPermission: 'content.write' }
-      ]
-    },
-    {
-      label: 'External APIs',
-      href: '/admin/external-apis',
-      icon: '🔌',
-      requiredPermission: 'content.read',
-      children: [
-        { label: 'Market Data', href: '/admin/market-data', icon: '📈', requiredPermission: 'content.read' },
-        { label: 'API Testing', href: '/admin/api-test', icon: '🧪', requiredPermission: 'content.read' }
-      ]
-    },
-    {
-      label: 'Configuration',
-      href: '/admin/configuration',
-      icon: '⚙️',
-      requiredPermission: 'content.write',
-      children: [
-        {
-          label: 'Market Configuration',
-          href: '/admin/market-config',
-          icon: '📊',
-          requiredPermission: 'content.write',
-          children: [
-            { label: 'Stock Indices', href: '/admin/market-config/indices', icon: '📊', requiredPermission: 'content.write' },
-            { label: 'Cryptocurrencies', href: '/admin/market-config/cryptos', icon: '₿', requiredPermission: 'content.write' },
-            { label: 'Commodities', href: '/admin/market-config/commodities', icon: '🛢️', requiredPermission: 'content.write' },
-            { label: 'Currency Pairs', href: '/admin/market-config/currencies', icon: '💱', requiredPermission: 'content.write' }
-          ]
-        },
-        { label: 'Logo Manager', href: '/admin/logo-manager', icon: '🎨', requireSuperAdmin: true },
-        { label: 'Logo Gallery', href: '/admin/logo-gallery', icon: '🖼️', requireSuperAdmin: true },
-        { label: 'Logo History', href: '/admin/logo-history', icon: '📜', requireSuperAdmin: true }
-      ]
-    },
-    {
-      label: 'System Settings',
-      href: '/admin/system',
-      icon: '🔒',
-      requireSuperAdmin: true,
-      children: [
-        { label: 'General', href: '/admin/system', icon: '⚙️', requireSuperAdmin: true },
-        { label: 'Security', href: '/admin/system/security', icon: '🔐', requireSuperAdmin: true },
-        { label: 'Integrations', href: '/admin/system/integrations', icon: '🔗', requireSuperAdmin: true },
-        { label: 'Backup', href: '/admin/system/backup', icon: '💾', requireSuperAdmin: true }
-      ]
-    }
-  ];
-
-  // Apply permission filtering to navigation items
-  const filteredNavigationItems = filterNavigationItems(navigationItems);
 
   const isActiveLink = (href: string) => {
     if (href === '/admin') {
@@ -221,22 +48,41 @@ export default function AdminLayoutContent({
     return pathname.startsWith(href);
   };
 
-  const renderNavigationItem = (item: NavigationItem, isChild = false, isGrandchild = false) => {
+  const renderNavigationItem = (item: NavItem, isChild = false, isGrandchild = false) => {
     const isActive = isActiveLink(item.href);
     const hasChildren = item.children && item.children.length > 0;
     
     const toggleExpand = (href: string) => {
-      setExpandedItems(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(href)) {
+      const currentlyExpanded = expandedItems.has(href) || (isActive && !collapsedItems.has(href));
+      if (currentlyExpanded) {
+        // Collapse explicitly (even if the active route would auto-open it)
+        setExpandedItems(prev => {
+          const newSet = new Set(prev);
           newSet.delete(href);
-        } else {
+          return newSet;
+        });
+        setCollapsedItems(prev => {
+          const newSet = new Set(prev);
           newSet.add(href);
-        }
-        return newSet;
-      });
+          return newSet;
+        });
+      } else {
+        // Expand and clear any collapsed override
+        setExpandedItems(prev => {
+          const newSet = new Set(prev);
+          newSet.add(href);
+          return newSet;
+        });
+        setCollapsedItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(href);
+          return newSet;
+        });
+      }
     };
     
+    const isExpanded = expandedItems.has(item.href) || (isActive && !collapsedItems.has(item.href));
+
     return (
       <div key={item.href} className={isGrandchild ? 'ml-4' : isChild ? 'ml-6' : ''}>
         {hasChildren ? (
@@ -260,7 +106,7 @@ export default function AdminLayoutContent({
                   {item.badge}
                 </span>
               )}
-              <span className={`text-xs transition-transform duration-300 ${expandedItems.has(item.href) ? 'rotate-90' : 'group-hover:translate-x-1'}`}>
+              <span className={`text-xs transition-transform duration-300 ${isExpanded ? 'rotate-90' : 'group-hover:translate-x-1'}`}>
                 ▶
               </span>
             </div>
@@ -291,7 +137,7 @@ export default function AdminLayoutContent({
           </Link>
         )}
         
-        {hasChildren && (expandedItems.has(item.href) || isActive) && (
+        {hasChildren && isExpanded && (
           <div className="mt-2 space-y-1 animate-in slide-in-from-top-2 duration-300">
             {item.children!.map(child => renderNavigationItem(child, true, isChild))}
           </div>
@@ -341,33 +187,49 @@ export default function AdminLayoutContent({
               <div className="mb-4">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">Main Menu</p>
               </div>
-              {filteredNavigationItems.map(item => renderNavigationItem(item))}
+              {filteredNavItems.map(item => renderNavigationItem(item))}
             </nav>
 
-            {/* User Profile */}
-            <div className="border-t border-border bg-card h-[85px]">
-              <div className="flex items-center space-x-3 px-6 py-4 h-full rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 transition-all duration-300 cursor-pointer group">
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
-                    <span className="text-white text-sm font-semibold">A</span>
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-card flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
+            {/* User Profile with Role Badge */}
+            <div className="border-t border-border bg-card">
+              <div className="flex flex-col px-4 py-4">
+                {/* Role Badge */}
+                <div className="mb-3 px-2">
+                  {session?.role && (
+                    <RoleBadge role={session.role as UserRole} size="sm" />
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground group-hover:text-blue-600 transition-colors">
-                    {adminSession?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin User'}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">{adminSession?.email || 'admin'}</p>
+                
+                {/* User Info */}
+                <div className="flex items-center space-x-3 px-2 py-2 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 transition-all duration-300 cursor-pointer group">
+                  <div className="relative">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 ${
+                      isSuperAdmin ? 'bg-gradient-to-br from-purple-500 to-pink-600' :
+                      isAdmin ? 'bg-gradient-to-br from-red-500 to-orange-600' :
+                      'bg-gradient-to-br from-blue-500 to-cyan-600'
+                    }`}>
+                      <span className="text-white text-lg">
+                        {getRoleInfo()?.icon || '👤'}
+                      </span>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-card flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground group-hover:text-blue-600 transition-colors truncate">
+                      {session?.displayName || session?.username || 'User'}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{getEmailString(session?.email)}</p>
+                  </div>
+                  <button 
+                    onClick={handleLogout}
+                    className="text-muted-foreground hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                    title="Logout"
+                  >
+                    <span className="text-sm">🚪</span>
+                  </button>
                 </div>
-                <button 
-                  onClick={handleLogout}
-                  className="text-muted-foreground hover:text-red-500 transition-colors"
-                  title="Logout"
-                >
-                  <span className="text-sm">🚪</span>
-                </button>
               </div>
             </div>
           </div>
@@ -455,19 +317,19 @@ export default function AdminLayoutContent({
                   </span>
                 </button>
 
-                {/* Admin Profile Info */}
-                {adminInfo && (
+                {/* Admin Profile Info with Role Badge */}
+                {session && (
                   <div className="hidden sm:flex items-center space-x-3 px-4 py-2 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl">
                     <div className="flex items-center space-x-2">
                       <span className="text-lg">
-                        {adminInfo.role === 'SUPER_ADMIN' ? '👑' : '👤'}
+                        {getRoleInfo()?.icon || '👤'}
                       </span>
                       <div className="text-sm">
                         <div className="font-semibold text-slate-700 dark:text-slate-300">
-                          {adminInfo.username}
+                          {session.username || session.displayName}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 capitalize">
-                          {adminInfo.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
+                        <div className={`text-xs ${getRoleInfo()?.color || 'text-slate-500'}`}>
+                          {getRoleInfo()?.displayName || session.role}
                         </div>
                       </div>
                     </div>

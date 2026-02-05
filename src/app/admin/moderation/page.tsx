@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
 import { showToast } from '@/lib/toast';
+import { getEmailString } from '@/lib/utils';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 interface Comment {
   id: string;
@@ -20,64 +23,75 @@ interface Comment {
 const CommentModeration: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected' | 'spam'>('pending');
   const [selectedComments, setSelectedComments] = useState<string[]>([]);
-  
-  const [comments] = useState<Comment[]>([
-    {
-      id: '1',
-      author: 'John Smith',
-      email: 'john@example.com',
-      content: 'Great article! I really learned a lot about AI in healthcare. Looking forward to more content like this.',
-      articleTitle: 'AI Breakthrough in Healthcare Technology',
-      articleId: 'article-1',
-      status: 'pending',
-      submitDate: '2024-01-15 14:30',
-      ipAddress: '192.168.1.100'
-    },
-    {
-      id: '2',
-      author: 'Sarah Johnson',
-      email: 'sarah@example.com',
-      content: 'I disagree with some of the points made here. The research seems incomplete and biased.',
-      articleTitle: 'Climate Change: Latest Research Findings',
-      articleId: 'article-2',
-      status: 'pending',
-      submitDate: '2024-01-15 13:45',
-      ipAddress: '192.168.1.101'
-    },
-    {
-      id: '3',
-      author: 'Mike Wilson',
-      email: 'mike@example.com',
-      content: 'Thanks for sharing this information. Very helpful and well-researched.',
-      articleTitle: 'Economic Outlook for 2024',
-      articleId: 'article-3',
-      status: 'approved',
-      submitDate: '2024-01-14 16:20',
-      ipAddress: '192.168.1.102'
-    },
-    {
-      id: '4',
-      author: 'Anonymous User',
-      email: 'spam@fake.com',
-      content: 'BUY CHEAP PRODUCTS NOW!!! CLICK HERE FOR AMAZING DEALS!!!',
-      articleTitle: 'AI Breakthrough in Healthcare Technology',
-      articleId: 'article-1',
-      status: 'spam',
-      submitDate: '2024-01-14 12:15',
-      ipAddress: '192.168.1.103'
-    },
-    {
-      id: '5',
-      author: 'Emily Davis',
-      email: 'emily@example.com',
-      content: 'This article contains false information and should be fact-checked.',
-      articleTitle: 'Climate Change: Latest Research Findings',
-      articleId: 'article-2',
-      status: 'rejected',
-      submitDate: '2024-01-13 10:30',
-      ipAddress: '192.168.1.104'
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const fetchComments = useCallback(async () => {
+    setError(null);
+    
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication required. Please log in.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/admin/moderation/queue`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError('Session expired. Please log in again.');
+        } else if (response.status === 403) {
+          setError('Access denied. Admin privileges required.');
+        } else {
+          const data = await response.json();
+          setError(data.error || 'Failed to fetch comments');
+        }
+        setLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      
+      // Map API response to Comment interface
+      const mappedComments: Comment[] = (data.comments || []).map((c: any) => ({
+        id: c.id,
+        author: c.user?.name || c.user?.email || 'Anonymous',
+        email: c.user?.email || '',
+        content: c.content,
+        articleTitle: c.article?.title || 'Unknown Article',
+        articleId: c.article?.id || c.articleId,
+        status: c.status?.toLowerCase() || 'pending',
+        submitDate: new Date(c.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        ipAddress: c.ipAddress || 'Unknown'
+      }));
+
+      setComments(mappedComments);
+    } catch (err) {
+      console.error('Error fetching comments:', err);
+      setError('Failed to connect to server. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  }, []);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const filteredComments = comments.filter(comment => comment.status === activeTab);
 
@@ -91,21 +105,103 @@ const CommentModeration: React.FC = () => {
     return styles[status as keyof typeof styles] || styles.pending;
   };
 
-  const handleCommentAction = (commentId: string, action: 'approve' | 'reject' | 'spam') => {
-    // In a real application, this would update the comment status in the database
-    console.log(`${action} comment ${commentId}`);
-    showToast(`Comment ${action}ed successfully!`, 'success');
+  const handleCommentAction = async (commentId: string, action: 'approve' | 'reject' | 'spam') => {
+    setActionLoading(commentId);
+    
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      if (!token) {
+        showToast('Authentication required', 'error');
+        return;
+      }
+
+      const endpoint = action === 'approve' 
+        ? `${API_BASE_URL}/api/admin/moderation/comments/${commentId}/approve`
+        : `${API_BASE_URL}/api/admin/moderation/comments/${commentId}/reject`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ reason: action === 'spam' ? 'Marked as spam' : undefined })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        showToast(data.error || `Failed to ${action} comment`, 'error');
+        return;
+      }
+
+      showToast(`Comment ${action}ed successfully!`, 'success');
+      
+      // Update local state
+      setComments(prev => prev.map(c => 
+        c.id === commentId 
+          ? { ...c, status: action === 'approve' ? 'approved' : (action === 'spam' ? 'spam' : 'rejected') as any }
+          : c
+      ));
+    } catch (err) {
+      console.error(`Error ${action}ing comment:`, err);
+      showToast(`Failed to ${action} comment`, 'error');
+    } finally {
+      setActionLoading(null);
+    }
   };
 
-  const handleBulkAction = (action: 'approve' | 'reject' | 'spam' | 'delete') => {
+  const handleBulkAction = async (action: 'approve' | 'reject' | 'spam' | 'delete') => {
     if (selectedComments.length === 0) return;
     
     const actionText = action === 'delete' ? 'deleted' : `${action}ed`;
-    if (confirm(`Are you sure you want to ${action} ${selectedComments.length} comment(s)?`)) {
-      console.log(`Bulk ${action}:`, selectedComments);
-      showToast(`${selectedComments.length} comment(s) ${actionText} successfully!`, 'success');
-      setSelectedComments([]);
+    if (!confirm(`Are you sure you want to ${action} ${selectedComments.length} comment(s)?`)) {
+      return;
     }
+
+    const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+    if (!token) {
+      showToast('Authentication required', 'error');
+      return;
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const commentId of selectedComments) {
+      try {
+        const endpoint = action === 'approve' 
+          ? `${API_BASE_URL}/api/admin/moderation/comments/${commentId}/approve`
+          : `${API_BASE_URL}/api/admin/moderation/comments/${commentId}/reject`;
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ reason: action === 'spam' ? 'Marked as spam' : undefined })
+        });
+
+        if (response.ok) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch {
+        failCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      showToast(`${successCount} comment(s) ${actionText} successfully!`, 'success');
+      // Refresh comments
+      fetchComments();
+    }
+    if (failCount > 0) {
+      showToast(`Failed to ${action} ${failCount} comment(s)`, 'error');
+    }
+    
+    setSelectedComments([]);
   };
 
   const handleSelectComment = (commentId: string) => {
@@ -149,15 +245,43 @@ const CommentModeration: React.FC = () => {
             <p className="text-muted-foreground">Review comments, moderate user-generated content, and manage discussions</p>
           </div>
           <div className="flex space-x-3">
+            <button 
+              onClick={fetchComments}
+              className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90 transition-colors"
+            >
+              🔄 Refresh
+            </button>
             <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
               ⚙️ Moderation Settings
-            </button>
-            <button className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90 transition-colors">
-              📊 Export Report
             </button>
           </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+            <span className="text-4xl mb-4 block">⚠️</span>
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Error Loading Comments</h3>
+            <p className="text-red-600 dark:text-red-300 mb-4">{error}</p>
+            <button
+              onClick={fetchComments}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* Main Content */}
+        {!loading && !error && (
+          <>
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-card border border-border rounded-lg p-6">
@@ -314,7 +438,7 @@ const CommentModeration: React.FC = () => {
                             </div>
                             <div>
                               <div className="font-medium text-foreground">{comment.author}</div>
-                              <div className="text-sm text-muted-foreground">{comment.email}</div>
+                              <div className="text-sm text-muted-foreground">{getEmailString(comment.email)}</div>
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -442,6 +566,8 @@ const CommentModeration: React.FC = () => {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

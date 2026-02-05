@@ -15,8 +15,8 @@ class SimpleAdminAuth {
   /**
    * Login admin user
    */
-  static login(email: string, password: string): { success: boolean; error?: string; session?: LegacySession } {
-    const result = UnifiedAdminAuth.login(email, password);
+  static async login(email: string, password: string): Promise<{ success: boolean; error?: string; session?: LegacySession }> {
+    const result = await UnifiedAdminAuth.login(email, password);
     
     if (result.success && result.session) {
       // Store both new and legacy session formats for compatibility

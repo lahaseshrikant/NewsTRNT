@@ -9,6 +9,8 @@ export interface AuthRequest extends Request {
     id: string;
     email: string;
     isAdmin: boolean;
+    role?: string;
+    permissions?: string[];
   };
 }
 
@@ -35,30 +37,45 @@ export const authenticateToken = async (
     // QUICK CLASSIFICATION
     const looksLikeJWT = token.split('.').length === 3; // header.payload.signature
     if (!looksLikeJWT) {
-      // Attempt UnifiedAdminAuth base64 token ONLY if it doesn't look like a JWT
+      // Attempt RBAC/UnifiedAdminAuth base64 token ONLY if it doesn't look like a JWT
       try {
         console.log(logBase, 'Attempt unified decode (not JWT pattern)');
-        const decodedToken = Buffer.from(token, 'base64').toString('utf8');
+        // Unicode-safe base64 decoding
+        const rawDecoded = Buffer.from(token, 'base64').toString('binary');
+        const decodedToken = decodeURIComponent(escape(rawDecoded));
+        
         // Basic safeguard: must start with '{' and end with '}' to be JSON
         if (decodedToken.trim().startsWith('{') && decodedToken.trim().endsWith('}')) {
           const tokenData = JSON.parse(decodedToken);
           console.log(logBase, 'Unified token keys:', Object.keys(tokenData));
           if (tokenData.email && tokenData.role && tokenData.userId && tokenData.sessionId && tokenData.timestamp) {
             const tokenAge = Date.now() - tokenData.timestamp;
-            const maxAge = 2 * 60 * 60 * 1000; // 2 hours
+            const maxAge = 8 * 60 * 60 * 1000; // 8 hours (match RBAC session duration)
             if (tokenAge > maxAge) {
               console.log(logBase, 'FAIL reason=unified_expired ageMs=' + tokenAge);
-              res.status(401).json({ error: 'Token expired', reqId });
+              res.status(401).json({ error: 'Session expired. Please log in again.', reqId });
               return;
             }
-            const isAdmin = tokenData.role === 'ADMIN' || tokenData.role === 'SUPER_ADMIN';
-            if (!isAdmin) {
-              console.log(logBase, 'FAIL reason=unified_not_admin role=' + tokenData.role);
-              res.status(403).json({ error: 'Admin access required', reqId });
+            // Accept ALL valid RBAC roles (not just ADMIN and SUPER_ADMIN)
+            const validRoles = ['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR', 'MODERATOR', 'VIEWER'];
+            const isValidRole = validRoles.includes(tokenData.role);
+            if (!isValidRole) {
+              console.log(logBase, 'FAIL reason=invalid_role role=' + tokenData.role);
+              res.status(403).json({ error: 'Invalid role. Please contact your administrator.', reqId });
               return;
             }
-            console.log(logBase, 'SUCCESS mode=unified userId=' + tokenData.userId + ' email=' + tokenData.email);
-            req.user = { id: tokenData.userId, email: tokenData.email, isAdmin };
+            // Determine admin level (EDITOR and above can access admin endpoints)
+            const adminRoles = ['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR', 'MODERATOR', 'VIEWER'];
+            const isAdmin = adminRoles.includes(tokenData.role);
+            
+            console.log(logBase, 'SUCCESS mode=unified userId=' + tokenData.userId + ' email=' + tokenData.email + ' role=' + tokenData.role);
+            req.user = { 
+              id: tokenData.userId, 
+              email: tokenData.email, 
+              isAdmin,
+              role: tokenData.role,
+              permissions: tokenData.permissions || []
+            };
             next();
             return;
           }
@@ -114,28 +131,6 @@ export const authenticateToken = async (
     next();
   } catch (error) {
     console.error(logBase, 'FAIL reason=verification_exception err=', error);
-    // DEV FALLBACK: attempt permissive decode of unsigned legacy JWT to avoid blocking admin during migration
-    if (process.env.NODE_ENV !== 'production') {
-      try {
-        const parts = token.split('.');
-        if (parts.length === 3) {
-          const payloadJson = Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
-          const payload: any = JSON.parse(payloadJson);
-          if (payload && payload.email && (payload.role || payload.isAdmin)) {
-            console.warn(logBase, 'DEV-FALLBACK mode=jwt-unsigned ACCEPTED userId=' + (payload.id || payload.userId));
-            req.user = {
-              id: payload.id || payload.userId || 'unknown',
-              email: payload.email,
-              isAdmin: payload.isAdmin === true || ['ADMIN','SUPER_ADMIN'].includes(payload.role)
-            };
-            next();
-            return;
-          }
-        }
-      } catch (fallbackErr) {
-        console.warn(logBase, 'DEV-FALLBACK decode failed err=' + (fallbackErr as Error).message);
-      }
-    }
     res.status(403).json({ error: 'Invalid or expired token', reqId });
     return;
   }
@@ -147,11 +142,81 @@ export const requireAdmin = (
   next: NextFunction
 ): void => {
   if (!req.user || !req.user.isAdmin) {
-    res.status(403).json({ error: 'Admin access required' });
+    res.status(403).json({ error: 'Access denied. Please contact your administrator.' });
     return;
   }
   next();
 };
+
+// Permission-based middleware for granular RBAC
+export const requirePermission = (permission: string) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    
+    // Super Admin has all permissions
+    if (req.user.role === 'SUPER_ADMIN') {
+      next();
+      return;
+    }
+    
+    // Check specific permission
+    if (req.user.permissions && req.user.permissions.includes(permission)) {
+      next();
+      return;
+    }
+    
+    // Check wildcard permission
+    if (req.user.permissions && req.user.permissions.includes('*')) {
+      next();
+      return;
+    }
+    
+    res.status(403).json({ 
+      error: 'You don\'t have permission to perform this action.',
+      requiredPermission: permission
+    });
+  };
+};
+
+// Role-level middleware
+export const requireRole = (minRoleLevel: number) => {
+  const roleLevels: Record<string, number> = {
+    'SUPER_ADMIN': 100,
+    'ADMIN': 80,
+    'EDITOR': 60,
+    'AUTHOR': 40,
+    'MODERATOR': 30,
+    'VIEWER': 10
+  };
+  
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user || !req.user.role) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    
+    const userLevel = roleLevels[req.user.role] || 0;
+    if (userLevel < minRoleLevel) {
+      res.status(403).json({ 
+        error: 'Insufficient access level. Please contact your administrator.',
+        requiredLevel: minRoleLevel,
+        currentLevel: userLevel
+      });
+      return;
+    }
+    
+    next();
+  };
+};
+
+// Convenience middleware for common role checks
+export const requireSuperAdmin = requireRole(100);
+export const requireAdminRole = requireRole(80);
+export const requireEditor = requireRole(60);
+export const requireAuthor = requireRole(40);
 
 export const optionalAuth = async (
   req: AuthRequest,

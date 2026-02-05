@@ -1,5 +1,5 @@
 // Secure API service layer for article management - NO DEVELOPMENT BYPASSES
-import AdminJWTBridge from './admin-jwt-bridge';
+import RBACAuth from './rbac-auth';
 
 // --------------------------------------------------------------
 // Unified API base URL logic
@@ -133,8 +133,8 @@ class ArticleAPI {
   }
 
   private getAuthToken(): string | null {
-    // Get JWT token from the admin JWT bridge
-    return AdminJWTBridge.getJWTToken();
+    // Use the new RBAC auth system
+    return RBACAuth.getAuthToken();
   }
 
   private async makeRequest<T>(

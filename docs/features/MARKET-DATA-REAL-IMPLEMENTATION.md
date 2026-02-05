@@ -33,13 +33,13 @@ The market data feature has been **completely migrated** from mock data to real 
 
 3. **Finnhub** (Stock Indices - Primary)
    - Status: ✅ Configured
-   - API Key: `d43iu9hr01qvk0jc4kigd43iu9hr01qvk0jc4kj0`
+   - API Key: Set via `FINNHUB_API_KEY` env variable
    - Rate limit: 60 calls/minute
    - Used first for indices
 
 4. **Alpha Vantage** (Stock Indices - Fallback)
    - Status: ✅ Configured
-   - API Key: `C4TL8NPPOU702CQI`
+   - API Key: Set via `ALPHA_VANTAGE_API_KEY` env variable
    - Rate limit: 25 calls/day (free tier)
    - Used if Finnhub fails
 
@@ -103,9 +103,9 @@ The market data feature has been **completely migrated** from mock data to real 
 
 ### Environment Variables (.env.local):
 ```env
-ALPHA_VANTAGE_API_KEY="C4TL8NPPOU702CQI"
-FINNHUB_API_KEY="d43iu9hr01qvk0jc4kigd43iu9hr01qvk0jc4kj0"
-EXCHANGE_RATE_API_KEY="3e5fe3c32eb25fd25e690210"
+ALPHA_VANTAGE_API_KEY="your-alpha-vantage-key"
+FINNHUB_API_KEY="your-finnhub-key"
+EXCHANGE_RATE_API_KEY="your-exchange-rate-key"
 ENABLE_REAL_MARKET_DATA="true"
 ```
 

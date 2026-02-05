@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
 import UnifiedAdminGuard from '@/components/UnifiedAdminGuard';
+import { getEmailString } from '@/lib/utils';
 
 interface User {
   id: string;
@@ -338,7 +339,7 @@ const UserPermissions: React.FC = () => {
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-medium text-foreground">{user.name}</div>
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                        <div className="text-sm text-muted-foreground">{getEmailString(user.email)}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4">

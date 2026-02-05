@@ -16,6 +16,7 @@ import statsRoutes from './routes/stats';
 import commentsRoutes from './routes/comments';
 import userPreferencesRoutes from './routes/user-preferences';
 import marketRoutes from './routes/market';
+import adminRoutes from './routes/admin';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -76,6 +77,7 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/user', userPreferencesRoutes);
 app.use('/api/market', marketRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check (legacy endpoint for compatibility)
 app.get('/api/health', (req, res) => {

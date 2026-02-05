@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 interface MediaFile {
   id: string;
@@ -16,74 +18,44 @@ interface MediaFile {
 }
 
 const MediaLibrary: React.FC = () => {
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filterType, setFilterType] = useState<'all' | 'image' | 'video' | 'audio' | 'document'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const [mediaFiles] = useState<MediaFile[]>([
-    {
-      id: '1',
-      name: 'hero-banner.jpg',
-      type: 'image',
-      size: '2.4 MB',
-      url: '/images/hero-banner.jpg',
-      uploadDate: '2024-01-15',
-      dimensions: '1920x1080',
-      usedIn: ['Homepage', 'About Page']
-    },
-    {
-      id: '2',
-      name: 'news-video.mp4',
-      type: 'video',
-      size: '45.2 MB',
-      url: '/videos/news-video.mp4',
-      uploadDate: '2024-01-14',
-      dimensions: '1280x720',
-      duration: '2:35',
-      usedIn: ['Breaking News Article']
-    },
-    {
-      id: '3',
-      name: 'podcast-episode-1.mp3',
-      type: 'audio',
-      size: '12.8 MB',
-      url: '/audio/podcast-episode-1.mp3',
-      uploadDate: '2024-01-13',
-      duration: '15:42',
-      usedIn: ['Podcast Page']
-    },
-    {
-      id: '4',
-      name: 'climate-report.pdf',
-      type: 'document',
-      size: '3.1 MB',
-      url: '/documents/climate-report.pdf',
-      uploadDate: '2024-01-12',
-      usedIn: ['Climate Article']
-    },
-    {
-      id: '5',
-      name: 'tech-conference.jpg',
-      type: 'image',
-      size: '1.8 MB',
-      url: '/images/tech-conference.jpg',
-      uploadDate: '2024-01-11',
-      dimensions: '1600x900',
-      usedIn: ['Tech News', 'Events Page']
-    },
-    {
-      id: '6',
-      name: 'interview-ceo.mp4',
-      type: 'video',
-      size: '78.5 MB',
-      url: '/videos/interview-ceo.mp4',
-      uploadDate: '2024-01-10',
-      dimensions: '1920x1080',
-      duration: '8:20',
-      usedIn: ['CEO Interview Article']
+  const fetchMedia = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/admin/media`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setMediaFiles(data.files || []);
+      } else {
+        setMediaFiles([]);
+      }
+    } catch (err) {
+      console.error('Error fetching media:', err);
+      setError('Failed to load media files');
+      setMediaFiles([]);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  }, []);
+
+  useEffect(() => {
+    fetchMedia();
+  }, [fetchMedia]);
 
   const filteredFiles = mediaFiles.filter(file => {
     const typeMatch = filterType === 'all' || file.type === filterType;

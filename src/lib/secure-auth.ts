@@ -1,17 +1,19 @@
 // Secure Authentication Module
 // Handles JWT token verification and password operations
+// WARNING: This runs server-side only (API routes)
+// JWT_SECRET is NOT accessible in browser/client components
 
 import * as crypto from 'crypto';
 
-// Get JWT secret - warn in production if not set, but don't crash during build
+// Get JWT secret - MUST be set in environment
 function getJWTSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
-      throw new Error('CRITICAL: JWT_SECRET must be set in production environment!');
+    if (typeof window === 'undefined') {
+      throw new Error('JWT_SECRET environment variable must be set!');
     }
-    // Only for development - never use in production
-    return 'dev-secret-' + (process.env.HOSTNAME || 'local');
+    // Client-side: JWT operations should happen server-side only
+    return '';
   }
   return secret;
 }

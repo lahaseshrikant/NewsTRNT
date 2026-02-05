@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/Breadcrumb';
+import { getEmailString } from '@/lib/utils';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 interface Campaign {
   id: string;
@@ -31,84 +34,51 @@ interface AdProposal {
 
 const AdvertisingManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'campaigns' | 'proposals' | 'performance'>('campaigns');
-  
-  const [campaigns] = useState<Campaign[]>([
-    {
-      id: '1',
-      title: 'TechCorp Banner Campaign',
-      advertiser: 'TechCorp Inc.',
-      type: 'banner',
-      status: 'active',
-      budget: 5000,
-      spent: 3200,
-      impressions: 125000,
-      clicks: 2500,
-      ctr: 2.0,
-      startDate: '2024-01-01',
-      endDate: '2024-01-31'
-    },
-    {
-      id: '2',
-      title: 'AutoDealer Sponsored Posts',
-      advertiser: 'AutoDealer Pro',
-      type: 'sponsored',
-      status: 'active',
-      budget: 8000,
-      spent: 4500,
-      impressions: 89000,
-      clicks: 1780,
-      ctr: 2.0,
-      startDate: '2024-01-05',
-      endDate: '2024-02-05'
-    },
-    {
-      id: '3',
-      title: 'FinanceApp Video Ads',
-      advertiser: 'FinanceApp',
-      type: 'video',
-      status: 'paused',
-      budget: 12000,
-      spent: 8900,
-      impressions: 156000,
-      clicks: 4680,
-      ctr: 3.0,
-      startDate: '2023-12-15',
-      endDate: '2024-01-15'
-    }
-  ]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [proposals, setProposals] = useState<AdProposal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [proposals] = useState<AdProposal[]>([
-    {
-      id: '1',
-      company: 'Green Energy Solutions',
-      email: 'marketing@greenenergy.com',
-      campaign: 'Sustainable Future Campaign',
-      budget: '$15,000',
-      duration: '3 months',
-      status: 'pending',
-      submittedDate: '2024-01-14'
-    },
-    {
-      id: '2',
-      company: 'FoodieApp',
-      email: 'ads@foodieapp.com',
-      campaign: 'Restaurant Discovery',
-      budget: '$8,500',
-      duration: '2 months',
-      status: 'pending',
-      submittedDate: '2024-01-13'
-    },
-    {
-      id: '3',
-      company: 'TravelBooking',
-      email: 'partnerships@travelbooking.com',
-      campaign: 'Summer Destinations',
-      budget: '$25,000',
-      duration: '4 months',
-      status: 'approved',
-      submittedDate: '2024-01-10'
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication required');
+        setLoading(false);
+        return;
+      }
+
+      // Fetch campaigns - using analytics data as proxy for now
+      const analyticsResponse = await fetch(`${API_BASE_URL}/api/admin/analytics/overview`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (analyticsResponse.ok) {
+        const data = await analyticsResponse.json();
+        // Map analytics to campaign format (placeholder until advertising API is built)
+        // This shows the structure - campaigns will be empty until proper API exists
+      }
+
+      // For now, campaigns and proposals are empty until a dedicated advertising API is created
+      setCampaigns([]);
+      setProposals([]);
+    } catch (err) {
+      console.error('Error fetching advertising data:', err);
+      setError('Failed to load advertising data');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -323,7 +293,7 @@ const AdvertisingManager: React.FC = () => {
                             </div>
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            Contact: {proposal.email} • Submitted: {proposal.submittedDate}
+                            Contact: {getEmailString(proposal.email)} • Submitted: {proposal.submittedDate}
                           </div>
                         </div>
                         {proposal.status === 'pending' && (

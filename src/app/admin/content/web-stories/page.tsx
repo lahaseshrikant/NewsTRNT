@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
+import RBACAuth from '@/lib/rbac-auth';
+import ErrorHandler from '@/lib/error-handler';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -37,11 +39,34 @@ const WebStoriesAdmin: React.FC = () => {
     const fetchWebStories = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_URL}/webstories`);
+        const headers: HeadersInit = { 'Content-Type': 'application/json' };
+
+        if (typeof window !== 'undefined') {
+          // Use RBACAuth with Unicode-safe encoding
+          const authToken = RBACAuth.getAuthToken();
+          if (authToken) {
+            headers['Authorization'] = `Bearer ${authToken}`;
+          }
+        }
+
+        const response = await fetch(`${API_URL}/webstories/admin`, { headers });
+        const data = await response.json().catch(() => null);
+
         if (response.ok) {
-          const data = await response.json();
+          const rawStories = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.webStories)
+              ? data.webStories
+              : Array.isArray(data?.stories)
+                ? data.stories
+                : Array.isArray(data?.data?.webStories)
+                  ? data.data.webStories
+                  : Array.isArray(data?.data?.stories)
+                    ? data.data.stories
+                    : [];
+
           // Transform API response to match component interface
-          const stories = (data.stories || data || []).map((story: any) => {
+          const stories = rawStories.map((story: any) => {
             const slug = story.slug || story.title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
             return {
               id: story.id,
@@ -62,9 +87,18 @@ const WebStoriesAdmin: React.FC = () => {
             };
           });
           setWebStories(stories);
+        } else {
+          // Use ErrorHandler for user-friendly error messages
+          const parsedError = ErrorHandler.parseApiError({ status: response.status, data });
+          console.error('Failed to fetch web stories:', parsedError.message);
+          ErrorHandler.logError(parsedError);
+          setWebStories([]);
         }
       } catch (error) {
-        console.error('Failed to fetch web stories:', error);
+        const parsedError = ErrorHandler.parseApiError(error);
+        console.error('Failed to fetch web stories:', parsedError.message);
+        ErrorHandler.logError(parsedError);
+        setWebStories([]);
       } finally {
         setLoading(false);
       }

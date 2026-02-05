@@ -49,7 +49,27 @@ function AdminPageContent() {
 
   const fetchAdminStats = async () => {
     try {
-      const response = await fetch('/api/admin/stats');
+      // Get session data for authentication - check both localStorage and sessionStorage
+      const sessionData = localStorage.getItem('newstrnt_admin_session') || 
+                          sessionStorage.getItem('admin_session');
+      
+      // Create auth token from session data - use safe encoding for Unicode characters
+      let authToken = '';
+      if (sessionData) {
+        try {
+          // Handle Unicode characters properly
+          authToken = btoa(unescape(encodeURIComponent(sessionData)));
+        } catch {
+          // Fallback: just use the raw session data as header
+          authToken = sessionData;
+        }
+      }
+      
+      const response = await fetch('/api/admin/stats', {
+        headers: {
+          'x-session-id': authToken
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch admin statistics');
       }
