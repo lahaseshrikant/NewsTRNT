@@ -151,6 +151,16 @@ export interface Article {
     color: string;
     icon?: string;
   };
+  subCategory?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  tags: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>;
 }
 
 export interface Category {
@@ -161,6 +171,11 @@ export interface Category {
   color: string;
   icon?: string;
   isActive: boolean;
+  subCategories?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>;
 }
 
 // =============================================================================
@@ -335,6 +350,16 @@ export const dbApi = {
   // Get categories
   async getCategories(): Promise<Category[]> {
     return apiClient.get<Category[]>('/categories');
+  },
+
+  // Get category by slug
+  async getCategoryBySlug(slug: string): Promise<Category | null> {
+    try {
+      return await apiClient.get<Category>(`/categories/${slug}/info`);
+    } catch (error) {
+      console.warn(`Category with slug '${slug}' not found:`, error);
+      return null;
+    }
   },
 
   // Search articles

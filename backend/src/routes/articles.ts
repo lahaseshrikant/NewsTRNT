@@ -274,6 +274,7 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res) => {
       content,
       summary,
       categoryId,
+      subCategoryId,
       imageUrl,
       tags = [],
       isPublished = false,
@@ -318,6 +319,7 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res) => {
         content,
         summary,
         categoryId,
+        subCategoryId,
         imageUrl,
         isPublished,
         publishedAt: publishedAt ? new Date(publishedAt) : null,
@@ -332,6 +334,7 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res) => {
       },
       include: {
         category: true,
+        subCategory: true,
         createdByUser: { 
           select: { 
             id: true, 
@@ -1074,6 +1077,24 @@ router.get('/category/:slug', optionalAuth, async (req: AuthRequest, res) => {
             color: true
           }
         },
+        subCategory: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        },
+        tags: {
+          include: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                slug: true
+              }
+            }
+          }
+        },
         createdByUser: {
           select: {
             id: true,
@@ -1092,7 +1113,8 @@ router.get('/category/:slug', optionalAuth, async (req: AuthRequest, res) => {
       status: 'published',
       author: article.createdByUser?.fullName || article.author || 'NewsTRNT Staff',
       authorType: article.authorType || 'staff',
-      contentType: article.contentType || 'article'
+      contentType: article.contentType || 'article',
+      tags: article.tags.map(at => at.tag)
     }));
 
     res.json(transformedArticles);

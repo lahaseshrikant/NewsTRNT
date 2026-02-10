@@ -34,10 +34,6 @@ class RBACAuth {
    * Generate secure session ID
    */
   private static generateSessionId(): string {
-    if (typeof window === 'undefined') {
-      const crypto = require('crypto');
-      return crypto.randomBytes(32).toString('hex');
-    }
     const array = new Uint8Array(32);
     globalThis.crypto.getRandomValues(array);
     return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');

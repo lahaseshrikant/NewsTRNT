@@ -40,11 +40,15 @@ npx vercel
 
 #### **Step 1.4: Populate Database (30 minutes)**
 ```bash
-# Run schema creation
-psql $DATABASE_URL -f database/schema.sql
+# Run Prisma migrations to create schema
+npx prisma db push
 
 # Seed with initial data
-psql $DATABASE_URL -f database/seed_data.sql
+npx prisma db seed
+
+# Legacy method (deprecated, archived in deprecated/database/):
+# psql $DATABASE_URL -f deprecated/database/schema.sql
+# psql $DATABASE_URL -f deprecated/database/seed_data.sql
 
 # Activate AI pipeline for real content
 cd scraper-ai

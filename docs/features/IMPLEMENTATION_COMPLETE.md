@@ -106,7 +106,7 @@ node classify-articles.js
 ```
 
 ### 2. SQL Script
-**File:** `database/classify-articles.sql`
+**File:** `deprecated/database/classify-articles.sql` (deprecated)
 
 Manual SQL commands for classification if needed.
 
@@ -269,7 +269,7 @@ Complete technical documentation including:
 ### Documentation Files
 - `NEWS_VS_ARTICLES_IMPLEMENTATION.md` - Technical implementation details
 - `TESTING_CHECKLIST.md` - Complete testing guide
-- `database/classify-articles.sql` - SQL classification script
+- `deprecated/database/classify-articles.sql` - SQL classification script (deprecated)
 - `backend/classify-articles.js` - Node.js classification tool
 
 ### Key Files Modified

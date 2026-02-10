@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
-import { dbApi, Article } from '@/lib/database-real';
+import { dbApi, Article, Category } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
+import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -26,22 +27,29 @@ const PoliticsPage: React.FC = () => {
   // Database articles state
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState<Category | null>(null);
 
   useEffect(() => {
-    const loadArticles = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        const articles = await dbApi.getArticlesByCategory('politics', 30);
+        const [articles, categoryData] = await Promise.all([
+          dbApi.getArticlesByCategory('politics', 30),
+          dbApi.getCategoryBySlug('politics')
+        ]);
         if (Array.isArray(articles)) {
           setAllArticles(articles);
         }
+        if (categoryData) {
+          setCategory(categoryData);
+        }
       } catch (error) {
-        console.error('Error loading articles:', error);
+        console.error('Error loading politics data:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadArticles();
+    loadData();
   }, []);
 
   const contentTypes = [
@@ -59,13 +67,7 @@ const PoliticsPage: React.FC = () => {
     { value: 'breaking', label: 'Breaking', icon: '🚨' }
   ];
 
-  const subCategoryFilters = [
-    { id: 'all', label: 'All Politics', count: allArticles.length },
-    { id: 'domestic', label: 'Domestic', count: allArticles.filter(a => a.category?.slug === 'domestic').length || 0 },
-    { id: 'international', label: 'International', count: allArticles.filter(a => a.category?.slug === 'international').length || 0 },
-    { id: 'elections', label: 'Elections', count: allArticles.filter(a => a.category?.slug === 'elections').length || 0 },
-    { id: 'policy', label: 'Policy', count: allArticles.filter(a => a.category?.slug === 'policy').length || 0 }
-  ];
+  const subCategoryFilters = useSubCategoryFilters(allArticles, category?.subCategories || [], 'ALL');
 
   // Filtering logic
   const filteredArticles = () => {
@@ -78,7 +80,7 @@ const PoliticsPage: React.FC = () => {
 
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
+      filtered = filtered.filter(article => article.subCategory?.slug === selectedSubCategory);
     }
 
     // Sort articles

@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
-import { dbApi, Article } from '@/lib/database-real';
+import { dbApi, Article, Category } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
+import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -26,32 +27,33 @@ const SportsPage: React.FC = () => {
   // Database articles state
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState<Category | null>(null);
 
   useEffect(() => {
-    const loadArticles = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        const articles = await dbApi.getArticlesByCategory('sports', 30);
+        const [articles, categoryData] = await Promise.all([
+          dbApi.getArticlesByCategory('sports', 30),
+          dbApi.getCategoryBySlug('sports')
+        ]);
         if (Array.isArray(articles)) {
           setAllArticles(articles);
         }
+        if (categoryData) {
+          setCategory(categoryData);
+        }
       } catch (error) {
-        console.error('Error loading articles:', error);
+        console.error('Error loading sports data:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadArticles();
+    loadData();
   }, []);
 
   // Sub-categories for Sports
-  const subCategories = [
-    { id: 'all', label: 'All Sports', count: allArticles.length },
-    { id: 'football', label: 'Football', count: allArticles.filter(a => a.category?.slug === 'football').length || 0 },
-    { id: 'basketball', label: 'Basketball', count: allArticles.filter(a => a.category?.slug === 'basketball').length || 0 },
-    { id: 'baseball', label: 'Baseball', count: allArticles.filter(a => a.category?.slug === 'baseball').length || 0 },
-    { id: 'other', label: 'Other Sports', count: allArticles.filter(a => a.category?.slug === 'other').length || 0 }
-  ];
+  const subCategoryFilters = useSubCategoryFilters(allArticles, category?.subCategories || [], 'ALL');
 
   // Filtering logic
   const filteredArticles = () => {
@@ -64,7 +66,7 @@ const SportsPage: React.FC = () => {
 
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
+      filtered = filtered.filter(article => article.subCategory?.slug === selectedSubCategory);
     }
 
     // Sort articles
@@ -140,7 +142,7 @@ const SportsPage: React.FC = () => {
 
           {/* Sub-category Tabs in Header */}
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-            {subCategories.map(subCat => (
+            {subCategoryFilters.map(subCat => (
               <button
                 key={subCat.id}
                 onClick={() => setSelectedSubCategory(subCat.id)}

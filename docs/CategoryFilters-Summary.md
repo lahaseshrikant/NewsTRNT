@@ -153,9 +153,9 @@ http://localhost:3000/category/[any-slug]
 
 ### Update Remaining Pages
 
-Option 1: Use the batch script (automated)
+Option 1: Use the batch script (deprecated - archived in deprecated/update-category-pages.js)
 ```powershell
-node scripts/update-category-pages.js
+# Deprecated: node deprecated/update-category-pages.js
 ```
 
 Option 2: Manual integration (follow the pattern)
@@ -217,7 +217,7 @@ const finalFiltered = sortedArticles.filter(article =>
 ## 📝 Documentation
 
 - **Component Guide**: `docs/CategoryFilters-Guide.md`
-- **Batch Update Script**: `scripts/update-category-pages.js`
+- **Batch Update Script**: `deprecated/update-category-pages.js` (deprecated)
 - **This Summary**: `docs/CategoryFilters-Summary.md`
 
 ## ✨ Benefits

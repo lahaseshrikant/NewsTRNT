@@ -73,10 +73,162 @@ async function main() {
         color: '#EA580C',
         icon: '⚽'
       }
+    }),
+    prisma.category.upsert({
+      where: { slug: 'entertainment' },
+      update: {},
+      create: {
+        name: 'Entertainment',
+        slug: 'entertainment',
+        description: 'Entertainment news and celebrity updates',
+        color: '#F59E0B',
+        icon: '🎬'
+      }
+    }),
+    prisma.category.upsert({
+      where: { slug: 'world' },
+      update: {},
+      create: {
+        name: 'World',
+        slug: 'world',
+        description: 'International news and global events',
+        color: '#06B6D4',
+        icon: '🌍'
+      }
     })
   ]);
 
   console.log('✅ Categories created:', categories.length);
+
+  // Create Subcategories
+  const subCategories = await Promise.all([
+    // Health subcategories
+    prisma.subCategory.upsert({
+      where: { slug: 'medical-research' },
+      update: {},
+      create: {
+        name: 'Medical Research',
+        slug: 'medical-research',
+        categoryId: categories.find(c => c.slug === 'health')!.id,
+        sortOrder: 1
+      }
+    }),
+    prisma.subCategory.upsert({
+      where: { slug: 'wellness' },
+      update: {},
+      create: {
+        name: 'Wellness',
+        slug: 'wellness',
+        categoryId: categories.find(c => c.slug === 'health')!.id,
+        sortOrder: 2
+      }
+    }),
+    prisma.subCategory.upsert({
+      where: { slug: 'mental-health' },
+      update: {},
+      create: {
+        name: 'Mental Health',
+        slug: 'mental-health',
+        categoryId: categories.find(c => c.slug === 'health')!.id,
+        sortOrder: 3
+      }
+    }),
+    // Technology subcategories
+    prisma.subCategory.upsert({
+      where: { slug: 'ai-ml' },
+      update: {},
+      create: {
+        name: 'AI & Machine Learning',
+        slug: 'ai-ml',
+        categoryId: categories.find(c => c.slug === 'technology')!.id,
+        sortOrder: 1
+      }
+    }),
+    prisma.subCategory.upsert({
+      where: { slug: 'startups' },
+      update: {},
+      create: {
+        name: 'Startups',
+        slug: 'startups',
+        categoryId: categories.find(c => c.slug === 'technology')!.id,
+        sortOrder: 2
+      }
+    }),
+    prisma.subCategory.upsert({
+      where: { slug: 'cybersecurity' },
+      update: {},
+      create: {
+        name: 'Cybersecurity',
+        slug: 'cybersecurity',
+        categoryId: categories.find(c => c.slug === 'technology')!.id,
+        sortOrder: 3
+      }
+    }),
+    // Entertainment subcategories
+    prisma.subCategory.upsert({
+      where: { slug: 'movies' },
+      update: {},
+      create: {
+        name: 'Movies',
+        slug: 'movies',
+        categoryId: categories.find(c => c.slug === 'entertainment')!.id,
+        sortOrder: 1
+      }
+    }),
+    prisma.subCategory.upsert({
+      where: { slug: 'music' },
+      update: {},
+      create: {
+        name: 'Music',
+        slug: 'music',
+        categoryId: categories.find(c => c.slug === 'entertainment')!.id,
+        sortOrder: 2
+      }
+    }),
+    prisma.subCategory.upsert({
+      where: { slug: 'celebrities' },
+      update: {},
+      create: {
+        name: 'Celebrities',
+        slug: 'celebrities',
+        categoryId: categories.find(c => c.slug === 'entertainment')!.id,
+        sortOrder: 3
+      }
+    }),
+    // World subcategories
+    prisma.subCategory.upsert({
+      where: { slug: 'asia' },
+      update: {},
+      create: {
+        name: 'Asia',
+        slug: 'asia',
+        categoryId: categories.find(c => c.slug === 'world')!.id,
+        sortOrder: 1
+      }
+    }),
+    prisma.subCategory.upsert({
+      where: { slug: 'europe' },
+      update: {},
+      create: {
+        name: 'Europe',
+        slug: 'europe',
+        categoryId: categories.find(c => c.slug === 'world')!.id,
+        sortOrder: 2
+      }
+    }),
+    prisma.subCategory.upsert({
+      where: { slug: 'americas' },
+      update: {},
+      create: {
+        name: 'Americas',
+        slug: 'americas',
+        categoryId: categories.find(c => c.slug === 'world')!.id,
+        sortOrder: 3
+      }
+    })
+  ]);
+
+  console.log('✅ Subcategories created:', subCategories.length);
 
   // Create Admin User
   const adminPassword = process.env.SEED_ADMIN_PASSWORD;

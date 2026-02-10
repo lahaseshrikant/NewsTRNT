@@ -33,10 +33,14 @@ npm install drizzle-orm drizzle-kit
 ## Step 5: Setup Database Schema (3 minutes)
 ```
 1. Go to Neon Console → SQL Editor
-2. Copy schema from database/schema.sql
-3. Paste and run
-4. Copy seed data from database/seed_data.sql  
-5. Paste and run
+2. Run Prisma migrations: `npx prisma db push` (or `npx prisma migrate deploy` for production)
+3. Seed data: `npx prisma db seed`
+
+# Legacy method (deprecated, archived in deprecated/database/):
+# 2. Copy schema from deprecated/database/schema.sql
+# 3. Paste and run
+# 4. Copy seed data from deprecated/database/seed_data.sql  
+# 5. Paste and run
 ```
 
 ## Result:

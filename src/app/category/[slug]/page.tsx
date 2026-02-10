@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { dbApi } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
+import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 // Note: We use a compact filter bar below the header instead of CategoryFilters
 
 // Types
@@ -30,6 +31,11 @@ interface Article {
     color: string;
     icon?: string;
   };
+  subCategory?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
 }
 
 interface Category {
@@ -40,6 +46,11 @@ interface Category {
   color: string;
   icon?: string;
   isActive: boolean;
+  subCategories?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>;
 }
 
 const CategoryPage: React.FC = () => {
@@ -47,6 +58,7 @@ const CategoryPage: React.FC = () => {
   const slug = params.slug as string;
   const [selectedFilter, setSelectedFilter] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
   const [contentTypeFilter, setContentTypeFilter] = useState<'all' | 'news' | 'article' | 'opinion' | 'analysis' | 'review' | 'interview'>('all');
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [category, setCategory] = useState<Category | null>(null);
@@ -75,32 +87,19 @@ const CategoryPage: React.FC = () => {
         setLoading(true);
         setError('');
 
-        // Fetch articles for this category
-        const fetchedArticles = await dbApi.getArticlesByCategory(slug, 50);
+        const [fetchedArticles, categoryData] = await Promise.all([
+          dbApi.getArticlesByCategory(slug, 50),
+          dbApi.getCategoryBySlug(slug)
+        ]);
         
-        if (fetchedArticles && fetchedArticles.length > 0) {
+        if (Array.isArray(fetchedArticles)) {
           setArticles(fetchedArticles);
-          // Get category info from the first article
-          setCategory({
-            id: fetchedArticles[0].category.id,
-            name: fetchedArticles[0].category.name,
-            slug: fetchedArticles[0].category.slug,
-            description: `Latest ${fetchedArticles[0].category.name} news and updates`,
-            color: fetchedArticles[0].category.color || '#3B82F6',
-            icon: fetchedArticles[0].category.icon || '📰',
-            isActive: true
-          });
+        }
+        
+        if (categoryData) {
+          setCategory(categoryData);
         } else {
-          // Try to fetch category info even if no articles
-          const categories = await dbApi.getCategories();
-          const foundCategory = categories.find(cat => cat.slug === slug);
-          
-          if (foundCategory) {
-            setCategory(foundCategory);
-            setArticles([]);
-          } else {
-            setError('Category not found');
-          }
+          setError('Category not found');
         }
       } catch (err) {
         console.error('Error fetching category data:', err);
@@ -112,6 +111,36 @@ const CategoryPage: React.FC = () => {
 
     fetchCategoryData();
   }, [slug]);
+
+  // Subcategory filters
+  const subCategoryFilters = useSubCategoryFilters(articles, category?.subCategories || [], 'ALL');
+
+  // Filter articles based on selected filters
+  const filteredArticles = () => {
+    let filtered = [...articles];
+
+    // Filter by content type
+    if (contentTypeFilter !== 'all') {
+      filtered = filtered.filter(article => article.contentType === contentTypeFilter);
+    }
+
+    // Filter by sub-category
+    if (selectedSubCategory !== 'all') {
+      filtered = filtered.filter(article => article.subCategory?.slug === selectedSubCategory);
+    }
+
+    // Sort articles
+    if (selectedFilter === 'trending') {
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+    } else if (selectedFilter === 'popular') {
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+    } else if (selectedFilter === 'breaking') {
+      filtered = filtered.filter(article => article.isBreaking);
+    }
+    // 'latest' is default order
+
+    return filtered;
+  };
 
   // Helper function to format date
   const formatDate = (date: Date) => {
@@ -182,51 +211,13 @@ const CategoryPage: React.FC = () => {
     );
   }
 
-  // Filter articles based on selected filter
-  const getFilteredArticles = () => {
-    let filteredList = [...articles];
-    
-    // First filter by content type
-    if (contentTypeFilter !== 'all') {
-      filteredList = filteredList.filter(article => {
-        const articleType = (article as any).contentType || 'article';
-        return articleType === contentTypeFilter;
-      });
-    }
-    
-    // Then apply sort/filter
-    switch (selectedFilter) {
-      case 'latest':
-        return filteredList.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
-      case 'trending':
-        // Sort by views
-        return filteredList.sort((a, b) => b.views - a.views);
-      case 'popular':
-        // Sort by views (same as trending for now)
-        return filteredList.sort((a, b) => b.views - a.views).slice(0, 10);
-      case 'breaking':
-        return filteredList.filter(article => article.isBreaking);
-      default:
-        return filteredList;
-    }
-  };
-
-  const filteredArticles = getFilteredArticles();
-
-  const filters = [
-    { id: 'latest', name: 'Latest' },
-    { id: 'trending', name: 'Trending' },
-    { id: 'popular', name: 'Popular' },
-    { id: 'breaking', name: 'Breaking' }
-  ];
-
   const categoryColorClass = getCategoryColorClass(category.color);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Category Header */}
       <section className="bg-card border-b border-border">
-  <div className="container mx-auto py-8">
+        <div className="container mx-auto py-8">
           <div className="flex items-center space-x-4 mb-4">
             <span className="text-4xl">{category.icon || '📰'}</span>
             <div>
@@ -234,10 +225,32 @@ const CategoryPage: React.FC = () => {
               <p className="text-muted-foreground mt-2">{category.description || `Latest ${category.name} news and updates`}</p>
             </div>
           </div>
-          
-          {/* Filters moved below header into a compact bar */}
         </div>
       </section>
+
+      {/* Sub-category Tabs */}
+      {subCategoryFilters.length > 1 && (
+        <section className="bg-card/30 border-b border-border/50">
+          <div className="container mx-auto py-4">
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+              {subCategoryFilters.map((subCat) => (
+                <button
+                  key={subCat.id}
+                  onClick={() => setSelectedSubCategory(subCat.id)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
+                    selectedSubCategory === subCat.id
+                      ? 'text-white shadow-md'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/5'
+                  }`}
+                  style={selectedSubCategory === subCat.id ? { backgroundColor: category.color } : undefined}
+                >
+                  {subCat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Articles Grid */}
   <section className="container mx-auto py-8">

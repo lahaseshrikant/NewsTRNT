@@ -84,6 +84,18 @@ export interface Category {
   color?: string;
   icon?: string;
   articleCount?: number;
+  subCategories?: SubCategory[];
+}
+
+export interface SubCategory {
+  id: string;
+  name: string;
+  slug: string;
+  categoryId: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface User {

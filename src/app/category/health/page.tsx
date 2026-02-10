@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
-import { dbApi, Article } from '@/lib/database-real';
+import { dbApi, Article, Category } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
+import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -23,23 +24,31 @@ const HealthCategoryPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'popular' | 'breaking'>('latest');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
   const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [category, setCategory] = useState<{ subCategories?: Array<{ id: string; name: string; slug: string }> } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadArticles = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        const articles = await dbApi.getArticlesByCategory('health', 30);
+        const [articles, categories] = await Promise.all([
+          dbApi.getArticlesByCategory('health', 30),
+          dbApi.getCategories()
+        ]);
         if (Array.isArray(articles)) {
           setAllArticles(articles);
         }
+        const healthCategory = categories.find(cat => cat.slug === 'health');
+        if (healthCategory) {
+          setCategory(healthCategory);
+        }
       } catch (error) {
-        console.error('Error loading articles:', error);
+        console.error('Error loading data:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadArticles();
+    loadData();
   }, []);
 
   const contentTypes = [
@@ -57,13 +66,7 @@ const HealthCategoryPage: React.FC = () => {
     { value: 'breaking', label: 'Breaking', icon: '🚨' }
   ];
 
-  const subCategoryFilters = [
-    { id: 'all', label: 'All Health', count: allArticles.length },
-    { id: 'medical', label: 'Medical Research', count: allArticles.filter(a => a.category?.slug === 'medical').length || 0 },
-    { id: 'wellness', label: 'Wellness', count: allArticles.filter(a => a.category?.slug === 'wellness').length || 0 },
-    { id: 'mental', label: 'Mental Health', count: allArticles.filter(a => a.category?.slug === 'mental').length || 0 },
-    { id: 'nutrition', label: 'Nutrition', count: allArticles.filter(a => a.category?.slug === 'nutrition').length || 0 }
-  ];
+  const subCategoryFilters = useSubCategoryFilters(allArticles, category?.subCategories, 'ALL');
 
   const filteredArticles = () => {
     let filtered = [...allArticles];
@@ -75,7 +78,7 @@ const HealthCategoryPage: React.FC = () => {
     
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
+      filtered = filtered.filter(article => article.subCategory?.slug === selectedSubCategory);
     }
     
     // Sort articles

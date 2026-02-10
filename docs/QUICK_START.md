@@ -117,7 +117,7 @@ POST /api/articles/admin
 ### Created
 - `src/components/NewsCard.tsx` - Compact news component
 - `backend/classify-articles.js` - Classification script
-- `database/classify-articles.sql` - SQL script
+- `deprecated/database/classify-articles.sql` - SQL script (deprecated)
 - `TESTING_CHECKLIST.md` - Testing guide
 - `NEWS_VS_ARTICLES_IMPLEMENTATION.md` - Full docs
 - `IMPLEMENTATION_COMPLETE.md` - Summary

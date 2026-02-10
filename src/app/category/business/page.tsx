@@ -5,8 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
 import MarketWidget from '@/components/MarketWidget';
-import { dbApi, Article } from '@/lib/database-real';
+import { dbApi, Article, Category } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
+import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 
 // Helper to format published time
 const formatPublishedTime = (publishedAt: string | Date) => {
@@ -27,24 +28,31 @@ const BusinessPage: React.FC = () => {
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState<Category | null>(null);
 
-  // Load articles from database
+  // Load articles and category from database
   useEffect(() => {
-    const loadArticles = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        const articles = await dbApi.getArticlesByCategory('business', 30);
+        const [articles, categoryData] = await Promise.all([
+          dbApi.getArticlesByCategory('business', 30),
+          dbApi.getCategoryBySlug('business')
+        ]);
         if (Array.isArray(articles)) {
           setAllArticles(articles);
         }
+        if (categoryData) {
+          setCategory(categoryData);
+        }
       } catch (error) {
-        console.error('Error loading business articles:', error);
+        console.error('Error loading business data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadArticles();
+    loadData();
   }, []);
 
   const contentTypes = [
@@ -62,13 +70,7 @@ const BusinessPage: React.FC = () => {
     { value: 'breaking', label: 'Breaking', icon: '🚨' }
   ];
 
-  const subCategoryFilters = [
-    { id: 'all', label: 'All Business', count: allArticles.length },
-    { id: 'markets', label: 'Markets', count: allArticles.filter(a => a.contentType === 'analysis').length },
-    { id: 'economy', label: 'Economy', count: allArticles.filter(a => a.contentType === 'news').length },
-    { id: 'companies', label: 'Companies', count: allArticles.filter(a => a.contentType === 'article').length },
-    { id: 'finance', label: 'Finance', count: allArticles.filter(a => a.contentType === 'opinion').length }
-  ];
+  const subCategoryFilters = useSubCategoryFilters(allArticles, category?.subCategories || [], 'ALL');
 
   // Filtering logic
   const filteredArticles = () => {
@@ -77,6 +79,11 @@ const BusinessPage: React.FC = () => {
     // Filter by content type
     if (contentType !== 'all') {
       filtered = filtered.filter(article => article.contentType === contentType);
+    }
+
+    // Filter by subcategory
+    if (selectedSubCategory !== 'all') {
+      filtered = filtered.filter(article => article.subCategory?.slug === selectedSubCategory);
     }
 
     // Sort articles

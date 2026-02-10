@@ -1,4 +1,4 @@
-import { Category } from '@/hooks/useCategories';
+import { Category } from '@/types/api';
 
 // Partial category type for cases where we don't have all fields
 interface PartialCategory {

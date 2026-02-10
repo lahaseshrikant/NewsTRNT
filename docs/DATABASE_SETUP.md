@@ -34,17 +34,25 @@ SUPABASE_ANON_KEY="[YOUR-ANON-KEY]"
 ```
 
 ### 4. Run Database Schema
-```sql
--- Copy schema from database/schema.sql
--- Paste in Supabase SQL Editor
--- Click "Run"
+```bash
+# Use Prisma to push schema
+npx prisma db push
+
+# Legacy method (deprecated, archived in deprecated/database/):
+# -- Copy schema from deprecated/database/schema.sql
+# -- Paste in Supabase SQL Editor
+# -- Click "Run"
 ```
 
 ### 5. Seed Initial Data  
-```sql
--- Copy seed data from database/seed_data.sql
--- Paste in Supabase SQL Editor  
--- Click "Run"
+```bash
+# Use Prisma to seed data
+npx prisma db seed
+
+# Legacy method (deprecated, archived in deprecated/database/):
+# -- Copy seed data from deprecated/database/seed_data.sql
+# -- Paste in Supabase SQL Editor  
+# -- Click "Run"
 ```
 
 ## Result:

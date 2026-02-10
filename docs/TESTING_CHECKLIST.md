@@ -10,11 +10,10 @@ Open your database tool (Prisma Studio, pgAdmin, or terminal) and run:
 cd backend
 npx prisma studio
 
-# Or connect to PostgreSQL directly
-psql -d your_database_name -f database/classify-articles.sql
+# Or connect to PostgreSQL directly (deprecated method, SQL archived in deprecated/database/)
 ```
 
-Or run the SQL file we created: `database/classify-articles.sql`
+Or run the SQL file we created: `deprecated/database/classify-articles.sql` (deprecated)
 
 **Expected Results:**
 - [ ] All articles have `contentType` set (no NULL values)

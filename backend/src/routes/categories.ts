@@ -38,6 +38,15 @@ router.get('/', async (req, res) => {
       },
       ...(includeStats === 'true' && {
         include: {
+          subCategories: {
+            where: {
+              isDeleted: false,
+              isActive: true
+            },
+            orderBy: {
+              sortOrder: 'asc'
+            }
+          },
           _count: {
             select: {
               articles: {
@@ -101,6 +110,42 @@ router.get('/trash', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Error fetching deleted categories:', error);
     return res.status(500).json({ error: 'Failed to fetch deleted categories' });
+  }
+});
+
+// GET /api/categories/:slug/info - Get category info only (without articles)
+router.get('/:slug/info', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    const { slug } = req.params;
+
+    const category = await prisma.category.findUnique({
+      where: { 
+        slug,
+        isDeleted: false,
+        isActive: true
+      },
+      include: {
+        subCategories: {
+          where: {
+            isDeleted: false,
+            isActive: true
+          },
+          orderBy: {
+            sortOrder: 'asc'
+          }
+        }
+      }
+    });
+
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    return res.json(category);
+
+  } catch (error) {
+    console.error('Error fetching category info:', error);
+    return res.status(500).json({ error: 'Failed to fetch category' });
   }
 });
 

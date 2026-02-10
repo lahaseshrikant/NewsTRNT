@@ -1,22 +1,10 @@
 import { useState, useEffect } from 'react';
-
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  color: string;
-  icon?: string;
-  isActive: boolean;
-  sortOrder: number;
-  articleCount?: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Category } from '@/types/api';
 
 interface UseCategoriesOptions {
   includeInactive?: boolean;
   includeStats?: boolean;
+  includeSubCategories?: boolean;
 }
 
 interface UseCategoriesResult {
@@ -31,7 +19,7 @@ export const useCategories = (options: UseCategoriesOptions = {}): UseCategories
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { includeInactive = false, includeStats = false } = options;
+  const { includeInactive = false, includeStats = false, includeSubCategories = false } = options;
 
   const fetchCategories = async () => {
     try {
@@ -41,6 +29,7 @@ export const useCategories = (options: UseCategoriesOptions = {}): UseCategories
       const params = new URLSearchParams();
       if (includeInactive) params.append('includeInactive', 'true');
       if (includeStats) params.append('includeStats', 'true');
+      if (includeSubCategories) params.append('includeStats', 'true'); // subCategories are included when includeStats is true
 
       const response = await fetch(`/api/categories?${params.toString()}`, {
         method: 'GET',
@@ -84,7 +73,7 @@ export const useCategories = (options: UseCategoriesOptions = {}): UseCategories
 
   useEffect(() => {
     fetchCategories();
-  }, [includeInactive, includeStats]);
+  }, [includeInactive, includeStats, includeSubCategories]);
 
   return {
     categories,

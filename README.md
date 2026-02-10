@@ -177,9 +177,8 @@ NewsNerve/
 │   ├── API.md            # API reference
 │   └── ...               # Other docs
 │
-├── database/             # SQL migrations & seeds
+├── deprecated/database/  # SQL migrations & seeds (deprecated)
 ├── data/                 # Static data files
-├── scripts/              # Utility scripts
 └── public/               # Static assets
 ```
 

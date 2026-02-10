@@ -14,6 +14,7 @@ interface ArticleForm {
   content: string; // HTML content (rich text)
   summary: string;
   categoryId: string;
+  subCategoryId?: string;
   tags: string[];
   status: 'draft' | 'scheduled' | 'published';
   featured: boolean;
@@ -77,7 +78,8 @@ const NewArticle: React.FC = () => {
   
   // Get dynamic categories (include inactive for admin)
   const { categories, loading: categoriesLoading } = useCategories({ 
-    includeInactive: true 
+    includeInactive: true,
+    includeSubCategories: true
   });
   const [saving, setSaving] = useState(false);
   const [keywordInput, setKeywordInput] = useState('');
@@ -393,6 +395,7 @@ const NewArticle: React.FC = () => {
         content: formData.content,
         summary: formData.summary,
         categoryId: formData.categoryId || undefined,
+        subCategoryId: formData.subCategoryId || undefined,
         imageUrl: formData.imageUrl || undefined,
         tags: formData.tags,
         isPublished: status === 'published',
@@ -514,7 +517,27 @@ const NewArticle: React.FC = () => {
         </div>
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">
-            Publish Date
+            Subcategory
+          </label>
+          <select
+            value={formData.subCategoryId || ''}
+            onChange={(e) => handleInputChange('subCategoryId', e.target.value || undefined)}
+            disabled={categoriesLoading || !formData.categoryId}
+            className="w-full px-4 py-3 border border-border/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-foreground"
+          >
+            <option value="">Select subcategory...</option>
+            {formData.categoryId && categories
+              .find(cat => cat.id === formData.categoryId)
+              ?.subCategories?.map(subCat => (
+                <option key={subCat.id} value={subCat.id}>
+                  {subCat.name}
+                </option>
+              ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            Publish Date & Time
           </label>
           <input
             type="datetime-local"

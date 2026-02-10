@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
-import { dbApi, Article } from '@/lib/database-real';
+import { dbApi, Article, Category } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
+import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -27,24 +28,31 @@ const TechnologyPage: React.FC = () => {
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
   
   // Database articles state
-  const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [category, setCategory] = useState<{ subCategories?: Array<{ id: string; name: string; slug: string }> } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadArticles = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        const articles = await dbApi.getArticlesByCategory('technology', 30);
+        const [articles, categories] = await Promise.all([
+          dbApi.getArticlesByCategory('technology', 30),
+          dbApi.getCategories()
+        ]);
         if (Array.isArray(articles)) {
           setAllArticles(articles);
         }
+        const techCategory = categories.find(cat => cat.slug === 'technology');
+        if (techCategory) {
+          setCategory(techCategory);
+        }
       } catch (error) {
-        console.error('Error loading articles:', error);
+        console.error('Error loading data:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadArticles();
+    loadData();
   }, []);
 
   const contentTypes = [
@@ -62,13 +70,7 @@ const TechnologyPage: React.FC = () => {
     { value: 'breaking', label: 'Breaking', icon: '🚨' },
   ];
 
-  const subCategoryFilters = [
-    { id: 'all', label: 'All Tech', count: allArticles.length },
-    { id: 'ai', label: 'AI & ML', count: allArticles.filter(a => a.category?.slug === 'ai').length || 0 },
-    { id: 'startups', label: 'Startups', count: allArticles.filter(a => a.category?.slug === 'startups').length || 0 },
-    { id: 'security', label: 'Cybersecurity', count: allArticles.filter(a => a.category?.slug === 'security').length || 0 },
-    { id: 'hardware', label: 'Hardware', count: allArticles.filter(a => a.category?.slug === 'hardware').length || 0 }
-  ];
+  const subCategoryFilters = useSubCategoryFilters(allArticles, category?.subCategories, 'ALL');
 
   // Filtering logic
   const filteredArticles = () => {
@@ -81,7 +83,7 @@ const TechnologyPage: React.FC = () => {
 
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
+      filtered = filtered.filter(article => article.subCategory?.slug === selectedSubCategory);
     }
 
     // Sort articles

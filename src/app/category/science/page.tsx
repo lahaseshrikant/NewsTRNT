@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Breadcrumb from '@/components/Breadcrumb';
-import { dbApi, Article } from '@/lib/database-real';
+import { dbApi, Article, Category } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
+import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -24,22 +25,29 @@ const ScienceCategoryPage: React.FC = () => {
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState<Category | null>(null);
 
   useEffect(() => {
-    const loadArticles = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        const articles = await dbApi.getArticlesByCategory('science', 30);
+        const [articles, categoryData] = await Promise.all([
+          dbApi.getArticlesByCategory('science', 30),
+          dbApi.getCategoryBySlug('science')
+        ]);
         if (Array.isArray(articles)) {
           setAllArticles(articles);
         }
+        if (categoryData) {
+          setCategory(categoryData);
+        }
       } catch (error) {
-        console.error('Error loading articles:', error);
+        console.error('Error loading science data:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadArticles();
+    loadData();
   }, []);
 
   const contentTypes = [
@@ -57,13 +65,7 @@ const ScienceCategoryPage: React.FC = () => {
     { value: 'breaking', label: 'Breaking', icon: '🚨' }
   ];
 
-  const subCategoryFilters = [
-    { id: 'all', label: 'All Science', count: allArticles.length },
-    { id: 'space', label: 'Space', count: allArticles.filter(a => a.category?.slug === 'space').length || 0 },
-    { id: 'biology', label: 'Biology', count: allArticles.filter(a => a.category?.slug === 'biology').length || 0 },
-    { id: 'physics', label: 'Physics', count: allArticles.filter(a => a.category?.slug === 'physics').length || 0 },
-    { id: 'climate', label: 'Climate', count: allArticles.filter(a => a.category?.slug === 'climate').length || 0 }
-  ];
+  const subCategoryFilters = useSubCategoryFilters(allArticles, category?.subCategories || [], 'ALL');
 
   const filteredArticles = () => {
     let filtered = [...allArticles];
@@ -75,7 +77,7 @@ const ScienceCategoryPage: React.FC = () => {
     
     // Filter by sub-category
     if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.category?.slug === selectedSubCategory);
+      filtered = filtered.filter(article => article.subCategory?.slug === selectedSubCategory);
     }
     
     // Sort articles
