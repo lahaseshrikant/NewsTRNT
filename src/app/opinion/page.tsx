@@ -67,23 +67,23 @@ const OpinionPage: React.FC = () => {
 
   // Featured columnists
   const featuredColumnists = [
-    { name: "Sarah Chen", role: "Tech Analyst", avatar: "👩‍💼" },
-    { name: "Michael Torres", role: "Political Correspondent", avatar: "👨‍💼" },
-    { name: "Priya Sharma", role: "Economics Editor", avatar: "👩‍🏫" },
-    { name: "James Wilson", role: "Foreign Affairs", avatar: "👨‍🎓" }
+    { name: "Sarah Chen", role: "Tech Analyst", initials: "SC" },
+    { name: "Michael Torres", role: "Political Correspondent", initials: "MT" },
+    { name: "Priya Sharma", role: "Economics Editor", initials: "PS" },
+    { name: "James Wilson", role: "Foreign Affairs", initials: "JW" }
   ];
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-amber-600/10 to-orange-600/10 border-b border-border">
+      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
         <div className="container mx-auto py-8">
           <Breadcrumb items={[{ label: 'Opinion' }]} className="mb-4" />
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
-              💭 Opinion
+            <h1 className="font-serif text-4xl font-bold text-ivory mb-4">
+              Opinion &amp; Commentary
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-ivory/60">
               Expert perspectives and thought-provoking commentary
             </p>
           </div>
@@ -100,10 +100,10 @@ const OpinionPage: React.FC = () => {
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
                     selectedCategory === category.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
+                      : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
                   }`}
                 >
                   {category.label}
@@ -134,13 +134,15 @@ const OpinionPage: React.FC = () => {
                     <Link 
                       key={article.id} 
                       href={`/opinion/${article.slug}`}
-                      className="group block bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-primary/30 transition-all"
+                      className="hover-lift group block bg-card border border-border p-6 transition-all"
                     >
                       <div className="flex items-start gap-4">
                         {/* Author Avatar */}
                         <div className="flex-shrink-0">
-                          <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-2xl">
-                            ✍️
+                          <div className="w-16 h-16 bg-ink dark:bg-ivory flex items-center justify-center">
+                            <span className="font-serif text-xl font-bold text-ivory dark:text-ink">
+                              {(article.author || 'N')[0]}
+                            </span>
                           </div>
                         </div>
 
@@ -159,7 +161,7 @@ const OpinionPage: React.FC = () => {
                             )}
                           </div>
 
-                          <h2 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                          <h2 className="font-serif text-xl font-bold text-foreground mb-2 group-hover:text-vermillion transition-colors line-clamp-2">
                             {article.title}
                           </h2>
 
@@ -197,7 +199,7 @@ const OpinionPage: React.FC = () => {
                   <div className="text-center mt-8">
                     <button
                       onClick={() => setPage(prev => prev + 1)}
-                      className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                      className="px-6 py-3 bg-vermillion text-white font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors"
                     >
                       Load More Opinion Pieces
                     </button>
@@ -206,7 +208,7 @@ const OpinionPage: React.FC = () => {
               </>
             ) : (
               <div className="text-center py-16">
-                <div className="text-6xl mb-4">💭</div>
+                <div className="text-6xl mb-4"><span className="font-serif text-stone">...</span></div>
                 <h3 className="text-xl font-bold text-foreground mb-2">No Opinion Pieces Found</h3>
                 <p className="text-muted-foreground">
                   {selectedCategory === 'all' 
@@ -221,12 +223,12 @@ const OpinionPage: React.FC = () => {
           <div className="w-full lg:w-80 space-y-6">
             {/* Featured Columnists */}
             <div className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-bold text-foreground mb-4">✍️ Our Columnists</h3>
+              <h3 className="font-serif font-bold text-foreground mb-4">Our Columnists</h3>
               <div className="space-y-3">
                 {featuredColumnists.map((columnist, index) => (
-                  <div key={index} className="flex items-center gap-3 p-2 rounded hover:bg-muted transition-colors cursor-pointer">
-                    <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-lg">
-                      {columnist.avatar}
+                  <div key={index} className="hover-row flex items-center gap-3 p-2 transition-colors cursor-pointer">
+                    <div className="w-10 h-10 bg-ink dark:bg-ivory flex items-center justify-center">
+                      <span className="font-serif text-sm font-bold text-ivory dark:text-ink">{columnist.initials}</span>
                     </div>
                     <div>
                       <div className="font-medium text-foreground text-sm">{columnist.name}</div>
@@ -239,32 +241,32 @@ const OpinionPage: React.FC = () => {
 
             {/* More Content */}
             <div className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-bold text-foreground mb-4">📖 More Content</h3>
+              <h3 className="font-serif font-bold text-foreground mb-4">More Content</h3>
               <div className="space-y-2">
-                <Link href="/news" className="block p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  <span className="font-medium">📰 Latest News</span>
+                <Link href="/news" className="hover-row block p-3 transition-colors">
+                  <span className="font-medium">Latest News</span>
                   <p className="text-xs text-muted-foreground">Breaking and current events</p>
                 </Link>
-                <Link href="/articles" className="block p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  <span className="font-medium">📚 Long Reads</span>
+                <Link href="/articles" className="hover-row block p-3 transition-colors">
+                  <span className="font-medium">Long Reads</span>
                   <p className="text-xs text-muted-foreground">In-depth articles</p>
                 </Link>
-                <Link href="/analysis" className="block p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  <span className="font-medium">🔍 Analysis</span>
+                <Link href="/analysis" className="hover-row block p-3 transition-colors">
+                  <span className="font-medium">Analysis</span>
                   <p className="text-xs text-muted-foreground">Deep dives and insights</p>
                 </Link>
               </div>
             </div>
 
             {/* Submit Opinion CTA */}
-            <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-lg p-4">
-              <h3 className="font-bold text-foreground mb-2">📝 Have an Opinion?</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+            <div className="bg-ink dark:bg-ivory/5 border border-ash dark:border-ash/20 p-4">
+              <h3 className="font-serif font-bold text-ivory mb-2">Have an Opinion?</h3>
+              <p className="text-sm text-ivory/60 mb-4">
                 We welcome guest contributions from experts and thought leaders.
               </p>
               <Link 
                 href="/contact" 
-                className="block w-full text-center py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors"
+                className="block w-full text-center py-2 bg-vermillion text-white font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors"
               >
                 Submit Your Piece
               </Link>

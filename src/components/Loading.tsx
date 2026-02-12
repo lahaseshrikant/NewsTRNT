@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
+import { DivergenceMark } from './DivergenceMark';
 
 interface LoadingProps {
-  variant?: 'spinner' | 'skeleton' | 'pulse' | 'dots';
+  variant?: 'spinner' | 'skeleton' | 'pulse' | 'dots' | 'editorial';
   size?: 'sm' | 'md' | 'lg';
   text?: string;
   fullScreen?: boolean;
@@ -17,21 +18,33 @@ const LoadingSpinner: React.FC<{ size: string }> = ({ size }) => {
   };
 
   return (
-    <div className={`animate-spin rounded-full border-2 border-muted border-t-primary ${sizeClasses[size as keyof typeof sizeClasses]}`}></div>
+    <div className={`animate-spin rounded-full border-2 border-ash dark:border-neutral-700 border-t-primary ${sizeClasses[size as keyof typeof sizeClasses]}`}></div>
   );
 };
 
+/** Branded editorial loading — Divergence Mark pulse */
+const LoadingEditorial: React.FC = () => (
+  <div className="flex flex-col items-center gap-4">
+    <DivergenceMark size={48} animated className="text-primary" />
+    <div className="flex items-center gap-1">
+      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.15s' }} />
+      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.3s' }} />
+    </div>
+  </div>
+);
+
 const LoadingSkeleton: React.FC = () => (
-  <div className="animate-pulse space-y-4">
-    <div className="bg-muted rounded-lg h-48 w-full"></div>
+  <div className="space-y-4">
+    <div className="skeleton-warm h-48 w-full"></div>
     <div className="space-y-2">
-      <div className="bg-muted rounded h-4 w-3/4"></div>
-      <div className="bg-muted rounded h-4 w-1/2"></div>
-      <div className="bg-muted rounded h-4 w-5/6"></div>
+      <div className="skeleton-warm h-4 w-3/4"></div>
+      <div className="skeleton-warm h-4 w-1/2"></div>
+      <div className="skeleton-warm h-4 w-5/6"></div>
     </div>
     <div className="flex space-x-2">
-      <div className="bg-muted rounded h-6 w-16"></div>
-      <div className="bg-muted rounded h-6 w-20"></div>
+      <div className="skeleton-warm h-6 w-16"></div>
+      <div className="skeleton-warm h-6 w-20"></div>
     </div>
   </div>
 );
@@ -53,25 +66,25 @@ const LoadingDots: React.FC = () => (
 );
 
 const ArticleCardSkeleton: React.FC = () => (
-  <div className="bg-card border border-border rounded-lg overflow-hidden shadow-md animate-pulse">
-    <div className="bg-muted h-48 w-full"></div>
+  <div className="editorial-card overflow-hidden">
+    <div className="skeleton-warm h-48 w-full"></div>
     <div className="p-4 space-y-3">
-      <div className="bg-muted rounded h-4 w-3/4"></div>
-      <div className="bg-muted rounded h-4 w-1/2"></div>
+      <div className="skeleton-warm h-3 w-20"></div>
+      <div className="skeleton-warm h-5 w-3/4"></div>
       <div className="space-y-2">
-        <div className="bg-muted rounded h-3 w-full"></div>
-        <div className="bg-muted rounded h-3 w-5/6"></div>
+        <div className="skeleton-warm h-3 w-full"></div>
+        <div className="skeleton-warm h-3 w-5/6"></div>
       </div>
-      <div className="flex justify-between items-center">
-        <div className="bg-muted rounded h-4 w-24"></div>
-        <div className="bg-muted rounded h-6 w-16"></div>
+      <div className="flex justify-between items-center pt-2">
+        <div className="skeleton-warm h-3 w-24"></div>
+        <div className="skeleton-warm h-3 w-16"></div>
       </div>
     </div>
   </div>
 );
 
 const Loading: React.FC<LoadingProps> = ({
-  variant = 'spinner',
+  variant = 'editorial',
   size = 'md',
   text,
   fullScreen = false
@@ -84,6 +97,8 @@ const Loading: React.FC<LoadingProps> = ({
         return <LoadingPulse />;
       case 'dots':
         return <LoadingDots />;
+      case 'editorial':
+        return <LoadingEditorial />;
       default:
         return <LoadingSpinner size={size} />;
     }
@@ -93,7 +108,7 @@ const Loading: React.FC<LoadingProps> = ({
     <div className="flex flex-col items-center justify-center space-y-4">
       {renderLoading()}
       {text && (
-        <p className="text-muted-foreground text-sm font-medium">
+        <p className="text-muted-foreground text-caption font-medium">
           {text}
         </p>
       )}
@@ -102,8 +117,8 @@ const Loading: React.FC<LoadingProps> = ({
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-background/75 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-card border border-border rounded-lg p-8 shadow-lg">
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-card border border-border rounded-editorial p-8 shadow-editorial-lg">
           {content}
         </div>
       </div>
@@ -113,6 +128,5 @@ const Loading: React.FC<LoadingProps> = ({
   return content;
 };
 
-// Export individual skeleton components for specific use cases
-export { ArticleCardSkeleton, LoadingSkeleton, LoadingSpinner, LoadingPulse, LoadingDots };
+export { ArticleCardSkeleton, LoadingSkeleton, LoadingSpinner, LoadingPulse, LoadingDots, LoadingEditorial };
 export default Loading;

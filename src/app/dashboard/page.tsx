@@ -114,14 +114,14 @@ export default function DashboardPage() {
   const renderOverview = () => (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
+      <div className="bg-ink rounded-xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold mb-2">Welcome back, {userData.name}!</h2>
-            <p className="text-blue-100">Ready to catch up on today's news?</p>
+            <p className="text-ivory">Ready to catch up on today's news?</p>
           </div>
           <div className="hidden md:block">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-paper/20 rounded-full flex items-center justify-center">
               <span className="text-2xl font-bold">JD</span>
             </div>
           </div>
@@ -130,19 +130,19 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
           <div className="text-center">
             <div className="text-2xl font-bold">{userData.totalReads}</div>
-            <div className="text-sm text-blue-100">Articles Read</div>
+            <div className="text-sm text-ivory">Articles Read</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold">{userData.savedArticles}</div>
-            <div className="text-sm text-blue-100">Saved Articles</div>
+            <div className="text-sm text-ivory">Saved Articles</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold">{userData.readingStreak}</div>
-            <div className="text-sm text-blue-100">Day Streak</div>
+            <div className="text-sm text-ivory">Day Streak</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold">{Math.round(userData.totalReadingTime / 60)}h</div>
-            <div className="text-sm text-blue-100">Reading Time</div>
+            <div className="text-sm text-ivory">Reading Time</div>
           </div>
         </div>
       </div>

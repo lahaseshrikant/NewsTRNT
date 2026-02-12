@@ -145,7 +145,7 @@ const AnalysisDetailPage: React.FC = () => {
           <p className="text-muted-foreground mb-4">{error || 'This analysis may have been removed or is not available.'}</p>
           <Link
             href="/analysis"
-            className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700"
+            className="inline-block bg-vermillion text-white px-6 py-3 rounded-lg hover:bg-vermillion/90"
           >
             Browse Analysis
           </Link>
@@ -165,16 +165,16 @@ const AnalysisDetailPage: React.FC = () => {
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1 bg-muted/50 z-50">
         <div 
-          className="h-full bg-emerald-600 transition-all duration-100"
+          className="h-full bg-vermillion transition-all duration-100"
           style={{ width: `${readingProgress}%` }}
         ></div>
       </div>
 
       {/* Analysis Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-600/10 to-teal-600/10 border-b border-border">
+      <div className="bg-gradient-to-r from-vermillion/10 to-gold/5 border-b border-border">
         <div className="container mx-auto py-2">
           <div className="flex items-center gap-2 text-sm">
-            <span className="bg-emerald-600 text-white px-2 py-0.5 rounded text-xs font-bold">ANALYSIS</span>
+            <span className="bg-vermillion text-white px-2 py-0.5 rounded text-xs font-bold">ANALYSIS</span>
             <span className="text-muted-foreground">Data-driven insights and in-depth research</span>
           </div>
         </div>
@@ -200,10 +200,10 @@ const AnalysisDetailPage: React.FC = () => {
             {/* Article Meta */}
             <div className="mb-6">
               <div className="flex items-center space-x-4 mb-4">
-                <span className="bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
+                <span className="bg-vermillion text-white px-3 py-1 rounded-lg text-sm font-semibold">
                   🔍 DEEP DIVE
                 </span>
-                <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-3 py-1 rounded-lg text-sm font-semibold">
+                <span className="bg-ivory text-vermillion dark:bg-vermillion/10 dark:text-gold px-3 py-1 rounded-lg text-sm font-semibold">
                   {categoryName}
                 </span>
                 <span className="text-muted-foreground text-sm">
@@ -221,7 +221,7 @@ const AnalysisDetailPage: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-emerald-600/10 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-vermillion/10 rounded-full flex items-center justify-center">
                     <span className="text-xl">📊</span>
                   </div>
                   <div>
@@ -236,7 +236,7 @@ const AnalysisDetailPage: React.FC = () => {
                   <button
                     onClick={() => setIsBookmarked(!isBookmarked)}
                     className={`p-2 rounded-full transition-colors ${
-                      isBookmarked ? 'bg-emerald-600/10 text-emerald-600' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      isBookmarked ? 'bg-vermillion/10 text-vermillion' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     🔖
@@ -299,21 +299,21 @@ const AnalysisDetailPage: React.FC = () => {
               {/* Main Content */}
               <div className="lg:col-span-3">
                 {/* Key Takeaways Box */}
-                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-6 mb-8">
-                  <h3 className="font-bold text-emerald-800 dark:text-emerald-300 mb-3 flex items-center gap-2">
+                <div className="bg-ivory dark:bg-vermillion/5 border border-ash dark:border-vermillion/20 rounded-lg p-6 mb-8">
+                  <h3 className="font-bold text-vermillion dark:text-gold mb-3 flex items-center gap-2">
                     <span>📌</span> Key Takeaways
                   </h3>
-                  <ul className="space-y-2 text-emerald-700 dark:text-emerald-400 text-sm">
+                  <ul className="space-y-2 text-ink dark:text-gold text-sm">
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600">•</span>
+                      <span className="text-vermillion">•</span>
                       <span>Data-driven analysis backed by research</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600">•</span>
+                      <span className="text-vermillion">•</span>
                       <span>Expert insights and methodology explained</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-emerald-600">•</span>
+                      <span className="text-vermillion">•</span>
                       <span>Actionable conclusions and implications</span>
                     </li>
                   </ul>
@@ -325,11 +325,11 @@ const AnalysisDetailPage: React.FC = () => {
                     prose-headings:text-foreground prose-headings:font-bold prose-headings:leading-tight
                     prose-p:text-foreground prose-p:leading-relaxed prose-p:text-justify prose-p:mb-6
                     prose-strong:text-foreground prose-strong:font-semibold
-                    prose-a:text-emerald-600 prose-a:no-underline hover:prose-a:text-emerald-500 hover:prose-a:underline
+                    prose-a:text-vermillion prose-a:no-underline hover:prose-a:text-vermillion/80 hover:prose-a:underline
                     prose-ul:text-foreground prose-ol:text-foreground prose-li:mb-2 prose-li:leading-relaxed
                     prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-b prose-h2:border-border prose-h2:pb-2
                     prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-                    prose-blockquote:text-muted-foreground prose-blockquote:border-l-emerald-600 prose-blockquote:italic
+                    prose-blockquote:text-muted-foreground prose-blockquote:border-l-vermillion prose-blockquote:italic
                     dark:prose-invert"
                   dangerouslySetInnerHTML={{ __html: article.content || '' }}
                 />
@@ -343,7 +343,7 @@ const AnalysisDetailPage: React.FC = () => {
                         <Link
                           key={tag}
                           href={`/search?q=${encodeURIComponent(tag)}`}
-                          className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-emerald-600/10 hover:text-emerald-600 transition-colors"
+                          className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-vermillion/10 hover:text-vermillion transition-colors"
                         >
                           #{tag}
                         </Link>
@@ -356,9 +356,9 @@ const AnalysisDetailPage: React.FC = () => {
 
                 {/* Author Bio */}
                 <div className="mt-8 pt-8 border-t border-border">
-                  <div className="bg-emerald-600/5 rounded-lg p-6 border border-emerald-600/10">
+                  <div className="bg-vermillion/5 rounded-lg p-6 border border-vermillion/10">
                     <div className="flex items-start space-x-4">
-                      <div className="w-20 h-20 bg-emerald-600/10 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-20 h-20 bg-vermillion/10 rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-3xl">📊</span>
                       </div>
                       <div>
@@ -388,7 +388,7 @@ const AnalysisDetailPage: React.FC = () => {
                       relatedArticles.map((relatedArticle) => (
                         <Link key={relatedArticle.id} href={getContentUrl(relatedArticle)}>
                           <div className="group cursor-pointer">
-                            <h4 className="font-medium text-foreground text-sm group-hover:text-emerald-600 line-clamp-2 mb-1">
+                            <h4 className="font-medium text-foreground text-sm group-hover:text-vermillion line-clamp-2 mb-1">
                               {relatedArticle.title}
                             </h4>
                             <div className="text-xs text-muted-foreground">
@@ -405,7 +405,7 @@ const AnalysisDetailPage: React.FC = () => {
                   <div className="mt-6 pt-4 border-t border-border">
                     <Link
                       href="/analysis"
-                      className="block text-center py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                      className="block text-center py-2 bg-vermillion text-white rounded-lg font-medium hover:bg-vermillion/90 transition-colors"
                     >
                       More Analysis →
                     </Link>

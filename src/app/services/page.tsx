@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { DivergenceMark } from '@/components/DivergenceMark';
 
 const ServicesPage: React.FC = () => {
   const [selectedService, setSelectedService] = useState('ai-curation');
@@ -12,7 +12,6 @@ const ServicesPage: React.FC = () => {
       id: 'ai-curation',
       title: 'Smart News Curation',
       description: 'Intelligent algorithms that personalize your news feed based on your interests, reading patterns, and preferences.',
-      icon: '🤖',
       features: [
         'Personalized content recommendations',
         'Smart article filtering and ranking',
@@ -27,7 +26,6 @@ const ServicesPage: React.FC = () => {
       id: 'breaking-alerts',
       title: 'Breaking News Alerts',
       description: 'Stay ahead of the curve with instant notifications for breaking news, tailored to your interests and location.',
-      icon: '🚨',
       features: [
         'Real-time push notifications',
         'Location-based alerts',
@@ -42,7 +40,6 @@ const ServicesPage: React.FC = () => {
       id: 'api-access',
       title: 'Developer API',
       description: 'Integrate NewsTRNT\'s powerful news data and AI capabilities into your own applications and platforms.',
-      icon: '💻',
       features: [
         'RESTful API endpoints',
         'Real-time news feeds',
@@ -57,7 +54,6 @@ const ServicesPage: React.FC = () => {
       id: 'analytics',
       title: 'News Analytics',
       description: 'Comprehensive insights into news trends, public sentiment, and content performance for businesses and researchers.',
-      icon: '📊',
       features: [
         'Trend analysis and forecasting',
         'Sentiment tracking',
@@ -72,7 +68,6 @@ const ServicesPage: React.FC = () => {
       id: 'white-label',
       title: 'White-Label Solutions',
       description: 'Complete news platform solutions for media companies, corporations, and organizations.',
-      icon: '🏢',
       features: [
         'Customizable news platform',
         'Brand integration',
@@ -87,7 +82,6 @@ const ServicesPage: React.FC = () => {
       id: 'content-creation',
       title: 'Smart Content Tools',
       description: 'Automated content summarization, translation services, and editorial tools powered by advanced technology.',
-      icon: '✍️',
       features: [
         'Article summarization',
         'Multi-language translation',
@@ -106,47 +100,42 @@ const ServicesPage: React.FC = () => {
       company: 'TechCorp Media',
       role: 'Chief Digital Officer',
       quote: 'NewsTRNT\'s API has transformed how we deliver news to our customers. The smart curation is incredibly accurate.',
-      avatar: '/api/placeholder/100/100'
+      initials: 'SJ'
     },
     {
       name: 'Michael Zhang',
       company: 'Global News Network',
       role: 'Head of Technology',
       quote: 'The white-label solution allowed us to launch our news platform in just 6 weeks. Exceptional service.',
-      avatar: '/api/placeholder/100/100'
+      initials: 'MZ'
     },
     {
       name: 'Dr. Emily Rodriguez',
       company: 'Research Institute',
       role: 'Data Scientist',
       quote: 'The analytics platform provides insights we never had before. Essential for our media research projects.',
-      avatar: '/api/placeholder/100/100'
+      initials: 'ER'
     }
   ];
 
+  const selectedServiceData = services.find(s => s.id === selectedService);
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b border-border">
-  <div className="container mx-auto py-16">
+    <div className="min-h-screen bg-paper dark:bg-ink">
+      {/* Hero */}
+      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
+        <div className="container mx-auto py-16">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl font-bold text-foreground mb-6">
-              NewsTRNT Services
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">What We Offer</p>
+            <h1 className="font-serif text-5xl font-bold text-ivory mb-6">Our Services</h1>
+            <p className="text-xl text-ivory/60 mb-8">
               Powerful smart news solutions for individuals, businesses, and developers
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/contact"
-                className="bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
-              >
+              <Link href="/contact" className="hover-magnetic bg-vermillion text-white px-8 py-3 font-mono text-xs tracking-wider uppercase">
                 Get Started
               </Link>
-              <Link
-                href="/developers"
-                className="bg-background border border-border text-foreground px-8 py-3 rounded-lg hover:bg-muted/50 transition-colors font-medium"
-              >
+              <Link href="/developers" className="border border-ivory/20 text-ivory px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-ivory/10 transition-colors">
                 View API Docs
               </Link>
             </div>
@@ -155,56 +144,52 @@ const ServicesPage: React.FC = () => {
       </div>
 
       {/* Services Grid */}
-  <div className="container mx-auto py-16">
+      <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Our Services</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Choose from our comprehensive suite of news and smart technology services designed to meet your specific needs.
-            </p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Solutions</p>
+            <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">Choose Your Service</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((service, index) => (
               <div
                 key={service.id}
-                className={`bg-card rounded-lg border transition-all hover:shadow-lg cursor-pointer ${
+                className={`hover-lift border p-6 cursor-pointer transition-all ${
                   selectedService === service.id
-                    ? 'border-primary ring-2 ring-primary/20'
-                    : 'border-border hover:border-primary/50'
+                    ? 'border-vermillion bg-vermillion/5'
+                    : 'border-ash dark:border-ash/20 hover:border-ink dark:hover:border-ivory/40'
                 } ${service.popular ? 'relative' : ''}`}
                 onClick={() => setSelectedService(service.id)}
               >
                 {service.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                  <div className="absolute -top-3 left-4">
+                    <span className="bg-vermillion text-white px-3 py-1 font-mono text-[9px] uppercase tracking-wider">
                       Most Popular
                     </span>
                   </div>
                 )}
                 
-                <div className="p-6">
-                  <div className="text-4xl mb-4">{service.icon}</div>
-                  <h3 className="text-xl font-bold text-foreground mb-2">{service.title}</h3>
-                  <p className="text-muted-foreground mb-4 text-sm">{service.description}</p>
+                <div>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-stone">0{index + 1}</span>
+                  <h3 className="font-serif text-xl font-bold text-ink dark:text-ivory mt-2 mb-2">{service.title}</h3>
+                  <p className="text-stone text-sm mb-4">{service.description}</p>
                   
                   <div className="space-y-2 mb-6">
-                    {service.features.map((feature, index) => (
-                      <div key={index} className="flex items-start gap-2 text-sm">
-                        <svg className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    {service.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-start gap-2 text-sm">
+                        <svg className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                         </svg>
-                        <span className="text-foreground">{feature}</span>
+                        <span className="text-ink dark:text-ivory/80">{feature}</span>
                       </div>
                     ))}
                   </div>
                   
-                  <div className="border-t border-border pt-4">
+                  <div className="border-t border-ash dark:border-ash/20 pt-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-foreground">{service.pricing}</span>
-                      <button className="text-primary hover:text-primary/80 font-medium text-sm">
-                        Learn More →
-                      </button>
+                      <span className="font-serif text-lg font-bold text-ink dark:text-ivory">{service.pricing}</span>
+                      <span className="font-mono text-xs text-vermillion hover:text-vermillion/80 cursor-pointer">Learn More &rarr;</span>
                     </div>
                   </div>
                 </div>
@@ -215,104 +200,87 @@ const ServicesPage: React.FC = () => {
       </div>
 
       {/* Featured Service Detail */}
-      <div className="bg-card border-y border-border py-16">
-  <div className="container mx-auto">
-          <div className="max-w-6xl mx-auto">
-            {services.map((service) => (
-              selectedService === service.id && (
-                <div key={service.id} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                  <div>
-                    <div className="text-5xl mb-6">{service.icon}</div>
-                    <h2 className="text-3xl font-bold text-foreground mb-4">{service.title}</h2>
-                    <p className="text-muted-foreground mb-6 text-lg">{service.description}</p>
-                    
-                    <div className="space-y-4 mb-8">
-                      <h3 className="text-xl font-semibold text-foreground">Key Features:</h3>
-                      <ul className="space-y-3">
-                        {service.features.map((feature, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <svg className="w-5 h-5 text-green-500 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                            <span className="text-foreground">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div className="flex gap-4">
-                      <Link
-                        href="/contact"
-                        className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
-                      >
-                        Get Quote
-                      </Link>
-                      <button className="border border-border text-foreground px-6 py-3 rounded-lg hover:bg-muted/50 transition-colors font-medium">
-                        Schedule Demo
-                      </button>
-                    </div>
+      {selectedServiceData && (
+        <div className="bg-ivory dark:bg-ash/5 border-y border-ash dark:border-ash/20 py-16">
+          <div className="container mx-auto">
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">Featured</p>
+                  <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory mb-4">{selectedServiceData.title}</h2>
+                  <p className="text-stone text-lg mb-6">{selectedServiceData.description}</p>
+                  
+                  <div className="space-y-4 mb-8">
+                    <h3 className="font-mono text-xs uppercase tracking-wider text-ink dark:text-ivory">Key Features</h3>
+                    <ul className="space-y-3">
+                      {selectedServiceData.features.map((feature, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <svg className="w-5 h-5 text-gold mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                          </svg>
+                          <span className="text-ink dark:text-ivory/80">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-8">
-                    <div className="text-center">
-                      <div className="text-6xl mb-4">{service.icon}</div>
-                      <h3 className="text-xl font-bold text-foreground mb-2">Ready to Get Started?</h3>
-                      <p className="text-muted-foreground mb-6">
-                        Contact our team to learn more about how {service.title.toLowerCase()} can benefit your organization.
-                      </p>
-                      <div className="space-y-3">
-                        <Link
-                          href="/contact"
-                          className="block w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
-                        >
-                          Contact Sales
-                        </Link>
-                        <a
-                          href="mailto:sales@NewsTRNT.com"
-                          className="block w-full text-primary hover:text-primary/80 font-medium"
-                        >
-                          sales@NewsTRNT.com
-                        </a>
-                      </div>
+                  <div className="flex gap-4">
+                    <Link href="/contact" className="hover-magnetic bg-vermillion text-white px-6 py-3 font-mono text-xs tracking-wider uppercase">
+                      Get Quote
+                    </Link>
+                    <button className="border border-ash dark:border-ash/20 text-ink dark:text-ivory px-6 py-3 font-mono text-xs tracking-wider uppercase hover:bg-paper dark:hover:bg-ash/10 transition-colors">
+                      Schedule Demo
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="bg-ink dark:bg-ivory/5 border border-ash dark:border-ash/20 p-8">
+                  <div className="text-center">
+                    <DivergenceMark size={48} className="mx-auto mb-4" color="var(--color-vermillion, #C62828)" />
+                    <h3 className="font-serif text-xl font-bold text-ivory mb-2">Ready to Get Started?</h3>
+                    <p className="text-ivory/60 mb-6">
+                      Contact our team to learn more about how {selectedServiceData.title.toLowerCase()} can benefit your organization.
+                    </p>
+                    <div className="space-y-3">
+                      <Link href="/contact" className="block w-full bg-vermillion text-white py-3 font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors">
+                        Contact Sales
+                      </Link>
+                      <a href="mailto:sales@NewsTRNT.com" className="block w-full text-ivory/60 hover:text-ivory font-mono text-xs transition-colors">
+                        sales@NewsTRNT.com
+                      </a>
                     </div>
                   </div>
                 </div>
-              )
-            ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Testimonials */}
-  <div className="container mx-auto py-16">
+      <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">What Our Clients Say</h2>
-            <p className="text-muted-foreground">
-              Trusted by leading organizations worldwide
-            </p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Testimonials</p>
+            <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">What Our Clients Say</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-card rounded-lg p-6 border border-border">
+              <div key={index} className="border border-ash dark:border-ash/20 p-6">
                 <div className="flex items-center mb-4">
-                  <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    width={50}
-                    height={50}
-                    className="rounded-full mr-4"
-                  />
+                  <div className="w-12 h-12 bg-ink dark:bg-ivory/10 flex items-center justify-center mr-4">
+                    <span className="font-serif text-sm font-bold text-ivory">{testimonial.initials}</span>
+                  </div>
                   <div>
-                    <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                    <p className="text-sm text-primary">{testimonial.company}</p>
+                    <h4 className="font-serif font-semibold text-ink dark:text-ivory">{testimonial.name}</h4>
+                    <p className="text-sm text-stone">{testimonial.role}</p>
+                    <p className="text-sm text-vermillion">{testimonial.company}</p>
                   </div>
                 </div>
-                <p className="text-muted-foreground text-justify italic">"{testimonial.quote}"</p>
-                <div className="flex text-yellow-400 mt-4">
-                  ⭐⭐⭐⭐⭐
+                <p className="text-stone text-sm italic leading-relaxed">&ldquo;{testimonial.quote}&rdquo;</p>
+                <div className="flex text-gold mt-4 font-mono text-xs tracking-wider">
+                  &#9733; &#9733; &#9733; &#9733; &#9733;
                 </div>
               </div>
             ))}
@@ -320,27 +288,22 @@ const ServicesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* CTA Section */}
-      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
-  <div className="container mx-auto">
+      {/* CTA */}
+      <div className="bg-ink dark:bg-ivory/5 border-t-2 border-vermillion py-16">
+        <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">
+            <DivergenceMark size={32} className="mx-auto mb-6" color="var(--color-vermillion, #C62828)" />
+            <h2 className="font-serif text-3xl font-bold text-ivory mb-4">
               Ready to Transform Your News Experience?
             </h2>
-            <p className="text-xl mb-8 text-primary-foreground/80">
+            <p className="text-xl mb-8 text-ivory/60">
               Join thousands of satisfied customers who trust NewsTRNT for their news and data needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/subscription"
-                className="bg-primary-foreground text-primary px-8 py-3 rounded-lg hover:bg-primary-foreground/90 transition-colors font-medium"
-              >
+              <Link href="/subscription" className="hover-magnetic bg-vermillion text-white px-8 py-3 font-mono text-xs tracking-wider uppercase">
                 Start Free Trial
               </Link>
-              <Link
-                href="/contact"
-                className="border-2 border-primary-foreground text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary-foreground hover:text-primary transition-colors font-medium"
-              >
+              <Link href="/contact" className="border border-ivory/20 text-ivory px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-ivory/10 transition-colors">
                 Contact Sales
               </Link>
             </div>

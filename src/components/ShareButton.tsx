@@ -66,17 +66,17 @@ const ShareButton: React.FC<ShareButtonProps> = ({
       <div className="relative">
         <button
           onClick={handleNativeShare}
-          className={`p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors ${className}`}
+          className={`p-2 text-stone hover:text-vermillion dark:text-stone dark:hover:text-vermillion transition-colors ${className}`}
           title="Share article"
         >
           <ShareIcon className="w-5 h-5" />
         </button>
         
         {isOpen && !navigator.share && (
-          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2 z-50">
+          <div className="absolute right-0 mt-2 w-48 bg-paper dark:bg-ink rounded-lg shadow-lg border dark:border-ash/20 py-2 z-50">
             <button
               onClick={copyToClipboard}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+              className="w-full px-4 py-2 text-left text-sm text-ink dark:text-ivory hover:bg-ivory dark:hover:bg-ink/80 flex items-center"
             >
               {copied ? (
                 <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
@@ -92,7 +92,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
                 href={shareUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 capitalize"
+                className="block w-full px-4 py-2 text-left text-sm text-ink dark:text-ivory hover:bg-ivory dark:hover:bg-ink/80 capitalize"
                 onClick={() => setIsOpen(false)}
               >
                 Share on {platform}
@@ -108,17 +108,17 @@ const ShareButton: React.FC<ShareButtonProps> = ({
     <div className="relative">
       <button
         onClick={handleNativeShare}
-        className={`inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${className}`}
+        className={`inline-flex items-center px-4 py-2 border border-ash dark:border-ash/30 rounded-md shadow-sm bg-paper dark:bg-ink text-sm font-medium text-ink dark:text-ivory hover:bg-ivory dark:hover:bg-ink/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-vermillion ${className}`}
       >
         <ShareIcon className="w-4 h-4 mr-2" />
         Share
       </button>
       
       {isOpen && !navigator.share && (
-        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2 z-50">
+        <div className="absolute right-0 mt-2 w-48 bg-paper dark:bg-ink rounded-lg shadow-lg border dark:border-ash/20 py-2 z-50">
           <button
             onClick={copyToClipboard}
-            className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+            className="w-full px-4 py-2 text-left text-sm text-ink dark:text-ivory hover:bg-ivory dark:hover:bg-ink/80 flex items-center"
           >
             {copied ? (
               <CheckIcon className="w-4 h-4 text-green-500 mr-2" />

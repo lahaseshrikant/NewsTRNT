@@ -77,17 +77,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   };
 
   const getCategoryColor = (category: string) => {
-    const colors: { [key: string]: string } = {
-      'Technology': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-      'Politics': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-      'Business': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-      'Sports': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-      'Entertainment': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-      'Health': 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
-      'Science': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-      'World': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    };
-    return colors[category] || 'bg-muted text-muted-foreground';
+    return 'bg-ink/5 text-ink dark:bg-ivory/10 dark:text-ivory font-mono text-[10px] tracking-wider uppercase';
   };
 
   if (variant === 'featured') {
@@ -122,11 +112,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             </h2>
           </Link>
           
-          <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+          <p className="text-stone mb-4 line-clamp-3">
             {article.summary}
           </p>
           
-          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <div className="flex items-center justify-between text-sm text-stone mb-4">
             <div className="flex items-center space-x-4">
               {article.author && <span>By {article.author}</span>}
               <div className="flex items-center space-x-1">
@@ -138,18 +128,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           </div>
           
           {showActions && (
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between pt-4 border-t border-ash dark:border-ash/20">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-1">
                   <button 
                     onClick={handleLike}
-                    className="flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                    className="flex items-center space-x-1 text-stone hover:text-vermillion transition-colors"
                   >
-                    {isLiked ? <HeartSolidIcon className="w-4 h-4 text-red-500" /> : <HeartIcon className="w-4 h-4" />}
+                    {isLiked ? <HeartSolidIcon className="w-4 h-4 text-vermillion" /> : <HeartIcon className="w-4 h-4" />}
                     <span>{likesCount}</span>
                   </button>
                 </div>
-                <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
+                <div className="flex items-center space-x-1 text-stone">
                   <ChatBubbleLeftIcon className="w-4 h-4" />
                   <span>{article.comments || 0}</span>
                 </div>
@@ -158,14 +148,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handleBookmark}
-                  className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-accent transition-all"
+                  className="p-2 text-stone hover:text-vermillion hover:bg-ivory dark:hover:bg-ash/10 transition-all"
                   title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
                 >
-                  {isBookmarked ? <BookmarkSolidIcon className="w-5 h-5 text-blue-600" /> : <BookmarkIcon className="w-5 h-5" />}
+                  {isBookmarked ? <BookmarkSolidIcon className="w-5 h-5 text-vermillion" /> : <BookmarkIcon className="w-5 h-5" />}
                 </button>
                 <button
                   onClick={handleShare}
-                  className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-accent transition-all"
+                  className="p-2 text-stone hover:text-vermillion hover:bg-ivory dark:hover:bg-ash/10 transition-all"
                   title="Share article"
                 >
                   <ShareIcon className="w-5 h-5" />
@@ -203,10 +193,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <h3 className="text-sm font-semibold text-foreground hover:text-primary transition-colors">
               {article.title}
             </h3>
-            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center text-xs text-stone">
               <ClockIcon className="w-3 h-3 mr-1" />
               <span>{article.readingTime} min</span>
-              <span className="mx-1">•</span>
+              <span className="mx-1">&bull;</span>
               <span>{article.publishedAt}</span>
             </div>
           </div>
@@ -233,10 +223,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <h3 className="text-lg font-semibold text-foreground mb-2 hover:text-primary transition-colors">
               {article.title}
             </h3>
-            <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">
+            <p className="text-stone text-sm mb-3 line-clamp-2">
               {article.summary}
             </p>
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 space-x-4">
+            <div className="flex items-center text-sm text-stone space-x-4">
               {article.author && <span>By {article.author}</span>}
               <div className="flex items-center space-x-1">
                 <ClockIcon className="w-4 h-4" />
@@ -256,13 +246,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         
         {showActions && (
           <div className="px-4 pb-4">
-            <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-between pt-3 border-t border-ash dark:border-ash/20">
+              <div className="flex items-center space-x-4 text-sm text-stone">
                 <button 
                   onClick={handleLike}
-                  className="flex items-center space-x-1 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                  className="flex items-center space-x-1 hover:text-vermillion transition-colors"
                 >
-                  {isLiked ? <HeartSolidIcon className="w-4 h-4 text-red-500" /> : <HeartIcon className="w-4 h-4" />}
+                  {isLiked ? <HeartSolidIcon className="w-4 h-4 text-vermillion" /> : <HeartIcon className="w-4 h-4" />}
                   <span>{likesCount}</span>
                 </button>
                 <div className="flex items-center space-x-1">
@@ -274,14 +264,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               <div className="flex items-center space-x-1">
                 <button
                   onClick={handleBookmark}
-                  className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
+                  className="p-1 text-stone hover:text-vermillion transition-colors"
                   title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
                 >
-                  {isBookmarked ? <BookmarkSolidIcon className="w-4 h-4 text-blue-600" /> : <BookmarkIcon className="w-4 h-4" />}
+                  {isBookmarked ? <BookmarkSolidIcon className="w-4 h-4 text-vermillion" /> : <BookmarkIcon className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={handleShare}
-                  className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
+                  className="p-1 text-stone hover:text-vermillion transition-colors"
                   title="Share article"
                 >
                   <ShareIcon className="w-4 h-4" />
@@ -326,11 +316,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           </h3>
         </Link>
         
-        <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">
+        <p className="text-stone text-sm mb-3 line-clamp-2">
           {article.summary}
         </p>
         
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
+        <div className="flex items-center justify-between text-xs text-stone mb-3">
           <div className="flex items-center space-x-2">
             {article.author && <span>By {article.author}</span>}
             <div className="flex items-center space-x-1">
@@ -342,13 +332,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         </div>
         
         {showActions && (
-          <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-3 text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-between pt-3 border-t border-ash dark:border-ash/20">
+            <div className="flex items-center space-x-3 text-sm text-stone">
               <button 
                 onClick={handleLike}
-                className="flex items-center space-x-1 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                className="flex items-center space-x-1 hover:text-vermillion transition-colors"
               >
-                {isLiked ? <HeartSolidIcon className="w-4 h-4 text-red-500" /> : <HeartIcon className="w-4 h-4" />}
+                {isLiked ? <HeartSolidIcon className="w-4 h-4 text-vermillion" /> : <HeartIcon className="w-4 h-4" />}
                 <span>{likesCount}</span>
               </button>
             </div>
@@ -356,14 +346,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <div className="flex items-center space-x-1">
               <button
                 onClick={handleBookmark}
-                className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
+                className="p-1 text-stone hover:text-vermillion transition-colors"
                 title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
               >
-                {isBookmarked ? <BookmarkSolidIcon className="w-4 h-4 text-blue-600" /> : <BookmarkIcon className="w-4 h-4" />}
+                {isBookmarked ? <BookmarkSolidIcon className="w-4 h-4 text-vermillion" /> : <BookmarkIcon className="w-4 h-4" />}
               </button>
               <button
                 onClick={handleShare}
-                className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
+                className="p-1 text-stone hover:text-vermillion transition-colors"
                 title="Share article"
               >
                 <ShareIcon className="w-4 h-4" />

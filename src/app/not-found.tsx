@@ -2,145 +2,95 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useCategories } from '@/hooks/useCategories';
+import { DivergenceMark } from '@/components/DivergenceMark';
+import { SearchIcon, ArrowRightIcon } from '@/components/icons/EditorialIcons';
 
 const NotFoundPage: React.FC = () => {
-  // Use dynamic categories for navigation suggestions
-  const { categories: dynamicCategories } = useCategories();
-  
-  const popularPages = [
-    { name: 'Home', href: '/', icon: '🏠' },
-    { name: 'Latest News', href: '/category/world', icon: '🌍' },
-    { name: 'Technology', href: '/category/technology', icon: '💻' },
-    { name: 'Services', href: '/services', icon: '🛠️' },
-    { name: 'About Us', href: '/about', icon: 'ℹ️' },
-    { name: 'Contact', href: '/contact', icon: '📧' }
-  ];
-
-  // Create category links from dynamic categories (active only)
-  const allCategories = dynamicCategories.map(cat => ({
-    name: cat.name,
-    href: `/category/${cat.slug}`
-  }));
-
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="max-w-4xl mx-auto text-center">
-        {/* 404 Hero */}
-        <div className="mb-12">
-          <div className="text-9xl font-bold text-primary mb-4">404</div>
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            Page Not Found
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Sometimes The Road Not Taken leads to unexpected places. Let's get you back on track.
-          </p>
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+        {/* Divergence Mark */}
+        <div className="mb-8 flex justify-center">
+          <DivergenceMark size={64} animated className="text-primary" />
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12">
-          {popularPages.map((page) => (
+        {/* Breaking news style header */}
+        <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 bg-primary/10 rounded-editorial">
+          <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+          <span className="text-overline text-primary uppercase tracking-widest">
+            Story Not Found
+          </span>
+        </div>
+
+        {/* Main headline */}
+        <h1 className="font-serif text-display text-foreground mb-6 leading-none tracking-tight">
+          404
+        </h1>
+
+        <h2 className="font-serif text-headline-3 text-foreground mb-4">
+          This Story Took the Road Less Traveled
+        </h2>
+
+        <p className="text-body-lg text-muted-foreground mb-3 max-w-lg mx-auto">
+          The page you&apos;re looking for has either been moved, removed, or perhaps it never existed in the first place.
+        </p>
+
+        <p className="text-caption text-muted-foreground mb-10 font-mono">
+          &ldquo;Two roads diverged in a wood, and I took the one that led to a 404.&rdquo;
+        </p>
+
+        {/* Editorial divider */}
+        <hr className="editorial-rule mb-10" />
+
+        {/* Action buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center gap-2 bg-foreground text-background px-8 py-3 text-body-sm font-semibold tracking-wide hover:bg-foreground/90 transition-all rounded-editorial"
+          >
+            Back to Headlines
+            <ArrowRightIcon size={16} />
+          </Link>
+          <Link
+            href="/search"
+            className="inline-flex items-center justify-center gap-2 border border-border text-foreground px-8 py-3 text-body-sm font-semibold tracking-wide hover:bg-muted transition-all rounded-editorial"
+          >
+            <SearchIcon size={16} />
+            Search Stories
+          </Link>
+        </div>
+
+        {/* Quick links */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
+          {[
+            { label: 'Trending', href: '/trending' },
+            { label: 'Latest', href: '/news' },
+            { label: 'Categories', href: '/categories' },
+            { label: 'About Us', href: '/about' },
+          ].map((link) => (
             <Link
-              key={page.name}
-              href={page.href}
-              className="bg-card border border-border rounded-lg p-4 hover:bg-muted/50 hover:border-primary/20 transition-all group"
+              key={link.href}
+              href={link.href}
+              className="group p-4 border border-border rounded-editorial hover:border-primary/30 hover:bg-primary/5 transition-all"
             >
-              <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">
-                {page.icon}
-              </div>
-              <div className="font-medium text-foreground group-hover:text-primary transition-colors">
-                {page.name}
-              </div>
+              <span className="text-overline text-muted-foreground group-hover:text-primary uppercase tracking-widest block mb-1">
+                Explore
+              </span>
+              <span className="text-body-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                {link.label}
+              </span>
             </Link>
           ))}
         </div>
 
-        {/* Navigation Help */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {/* News Categories */}
-          <div className="bg-card border border-border rounded-lg p-6">
-            <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
-              📰 Browse News Categories
-            </h2>
-            <div className="grid grid-cols-1 gap-2">
-              {allCategories.map((category) => (
-                <Link
-                  key={category.name}
-                  href={category.href}
-                  className="text-left text-muted-foreground hover:text-primary transition-colors py-1"
-                >
-                  {category.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Services */}
-          <div className="bg-card border border-border rounded-lg p-6">
-            <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
-              🛠️ Our Services
-            </h2>
-            <div className="space-y-3">
-              <Link
-                href="/services"
-                className="block text-muted-foreground hover:text-primary transition-colors"
-              >
-                AI News Curation
-              </Link>
-              <Link
-                href="/developers"
-                className="block text-muted-foreground hover:text-primary transition-colors"
-              >
-                API & Developer Tools
-              </Link>
-              <Link
-                href="/services#analytics"
-                className="block text-muted-foreground hover:text-primary transition-colors"
-              >
-                News Analytics
-              </Link>
-              <Link
-                href="/services#breaking-alerts"
-                className="block text-muted-foreground hover:text-primary transition-colors"
-              >
-                Breaking News Alerts
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Search */}
-        <div className="bg-card border border-border rounded-lg p-8">
-          <h2 className="text-xl font-bold text-foreground mb-4">
-            🔍 Can't find what you're looking for?
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            Try searching our site or browse our sitemap
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/search"
-              className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
-            >
-              Search NewsTRNT
-            </Link>
-            <Link
-              href="/sitemap"
-              className="border border-border text-foreground px-6 py-3 rounded-lg hover:bg-muted/50 transition-colors font-medium"
-            >
-              View Sitemap
-            </Link>
-          </div>
-        </div>
-
-        {/* Back Button */}
-        <div className="mt-8">
+        {/* Back button */}
+        <div className="mt-12">
           <button
             onClick={() => window.history.back()}
-            className="text-muted-foreground hover:text-foreground transition-colors inline-flex items-center"
+            className="text-caption text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-2"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 19l-7-7 7-7" />
             </svg>
             Go Back
           </button>

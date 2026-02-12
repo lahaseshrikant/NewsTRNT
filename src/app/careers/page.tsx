@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { DivergenceMark } from '@/components/DivergenceMark';
 
 const CareersPage: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('all');
@@ -116,63 +116,19 @@ const CareersPage: React.FC = () => {
   ];
 
   const benefits = [
-    {
-      icon: '🏥',
-      title: 'Health & Wellness',
-      description: 'Comprehensive health, dental, and vision insurance. Mental health support and wellness programs.'
-    },
-    {
-      icon: '💰',
-      title: 'Competitive Compensation',
-      description: 'Market-leading salaries, equity packages, and performance-based bonuses.'
-    },
-    {
-      icon: '🏠',
-      title: 'Remote-First',
-      description: 'Work from anywhere with flexible hours. Home office setup allowance provided.'
-    },
-    {
-      icon: '📚',
-      title: 'Learning & Development',
-      description: 'Annual learning budget, conference attendance, and internal training programs.'
-    },
-    {
-      icon: '🌴',
-      title: 'Time Off',
-      description: 'Unlimited PTO policy with encouraged minimum 3 weeks per year.'
-    },
-    {
-      icon: '👥',
-      title: 'Team Culture',
-      description: 'Collaborative environment with regular team events and retreats.'
-    }
+    { title: 'Health & Wellness', description: 'Comprehensive health, dental, and vision insurance. Mental health support and wellness programs.' },
+    { title: 'Competitive Compensation', description: 'Market-leading salaries, equity packages, and performance-based bonuses.' },
+    { title: 'Remote-First', description: 'Work from anywhere with flexible hours. Home office setup allowance provided.' },
+    { title: 'Learning & Development', description: 'Annual learning budget, conference attendance, and internal training programs.' },
+    { title: 'Time Off', description: 'Unlimited PTO policy with encouraged minimum 3 weeks per year.' },
+    { title: 'Team Culture', description: 'Collaborative environment with regular team events and retreats.' }
   ];
 
   const team = [
-    {
-      name: 'Sarah Chen',
-      role: 'CEO & Co-founder',
-      bio: 'Former VP of Product at major tech company. Passionate about democratizing news access.',
-      avatar: '/api/placeholder/150/150'
-    },
-    {
-      name: 'Marcus Johnson',
-      role: 'CTO & Co-founder',
-      bio: 'AI researcher with 10+ years experience. Previously led ML teams at Google and OpenAI.',
-      avatar: '/api/placeholder/150/150'
-    },
-    {
-      name: 'Elena Rodriguez',
-      role: 'VP of Engineering',
-      bio: 'Full-stack engineer and tech lead. Expert in scalable systems and team building.',
-      avatar: '/api/placeholder/150/150'
-    },
-    {
-      name: 'David Park',
-      role: 'Head of Design',
-      bio: 'Award-winning designer focused on user experience and accessibility.',
-      avatar: '/api/placeholder/150/150'
-    }
+    { name: 'Sarah Chen', role: 'CEO & Co-founder', bio: 'Former VP of Product at major tech company. Passionate about democratizing news access.', initials: 'SC' },
+    { name: 'Marcus Johnson', role: 'CTO & Co-founder', bio: 'AI researcher with 10+ years experience. Previously led ML teams at Google and OpenAI.', initials: 'MJ' },
+    { name: 'Elena Rodriguez', role: 'VP of Engineering', bio: 'Full-stack engineer and tech lead. Expert in scalable systems and team building.', initials: 'ER' },
+    { name: 'David Park', role: 'Head of Design', bio: 'Award-winning designer focused on user experience and accessibility.', initials: 'DP' }
   ];
 
   const filteredJobs = selectedDepartment === 'all' 
@@ -180,76 +136,58 @@ const CareersPage: React.FC = () => {
     : jobOpenings.filter(job => job.department === selectedDepartment);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b border-border">
-  <div className="container mx-auto py-16">
+    <div className="min-h-screen bg-paper dark:bg-ink">
+      {/* Hero */}
+      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
+        <div className="container mx-auto py-16">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl font-bold text-foreground mb-6">
-              Join Our Mission
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">We&apos;re Hiring</p>
+            <h1 className="font-serif text-5xl font-bold text-ivory mb-6">Join Our Mission</h1>
+            <p className="text-xl text-ivory/60 mb-8">
               Help us revolutionize how the world consumes news with smart personalization and independent journalism
             </p>
-            <div className="flex items-center justify-center space-x-8 text-sm text-muted-foreground">
-              <div className="flex items-center">
-                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                Remote-First Company
-              </div>
-              <div className="flex items-center">
-                <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                {jobOpenings.length} Open Positions
-              </div>
-              <div className="flex items-center">
-                <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                Global Team
-              </div>
+            <div className="flex items-center justify-center space-x-8 text-sm text-ivory/40 font-mono text-xs uppercase tracking-wider">
+              <span>Remote-First</span>
+              <span className="w-1 h-1 bg-vermillion"></span>
+              <span>{jobOpenings.length} Open Positions</span>
+              <span className="w-1 h-1 bg-vermillion"></span>
+              <span>Global Team</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Company Values */}
-  <div className="container mx-auto py-16">
+      {/* Values */}
+      <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Our Values</h2>
-            <p className="text-muted-foreground">What drives us every day</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">What Drives Us</p>
+            <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">Our Values</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="text-4xl mb-4">🎯</div>
-              <h3 className="text-xl font-bold text-foreground mb-2">Mission-Driven</h3>
-              <p className="text-muted-foreground">
-                We believe in the power of informed citizens and work to make quality news accessible to everyone.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl mb-4">🤝</div>
-              <h3 className="text-xl font-bold text-foreground mb-2">Collaborative</h3>
-              <p className="text-muted-foreground">
-                We value diverse perspectives and believe the best solutions come from working together.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl mb-4">🚀</div>
-              <h3 className="text-xl font-bold text-foreground mb-2">Innovation</h3>
-              <p className="text-muted-foreground">
-                We're constantly pushing the boundaries of what's possible with AI and technology.
-              </p>
-            </div>
+            {[
+              { num: '01', title: 'Mission-Driven', text: 'We believe in the power of informed citizens and work to make quality news accessible to everyone.' },
+              { num: '02', title: 'Collaborative', text: 'We value diverse perspectives and believe the best solutions come from working together.' },
+              { num: '03', title: 'Innovation', text: 'We\'re constantly pushing the boundaries of what\'s possible with AI and technology.' }
+            ].map((value) => (
+              <div key={value.num} className="border border-ash dark:border-ash/20 p-8">
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-stone">{value.num}</span>
+                <h3 className="font-serif text-xl font-bold text-ink dark:text-ivory mt-3 mb-3">{value.title}</h3>
+                <p className="text-stone text-sm leading-relaxed">{value.text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Job Openings */}
-      <div className="bg-card border-y border-border py-16">
-  <div className="container mx-auto">
+      <div className="bg-ivory dark:bg-ash/5 border-y border-ash dark:border-ash/20 py-16">
+        <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Open Positions</h2>
-              <p className="text-muted-foreground">Find your next opportunity with us</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Opportunities</p>
+              <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">Open Positions</h2>
             </div>
 
             {/* Department Filter */}
@@ -258,10 +196,10 @@ const CareersPage: React.FC = () => {
                 <button
                   key={dept.id}
                   onClick={() => setSelectedDepartment(dept.id)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
                     selectedDepartment === dept.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-background border border-border text-foreground hover:bg-muted/50'
+                      ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
+                      : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
                   }`}
                 >
                   {dept.name}
@@ -270,38 +208,32 @@ const CareersPage: React.FC = () => {
             </div>
 
             {/* Job Listings */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {filteredJobs.map((job) => (
-                <div key={job.id} className="bg-background rounded-lg border border-border p-6 hover:shadow-lg transition-shadow">
+                <div key={job.id} className="hover-lift bg-paper dark:bg-ink border border-ash dark:border-ash/20 p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-xl font-bold text-foreground">{job.title}</h3>
-                        <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                        <h3 className="font-serif text-xl font-bold text-ink dark:text-ivory">{job.title}</h3>
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-vermillion border border-vermillion/30 px-2 py-1">
                           {job.type}
                         </span>
                       </div>
                       
-                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-3">
-                        <span className="flex items-center">
-                          📍 {job.location}
-                        </span>
-                        <span className="flex items-center">
-                          💰 {job.salary}
-                        </span>
-                        <span className="flex items-center">
-                          📅 Posted {new Date(job.posted).toLocaleDateString()}
-                        </span>
+                      <div className="flex flex-wrap gap-4 text-sm text-stone font-mono text-xs mb-3">
+                        <span>{job.location}</span>
+                        <span>{job.salary}</span>
+                        <span>Posted {new Date(job.posted).toLocaleDateString()}</span>
                       </div>
                       
-                      <p className="text-muted-foreground mb-4">{job.description}</p>
+                      <p className="text-stone mb-4">{job.description}</p>
                       
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-foreground">Key Requirements:</h4>
+                      <div className="space-y-1">
+                        <h4 className="font-mono text-xs uppercase tracking-wider text-ink dark:text-ivory">Key Requirements</h4>
                         <ul className="space-y-1">
                           {job.requirements.slice(0, 2).map((req, index) => (
-                            <li key={index} className="text-sm text-muted-foreground flex items-start">
-                              <span className="text-green-500 mr-2">•</span>
+                            <li key={index} className="text-sm text-stone flex items-start">
+                              <span className="text-vermillion mr-2">&mdash;</span>
                               {req}
                             </li>
                           ))}
@@ -312,11 +244,11 @@ const CareersPage: React.FC = () => {
                     <div className="flex flex-col gap-2 lg:ml-6">
                       <Link
                         href={`/careers/${job.id}`}
-                        className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium text-center"
+                        className="hover-magnetic bg-vermillion text-white px-6 py-3 font-mono text-xs tracking-wider uppercase text-center"
                       >
                         Apply Now
                       </Link>
-                      <button className="border border-border text-foreground px-6 py-3 rounded-lg hover:bg-muted/50 transition-colors font-medium">
+                      <button className="border border-ash dark:border-ash/20 text-ink dark:text-ivory px-6 py-3 font-mono text-xs tracking-wider uppercase hover:bg-ivory dark:hover:bg-ash/10 transition-colors">
                         View Details
                       </button>
                     </div>
@@ -327,9 +259,9 @@ const CareersPage: React.FC = () => {
 
             {filteredJobs.length === 0 && (
               <div className="text-center py-12">
-                <div className="text-4xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-foreground mb-2">No positions found</h3>
-                <p className="text-muted-foreground">
+                <svg className="w-12 h-12 text-stone/30 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                <h3 className="font-serif text-xl font-bold text-ink dark:text-ivory mb-2">No positions found</h3>
+                <p className="text-stone">
                   No open positions in {departments.find(d => d.id === selectedDepartment)?.name.toLowerCase()} right now. 
                   Check back soon or view all departments.
                 </p>
@@ -340,19 +272,19 @@ const CareersPage: React.FC = () => {
       </div>
 
       {/* Benefits */}
-  <div className="container mx-auto py-16">
+      <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Why Join NewsTRNT?</h2>
-            <p className="text-muted-foreground">We take care of our team so they can take care of our mission</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Benefits</p>
+            <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">Why Join NewsTRNT?</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {benefits.map((benefit, index) => (
-              <div key={index} className="bg-card rounded-lg p-6 border border-border text-center">
-                <div className="text-4xl mb-4">{benefit.icon}</div>
-                <h3 className="text-lg font-bold text-foreground mb-2">{benefit.title}</h3>
-                <p className="text-muted-foreground text-sm">{benefit.description}</p>
+              <div key={index} className="border border-ash dark:border-ash/20 p-6">
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-stone">0{index + 1}</span>
+                <h3 className="font-serif text-lg font-bold text-ink dark:text-ivory mt-2 mb-2">{benefit.title}</h3>
+                <p className="text-stone text-sm leading-relaxed">{benefit.description}</p>
               </div>
             ))}
           </div>
@@ -360,27 +292,23 @@ const CareersPage: React.FC = () => {
       </div>
 
       {/* Team */}
-      <div className="bg-card border-y border-border py-16">
-  <div className="container mx-auto">
+      <div className="bg-ivory dark:bg-ash/5 border-y border-ash dark:border-ash/20 py-16">
+        <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Meet the Team</h2>
-              <p className="text-muted-foreground">The people building the future of news</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Leadership</p>
+              <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">Meet the Team</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {team.map((member, index) => (
                 <div key={index} className="text-center">
-                  <Image
-                    src={member.avatar}
-                    alt={member.name}
-                    width={150}
-                    height={150}
-                    className="rounded-full mx-auto mb-4"
-                  />
-                  <h3 className="text-lg font-bold text-foreground mb-1">{member.name}</h3>
-                  <p className="text-primary font-medium mb-2">{member.role}</p>
-                  <p className="text-sm text-muted-foreground">{member.bio}</p>
+                  <div className="w-20 h-20 bg-ink dark:bg-ivory/10 flex items-center justify-center mx-auto mb-4">
+                    <span className="font-serif text-xl font-bold text-ivory dark:text-ivory/80">{member.initials}</span>
+                  </div>
+                  <h3 className="font-serif text-lg font-bold text-ink dark:text-ivory mb-1">{member.name}</h3>
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-vermillion mb-2">{member.role}</p>
+                  <p className="text-sm text-stone">{member.bio}</p>
                 </div>
               ))}
             </div>
@@ -388,67 +316,54 @@ const CareersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Application Process */}
-  <div className="container mx-auto py-16">
+      {/* Hiring Process */}
+      <div className="container mx-auto py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Our Hiring Process</h2>
-            <p className="text-muted-foreground">What to expect when you apply</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Process</p>
+            <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">Our Hiring Process</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg mx-auto mb-4">
-                1
+            {[
+              { step: '01', title: 'Apply', desc: 'Submit your application and resume through our portal' },
+              { step: '02', title: 'Screen', desc: 'Initial phone/video call with our hiring team' },
+              { step: '03', title: 'Interview', desc: 'Technical and cultural fit interviews with the team' },
+              { step: '04', title: 'Offer', desc: 'Final decision and offer discussion' }
+            ].map((item) => (
+              <div key={item.step} className="text-center">
+                <div className="w-12 h-12 bg-ink dark:bg-ivory/10 flex items-center justify-center font-mono text-sm font-bold text-ivory mx-auto mb-4">
+                  {item.step}
+                </div>
+                <h3 className="font-serif font-bold text-ink dark:text-ivory mb-2">{item.title}</h3>
+                <p className="text-sm text-stone">{item.desc}</p>
               </div>
-              <h3 className="font-bold text-foreground mb-2">Apply</h3>
-              <p className="text-sm text-muted-foreground">Submit your application and resume through our portal</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg mx-auto mb-4">
-                2
-              </div>
-              <h3 className="font-bold text-foreground mb-2">Screen</h3>
-              <p className="text-sm text-muted-foreground">Initial phone/video call with our hiring team</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg mx-auto mb-4">
-                3
-              </div>
-              <h3 className="font-bold text-foreground mb-2">Interview</h3>
-              <p className="text-sm text-muted-foreground">Technical and cultural fit interviews with the team</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg mx-auto mb-4">
-                4
-              </div>
-              <h3 className="font-bold text-foreground mb-2">Offer</h3>
-              <p className="text-sm text-muted-foreground">Final decision and offer discussion</p>
-            </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* CTA Section */}
-      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
-  <div className="container mx-auto">
+      {/* CTA */}
+      <div className="bg-ink dark:bg-ivory/5 border-t-2 border-vermillion py-16">
+        <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">
+            <DivergenceMark size={32} className="mx-auto mb-6" color="var(--color-vermillion, #C62828)" />
+            <h2 className="font-serif text-3xl font-bold text-ivory mb-4">
               Ready to Shape the Future of News?
             </h2>
-            <p className="text-xl mb-8 text-primary-foreground/80">
-              Don't see a role that fits? We're always looking for exceptional talent.
+            <p className="text-xl mb-8 text-ivory/60">
+              Don&apos;t see a role that fits? We&apos;re always looking for exceptional talent.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="mailto:careers@NewsTRNT.com"
-                className="bg-primary-foreground text-primary px-8 py-3 rounded-lg hover:bg-primary-foreground/90 transition-colors font-medium"
+                className="hover-magnetic bg-vermillion text-white px-8 py-3 font-mono text-xs tracking-wider uppercase"
               >
                 Send Us Your Resume
               </a>
               <Link
                 href="/contact"
-                className="border-2 border-primary-foreground text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary-foreground hover:text-primary transition-colors font-medium"
+                className="border border-ivory/20 text-ivory px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-ivory/10 transition-colors"
               >
                 Get in Touch
               </Link>

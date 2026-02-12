@@ -4,8 +4,22 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { dbApi, Article, WebStory } from '../lib/database-real';
-import { useCategories, Category } from '@/hooks/useCategories';
+import { useCategories } from '@/hooks/useCategories';
+import { Category } from '@/types/api';
 import { getContentUrl } from '@/lib/contentUtils';
+import DivergenceMark from '@/components/DivergenceMark';
+import {
+  TrendingIcon,
+  BreakingIcon,
+  EditorPickIcon,
+  StoriesIcon,
+  PopularIcon,
+  CategoriesIcon,
+  NewsletterIcon,
+  TagsIcon,
+  ArrowRightIcon,
+} from '@/components/icons/EditorialIcons';
+import AdSlot from '@/components/AdSlot';
 
 // Helper function to format published time
 const formatPublishedTime = (publishedAt: string | Date) => {
@@ -14,9 +28,9 @@ const formatPublishedTime = (publishedAt: string | Date) => {
   const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
   
   if (diffInHours < 1) return 'Just now';
-  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 24) return `${diffInHours}h ago`;
   if (diffInHours < 48) return 'Yesterday';
-  return `${Math.floor(diffInHours / 24)} days ago`;
+  return `${Math.floor(diffInHours / 24)}d ago`;
 };
 
 // Format date for topbar
@@ -29,83 +43,77 @@ const formatFullDate = (date: Date) => {
   });
 };
 
-// Section Header Component
-const SectionHeader = ({ title, viewAllLink, icon }: { title: string; viewAllLink?: string; icon?: string }) => (
+// Editorial Section Header Component
+const SectionHeader = ({ title, viewAllLink, icon }: { title: string; viewAllLink?: string; icon?: React.ReactNode }) => (
   <div className="section-header">
-    <h2 className="section-title flex items-center gap-2">
-      {icon && <span>{icon}</span>}
+    <h2 className="section-title flex items-center gap-2.5">
+      {icon && <span className="text-primary">{icon}</span>}
       {title}
     </h2>
     {viewAllLink && (
-      <Link href={viewAllLink} className="section-link">
-        View All →
+      <Link href={viewAllLink} className="section-link inline-flex items-center gap-1 group">
+        View All
+        <ArrowRightIcon size={14} className="transition-transform group-hover:translate-x-1" />
       </Link>
     )}
   </div>
 );
 
-// Featured Card Component
-const FeaturedCard = ({ article, size = 'large' }: { article: Article; size?: 'large' | 'medium' | 'small' }) => {
-  const heights = { large: 'h-[500px]', medium: 'h-[240px]', small: 'h-[200px]' };
-  
-  return (
-    <Link href={getContentUrl(article)} className="block">
-      <div className={`featured-card ${heights[size]} relative group`}>
-        <Image
-          src={article.imageUrl || '/api/placeholder/800/600'}
-          alt={article.title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, 50vw"
-        />
-        <div className="overlay"></div>
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <span className="category-badge category-badge-red mb-3 inline-block">
-            {article.category?.name || 'News'}
-          </span>
-          <h3 className={`text-white font-bold mb-2 line-clamp-2 group-hover:text-red-300 transition-colors ${
-            size === 'large' ? 'text-2xl md:text-3xl' : size === 'medium' ? 'text-lg' : 'text-base'
-          }`}>
-            {article.title}
-          </h3>
-          {size === 'large' && (
-            <p className="text-gray-300 text-sm mb-3 line-clamp-2">{article.summary}</p>
-          )}
-          <div className="flex items-center gap-4 text-xs text-gray-400">
-            <span>{formatPublishedTime(article.published_at)}</span>
-            <span>•</span>
-            <span>{article.readingTime || 3} min read</span>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-};
-
-// Small News Card Component
-const SmallNewsCard = ({ article, index }: { article: Article; index?: number }) => (
+// Cinematic Hero Card
+const HeroCard = ({ article }: { article: Article }) => (
   <Link href={getContentUrl(article)} className="block group">
-    <div className="flex gap-4 p-3 rounded-lg hover:bg-muted/50 transition-all duration-200">
-      {index !== undefined && (
-        <div className="trending-number">{index + 1}</div>
-      )}
-      <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
-        <Image
-          src={article.imageUrl || '/api/placeholder/80/80'}
-          alt={article.title}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="80px"
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <span className="text-xs font-bold text-primary uppercase">
+    <div className="relative h-[520px] lg:h-[600px] overflow-hidden rounded-editorial">
+      <Image
+        src={article.imageUrl || '/api/placeholder/1200/800'}
+        alt={article.title}
+        fill
+        className="object-cover transition-transform duration-700 group-hover:scale-105"
+        sizes="(max-width: 768px) 100vw, 66vw"
+        priority
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-12">
+        <span className="kicker">
           {article.category?.name || 'News'}
         </span>
-        <h4 className="font-semibold text-sm text-foreground line-clamp-2 group-hover:text-primary transition-colors mt-1">
+        <h1 className="font-serif text-headline-1 text-white mb-4 line-clamp-3 group-hover:text-white/90 transition-colors leading-tight max-w-3xl">
           {article.title}
-        </h4>
-        <span className="text-xs text-muted-foreground mt-1 block">
+        </h1>
+        {article.summary && (
+          <p className="text-white/70 text-body-lg mb-4 line-clamp-2 max-w-2xl">
+            {article.summary}
+          </p>
+        )}
+        <div className="byline text-white/50">
+          <span className="dateline">{formatPublishedTime(article.published_at)}</span>
+          <span className="byline-separator bg-white/40" />
+          <span>{article.readingTime || 3} min read</span>
+        </div>
+      </div>
+    </div>
+  </Link>
+);
+
+// Side Feature Card
+const SideFeatureCard = ({ article }: { article: Article }) => (
+  <Link href={getContentUrl(article)} className="block group">
+    <div className="relative h-[288px] overflow-hidden rounded-editorial">
+      <Image
+        src={article.imageUrl || '/api/placeholder/600/400'}
+        alt={article.title}
+        fill
+        className="object-cover transition-transform duration-500 group-hover:scale-105"
+        sizes="(max-width: 768px) 100vw, 33vw"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-5">
+        <span className="kicker text-white/70">
+          {article.category?.name || 'News'}
+        </span>
+        <h3 className="font-serif text-lg text-white font-bold line-clamp-2 group-hover:text-white/90 transition-colors">
+          {article.title}
+        </h3>
+        <span className="dateline text-white/40 mt-2 block">
           {formatPublishedTime(article.published_at)}
         </span>
       </div>
@@ -113,36 +121,61 @@ const SmallNewsCard = ({ article, index }: { article: Article; index?: number })
   </Link>
 );
 
-// Medium News Card Component  
-const MediumNewsCard = ({ article }: { article: Article }) => (
+// Editorial Card — clean, no-frills article card
+const EditorialCard = ({ article }: { article: Article }) => (
   <Link href={getContentUrl(article)} className="block group">
-    <div className="news-card border border-border">
-      <div className="relative h-48 img-hover-zoom">
+    <article className="editorial-card">
+      <div className="relative h-48 overflow-hidden">
         <Image
           src={article.imageUrl || '/api/placeholder/400/300'}
           alt={article.title}
           fill
-          className="object-cover"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, 400px"
         />
-        <div className="absolute top-3 left-3">
-          <span className="category-badge category-badge-red">
-            {article.category?.name || 'News'}
-          </span>
-        </div>
       </div>
-      <div className="p-4">
-        <h3 className="font-bold text-lg text-foreground line-clamp-2 group-hover:text-primary transition-colors mb-2">
+      <div className="p-5">
+        <span className="kicker">{article.category?.name || 'News'}</span>
+        <h3 className="font-serif text-headline-4 text-foreground line-clamp-2 group-hover:text-primary transition-colors mb-2">
           {article.title}
         </h3>
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+        <p className="text-body-sm text-muted-foreground line-clamp-2 mb-3">
           {article.summary}
         </p>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>{formatPublishedTime(article.published_at)}</span>
-          <span>•</span>
+        <div className="byline">
+          <span className="dateline">{formatPublishedTime(article.published_at)}</span>
+          <span className="byline-separator" />
           <span>{article.readingTime || 3} min read</span>
         </div>
+      </div>
+    </article>
+  </Link>
+);
+
+// Compact list item
+const CompactStory = ({ article, index }: { article: Article; index?: number }) => (
+  <Link href={getContentUrl(article)} className="block group">
+    <div className="flex gap-4 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors -mx-2 px-2 rounded-editorial">
+      {index !== undefined && (
+        <span className="font-mono text-2xl font-bold text-primary/30 w-8 flex-shrink-0 text-right pt-0.5">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+      )}
+      <div className="relative w-16 h-16 flex-shrink-0 rounded-editorial overflow-hidden">
+        <Image
+          src={article.imageUrl || '/api/placeholder/64/64'}
+          alt={article.title}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          sizes="64px"
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <span className="kicker text-micro">{article.category?.name || 'News'}</span>
+        <h4 className="font-serif text-sm font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+          {article.title}
+        </h4>
+        <span className="dateline mt-1 block">{formatPublishedTime(article.published_at)}</span>
       </div>
     </div>
   </Link>
@@ -209,26 +242,13 @@ const HomePage: React.FC = () => {
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 md:gap-6">
-              <span className="text-xs md:text-sm">
+              <span className="dateline">
                 {currentTime ? formatFullDate(currentTime) : ''}
               </span>
               <div className="hidden md:flex items-center gap-4 text-xs">
                 <Link href="/about" className="hover:text-white transition-colors">About</Link>
                 <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
                 <Link href="/advertise" className="hover:text-white transition-colors">Advertise</Link>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <a href="#" className="social-link !w-7 !h-7 !bg-transparent hover:!bg-white/10">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
-                </a>
-                <a href="#" className="social-link !w-7 !h-7 !bg-transparent hover:!bg-white/10">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
-                </a>
-                <a href="#" className="social-link !w-7 !h-7 !bg-transparent hover:!bg-white/10">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
               </div>
             </div>
           </div>
@@ -242,34 +262,32 @@ const HomePage: React.FC = () => {
             <div className="flex items-center gap-4">
               <span className="badge flex items-center gap-2 flex-shrink-0">
                 <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                FLASH NEWS
+                BREAKING
               </span>
               <div className="flex-1 overflow-hidden">
                 <div className="animate-scroll inline-flex items-center whitespace-nowrap">
                   {breakingNews.map((article, index) => (
                     <span key={article.id} className="inline-flex items-center">
                       {index > 0 && (
-                        <span className="mx-4 text-white/60 text-lg">•</span>
+                        <span className="mx-4 text-white/40">|</span>
                       )}
                       <Link 
                         href={getContentUrl(article)}
-                        className="text-white hover:text-gray-200 text-sm font-medium transition-colors"
+                        className="text-white hover:text-white/80 text-sm font-medium transition-colors"
                       >
                         {article.title}
                       </Link>
                     </span>
                   ))}
-                  {/* Separator before duplicate loop */}
-                  <span className="mx-4 text-white/60 text-lg">•</span>
-                  {/* Duplicate for seamless loop */}
+                  <span className="mx-4 text-white/40">|</span>
                   {breakingNews.map((article, index) => (
                     <span key={`dup-${article.id}`} className="inline-flex items-center">
                       {index > 0 && (
-                        <span className="mx-4 text-white/60 text-lg">•</span>
+                        <span className="mx-4 text-white/40">|</span>
                       )}
                       <Link 
                         href={getContentUrl(article)}
-                        className="text-white hover:text-gray-200 text-sm font-medium transition-colors"
+                        className="text-white hover:text-white/80 text-sm font-medium transition-colors"
                       >
                         {article.title}
                       </Link>
@@ -282,30 +300,30 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* Main Hero Section */}
-      <section className="py-8 bg-muted/30">
+      {/* ===== HERO SECTION ===== */}
+      <section className="py-8 bg-background">
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Main Featured Story */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {/* Main Hero */}
             <div className="lg:col-span-8">
               {loading ? (
-                <div className="h-[500px] bg-muted rounded-lg animate-pulse"></div>
+                <div className="skeleton-warm h-[520px] lg:h-[600px] rounded-editorial" />
               ) : trendingNews[0] ? (
-                <FeaturedCard article={trendingNews[0]} size="large" />
+                <HeroCard article={trendingNews[0]} />
               ) : null}
             </div>
             
             {/* Side Stories */}
-            <div className="lg:col-span-4 flex flex-col gap-4">
+            <div className="lg:col-span-4 flex flex-col gap-5">
               {loading ? (
                 <>
-                  <div className="h-[240px] bg-muted rounded-lg animate-pulse"></div>
-                  <div className="h-[240px] bg-muted rounded-lg animate-pulse"></div>
+                  <div className="skeleton-warm h-[288px] rounded-editorial" />
+                  <div className="skeleton-warm h-[288px] rounded-editorial" />
                 </>
               ) : (
                 <>
-                  {trendingNews[1] && <FeaturedCard article={trendingNews[1]} size="medium" />}
-                  {trendingNews[2] && <FeaturedCard article={trendingNews[2]} size="medium" />}
+                  {trendingNews[1] && <SideFeatureCard article={trendingNews[1]} />}
+                  {trendingNews[2] && <SideFeatureCard article={trendingNews[2]} />}
                 </>
               )}
             </div>
@@ -313,60 +331,91 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Main Content Area */}
+      {/* Leaderboard Ad */}
+      <div className="container mx-auto py-4">
+        <AdSlot size="leaderboard" className="mx-auto" />
+      </div>
+
+      {/* ===== MAIN CONTENT ===== */}
       <div className="container mx-auto py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Main Content */}
           <div className="lg:col-span-8">
             
             {/* Trending Section */}
-            <section className="mb-12">
-              <SectionHeader title="Trending Now" viewAllLink="/trending" icon="🔥" />
+            <section className="mb-14">
+              <SectionHeader title="Trending Now" viewAllLink="/trending" icon={<TrendingIcon size={18} />} />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {loading ? (
                   Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="h-80 bg-muted rounded-lg animate-pulse"></div>
+                    <div key={i} className="skeleton-warm h-80 rounded-editorial" />
                   ))
                 ) : (
                   trendingNews.slice(3, 7).map((article) => (
-                    <MediumNewsCard key={article.id} article={article} />
+                    <EditorialCard key={article.id} article={article} />
                   ))
                 )}
               </div>
             </section>
 
+            {/* Editorial Divider */}
+            <hr className="editorial-rule" />
+
+            {/* In-Feed Ad */}
+            <AdSlot size="inline" className="mb-8" />
+
             {/* Latest News Section */}
-            <section className="mb-12">
-              <SectionHeader title="Latest Stories" viewAllLink="/news" icon="📰" />
+            <section className="mb-14">
+              <SectionHeader title="Latest Stories" viewAllLink="/news" icon={<BreakingIcon size={18} />} />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {loading ? (
                   Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="h-72 bg-muted rounded-lg animate-pulse"></div>
+                    <div key={i} className="skeleton-warm h-72 rounded-editorial" />
                   ))
                 ) : (
                   latestNews.slice(0, 6).map((article) => (
-                    <MediumNewsCard key={article.id} article={article} />
+                    <EditorialCard key={article.id} article={article} />
                   ))
                 )}
               </div>
             </section>
 
-            {/* Featured Articles */}
-            <section className="mb-12">
-              <SectionHeader title="Editor's Pick" viewAllLink="/featured" icon="⭐" />
+            {/* Editor's Pick */}
+            <section className="mb-14">
+              <SectionHeader title="Editor's Pick" viewAllLink="/featured" icon={<EditorPickIcon size={18} />} />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {loading ? (
-                  <div className="h-96 bg-muted rounded-lg animate-pulse col-span-2"></div>
+                  <div className="skeleton-warm h-96 rounded-editorial col-span-2" />
                 ) : (
                   <>
                     {featuredArticles[0] && (
                       <div className="lg:row-span-2">
-                        <FeaturedCard article={featuredArticles[0]} size="large" />
+                        <Link href={getContentUrl(featuredArticles[0])} className="block group">
+                          <div className="relative h-full min-h-[400px] overflow-hidden rounded-editorial">
+                            <Image
+                              src={featuredArticles[0].imageUrl || '/api/placeholder/600/800'}
+                              alt={featuredArticles[0].title}
+                              fill
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                              sizes="(max-width: 768px) 100vw, 50vw"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 p-6">
+                              <span className="kicker text-white/70">{featuredArticles[0].category?.name || 'Featured'}</span>
+                              <h3 className="font-serif text-headline-3 text-white font-bold line-clamp-3 group-hover:text-white/90 transition-colors">
+                                {featuredArticles[0].title}
+                              </h3>
+                              <p className="text-white/60 text-body-sm mt-2 line-clamp-2">
+                                {featuredArticles[0].summary}
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
                       </div>
                     )}
-                    <div className="space-y-4">
-                      {featuredArticles.slice(1, 4).map((article) => (
-                        <SmallNewsCard key={article.id} article={article} />
+                    <div className="space-y-1">
+                      {featuredArticles.slice(1, 5).map((article) => (
+                        <CompactStory key={article.id} article={article} />
                       ))}
                     </div>
                   </>
@@ -376,25 +425,25 @@ const HomePage: React.FC = () => {
 
             {/* Web Stories Section */}
             {webStories.length > 0 && (
-              <section className="mb-12">
-                <SectionHeader title="Web Stories" viewAllLink="/stories" icon="📱" />
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <section className="mb-14">
+                <SectionHeader title="Visual Stories" viewAllLink="/stories" icon={<StoriesIcon size={18} />} />
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   {webStories.map((story) => (
                     <Link key={story.id} href={`/stories/${story.slug}`} className="block group">
-                      <div className="relative h-48 rounded-xl overflow-hidden border-2 border-primary/20 group-hover:border-primary transition-colors">
+                      <div className="relative h-52 rounded-editorial overflow-hidden border border-border group-hover:border-primary/30 transition-colors">
                         <Image
                           src={story.coverImage || '/api/placeholder/200/300'}
                           alt={story.title}
                           fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-3">
                           <h4 className="text-white text-xs font-bold line-clamp-2">{story.title}</h4>
                         </div>
                         <div className="absolute top-2 right-2">
-                          <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">
-                            {story.slidesCount || 5} slides
+                          <span className="bg-foreground/80 text-background text-micro px-2 py-0.5 rounded-editorial font-mono">
+                            {story.slidesCount || 5}
                           </span>
                         </div>
                       </div>
@@ -405,94 +454,85 @@ const HomePage: React.FC = () => {
             )}
           </div>
 
-          {/* Sidebar */}
+          {/* ===== SIDEBAR ===== */}
           <aside className="lg:col-span-4">
-            {/* Popular Posts Widget */}
+            {/* Sidebar Ad */}
+            <div className="mb-6">
+              <AdSlot size="rectangle" />
+            </div>
+
+            {/* Popular Posts */}
             <div className="sidebar-widget">
-              <h3 className="sidebar-widget-title">📈 Most Popular</h3>
+              <h3 className="sidebar-widget-title flex items-center gap-2">
+                <PopularIcon size={16} className="text-primary" />
+                Most Popular
+              </h3>
               <div className="space-y-0">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex gap-3 p-3">
-                      <div className="w-8 h-8 bg-muted rounded animate-pulse"></div>
+                    <div key={i} className="flex gap-3 py-3">
+                      <div className="skeleton-warm w-8 h-8 rounded-editorial" />
                       <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-muted rounded animate-pulse"></div>
-                        <div className="h-3 bg-muted rounded w-2/3 animate-pulse"></div>
+                        <div className="skeleton-warm h-4 w-full" />
+                        <div className="skeleton-warm h-3 w-2/3" />
                       </div>
                     </div>
                   ))
                 ) : (
                   latestNews.slice(0, 5).map((article, idx) => (
-                    <SmallNewsCard key={article.id} article={article} index={idx} />
+                    <CompactStory key={article.id} article={article} index={idx} />
                   ))
                 )}
               </div>
             </div>
 
-            {/* Categories Widget */}
+            {/* Categories */}
             <div className="sidebar-widget">
-              <h3 className="sidebar-widget-title">📂 Categories</h3>
-              <div className="space-y-2">
+              <h3 className="sidebar-widget-title flex items-center gap-2">
+                <CategoriesIcon size={16} className="text-primary" />
+                Categories
+              </h3>
+              <div className="space-y-1">
                 {categories.slice(0, 8).map((category: Category) => (
                   <Link
                     key={category.id}
                     href={`/category/${category.slug}`}
-                    className="flex items-center justify-between p-2 rounded hover:bg-muted transition-colors group"
+                    className="flex items-center justify-between py-2 px-2 rounded-editorial hover:bg-muted transition-colors group"
                   >
-                    <span className="flex items-center gap-2">
-                      <span>{category.icon || '📰'}</span>
-                      <span className="font-medium text-sm group-hover:text-primary transition-colors">
-                        {category.name}
-                      </span>
+                    <span className="text-body-sm font-medium group-hover:text-primary transition-colors">
+                      {category.name}
                     </span>
-                    <svg className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <ArrowRightIcon size={14} className="text-muted-foreground group-hover:text-primary transition-all group-hover:translate-x-0.5" />
                   </Link>
                 ))}
               </div>
             </div>
 
-            {/* Newsletter Widget */}
+            {/* Newsletter */}
             <div className="newsletter-box">
-              <h3 className="text-xl font-bold mb-2">📬 Stay Updated</h3>
-              <p className="text-white/80 text-sm mb-4">
-                Get the latest news delivered to your inbox daily.
+              <NewsletterIcon size={24} className="mx-auto mb-3 text-white/80" />
+              <h3 className="font-serif text-xl font-bold mb-2">The Daily Dispatch</h3>
+              <p className="text-white/70 text-body-sm mb-4">
+                The stories that matter, curated daily. No noise.
               </p>
-              <input type="email" placeholder="Enter your email" />
-              <button type="submit">Subscribe Now</button>
+              <input type="email" placeholder="your@email.com" />
+              <button type="submit">Subscribe</button>
             </div>
 
-            {/* Social Links Widget */}
+            {/* Trending Tags */}
             <div className="sidebar-widget">
-              <h3 className="sidebar-widget-title">🔗 Follow Us</h3>
-              <div className="social-links">
-                <a href="#" className="social-link">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
-                </a>
-                <a href="#" className="social-link">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
-                </a>
-                <a href="#" className="social-link">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
-                <a href="#" className="social-link">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                </a>
-              </div>
-            </div>
-
-            {/* Trending Tags Widget */}
-            <div className="sidebar-widget">
-              <h3 className="sidebar-widget-title">🏷️ Trending Tags</h3>
+              <h3 className="sidebar-widget-title flex items-center gap-2">
+                <TagsIcon size={16} className="text-primary" />
+                Trending Topics
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {['Technology', 'Politics', 'Sports', 'Business', 'Health', 'Science', 'Entertainment', 'World'].map((tag) => (
                   <Link
                     key={tag}
                     href={`/tag/${tag.toLowerCase()}`}
-                    className="px-3 py-1.5 bg-muted text-foreground text-sm rounded-full hover:bg-primary hover:text-white transition-colors"
+                    className="px-3 py-1.5 border border-border text-foreground text-body-sm rounded-editorial hover:border-primary hover:text-primary transition-all"
                   >
-                    #{tag}
+                    {tag}
                   </Link>
                 ))}
               </div>
@@ -501,32 +541,35 @@ const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* CTA Section */}
-      <section className="hero-gradient text-white py-16">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            NewsTRNT: The Road Not Taken
+      {/* ===== CTA SECTION ===== */}
+      <section className="hero-gradient text-white py-20">
+        <div className="container mx-auto text-center max-w-3xl">
+          <DivergenceMark size={48} className="mx-auto mb-6 text-white/40" />
+          <h2 className="font-serif text-headline-2 mb-4">
+            The Road Not Taken
           </h2>
-          <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-            Discover stories that matter, from perspectives that challenge the mainstream. Your journey to informed independence starts here.
+          <p className="text-white/60 text-body-lg mb-10 max-w-xl mx-auto">
+            Stories that challenge, perspectives that illuminate, journalism that matters.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {!isLoggedIn ? (
               <>
-                <Link href="/auth/signin" className="bg-primary hover:bg-red-700 text-white px-8 py-3 rounded-lg font-bold transition-colors">
-                  Get Started
+                <Link href="/auth/signin" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 font-semibold transition-colors rounded-editorial inline-flex items-center gap-2">
+                  Start Reading
+                  <ArrowRightIcon size={16} />
                 </Link>
-                <Link href="/about" className="border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white hover:text-gray-900 transition-colors">
-                  Learn More
+                <Link href="/about" className="border border-white/30 text-white px-8 py-3 font-semibold hover:bg-white/10 transition-colors rounded-editorial">
+                  Our Story
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/dashboard" className="bg-primary hover:bg-red-700 text-white px-8 py-3 rounded-lg font-bold transition-colors">
-                  Go to Dashboard
+                <Link href="/dashboard" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 font-semibold transition-colors rounded-editorial inline-flex items-center gap-2">
+                  Dashboard
+                  <ArrowRightIcon size={16} />
                 </Link>
-                <Link href="/news" className="border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white hover:text-gray-900 transition-colors">
-                  Browse News
+                <Link href="/news" className="border border-white/30 text-white px-8 py-3 font-semibold hover:bg-white/10 transition-colors rounded-editorial">
+                  Browse Stories
                 </Link>
               </>
             )}

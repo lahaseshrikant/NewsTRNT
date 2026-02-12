@@ -13,10 +13,10 @@ export const showToast = (message: string, type: 'success' | 'error' | 'warning'
   
   // Style based on type
   const styles = {
-    success: 'bg-green-500 text-white',
-    error: 'bg-red-500 text-white',
-    warning: 'bg-orange-500 text-white', 
-    info: 'bg-blue-500 text-white'
+    success: 'bg-green-700 text-white',
+    error: 'bg-vermillion text-white',
+    warning: 'bg-gold text-white', 
+    info: 'bg-ink text-white'
   };
   
   const icons = {

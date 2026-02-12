@@ -41,7 +41,7 @@ const defaultLogo: LogoConfig = {
   fontWeight: 'bold',
   fontFamily: 'Arial, sans-serif',
   color: '#ffffff',
-  backgroundColor: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+  backgroundColor: 'linear-gradient(135deg, #C62828, #0D0D0D)',
   shape: 'rounded',
   borderRadius: 8,
   borderWidth: 0,
@@ -53,7 +53,7 @@ const defaultLogo: LogoConfig = {
   gradient: {
     enabled: true,
     direction: '135deg',
-    colors: ['#3b82f6', '#8b5cf6']
+    colors: ['#C62828', '#0D0D0D']
   }
 };
 

@@ -2,20 +2,22 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { DivergenceMark } from '@/components/DivergenceMark';
 
 export default function LoginRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to the new auth route
     router.replace('/auth/signin');
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen flex items-center justify-center bg-paper dark:bg-ink">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-300">Redirecting to sign in...</p>
+        <DivergenceMark size={48} animated className="mx-auto mb-6" />
+        <p className="font-mono text-sm tracking-wider uppercase text-stone">
+          Entering the newsroom...
+        </p>
       </div>
     </div>
   );

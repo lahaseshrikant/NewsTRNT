@@ -9,18 +9,15 @@ import { getCategoryBadgeStyle } from '@/lib/categoryUtils';
 import { dbApi, Article } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
 
-// Helper to format published time
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
   const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
   const diffInMinutes = Math.floor((now.getTime() - published.getTime()) / (1000 * 60));
-  
   if (diffInMinutes < 1) return 'Just now';
   if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
   if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
   if (diffInMinutes < 7200) return `${Math.floor(diffInMinutes / 1440)} days ago`;
-  const date = new Date(publishedAt);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Date(publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
 const AnalysisPage: React.FC = () => {
@@ -29,9 +26,8 @@ const AnalysisPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const { categories: dynamicCategories, loading: categoriesLoading } = useCategories();
+  const { categories: dynamicCategories } = useCategories();
 
-  // Load analysis from database
   useEffect(() => {
     const loadAnalysis = async () => {
       try {
@@ -47,11 +43,9 @@ const AnalysisPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     loadAnalysis();
   }, [page]);
 
-  // Create categories list
   const categories = [
     { id: 'all', label: 'All Analysis', count: analysisArticles.length },
     ...dynamicCategories.slice(0, 6).map(cat => ({
@@ -65,33 +59,32 @@ const AnalysisPage: React.FC = () => {
     ? analysisArticles 
     : analysisArticles.filter(article => article.category?.slug === selectedCategory);
 
-  // Get featured analysis for hero
   const featuredAnalysis = analysisArticles[0];
   const remainingAnalysis = featuredAnalysis 
     ? filteredAnalysis.filter(a => a.id !== featuredAnalysis.id)
     : filteredAnalysis;
 
-  // Research topics
   const researchTopics = [
-    { topic: "Market Trends", articles: 15, icon: "📈" },
-    { topic: "Policy Impact", articles: 12, icon: "⚖️" },
-    { topic: "Tech Innovation", articles: 18, icon: "💡" },
-    { topic: "Global Economy", articles: 10, icon: "🌍" },
-    { topic: "Climate Science", articles: 8, icon: "🌱" }
+    { topic: "Market Trends", articles: 15 },
+    { topic: "Policy Impact", articles: 12 },
+    { topic: "Tech Innovation", articles: 18 },
+    { topic: "Global Economy", articles: 10 },
+    { topic: "Climate Science", articles: 8 }
   ];
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-600/10 to-teal-600/10 border-b border-border">
+      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
         <div className="container mx-auto py-8">
           <Breadcrumb items={[{ label: 'Analysis' }]} className="mb-4" />
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
-              🔍 Analysis
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">Deep Dives</p>
+            <h1 className="font-serif text-4xl font-bold text-ivory mb-4">
+              Analysis &amp; Research
             </h1>
-            <p className="text-xl text-muted-foreground">
-              Deep dives, data-driven insights, and expert research
+            <p className="text-xl text-ivory/60">
+              Data-driven insights and expert research
             </p>
           </div>
         </div>
@@ -102,9 +95,9 @@ const AnalysisPage: React.FC = () => {
         {featuredAnalysis && selectedCategory === 'all' && (
           <Link 
             href={`/analysis/${featuredAnalysis.slug}`}
-            className="block mb-8 group"
+            className="hover-hero-card block mb-8 group"
           >
-            <div className="relative h-80 rounded-xl overflow-hidden bg-card border border-border">
+            <div className="relative h-80 overflow-hidden bg-card border border-border">
               {featuredAnalysis.imageUrl ? (
                 <Image
                   src={featuredAnalysis.imageUrl}
@@ -113,23 +106,23 @@ const AnalysisPage: React.FC = () => {
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center text-8xl">
-                  🔍
+                <div className="w-full h-full bg-gradient-to-br from-ink via-vermillion/20 to-ink flex items-center justify-center">
+                  <svg className="w-16 h-16 text-ivory/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" /></svg>
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-8">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                    🔍 DEEP DIVE
+                  <span className="bg-vermillion text-white px-3 py-1 font-mono text-[10px] uppercase tracking-wider font-bold">
+                    Deep Dive
                   </span>
                   {featuredAnalysis.category && (
-                    <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium">
+                    <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 font-mono text-[10px] uppercase tracking-wider">
                       {featuredAnalysis.category.name}
                     </span>
                   )}
                 </div>
-                <h2 className="text-3xl font-bold text-white mb-3 group-hover:text-emerald-200 transition-colors">
+                <h2 className="font-serif text-3xl font-bold text-white mb-3 group-hover:text-gold transition-colors">
                   {featuredAnalysis.title}
                 </h2>
                 <p className="text-white/80 text-lg mb-4 line-clamp-2 max-w-3xl">
@@ -156,10 +149,10 @@ const AnalysisPage: React.FC = () => {
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
                     selectedCategory === category.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
+                      : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
                   }`}
                 >
                   {category.label}
@@ -171,14 +164,13 @@ const AnalysisPage: React.FC = () => {
             {loading ? (
               <div className="space-y-6">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="bg-card border border-border rounded-lg overflow-hidden animate-pulse">
+                  <div key={i} className="bg-card border border-border overflow-hidden animate-pulse">
                     <div className="flex">
                       <div className="w-1/3 h-48 bg-muted"></div>
                       <div className="flex-1 p-6 space-y-3">
                         <div className="h-4 bg-muted rounded w-1/4"></div>
                         <div className="h-6 bg-muted rounded w-3/4"></div>
                         <div className="h-4 bg-muted rounded w-full"></div>
-                        <div className="h-4 bg-muted rounded w-2/3"></div>
                       </div>
                     </div>
                   </div>
@@ -191,45 +183,42 @@ const AnalysisPage: React.FC = () => {
                     <Link 
                       key={article.id} 
                       href={`/analysis/${article.slug}`}
-                      className="group block bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg hover:border-emerald-500/30 transition-all"
+                      className="hover-lift group block bg-card border border-border overflow-hidden transition-all"
                     >
                       <div className="flex flex-col md:flex-row">
                         {/* Image */}
-                        <div className="relative w-full md:w-1/3 h-48 md:h-auto bg-muted">
+                        <div className="hover-img-zoom relative w-full md:w-1/3 h-48 md:h-auto bg-muted overflow-hidden">
                           {article.imageUrl ? (
                             <Image
                               src={article.imageUrl}
                               alt={article.title}
                               fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/20 dark:to-teal-900/20">
-                              🔍
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-ivory to-ash dark:from-ink dark:to-ink/50">
+                              <svg className="w-10 h-10 text-stone/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" /></svg>
                             </div>
                           )}
-                          <div className="absolute top-2 left-2 bg-emerald-600 text-white px-2 py-1 rounded text-xs font-bold">
-                            ANALYSIS
+                          <div className="absolute top-2 left-2 bg-vermillion text-white px-2 py-1 font-mono text-[10px] uppercase tracking-wider font-bold">
+                            Analysis
                           </div>
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 p-6">
-                          {/* Category Badge */}
                           <div className="flex items-center gap-2 mb-3">
                             {article.category && (
-                              <span 
-                                className={`px-2 py-1 rounded text-xs font-medium ${getCategoryBadgeStyle(article.category)}`}
-                              >
+                              <span className={`px-2 py-1 text-xs font-medium ${getCategoryBadgeStyle(article.category)}`}>
                                 {article.category.name}
                               </span>
                             )}
-                            <span className="text-xs text-muted-foreground">
+                            <span className="font-mono text-[10px] text-stone uppercase tracking-wider">
                               {article.readingTime || 12} min read
                             </span>
                           </div>
 
-                          <h2 className="text-xl font-bold text-foreground mb-3 group-hover:text-emerald-600 transition-colors line-clamp-2">
+                          <h2 className="font-serif text-xl font-bold text-foreground mb-3 group-hover:text-vermillion transition-colors line-clamp-2">
                             {article.title}
                           </h2>
 
@@ -238,18 +227,14 @@ const AnalysisPage: React.FC = () => {
                           </p>
 
                           <div className="flex items-center justify-between text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{article.author || 'NewsTRNT Research'}</span>
-                            </div>
+                            <span className="font-medium">{article.author || 'NewsTRNT Research'}</span>
                             <span>{formatPublishedTime(article.published_at)}</span>
                           </div>
 
-                          {/* Key Insights Preview */}
                           <div className="mt-4 pt-4 border-t border-border">
-                            <div className="flex items-center gap-2 text-xs text-emerald-600 font-medium">
-                              <span>📊</span>
-                              <span>Data-driven insights included</span>
-                            </div>
+                            <span className="font-mono text-[10px] uppercase tracking-wider text-vermillion font-medium">
+                              Data-driven insights included
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -257,12 +242,11 @@ const AnalysisPage: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Load More */}
                 {hasMore && (
                   <div className="text-center mt-8">
                     <button
                       onClick={() => setPage(prev => prev + 1)}
-                      className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                      className="hover-magnetic px-6 py-3 bg-vermillion text-white font-mono text-xs tracking-wider uppercase"
                     >
                       Load More Analysis
                     </button>
@@ -271,8 +255,8 @@ const AnalysisPage: React.FC = () => {
               </>
             ) : (
               <div className="text-center py-16">
-                <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-foreground mb-2">No Analysis Found</h3>
+                <svg className="w-12 h-12 text-stone/30 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" /></svg>
+                <h3 className="font-serif text-xl font-bold text-foreground mb-2">No Analysis Found</h3>
                 <p className="text-muted-foreground">
                   {selectedCategory === 'all' 
                     ? 'Deep dives coming soon. Check back for in-depth analysis.'
@@ -285,43 +269,41 @@ const AnalysisPage: React.FC = () => {
           {/* Sidebar */}
           <div className="w-full lg:w-80 space-y-6">
             {/* Research Topics */}
-            <div className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-bold text-foreground mb-4">📊 Research Topics</h3>
-              <div className="space-y-2">
+            <div className="bg-card border border-border p-4">
+              <h3 className="font-serif font-bold text-foreground mb-4">Research Topics</h3>
+              <div className="space-y-1">
                 {researchTopics.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 rounded hover:bg-muted transition-colors cursor-pointer">
-                    <div className="flex items-center gap-2">
-                      <span>{item.icon}</span>
-                      <span className="text-sm font-medium">{item.topic}</span>
-                    </div>
+                  <div key={index} className="hover-row flex items-center justify-between p-2 cursor-pointer transition-colors">
+                    <span className="text-sm font-medium text-foreground">{item.topic}</span>
+                    <span className="font-mono text-[10px] text-stone">{item.articles} articles</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* More Content */}
-            <div className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-bold text-foreground mb-4">📖 More Content</h3>
+            <div className="bg-card border border-border p-4">
+              <h3 className="font-serif font-bold text-foreground mb-4">More Content</h3>
               <div className="space-y-2">
-                <Link href="/news" className="block p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  <span className="font-medium">📰 Latest News</span>
+                <Link href="/news" className="hover-row block p-3 transition-colors">
+                  <span className="font-medium">Latest News</span>
                   <p className="text-xs text-muted-foreground">Breaking and current events</p>
                 </Link>
-                <Link href="/articles" className="block p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  <span className="font-medium">📚 Long Reads</span>
+                <Link href="/articles" className="hover-row block p-3 transition-colors">
+                  <span className="font-medium">Long Reads</span>
                   <p className="text-xs text-muted-foreground">In-depth articles</p>
                 </Link>
-                <Link href="/opinion" className="block p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  <span className="font-medium">💭 Opinion</span>
+                <Link href="/opinion" className="hover-row block p-3 transition-colors">
+                  <span className="font-medium">Opinion</span>
                   <p className="text-xs text-muted-foreground">Expert perspectives</p>
                 </Link>
               </div>
             </div>
 
-            {/* Methodology Note */}
-            <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-lg p-4">
-              <h3 className="font-bold text-foreground mb-2">📋 Our Methodology</h3>
-              <p className="text-sm text-muted-foreground">
+            {/* Methodology */}
+            <div className="bg-ink dark:bg-ivory/5 border border-ash dark:border-ash/20 p-4">
+              <h3 className="font-serif font-bold text-ivory mb-2">Our Methodology</h3>
+              <p className="text-sm text-ivory/60">
                 All analysis pieces are fact-checked and backed by data from verified sources. We prioritize accuracy and depth.
               </p>
             </div>

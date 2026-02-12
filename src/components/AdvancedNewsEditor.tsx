@@ -92,9 +92,9 @@ const ToolbarButton: React.FC<{
   const baseClasses = "inline-flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200";
   const variantClasses = {
     default: isActive
-      ? 'bg-blue-500 text-white shadow-md'
+      ? 'bg-vermillion text-white shadow-md'
       : 'text-foreground hover:bg-muted hover:text-foreground',
-    primary: 'bg-blue-500 text-white hover:bg-blue-600 shadow-sm',
+    primary: 'bg-vermillion text-white hover:bg-vermillion/90 shadow-sm',
     secondary: 'bg-muted text-foreground hover:bg-muted/80'
   };
 
@@ -378,7 +378,7 @@ const MenuBar: React.FC<{
             disabled={isUploading}
           >
             {isUploading ? (
-              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-vermillion border-t-transparent rounded-full animate-spin" />
             ) : (
               <Upload className="w-4 h-4" />
             )}
@@ -512,7 +512,7 @@ const MenuBar: React.FC<{
               <h3 className="text-lg font-semibold text-foreground">Add Link</h3>
               <button
                 onClick={() => setShowLinkDialog(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-stone hover:text-stone dark:hover:text-ivory"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -527,7 +527,7 @@ const MenuBar: React.FC<{
                   value={linkText}
                   onChange={(e) => setLinkText(e.target.value)}
                   placeholder="Link text (optional)"
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-background dark:bg-background text-foreground"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-vermillion focus:border-transparent bg-background dark:bg-background text-foreground"
                 />
               </div>
               <div>
@@ -539,7 +539,7 @@ const MenuBar: React.FC<{
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://example.com"
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-background dark:bg-background text-foreground"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-vermillion focus:border-transparent bg-background dark:bg-background text-foreground"
                   onKeyDown={(e) => e.key === 'Enter' && insertLink()}
                 />
               </div>
@@ -553,7 +553,7 @@ const MenuBar: React.FC<{
                 <button
                   onClick={insertLink}
                   disabled={!linkUrl.trim()}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 bg-vermillion text-white rounded-lg hover:bg-vermillion/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Add Link
                 </button>
@@ -571,7 +571,7 @@ const MenuBar: React.FC<{
               <h3 className="text-lg font-semibold text-foreground">Insert Image</h3>
               <button
                 onClick={() => setShowImageDialog(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-stone hover:text-stone dark:hover:text-ivory"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -586,7 +586,7 @@ const MenuBar: React.FC<{
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                   placeholder="https://example.com/image.jpg"
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-background dark:bg-background text-foreground"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-vermillion focus:border-transparent bg-background dark:bg-background text-foreground"
                   onKeyDown={(e) => e.key === 'Enter' && handleImageFromUrl()}
                 />
               </div>
@@ -600,7 +600,7 @@ const MenuBar: React.FC<{
                 <button
                   onClick={handleImageFromUrl}
                   disabled={!imageUrl.trim()}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 bg-vermillion text-white rounded-lg hover:bg-vermillion/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Insert Image
                 </button>
@@ -672,7 +672,7 @@ const AdvancedNewsEditor: React.FC<AdvancedNewsEditorProps> = ({
     Link.configure({ 
       openOnClick: false,
       HTMLAttributes: {
-        class: 'text-blue-600 hover:text-blue-800 underline transition-colors cursor-pointer'
+        class: 'text-vermillion hover:text-vermillion/80 underline transition-colors cursor-pointer'
       }
     }),
     Table.configure({
@@ -812,7 +812,7 @@ const AdvancedNewsEditor: React.FC<AdvancedNewsEditorProps> = ({
     return (
       <div className="border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 p-8">
         <div className="flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-2 border-vermillion border-t-transparent rounded-full animate-spin"></div>
           <span className="ml-3 text-slate-700 dark:text-slate-300">Loading advanced editor...</span>
         </div>
       </div>
@@ -849,9 +849,9 @@ const AdvancedNewsEditor: React.FC<AdvancedNewsEditorProps> = ({
                      prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4
                      prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4
                      prose-li:text-foreground prose-li:text-lg prose-li:mb-1 prose-li:leading-relaxed
-                     prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:underline hover:prose-a:no-underline
-                     prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20
-                     prose-blockquote:text-blue-900 dark:prose-blockquote:text-blue-200 prose-blockquote:not-italic prose-blockquote:pl-6 prose-blockquote:py-4
+                     prose-a:text-vermillion dark:prose-a:text-vermillion/70 prose-a:underline hover:prose-a:no-underline
+                     prose-blockquote:border-l-4 prose-blockquote:border-vermillion prose-blockquote:bg-vermillion/10 dark:prose-blockquote:bg-vermillion/20
+                     prose-blockquote:text-ink dark:prose-blockquote:text-vermillion/70 prose-blockquote:not-italic prose-blockquote:pl-6 prose-blockquote:py-4
                      prose-strong:text-foreground prose-strong:font-bold
                      prose-em:text-foreground prose-em:italic
                      prose-code:text-foreground prose-code:bg-muted prose-code:px-1 prose-code:rounded prose-code:text-sm
@@ -861,7 +861,7 @@ const AdvancedNewsEditor: React.FC<AdvancedNewsEditorProps> = ({
                      prose-table:border-collapse prose-table:border prose-table:border-border prose-table:my-6
                      prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-3 prose-th:text-foreground prose-th:font-semibold
                      prose-td:border prose-td:border-border prose-td:p-3 prose-td:text-foreground
-                     selection:bg-blue-100 dark:selection:bg-blue-900/30
+                     selection:bg-vermillion/10 dark:selection:bg-vermillion/20
                      text-foreground
                      [&_.ProseMirror]:text-foreground [&_.ProseMirror]:min-h-[380px]
                      [&_.ProseMirror_h1]:text-foreground [&_.ProseMirror_h1]:text-4xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h1]:mt-8 [&_.ProseMirror_h1]:mb-6
@@ -911,7 +911,7 @@ const AdvancedNewsEditor: React.FC<AdvancedNewsEditorProps> = ({
                   <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
                     <div 
                       className={`h-full transition-all duration-300 ${
-                        wordProgress >= 100 ? 'bg-green-500' : wordProgress >= 75 ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-500'
+                        wordProgress >= 100 ? 'bg-green-500' : wordProgress >= 75 ? 'bg-vermillion' : 'bg-slate-400 dark:bg-slate-500'
                       }`}
                       style={{ width: `${wordProgress}%` }}
                     />

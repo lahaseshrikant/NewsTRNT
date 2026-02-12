@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { dbApi } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
 import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
-// Note: We use a compact filter bar below the header instead of CategoryFilters
+import { DivergenceMark } from '@/components/DivergenceMark';
+import { getCategoryTheme } from '@/config/categoryThemes';
 
 // Types
 interface Article {
@@ -74,10 +75,10 @@ const CategoryPage: React.FC = () => {
   ] as const;
 
   const sortOptions = [
-    { value: 'latest', label: 'Latest', icon: '🕐' },
-    { value: 'trending', label: 'Trending', icon: '🔥' },
-    { value: 'popular', label: 'Popular', icon: '⭐' },
-    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+    { value: 'latest', label: 'Latest' },
+    { value: 'trending', label: 'Trending' },
+    { value: 'popular', label: 'Popular' },
+    { value: 'breaking', label: 'Breaking' }
   ] as const;
 
   // Fetch category and articles from backend
@@ -116,7 +117,7 @@ const CategoryPage: React.FC = () => {
   const subCategoryFilters = useSubCategoryFilters(articles, category?.subCategories || [], 'ALL');
 
   // Filter articles based on selected filters
-  const filteredArticles = () => {
+  const filteredArticles = useMemo(() => {
     let filtered = [...articles];
 
     // Filter by content type
@@ -140,7 +141,7 @@ const CategoryPage: React.FC = () => {
     // 'latest' is default order
 
     return filtered;
-  };
+  }, [articles, contentTypeFilter, selectedSubCategory, selectedFilter]);
 
   // Helper function to format date
   const formatDate = (date: Date) => {
@@ -166,31 +167,18 @@ const CategoryPage: React.FC = () => {
     return Math.max(1, Math.ceil(words / 200)); // Average reading speed: 200 words/min
   };
 
-  // Get category color classes
-  const getCategoryColorClass = (color: string) => {
-    // If color is hex, use it directly in inline styles
-    // Otherwise use predefined Tailwind classes
-    const colorMap: Record<string, string> = {
-      'red': 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
-      'blue': 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
-      'green': 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
-      'yellow': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300',
-      'purple': 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
-      'pink': 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300',
-      'indigo': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
-      'orange': 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300',
-    };
-    
-    return colorMap[color.toLowerCase()] || 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300';
+  // Get filter label
+  const getFilterLabel = (filter: string) => {
+    return sortOptions.find(o => o.value === filter)?.label || 'Latest';
   };
 
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading category...</p>
+          <DivergenceMark size={40} animated className="mx-auto mb-4" />
+          <p className="font-mono text-xs tracking-wider uppercase text-stone">Loading section...</p>
         </div>
       </div>
     );
@@ -199,50 +187,53 @@ const CategoryPage: React.FC = () => {
   // Error or not found state
   if (error || !category) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-4">Category Not Found</h1>
-          <p className="text-muted-foreground mb-8">The category you're looking for doesn't exist.</p>
-          <Link href="/" className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90">
-            Back to Home
+          <h1 className="font-serif text-3xl font-bold text-ink dark:text-ivory mb-4">Section Not Found</h1>
+          <p className="text-stone mb-8">The section you&apos;re looking for doesn&apos;t exist.</p>
+          <Link href="/" className="bg-ink text-ivory px-6 py-3 hover:bg-ink/80 transition-colors font-mono text-xs tracking-wider uppercase">
+            Back to Front Page
           </Link>
         </div>
       </div>
     );
   }
 
-  const categoryColorClass = getCategoryColorClass(category.color);
+  const theme = getCategoryTheme(slug);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Category Header */}
-      <section className="bg-card border-b border-border">
-        <div className="container mx-auto py-8">
-          <div className="flex items-center space-x-4 mb-4">
-            <span className="text-4xl">{category.icon || '📰'}</span>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">{category.name}</h1>
-              <p className="text-muted-foreground mt-2">{category.description || `Latest ${category.name} news and updates`}</p>
-            </div>
+    <div className="min-h-screen bg-paper dark:bg-ink">
+      {/* Category Header — Editorial Banner */}
+      <section style={{ background: theme.gradient }} className="border-b-2 border-vermillion">
+        <div className="container mx-auto py-10 px-4">
+          <div className="max-w-4xl">
+            <span className="font-mono text-xs tracking-[0.2em] uppercase text-white/70 mb-3 block">
+              Section
+            </span>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold text-white mb-3">
+              {category.name}
+            </h1>
+            <p className="text-white/60 text-lg max-w-2xl">
+              {category.description || `Latest ${category.name} news and updates`}
+            </p>
           </div>
         </div>
       </section>
 
       {/* Sub-category Tabs */}
       {subCategoryFilters.length > 1 && (
-        <section className="bg-card/30 border-b border-border/50">
-          <div className="container mx-auto py-4">
+        <section className="bg-ivory dark:bg-ink border-b border-ash dark:border-ash/20">
+          <div className="container mx-auto py-3 px-4">
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
               {subCategoryFilters.map((subCat) => (
                 <button
                   key={subCat.id}
                   onClick={() => setSelectedSubCategory(subCat.id)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
+                  className={`px-4 py-1.5 text-xs font-mono tracking-wider uppercase whitespace-nowrap transition-all border ${
                     selectedSubCategory === subCat.id
-                      ? 'text-white shadow-md'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/5'
+                      ? 'bg-ink text-ivory dark:bg-ivory dark:text-ink border-ink dark:border-ivory'
+                      : 'text-stone hover:text-ink dark:hover:text-ivory border-transparent hover:border-ash'
                   }`}
-                  style={selectedSubCategory === subCat.id ? { backgroundColor: category.color } : undefined}
                 >
                   {subCat.label}
                 </button>
@@ -253,128 +244,109 @@ const CategoryPage: React.FC = () => {
       )}
 
       {/* Articles Grid */}
-  <section className="container mx-auto py-8">
-        {/* Filter Bars - Separated */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-5">
+      <section className="container mx-auto py-8 px-4">
+        {/* Filter Bars */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
           {/* Content Type Filter */}
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 flex-1">
-            <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
-              {contentTypes.map((type) => (
-                <button
-                  key={type.value}
-                  onClick={() => setContentTypeFilter(type.value as typeof contentTypeFilter)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
-                    contentTypeFilter === type.value
-                      ? 'text-white shadow'
-                      : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
-                  style={contentTypeFilter === type.value ? { backgroundColor: category.color } : undefined}
-                >
-                  {type.label}
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide flex-1">
+            {contentTypes.map((type) => (
+              <button
+                key={type.value}
+                onClick={() => setContentTypeFilter(type.value as typeof contentTypeFilter)}
+                className={`px-4 py-1.5 text-xs font-mono tracking-wider uppercase whitespace-nowrap transition-all border ${
+                  contentTypeFilter === type.value
+                    ? 'bg-ink text-ivory dark:bg-ivory dark:text-ink border-ink dark:border-ivory'
+                    : 'text-stone hover:text-ink dark:hover:text-ivory border-ash hover:border-ink dark:hover:border-ivory'
+                }`}
+              >
+                {type.label}
+              </button>
+            ))}
           </div>
 
           {/* Sort Options */}
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2">
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Sort By:</span>
-              {sortOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setSelectedFilter(option.value as typeof selectedFilter)}
-                  title={option.label}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
-                    selectedFilter === option.value
-                      ? 'text-white shadow'
-                      : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
-                  style={selectedFilter === option.value ? { backgroundColor: category.color } : undefined}
-                >
-                  <span className="text-sm">{option.icon}</span>
-                  <span className="hidden sm:inline">{option.label}</span>
-                </button>
-              ))}
-            </div>
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            <span className="font-mono text-[11px] text-stone uppercase tracking-wider whitespace-nowrap">Sort:</span>
+            {sortOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setSelectedFilter(option.value as typeof selectedFilter)}
+                className={`px-3 py-1.5 text-xs font-mono tracking-wider uppercase whitespace-nowrap transition-all border ${
+                  selectedFilter === option.value
+                    ? 'bg-vermillion text-white border-vermillion'
+                    : 'text-stone hover:text-ink dark:hover:text-ivory border-transparent hover:border-ash'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
         </div>
         {/* Filter Status */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between border-b border-ash dark:border-ash/20 pb-4">
           <div>
-            <h2 className="text-2xl font-bold text-foreground mb-2 flex items-center gap-3">
-              {filters.find(f => f.id === selectedFilter)?.name} Articles
-              {selectedFilter === 'breaking' && <span className="animate-pulse">🔴</span>}
-              {selectedFilter === 'trending' && <span className="animate-bounce">📈</span>}
-              {selectedFilter === 'popular' && <span className="animate-pulse">⭐</span>}
-              {selectedFilter === 'latest' && <span className="animate-pulse">🆕</span>}
+            <h2 className="font-serif text-2xl font-bold text-ink dark:text-ivory flex items-center gap-3">
+              {getFilterLabel(selectedFilter)} Articles
+              {selectedFilter === 'breaking' && (
+                <span className="w-2 h-2 bg-vermillion rounded-full animate-pulse" />
+              )}
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-stone text-sm mt-1">
               {filteredArticles.length === 0 
                 ? `No ${selectedFilter} articles found in ${category.name}`
                 : `Showing ${filteredArticles.length} ${selectedFilter} ${filteredArticles.length === 1 ? 'article' : 'articles'} in ${category.name}`
               }
             </p>
           </div>
-          
-          {/* Quick Filter Indicators */}
-          <div className="hidden md:flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Filter:</span>
-            <div className={`px-3 py-1 rounded-full text-xs font-medium shadow-lg ${
-              selectedFilter === 'latest' ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-900 dark:from-blue-900/70 dark:to-blue-800/70 dark:text-blue-100 shadow-blue-200/50 dark:shadow-blue-800/30' :
-              selectedFilter === 'trending' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-900 dark:from-green-900/70 dark:to-green-800/70 dark:text-green-100 shadow-green-200/50 dark:shadow-green-800/30' :
-              selectedFilter === 'popular' ? 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-900 dark:from-yellow-900/70 dark:to-yellow-800/70 dark:text-yellow-100 shadow-yellow-200/50 dark:shadow-yellow-800/30' :
-              'bg-gradient-to-r from-red-100 to-red-200 text-red-900 dark:from-red-900/70 dark:to-red-800/70 dark:text-red-100 shadow-red-200/50 dark:shadow-red-800/30'
-            }`}>
-              {selectedFilter.toUpperCase()}
-            </div>
-          </div>
+          <span className="font-mono text-xs tracking-wider uppercase text-vermillion hidden md:block">
+            {selectedFilter}
+          </span>
         </div>
 
         {filteredArticles.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
-              <div className="space-y-6">
-                {filteredArticles.map((article) => (
-                  <Link key={article.id} href={getContentUrl(article)} className="block">
-                    <div className="bg-card text-card-foreground border border-border rounded-lg shadow-sm overflow-hidden hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer group">
-                      <div className="md:flex">
+              <div className="space-y-0 divide-y divide-ash dark:divide-ash/20">
+                {filteredArticles.map((article, index) => (
+                  <Link key={article.id} href={getContentUrl(article)} className="block group">
+                    <div className={`py-6 ${index === 0 ? 'pt-0' : ''}`}>
+                      <div className="md:flex gap-6">
                         {article.image_url && (
-                          <div className="md:w-1/3">
-                            <div className="relative h-48 md:h-full overflow-hidden">
+                          <div className="md:w-1/3 mb-4 md:mb-0">
+                            <div className="relative aspect-[3/2] overflow-hidden">
                               <Image
                                 src={article.image_url}
                                 alt={article.title}
                                 fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
                               />
                               {article.isBreaking && (
-                                <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded text-sm font-semibold">
-                                  BREAKING
+                                <div className="absolute top-2 left-2 bg-vermillion text-white px-2 py-0.5 font-mono text-[10px] tracking-wider uppercase">
+                                  Breaking
                                 </div>
                               )}
                             </div>
                           </div>
                         )}
-                        <div className="md:w-2/3 p-6">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${categoryColorClass} group-hover:scale-105 transition-transform duration-300 ease-out`}>
-                              {category.name}
-                            </span>
-                            <span className="text-muted-foreground text-sm group-hover:text-foreground transition-colors duration-300 ease-out">
-                              {formatDate(article.published_at)}
-                            </span>
-                          </div>
-                          <h2 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors duration-300 ease-out">
+                        <div className="md:flex-1">
+                          <span className="font-mono text-[10px] tracking-wider uppercase text-vermillion">
+                            {category.name}
+                          </span>
+                          <span className="font-mono text-[10px] text-stone mx-2">/</span>
+                          <span className="font-mono text-[10px] text-stone">
+                            {formatDate(article.published_at)}
+                          </span>
+                          <h2 className="font-serif text-xl font-bold text-ink dark:text-ivory mt-1 mb-2 group-hover:text-vermillion transition-colors">
                             {article.title}
                           </h2>
-                          <p className="text-muted-foreground mb-4 group-hover:text-foreground transition-colors duration-300 ease-out">
+                          <p className="text-stone text-sm mb-3 line-clamp-2">
                             {article.summary || article.excerpt}
                           </p>
-                          <div className="flex items-center justify-between text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300 ease-out">
-                            <span>By {article.author || 'Staff Writer'}</span>
-                            <span>{getReadingTime(article)} min read</span>
+                          <div className="flex items-center gap-3 text-xs text-stone">
+                            <span className="font-medium text-ink dark:text-ivory">{article.author || 'Staff Writer'}</span>
+                            <span className="w-1 h-1 bg-stone rounded-full" />
+                            <span className="font-mono">{getReadingTime(article)} min read</span>
                           </div>
                         </div>
                       </div>
@@ -387,53 +359,44 @@ const CategoryPage: React.FC = () => {
             {/* Sidebar */}
             <div className="lg:col-span-1">
               {/* Related Topics */}
-              <div className="bg-card rounded-lg shadow-sm p-6 mb-6 border border-border">
-                <h3 className="text-lg font-bold text-foreground mb-4">Related Topics</h3>
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    Explore more content in {category.name}
-                  </p>
-                </div>
+              <div className="border border-ash dark:border-ash/20 p-6 mb-6">
+                <h3 className="font-mono text-xs tracking-wider uppercase text-stone mb-4">Related Topics</h3>
+                <p className="text-sm text-stone">
+                  Explore more content in {category.name}
+                </p>
               </div>
 
               {/* Newsletter Signup */}
-              <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
-                <h3 className="text-lg font-bold mb-2">Stay Updated</h3>
-                <p className="text-primary-foreground/80 text-sm mb-4">
-                  Get the latest {category.name.toLowerCase()} news in your inbox.
+              <div className="bg-ink dark:bg-ivory/5 p-6">
+                <h3 className="font-serif text-lg font-bold text-ivory mb-2">The {category.name} Brief</h3>
+                <p className="text-ivory/60 text-sm mb-4">
+                  Get the latest {category.name.toLowerCase()} dispatches in your inbox.
                 </p>
                 <form className="space-y-3">
                   <input
                     type="email"
-                    placeholder="Enter your email"
-                    className="w-full px-3 py-2 rounded-lg text-gray-900 placeholder-gray-500 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent shadow-sm"
+                    placeholder="your@email.com"
+                    className="w-full px-3 py-2 bg-white/10 text-ivory placeholder-ivory/40 border border-ivory/20 font-mono text-sm focus:outline-none focus:border-vermillion"
                   />
                   <button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-900 hover:-translate-y-0.5 transition-all duration-300 ease-out relative overflow-hidden group"
+                    className="w-full bg-vermillion text-white py-2.5 font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors"
                   >
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                      <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-300 ease-out" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                      </svg>
-                      Subscribe
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
+                    Subscribe
                   </button>
                 </form>
               </div>
             </div>
           </div>
         ) : (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">{category.icon || '📰'}</div>
-            <h2 className="text-2xl font-bold text-foreground mb-4">
-              No {filters.find(f => f.id === selectedFilter)?.name} Articles
+          <div className="text-center py-16">
+            <DivergenceMark size={48} className="mx-auto mb-6 text-stone" />
+            <h2 className="font-serif text-2xl font-bold text-ink dark:text-ivory mb-4">
+              No {getFilterLabel(selectedFilter)} Articles
             </h2>
-            <p className="text-muted-foreground mb-8">
+            <p className="text-stone mb-8 max-w-md mx-auto">
               {selectedFilter === 'latest' 
-                ? `We're working on bringing you the latest ${category.name.toLowerCase()} news.`
+                ? `We're working on bringing you the latest ${category.name.toLowerCase()} dispatches.`
                 : selectedFilter === 'breaking'
                 ? `No breaking news in ${category.name.toLowerCase()} right now.`
                 : selectedFilter === 'trending'
@@ -444,15 +407,15 @@ const CategoryPage: React.FC = () => {
             <div className="flex gap-4 justify-center">
               <button
                 onClick={() => setSelectedFilter('latest')}
-                className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
+                className="bg-ink text-ivory px-6 py-3 font-mono text-xs tracking-wider uppercase hover:bg-ink/80 transition-colors"
               >
                 View Latest
               </button>
               <Link
                 href="/"
-                className="bg-muted text-muted-foreground px-6 py-3 rounded-lg hover:bg-muted/80 transition-colors"
+                className="border border-ash text-ink dark:text-ivory px-6 py-3 font-mono text-xs tracking-wider uppercase hover:border-ink transition-colors"
               >
-                Browse All News
+                Front Page
               </Link>
             </div>
           </div>

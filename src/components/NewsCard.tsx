@@ -40,8 +40,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, className = '' }) => {
     <Link href={getContentUrl(article)}>
       <div 
         className={`news-card border-l-4 ${
-          article.isBreaking ? 'border-red-500' : 'border-blue-500'
-        } bg-card hover:bg-muted/50 p-4 rounded-r-lg transition-all duration-200 hover:shadow-lg cursor-pointer group ${className}`}
+          article.isBreaking ? 'border-vermillion' : 'border-ink dark:border-ivory'
+        } bg-card hover:bg-ivory/50 dark:hover:bg-ash/10 p-4 transition-all duration-200 hover:shadow-lg cursor-pointer group ${className}`}
       >
         {/* Header */}
         <div className="flex items-center gap-2 mb-2">
@@ -52,7 +52,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, className = '' }) => {
             </span>
           )}
           {!article.isBreaking && (
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs font-semibold px-2 py-1 rounded">
+            <span className="bg-ink/5 dark:bg-ivory/10 text-ink dark:text-ivory font-mono text-[10px] tracking-wider uppercase font-semibold px-2 py-1">
               NEWS
             </span>
           )}

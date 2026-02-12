@@ -95,15 +95,15 @@ const MenuBar: React.FC<{ editor: any, onImageUpload?: (file: File) => Promise<s
   const buttonClass = (isActive: boolean) =>
     `inline-flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 ${
       isActive
-        ? 'bg-blue-500 text-white shadow-md'
-        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+        ? 'bg-vermillion text-white shadow-md'
+        : 'text-stone hover:bg-ivory hover:text-ink dark:text-stone dark:hover:bg-ink/80 dark:hover:text-gray-200'
     }`;
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-1 p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700 rounded-t-xl">
+      <div className="flex flex-wrap items-center gap-1 p-3 bg-gradient-to-r from-paper to-ivory dark:from-ink dark:to-[#1a1917] border-b border-ash dark:border-ash/20 rounded-t-xl">
         {/* Text Formatting */}
-        <div className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-1 px-2 py-1 bg-paper dark:bg-ink rounded-lg shadow-sm border border-ash dark:border-ash/20">
           <button
             type="button"
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -139,7 +139,7 @@ const MenuBar: React.FC<{ editor: any, onImageUpload?: (file: File) => Promise<s
         </div>
 
         {/* Headings */}
-        <div className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-1 px-2 py-1 bg-paper dark:bg-ink rounded-lg shadow-sm border border-ash dark:border-ash/20">
           <button
             type="button"
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -167,7 +167,7 @@ const MenuBar: React.FC<{ editor: any, onImageUpload?: (file: File) => Promise<s
         </div>
 
         {/* Lists & Quote */}
-        <div className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-1 px-2 py-1 bg-paper dark:bg-ink rounded-lg shadow-sm border border-ash dark:border-ash/20">
           <button
             type="button"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -195,7 +195,7 @@ const MenuBar: React.FC<{ editor: any, onImageUpload?: (file: File) => Promise<s
         </div>
 
         {/* Links */}
-        <div className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-1 px-2 py-1 bg-paper dark:bg-ink rounded-lg shadow-sm border border-ash dark:border-ash/20">
           <button
             type="button"
             onClick={addLink}
@@ -215,7 +215,7 @@ const MenuBar: React.FC<{ editor: any, onImageUpload?: (file: File) => Promise<s
         </div>
 
         {/* Images */}
-        <div className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-1 px-2 py-1 bg-paper dark:bg-ink rounded-lg shadow-sm border border-ash dark:border-ash/20">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -224,7 +224,7 @@ const MenuBar: React.FC<{ editor: any, onImageUpload?: (file: File) => Promise<s
             disabled={isUploading}
           >
             {isUploading ? (
-              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-vermillion border-t-transparent rounded-full animate-spin" />
             ) : (
               <Upload className="w-4 h-4" />
             )}
@@ -240,7 +240,7 @@ const MenuBar: React.FC<{ editor: any, onImageUpload?: (file: File) => Promise<s
         </div>
 
         {/* Undo/Redo */}
-        <div className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-1 px-2 py-1 bg-paper dark:bg-ink rounded-lg shadow-sm border border-ash dark:border-ash/20">
           <button
             type="button"
             onClick={() => editor.chain().focus().undo().run()}
@@ -282,12 +282,12 @@ const MenuBar: React.FC<{ editor: any, onImageUpload?: (file: File) => Promise<s
       {/* Image URL Dialog */}
       {showImageDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
+          <div className="bg-paper dark:bg-ink p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Insert Image</h3>
               <button
                 onClick={() => setShowImageDialog(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-stone hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -302,21 +302,21 @@ const MenuBar: React.FC<{ editor: any, onImageUpload?: (file: File) => Promise<s
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                   placeholder="https://example.com/image.jpg"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  className="w-full px-3 py-2 border border-ash rounded-lg focus:ring-2 focus:ring-vermillion focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   onKeyDown={(e) => e.key === 'Enter' && handleImageFromUrl()}
                 />
               </div>
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setShowImageDialog(false)}
-                  className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+                  className="px-4 py-2 text-gray-600 bg-ivory rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleImageFromUrl}
                   disabled={!imageUrl.trim()}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 bg-vermillion text-white rounded-lg hover:bg-vermillion/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Insert Image
                 </button>
@@ -444,17 +444,17 @@ const BeautifulEditor: React.FC<BeautifulEditorProps> = ({
 
   if (!editor) {
     return (
-      <div className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 p-8">
+      <div className="border border-ash dark:border-ash/20 rounded-xl bg-paper dark:bg-ink p-8">
         <div className="flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="ml-3 text-gray-600 dark:text-gray-400">Loading beautiful editor...</span>
+          <div className="w-8 h-8 border-2 border-vermillion border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-3 text-gray-600 dark:text-stone">Loading beautiful editor...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-lg ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
+    <div className={`border border-ash dark:border-ash/20 rounded-xl overflow-hidden bg-paper dark:bg-ink shadow-lg ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
       <MenuBar editor={editor} onImageUpload={onImageUpload} />
       <div className="relative">
         <EditorContent 
@@ -467,8 +467,8 @@ const BeautifulEditor: React.FC<BeautifulEditorProps> = ({
                      prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4
                      prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4
                      prose-li:text-foreground prose-li:mb-1 prose-li:leading-relaxed
-                     prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:underline hover:prose-a:no-underline
-                     prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/10
+                     prose-a:text-vermillion dark:prose-a:text-blue-400 prose-a:underline hover:prose-a:no-underline
+                     prose-blockquote:border-l-4 prose-blockquote:border-vermillion prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/10
                      prose-blockquote:text-blue-900 dark:prose-blockquote:text-blue-200 prose-blockquote:not-italic prose-blockquote:pl-6 prose-blockquote:py-2
                      prose-strong:text-foreground prose-strong:font-bold
                      prose-em:text-foreground prose-em:italic
@@ -488,8 +488,8 @@ const BeautifulEditor: React.FC<BeautifulEditorProps> = ({
       </div>
       
       {/* Character count and status */}
-      <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+      <div className="px-6 py-3 bg-paper dark:bg-gray-800 border-t border-ash dark:border-ash/20">
+        <div className="flex items-center justify-between text-sm text-stone dark:text-stone">
           <span>
             {editor.getText().length} characters • {editor.getText().split(/\s+/).filter(w => w.length).length} words
           </span>

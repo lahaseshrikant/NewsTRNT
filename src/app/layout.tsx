@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -14,6 +14,24 @@ const inter = Inter({
   preload: true,
   fallback: ['system-ui', 'arial'],
   adjustFontFallback: true,
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  display: 'swap',
+  preload: true,
+  weight: ['400', '500', '600', '700', '800', '900'],
+  fallback: ['Georgia', 'serif'],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  display: 'swap',
+  preload: false,
+  weight: ['400', '500', '700'],
+  fallback: ['Courier New', 'monospace'],
 });
 
 export const metadata: Metadata = {
@@ -53,7 +71,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <LogoProvider>
           <ThemeProvider>
             <ConditionalLayout>

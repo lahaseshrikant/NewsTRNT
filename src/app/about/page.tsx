@@ -2,6 +2,8 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { DivergenceMark } from '@/components/DivergenceMark';
 
 const AboutPage: React.FC = () => {
 
@@ -10,25 +12,25 @@ const AboutPage: React.FC = () => {
       name: 'Sarah Johnson',
       role: 'Editor-in-Chief',
       bio: 'Award-winning journalist with 15+ years experience in digital media.',
-      image: '/api/placeholder/300/300'
+      initials: 'SJ'
     },
     {
       name: 'Michael Chen',
       role: 'Technology Director',
       bio: 'Former Google engineer specializing in AI and machine learning.',
-      image: '/api/placeholder/300/300'
+      initials: 'MC'
     },
     {
       name: 'Dr. Emily Rodriguez',
       role: 'Data Science Lead',
       bio: 'PhD in Computer Science, expert in natural language processing.',
-      image: '/api/placeholder/300/300'
+      initials: 'ER'
     },
     {
       name: 'James Wilson',
       role: 'Product Manager',
       bio: 'Product strategist with experience at leading news organizations.',
-      image: '/api/placeholder/300/300'
+      initials: 'JW'
     }
   ];
 
@@ -36,85 +38,76 @@ const AboutPage: React.FC = () => {
     {
       title: 'Accuracy',
       description: 'We prioritize factual reporting and verify all information through multiple sources.',
-      icon: '✓'
     },
     {
       title: 'Transparency',
       description: 'Our AI algorithms and editorial processes are open and explainable.',
-      icon: '👁️'
     },
     {
-      title: 'Innovation',
-      description: 'We leverage cutting-edge technology to deliver news in new and engaging ways.',
-      icon: '🚀'
+      title: 'Courage',
+      description: 'We publish what matters, not what is popular. We take the road not taken.',
     },
     {
-      title: 'Diversity',
-      description: 'We ensure diverse perspectives and voices are represented in our coverage.',
-      icon: '🌍'
+      title: 'Clarity',
+      description: 'Complex stories made clear through thoughtful design and intelligent curation.',
     }
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper dark:bg-ink">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-  <div className="container mx-auto">
+      <section className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
+        <div className="container mx-auto py-20 px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              About NewsTRNT: The Road Not Taken
+            <DivergenceMark size={56} animated className="mx-auto mb-8" color="var(--color-vermillion, #C62828)" />
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-display font-bold text-ivory mb-6">
+              The Road Not Taken
             </h1>
-            <p className="text-xl md:text-2xl text-blue-100 mb-8">
-              Charting alternative paths in journalism - where diverse voices meet intelligent technology to challenge conventional narratives.
+            <p className="text-xl text-ivory/60 mb-8 max-w-2xl mx-auto leading-relaxed">
+              While mainstream media follows the same road, NewsTRNT takes the divergent path &mdash; finding the stories others miss.
             </p>
-            <div className="flex items-center justify-center space-x-2 text-blue-200">
-              <span>Founded in 2024</span>
-              <span>•</span>
-              <span>Independent News Platform</span>
-              <span>•</span>
-              <span>Global Coverage</span>
+            <div className="flex items-center justify-center gap-6 font-mono text-xs tracking-wider uppercase text-ivory/40">
+              <span>Est. 2024</span>
+              <span className="w-1 h-1 bg-vermillion rounded-full" />
+              <span>Independent</span>
+              <span className="w-1 h-1 bg-vermillion rounded-full" />
+              <span>Built in India</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Mission Section */}
-      <section className="py-16 bg-card">
-  <div className="container mx-auto">
+      <section className="py-20">
+        <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Our Mission</h2>
-              <p className="text-xl text-muted-foreground">
-                To democratize access to quality journalism through intelligent technology
-              </p>
-            </div>
+            <span className="font-mono text-xs tracking-[0.2em] uppercase text-vermillion mb-4 block">Our Mission</span>
+            <div className="editorial-rule mb-8" />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
               <div>
-                <h3 className="text-2xl font-bold text-foreground mb-4">
-                  Intelligent News Curation
-                </h3>
-                <p className="text-muted-foreground mb-6">
+                <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory mb-6">
+                  Divergent Intelligence
+                </h2>
+                <p className="text-stone leading-relaxed mb-6">
                   NewsTRNT uses advanced AI algorithms to analyze thousands of news sources, 
                   identify the most important stories, and personalize them based on your interests. 
-                  Our platform ensures you never miss what matters to you while discovering new 
+                  Our platform ensures you never miss what matters while discovering new 
                   perspectives and topics.
                 </p>
-                <p className="text-muted-foreground">
+                <p className="text-stone leading-relaxed">
                   We believe that everyone deserves access to accurate, timely, and relevant news. 
-                  Our AI doesn't replace human judgment—it enhances it, helping our editorial team 
+                  Our AI doesn&apos;t replace human judgment &mdash; it enhances it, helping our editorial team 
                   deliver better journalism faster.
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg p-8 border border-border">
-                <div className="text-center">
-                  <div className="text-4xl mb-4">🎯</div>
-                  <h4 className="text-lg font-semibold text-foreground mb-2">Smart Insights</h4>
-                  <p className="text-muted-foreground text-sm">
-                    Advanced technology analyzes global news patterns to surface 
-                    the most relevant stories for you.
-                  </p>
-                </div>
+              <div className="bg-ivory dark:bg-ash/10 p-8 border border-ash dark:border-ash/20">
+                <DivergenceMark size={32} className="mb-4" color="var(--color-vermillion, #C62828)" />
+                <h4 className="font-serif text-lg font-bold text-ink dark:text-ivory mb-2">Designed Clarity</h4>
+                <p className="text-stone text-sm leading-relaxed">
+                  Advanced technology analyzes global news patterns to surface 
+                  the most relevant stories for you &mdash; stories on the road not taken.
+                </p>
               </div>
             </div>
           </div>
@@ -122,22 +115,24 @@ const AboutPage: React.FC = () => {
       </section>
 
       {/* Values Section */}
-      <section className="py-16 bg-background">
-  <div className="container mx-auto">
+      <section className="py-20 bg-ivory dark:bg-ash/5">
+        <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Our Values</h2>
-              <p className="text-xl text-muted-foreground">
-                The principles that guide everything we do
-              </p>
+            <div className="text-center mb-16">
+              <span className="font-mono text-xs tracking-[0.2em] uppercase text-vermillion mb-4 block">Our Pillars</span>
+              <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">
+                The principles that guide our journalism
+              </h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {values.map((value, index) => (
-                <div key={index} className="bg-card rounded-lg p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border">
-                  <div className="text-3xl mb-4">{value.icon}</div>
-                  <h3 className="text-lg font-bold text-foreground mb-2">{value.title}</h3>
-                  <p className="text-muted-foreground text-sm">{value.description}</p>
+                <div key={index} className="border border-ash dark:border-ash/20 p-6 bg-paper dark:bg-ink">
+                  <span className="font-mono text-4xl font-bold text-ash dark:text-ash/30 block mb-4">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <h3 className="font-serif text-lg font-bold text-ink dark:text-ivory mb-2">{value.title}</h3>
+                  <p className="text-stone text-sm leading-relaxed">{value.description}</p>
                 </div>
               ))}
             </div>
@@ -146,30 +141,25 @@ const AboutPage: React.FC = () => {
       </section>
 
       {/* Team Section */}
-      <section className="py-16 bg-card">
-  <div className="container mx-auto">
+      <section className="py-20">
+        <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Meet Our Team</h2>
-              <p className="text-xl text-muted-foreground">
-                Experienced journalists and technologists working together
-              </p>
+            <div className="text-center mb-16">
+              <span className="font-mono text-xs tracking-[0.2em] uppercase text-vermillion mb-4 block">The Newsroom</span>
+              <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">
+                Journalists &amp; Technologists
+              </h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {teamMembers.map((member, index) => (
                 <div key={index} className="text-center">
-                  <div className="relative w-48 h-48 mx-auto mb-4">
-                    <Image
-                      src={member.image}
-                      alt={member.name}
-                      fill
-                      className="rounded-full object-cover"
-                    />
+                  <div className="w-24 h-24 mx-auto mb-4 bg-ink dark:bg-ivory flex items-center justify-center">
+                    <span className="font-serif text-2xl font-bold text-ivory dark:text-ink">{member.initials}</span>
                   </div>
-                  <h3 className="text-lg font-bold text-foreground mb-1">{member.name}</h3>
-                  <p className="text-primary font-medium mb-2">{member.role}</p>
-                  <p className="text-muted-foreground text-sm">{member.bio}</p>
+                  <h3 className="font-serif text-lg font-bold text-ink dark:text-ivory mb-1">{member.name}</h3>
+                  <p className="font-mono text-xs tracking-wider uppercase text-vermillion mb-2">{member.role}</p>
+                  <p className="text-stone text-sm">{member.bio}</p>
                 </div>
               ))}
             </div>
@@ -178,62 +168,53 @@ const AboutPage: React.FC = () => {
       </section>
 
       {/* Technology Section */}
-      <section className="py-16 bg-background">
-  <div className="container mx-auto">
+      <section className="py-20 bg-ivory dark:bg-ash/5">
+        <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Our Technology</h2>
-              <p className="text-xl text-muted-foreground">
-                Cutting-edge AI and machine learning powering the future of news
-              </p>
+            <div className="text-center mb-16">
+              <span className="font-mono text-xs tracking-[0.2em] uppercase text-vermillion mb-4 block">Our Technology</span>
+              <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">
+                Intelligence powering the future of news
+              </h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-card rounded-lg p-6 text-center border border-border">
-                <div className="text-3xl mb-4">🤖</div>
-                <h3 className="text-lg font-bold text-foreground mb-2">Natural Language Processing</h3>
-                <p className="text-muted-foreground text-sm">
-                  Advanced NLP algorithms understand context, sentiment, and relevance in news articles.
-                </p>
-              </div>
-              
-              <div className="bg-card rounded-lg p-6 text-center border border-border">
-                <div className="text-3xl mb-4">📊</div>
-                <h3 className="text-lg font-bold text-foreground mb-2">Real-time Analytics</h3>
-                <p className="text-muted-foreground text-sm">
-                  Monitor global news trends and breaking stories as they happen worldwide.
-                </p>
-              </div>
-              
-              <div className="bg-card rounded-lg p-6 text-center border border-border">
-                <div className="text-3xl mb-4">🎯</div>
-                <h3 className="text-lg font-bold text-foreground mb-2">Personalization Engine</h3>
-                <p className="text-muted-foreground text-sm">
-                  Machine learning models that adapt to your reading habits and preferences.
-                </p>
-              </div>
+              {[
+                { title: 'Natural Language Processing', desc: 'Advanced NLP algorithms understand context, sentiment, and relevance in news articles.' },
+                { title: 'Real-time Analytics', desc: 'Monitor global news trends and breaking stories as they happen worldwide.' },
+                { title: 'Personalization Engine', desc: 'Machine learning models that adapt to your reading habits and preferences.' }
+              ].map((tech, i) => (
+                <div key={i} className="border border-ash dark:border-ash/20 p-6 bg-paper dark:bg-ink">
+                  <span className="font-mono text-4xl font-bold text-ash dark:text-ash/30 block mb-4">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <h3 className="font-serif text-lg font-bold text-ink dark:text-ivory mb-2">{tech.title}</h3>
+                  <p className="text-stone text-sm leading-relaxed">{tech.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Contact CTA */}
-      <section className="py-16 bg-gradient-to-r from-primary to-primary/80">
-  <div className="container mx-auto">
+      {/* CTA */}
+      <section className="py-20 bg-ink dark:bg-ivory/5">
+        <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-primary-foreground mb-4">
-              Join the Future of News
+            <DivergenceMark size={40} className="mx-auto mb-6" color="var(--color-vermillion, #C62828)" />
+            <h2 className="font-serif text-3xl font-bold text-ivory mb-4">
+              Take the road not taken
             </h2>
-            <p className="text-xl text-primary-foreground/80 mb-8">
-              Experience personalized news that adapts to your interests and keeps you informed with diverse perspectives.
+            <p className="text-ivory/60 mb-8 max-w-xl mx-auto">
+              Experience journalism designed for clarity, built with intelligence, and delivered with courage.
             </p>
-            <div className="space-x-4">
-              <button className="bg-primary-foreground text-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary-foreground/90 transition-colors">
-                Get Started Free
-              </button>
-              <button className="border-2 border-primary-foreground text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary-foreground hover:text-primary transition-colors">
+            <div className="flex gap-4 justify-center">
+              <Link href="/" className="bg-vermillion text-white px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors">
+                Start Reading
+              </Link>
+              <Link href="/contact" className="border border-ivory/20 text-ivory px-8 py-3 font-mono text-xs tracking-wider uppercase hover:border-ivory/40 transition-colors">
                 Contact Us
-              </button>
+              </Link>
             </div>
           </div>
         </div>

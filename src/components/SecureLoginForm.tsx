@@ -103,14 +103,14 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
 
   if (isLocked || lockoutSeconds > 0) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#1a1917] flex items-center justify-center p-6">
         <div className="max-w-md w-full">
           <div className="bg-red-900/20 border border-red-500 rounded-lg p-8 text-center">
             <div className="text-6xl mb-4">🔒</div>
             <h2 className="text-2xl font-bold text-red-400 mb-4">
               Security Lockout Active
             </h2>
-            <p className="text-gray-300 mb-4">
+            <p className="text-ash mb-4">
               Too many failed authentication attempts.
             </p>
             {lockoutSeconds > 0 && (
@@ -118,7 +118,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
                 {Math.floor(lockoutSeconds / 60)}:{(lockoutSeconds % 60).toString().padStart(2, '0')}
               </div>
             )}
-            <p className="text-gray-400 text-sm mt-4">
+            <p className="text-stone text-sm mt-4">
               Please wait before attempting to log in again.
             </p>
           </div>
@@ -128,7 +128,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#1a1917] flex items-center justify-center p-6">
       <div className="max-w-md w-full">
         {/* Security warnings */}
         {securityWarnings.length > 0 && (
@@ -143,10 +143,10 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
         )}
 
         {/* Main login form */}
-        <div className="bg-gray-800 rounded-xl border border-gray-700 p-8 shadow-2xl">
+        <div className="bg-[#2a2926] rounded-xl border border-[#3a3835] p-8 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+            <div className="mx-auto w-16 h-16 bg-vermillion rounded-2xl flex items-center justify-center mb-4 shadow-lg">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -155,7 +155,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
             <h1 className="text-3xl font-bold text-white mb-2">
               Secure Admin Access
             </h1>
-            <p className="text-gray-400">
+            <p className="text-stone">
               Military-grade authentication required
             </p>
           </div>
@@ -189,7 +189,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-ash mb-2">
                 Admin Email
               </label>
               <input
@@ -197,7 +197,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full px-4 py-3 bg-[#2a2926] border border-[#3a3835] rounded-lg text-white placeholder-stone focus:ring-2 focus:ring-vermillion focus:border-transparent transition-colors"
                 placeholder="admin@newstrnt.com"
                 required
                 disabled={loading}
@@ -206,7 +206,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-ash mb-2">
                 Secure Password
               </label>
               <input
@@ -214,7 +214,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full px-4 py-3 bg-[#2a2926] border border-[#3a3835] rounded-lg text-white placeholder-stone focus:ring-2 focus:ring-vermillion focus:border-transparent transition-colors"
                 placeholder="Enter secure password"
                 required
                 disabled={loading}
@@ -224,7 +224,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
 
             {showMFA && (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-ash mb-2">
                   2FA Authentication Code
                 </label>
                 <input
@@ -232,7 +232,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
                   name="mfaCode"
                   value={formData.mfaCode}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3 bg-[#2a2926] border border-[#3a3835] rounded-lg text-white placeholder-stone focus:ring-2 focus:ring-vermillion focus:border-transparent transition-colors"
                   placeholder="000000"
                   maxLength={6}
                   disabled={loading}
@@ -244,7 +244,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
             <button
               type="submit"
               disabled={loading || !formData.email.trim() || !formData.password.trim()}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full py-3 px-4 bg-vermillion text-white rounded-lg font-medium hover:bg-vermillion/90 focus:ring-2 focus:ring-vermillion focus:ring-offset-2 focus:ring-offset-[#2a2926] disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -268,14 +268,14 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
 
           {/* Security info - development only */}
           {process.env.NODE_ENV === 'development' && (
-          <div className="mt-6 pt-6 border-t border-gray-700">
+          <div className="mt-6 pt-6 border-t border-[#3a3835]">
             <div className="text-center">
-              <p className="text-sm text-gray-400 mb-3">
+              <p className="text-sm text-stone mb-3">
                 🔐 Use credentials from your .env.local file:
               </p>
-              <div className="space-y-1 text-xs bg-gray-900 p-3 rounded">
-                <div className="text-blue-400">SUPER_ADMIN_EMAIL / SUPER_ADMIN_PASSWORD</div>
-                <div className="text-purple-400 mt-2">ADMIN_EMAIL / ADMIN_PASSWORD</div>
+              <div className="space-y-1 text-xs bg-[#1a1917] p-3 rounded">
+                <div className="text-vermillion">SUPER_ADMIN_EMAIL / SUPER_ADMIN_PASSWORD</div>
+                <div className="text-gold mt-2">ADMIN_EMAIL / ADMIN_PASSWORD</div>
               </div>
             </div>
           </div>
@@ -289,11 +289,11 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
                 CSRF Protected
               </span>
               <span className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
+                <div className="w-2 h-2 bg-vermillion rounded-full mr-1"></div>
                 Rate Limited
               </span>
               <span className="flex items-center">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mr-1"></div>
+                <div className="w-2 h-2 bg-gold rounded-full mr-1"></div>
                 Encrypted
               </span>
             </div>
@@ -304,7 +304,7 @@ const SecureLoginForm = ({ onAttempt, attemptsRemaining, isLocked }: SecureLogin
         <div className="text-center mt-6">
           <a 
             href="/" 
-            className="text-sm text-gray-400 hover:text-blue-400 transition-colors"
+            className="text-sm text-stone hover:text-vermillion transition-colors"
           >
             ← Return to NewsTRNT
           </a>

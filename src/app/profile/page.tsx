@@ -36,8 +36,8 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center">
+        <p className="font-mono text-xs tracking-wider uppercase text-stone">Loading...</p>
       </div>
     );
   }
@@ -47,25 +47,29 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper dark:bg-ink">
+      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
+        <div className="container mx-auto py-8 px-4">
+          <h1 className="font-serif text-3xl font-bold text-ivory">My Profile</h1>
+        </div>
+      </div>
+      
       <div className="container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-6">My Profile</h1>
-        
-        <div className="bg-card border border-border rounded-lg p-6 max-w-2xl">
+        <div className="bg-ivory dark:bg-ash/10 border border-ash dark:border-ash/20 p-6 max-w-2xl">
           <div className="space-y-4">
             <div>
-              <label className="text-sm text-muted-foreground">Name</label>
-              <p className="text-lg font-medium">{user.name || 'Not set'}</p>
+              <label className="font-mono text-xs tracking-wider uppercase text-stone">Name</label>
+              <p className="font-serif text-lg font-medium text-ink dark:text-ivory">{user.name || 'Not set'}</p>
             </div>
             
-            <div>
-              <label className="text-sm text-muted-foreground">Email</label>
-              <p className="text-lg font-medium">{getEmailString(user.email)}</p>
+            <div className="border-t border-ash dark:border-ash/20 pt-4">
+              <label className="font-mono text-xs tracking-wider uppercase text-stone">Email</label>
+              <p className="font-serif text-lg font-medium text-ink dark:text-ivory">{getEmailString(user.email)}</p>
             </div>
             
-            <div>
-              <label className="text-sm text-muted-foreground">Role</label>
-              <p className="text-lg font-medium capitalize">{user.role || 'User'}</p>
+            <div className="border-t border-ash dark:border-ash/20 pt-4">
+              <label className="font-mono text-xs tracking-wider uppercase text-stone">Role</label>
+              <p className="font-serif text-lg font-medium text-ink dark:text-ivory capitalize">{user.role || 'User'}</p>
             </div>
           </div>
         </div>

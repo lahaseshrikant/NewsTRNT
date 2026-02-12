@@ -83,7 +83,7 @@ const NotificationsPage: React.FC = () => {
           </div>
           <button
             onClick={markAllAsRead}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            className="px-4 py-2 bg-vermillion hover:bg-vermillion/90 text-white font-mono text-xs tracking-wider uppercase transition-colors"
           >
             Mark All as Read
           </button>
@@ -99,7 +99,7 @@ const NotificationsPage: React.FC = () => {
                 className={`bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border-l-4 ${
                   notification.read 
                     ? 'border-gray-300 dark:border-gray-600 opacity-75' 
-                    : 'border-blue-500 dark:border-blue-400'
+                    : 'border-vermillion dark:border-vermillion'
                 } transition-all duration-200 hover:shadow-md`}
               >
                 <div className="flex items-start space-x-4">
@@ -131,10 +131,10 @@ const NotificationsPage: React.FC = () => {
                       
                       {!notification.read && (
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <div className="w-2 h-2 bg-vermillion rounded-full"></div>
                           <button
                             onClick={() => markAsRead(notification.id)}
-                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                            className="text-sm text-vermillion hover:underline"
                           >
                             Mark as read
                           </button>
@@ -163,7 +163,7 @@ const NotificationsPage: React.FC = () => {
 
         {/* Settings Link */}
         <div className="mt-8 text-center">
-          <button className="text-blue-600 dark:text-blue-400 hover:underline">
+          <button className="text-vermillion hover:underline font-mono text-xs tracking-wider uppercase">
             Notification Settings
           </button>
         </div>

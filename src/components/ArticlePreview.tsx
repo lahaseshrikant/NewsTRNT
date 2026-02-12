@@ -45,7 +45,7 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
         {/* Category Badge */}
         {category && (
           <div className="mb-4">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80">
               {category}
             </span>
           </div>
@@ -112,9 +112,9 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
                        prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4
                        prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4
                        prose-li:text-foreground prose-li:text-lg prose-li:mb-1 prose-li:leading-relaxed
-                       prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:underline hover:prose-a:no-underline
-                       prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20
-                       prose-blockquote:text-blue-900 dark:prose-blockquote:text-blue-200 prose-blockquote:not-italic prose-blockquote:pl-6 prose-blockquote:py-4
+                       prose-a:text-vermillion dark:prose-a:text-vermillion/80 prose-a:underline hover:prose-a:no-underline
+                       prose-blockquote:border-l-4 prose-blockquote:border-vermillion prose-blockquote:bg-ivory dark:prose-blockquote:bg-ink/80
+                       prose-blockquote:text-ink dark:prose-blockquote:text-ivory prose-blockquote:not-italic prose-blockquote:pl-6 prose-blockquote:py-4
                        prose-strong:text-foreground prose-strong:font-bold
                        prose-em:text-foreground prose-em:italic
                        prose-code:text-foreground prose-code:bg-muted prose-code:px-1 prose-code:rounded prose-code:text-sm
@@ -124,7 +124,7 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
                        prose-table:border-collapse prose-table:border prose-table:border-border prose-table:my-6
                        prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-3 prose-th:text-foreground prose-th:font-semibold
                        prose-td:border prose-td:border-border prose-td:p-3 prose-td:text-foreground
-                       selection:bg-blue-100 dark:selection:bg-blue-900/30
+                       selection:bg-vermillion/10 dark:selection:bg-vermillion/20
                        text-foreground">
         {content ? (
           <div 
@@ -145,7 +145,7 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
             🔍 SEO Preview
           </h3>
           <div className="space-y-3">
-            <div className="text-blue-600 dark:text-blue-400 text-lg font-medium hover:underline cursor-pointer">
+            <div className="text-vermillion dark:text-vermillion/80 text-lg font-medium hover:underline cursor-pointer">
               {seoTitle || title}
             </div>
             <div className="text-green-700 dark:text-green-400 text-sm">

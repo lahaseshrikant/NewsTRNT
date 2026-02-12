@@ -16,18 +16,12 @@ const WebStoriesContent: React.FC = () => {
   const [webStories, setWebStories] = useState<WebStory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Use dynamic categories (active only)
-  const { categories: dynamicCategories, loading: categoriesLoading } = useCategories();
+  const { categories: dynamicCategories } = useCategories();
 
-  // Set initial category from URL parameter
   useEffect(() => {
-    if (categoryParam) {
-      setSelectedCategory(categoryParam);
-    }
+    if (categoryParam) setSelectedCategory(categoryParam);
   }, [categoryParam]);
 
-  // Load web stories from database
   useEffect(() => {
     const loadWebStories = async () => {
       try {
@@ -42,11 +36,9 @@ const WebStoriesContent: React.FC = () => {
         setLoading(false);
       }
     };
-
     loadWebStories();
   }, []);
 
-  // Create categories list with special items and dynamic categories
   const categories = [
     { id: 'all', label: 'All Stories', count: webStories.length },
     { id: 'trending', label: 'Trending', count: webStories.filter(s => s.isTrending).length },
@@ -69,35 +61,25 @@ const WebStoriesContent: React.FC = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const formatViews = (views: number) => {
-    if (views >= 1000000) {
-      return `${(views / 1000000).toFixed(1)}M`;
-    } else if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}K`;
-    }
-    return views.toString();
-  };
-
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
     if (diffInSeconds < 60) return 'Just now';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     return `${Math.floor(diffInSeconds / 86400)}d ago`;
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-border">
+        <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
           <div className="container mx-auto py-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-4xl font-bold text-foreground mb-4">📱 Web Stories</h1>
-              <p className="text-xl text-muted-foreground">Loading stories...</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">Visual</p>
+              <h1 className="font-serif text-4xl font-bold text-ivory mb-4">Web Stories</h1>
+              <p className="text-xl text-ivory/60">Loading stories...</p>
             </div>
           </div>
         </div>
@@ -112,17 +94,16 @@ const WebStoriesContent: React.FC = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Error loading stories</h3>
+          <svg className="w-12 h-12 text-stone/30 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+          <h3 className="font-serif text-lg font-semibold text-foreground mb-2">Error loading stories</h3>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90"
+            className="hover-magnetic bg-vermillion text-white px-6 py-3 font-mono text-xs tracking-wider uppercase"
           >
             Try Again
           </button>
@@ -133,13 +114,13 @@ const WebStoriesContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Show notification if came from "See More" */}
+      {/* Category notification */}
       {categoryParam && categoryParam !== 'all' && (
-        <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-b border-orange-200/20">
+        <div className="bg-gold/10 border-b border-ash/20">
           <div className="container mx-auto py-2">
             <div className="text-center">
-              <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">
-                📰 Showing more {categoryParam} stories
+              <span className="text-sm text-vermillion dark:text-gold font-mono text-xs uppercase tracking-wider">
+                Showing more {categoryParam} stories
               </span>
             </div>
           </div>
@@ -147,77 +128,72 @@ const WebStoriesContent: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-border">
-  <div className="container mx-auto py-8">
+      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
+        <div className="container mx-auto py-8">
           <Breadcrumb items={[{ label: 'Web Stories' }]} className="mb-4" />
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
-              📱 Web Stories
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">Visual</p>
+            <h1 className="font-serif text-4xl font-bold text-ivory mb-4">
+              Web Stories
             </h1>
-            <p className="text-xl text-muted-foreground">
-              Immersive visual storytelling • Swipe through the latest news
+            <p className="text-xl text-ivory/60">
+              Immersive visual storytelling
             </p>
           </div>
         </div>
       </div>
 
-  <div className="container mx-auto py-8">
-        {/* Stats and Categories */}
-        <div className="mb-8">
-          {/* Category Filters */}
-          <div className="flex flex-wrap gap-2">
-            {categories.map(category => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedCategory === category.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                {category.label}
-              </button>
-            ))}
-          </div>
+      <div className="container mx-auto py-8">
+        {/* Category Filters */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          {categories.map(category => (
+            <button
+              key={category.id}
+              onClick={() => setSelectedCategory(category.id)}
+              className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
+                selectedCategory === category.id
+                  ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
+                  : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
+              }`}
+            >
+              {category.label}
+            </button>
+          ))}
         </div>
 
         {/* Web Stories Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-          {filteredStories.map((story, index) => (
+          {filteredStories.map((story) => (
             <Link
               key={story.id}
               href={`/web-stories/${story.slug}`}
-              className="group relative aspect-[9/19.5] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300"
+              className="group relative aspect-[9/19.5] bg-gradient-to-br from-ivory to-ash dark:from-ink dark:to-[#1a1917] rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.03]"
             >
-              {/* Cover Image */}
               <Image
                 src={story.coverImage}
                 alt={story.title}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              
-              {/* Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               
               {/* Badges */}
               <div className="absolute top-3 left-3 flex flex-col gap-1">
                 {story.isNew && (
-                  <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                    NEW
+                  <span className="bg-green-600 text-white px-2 py-1 font-mono text-[9px] uppercase tracking-wider font-bold rounded-sm">
+                    New
                   </span>
                 )}
                 {story.isTrending && (
-                  <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                    🔥 TRENDING
+                  <span className="bg-vermillion text-white px-2 py-1 font-mono text-[9px] uppercase tracking-wider font-bold rounded-sm">
+                    Trending
                   </span>
                 )}
               </div>
 
               {/* Duration */}
               <div className="absolute top-3 right-3">
-                <span className="bg-black/70 text-white px-2 py-1 rounded-full text-xs font-medium">
+                <span className="bg-black/70 text-white px-2 py-1 font-mono text-[10px] rounded-sm">
                   {formatDuration(story.duration)}
                 </span>
               </div>
@@ -225,20 +201,17 @@ const WebStoriesContent: React.FC = () => {
               {/* Content */}
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 <div className="mb-2">
-                  <span className="bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-medium">
+                  <span className="bg-ink text-ivory px-2 py-1 font-mono text-[9px] uppercase tracking-wider">
                     {story.category}
                   </span>
                 </div>
                 
-                <h3 className="text-white font-bold text-sm mb-2 line-clamp-2 group-hover:text-primary-foreground transition-colors">
+                <h3 className="text-white font-serif font-bold text-sm mb-2 line-clamp-2 group-hover:text-gold transition-colors">
                   {story.title}
                 </h3>
                 
-                <div className="flex items-center justify-between text-xs text-gray-300">
-                  <div className="flex items-center space-x-1">
-                    <span>⏱️</span>
-                    <span>{story.duration || 30}s</span>
-                  </div>
+                <div className="flex items-center justify-between text-[10px] text-ash font-mono">
+                  <span>{story.duration || 30}s</span>
                   <span>{formatTimeAgo(story.publishedAt)}</span>
                 </div>
               </div>
@@ -260,8 +233,8 @@ const WebStoriesContent: React.FC = () => {
         {/* Empty State */}
         {filteredStories.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">📱</div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">No stories found</h3>
+            <svg className="w-12 h-12 text-stone/30 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /></svg>
+            <h3 className="font-serif text-lg font-semibold text-foreground mb-2">No stories found</h3>
             <p className="text-muted-foreground">
               Try selecting a different category or check back later for new stories
             </p>
@@ -271,7 +244,7 @@ const WebStoriesContent: React.FC = () => {
         {/* Load More */}
         {filteredStories.length > 0 && (
           <div className="text-center mt-8">
-            <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors">
+            <button className="hover-magnetic bg-vermillion text-white px-6 py-3 font-mono text-xs tracking-wider uppercase">
               Load More Stories
             </button>
           </div>
@@ -284,9 +257,9 @@ const WebStoriesContent: React.FC = () => {
 const WebStoriesPage: React.FC = () => {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 py-12">
+      <div className="min-h-screen bg-background py-12">
         <div className="container mx-auto px-4 text-center">
-          <div className="animate-pulse">Loading web stories...</div>
+          <div className="animate-pulse font-mono text-sm text-stone">Loading web stories...</div>
         </div>
       </div>
     }>

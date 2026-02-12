@@ -170,17 +170,17 @@ const OpinionDetailPage: React.FC = () => {
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1 bg-muted/50 z-50">
         <div 
-          className="h-full bg-amber-600 transition-all duration-100"
+          className="h-full bg-vermillion transition-all duration-100"
           style={{ width: `${readingProgress}%` }}
         ></div>
       </div>
 
       {/* Opinion Header Banner */}
-      <div className="bg-gradient-to-r from-amber-600/10 to-orange-600/10 border-b border-border">
+      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
         <div className="container mx-auto py-2">
           <div className="flex items-center gap-2 text-sm">
-            <span className="bg-amber-600 text-white px-2 py-0.5 rounded text-xs font-bold">OPINION</span>
-            <span className="text-muted-foreground">Perspectives and commentary from our columnists</span>
+            <span className="bg-vermillion text-white px-2 py-0.5 font-mono text-xs tracking-wider uppercase font-bold">Opinion</span>
+            <span className="text-ivory/60">Perspectives and commentary from our columnists</span>
           </div>
         </div>
       </div>

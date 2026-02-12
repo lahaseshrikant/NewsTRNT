@@ -329,7 +329,7 @@ function IndexList({ indices }: { indices: MarketIndex[] }) {
                   </span>
                 )}
                 {extendedIndex.isGlobalPopular && !extendedIndex.isLocal && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 rounded">
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-vermillion/10 text-vermillion rounded">
                     GLOBAL
                   </span>
                 )}
@@ -432,7 +432,7 @@ function CurrencyList({ currencies, localCurrency }: { currencies: Currency[]; l
           <div
             key={currency.id}
             className={`flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors ${
-              extendedCurrency.isPopular ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''
+              extendedCurrency.isPopular ? 'bg-ivory/50 dark:bg-ink/50' : ''
             }`}
           >
             <div className="flex-1 min-w-0">
@@ -441,7 +441,7 @@ function CurrencyList({ currencies, localCurrency }: { currencies: Currency[]; l
                   {currency.pair}
                 </p>
                 {extendedCurrency.isPopular && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded">
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80 rounded">
                     MAJOR
                   </span>
                 )}
@@ -488,7 +488,7 @@ function CryptoList({ cryptocurrencies, localCurrency }: { cryptocurrencies: Cry
           <div
             key={crypto.id}
             className={`flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors ${
-              extendedCrypto.isPopular ? 'bg-amber-50/50 dark:bg-amber-950/20' : ''
+              extendedCrypto.isPopular ? 'bg-gold/5 dark:bg-gold/10' : ''
             }`}
           >
             <div className="flex-1 min-w-0">
@@ -497,12 +497,12 @@ function CryptoList({ cryptocurrencies, localCurrency }: { cryptocurrencies: Cry
                   {crypto.symbol}
                 </p>
                 {extendedCrypto.priority === 1 && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 rounded">
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-gold/15 text-gold dark:bg-gold/20 dark:text-gold/80 rounded">
                     #1
                   </span>
                 )}
                 {extendedCrypto.priority === 2 && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded">
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium bg-ink/10 text-ink/70 dark:bg-ink/30 dark:text-ivory/70 rounded">
                     #2
                   </span>
                 )}
@@ -542,7 +542,7 @@ function MarketStatus({ isOpen }: { isOpen: boolean }) {
   return (
     <div className="ml-2 flex items-center">
       <div className={`w-2 h-2 rounded-full ${
-        isOpen ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+        isOpen ? 'bg-green-500 animate-pulse' : 'bg-ink/40'
       }`} />
     </div>
   );

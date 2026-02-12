@@ -9,18 +9,15 @@ import { getCategoryBadgeStyle } from '@/lib/categoryUtils';
 import { dbApi, Article } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
 
-// Helper to format published time
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
   const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
   const diffInMinutes = Math.floor((now.getTime() - published.getTime()) / (1000 * 60));
-  
   if (diffInMinutes < 1) return 'Just now';
   if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
   if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
   if (diffInMinutes < 7200) return `${Math.floor(diffInMinutes / 1440)} days ago`;
-  const date = new Date(publishedAt);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Date(publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
 const ArticlesPage: React.FC = () => {
@@ -29,9 +26,8 @@ const ArticlesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const { categories: dynamicCategories, loading: categoriesLoading } = useCategories();
+  const { categories: dynamicCategories } = useCategories();
 
-  // Load articles from database
   useEffect(() => {
     const loadArticles = async () => {
       try {
@@ -47,14 +43,12 @@ const ArticlesPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     loadArticles();
   }, [page]);
 
-  // Create categories list
   const categories = [
     { id: 'all', label: 'All Articles', count: articles.length },
-    { id: 'featured', label: '⭐ Featured', count: articles.filter(a => a.isFeatured).length },
+    { id: 'featured', label: 'Featured', count: articles.filter(a => a.isFeatured).length },
     ...dynamicCategories.slice(0, 6).map(cat => ({
       id: cat.slug,
       label: cat.name,
@@ -69,7 +63,6 @@ const ArticlesPage: React.FC = () => {
         return article.category?.slug === selectedCategory;
       });
 
-  // Get featured article for hero section
   const featuredArticle = articles.find(a => a.isFeatured) || articles[0];
   const remainingArticles = featuredArticle 
     ? filteredArticles.filter(a => a.id !== featuredArticle.id)
@@ -78,15 +71,16 @@ const ArticlesPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border-b border-border">
+      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
         <div className="container mx-auto py-8">
           <Breadcrumb items={[{ label: 'Articles' }]} className="mb-4" />
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
-              📚 Long Reads
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">In-Depth</p>
+            <h1 className="font-serif text-4xl font-bold text-ivory mb-4">
+              Long Reads
             </h1>
-            <p className="text-xl text-muted-foreground">
-              In-depth articles and analysis • Deep dives into the stories that matter
+            <p className="text-xl text-ivory/60">
+              In-depth articles and deep dives into the stories that matter
             </p>
           </div>
         </div>
@@ -97,9 +91,9 @@ const ArticlesPage: React.FC = () => {
         {featuredArticle && selectedCategory === 'all' && (
           <Link 
             href={getContentUrl(featuredArticle)}
-            className="block mb-8 group"
+            className="hover-hero-card block mb-8 group"
           >
-            <div className="relative h-96 rounded-xl overflow-hidden bg-card border border-border">
+            <div className="relative h-96 overflow-hidden bg-card border border-border">
               {featuredArticle.imageUrl ? (
                 <Image
                   src={featuredArticle.imageUrl}
@@ -108,25 +102,25 @@ const ArticlesPage: React.FC = () => {
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-8xl">
-                  📚
+                <div className="w-full h-full bg-gradient-to-br from-ink via-vermillion/20 to-ink flex items-center justify-center">
+                  <svg className="w-16 h-16 text-ivory/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-8">
                 <div className="flex items-center gap-2 mb-3">
                   {featuredArticle.isFeatured && (
-                    <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">
-                      ⭐ FEATURED
+                    <span className="bg-gold text-ink px-3 py-1 font-mono text-[10px] uppercase tracking-wider font-bold">
+                      Featured
                     </span>
                   )}
                   {featuredArticle.category && (
-                    <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium">
+                    <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 font-mono text-[10px] uppercase tracking-wider">
                       {featuredArticle.category.name}
                     </span>
                   )}
                 </div>
-                <h2 className="text-3xl font-bold text-white mb-3 group-hover:text-blue-200 transition-colors">
+                <h2 className="font-serif text-3xl font-bold text-white mb-3 group-hover:text-gold transition-colors">
                   {featuredArticle.title}
                 </h2>
                 <p className="text-white/80 text-lg mb-4 line-clamp-2 max-w-3xl">
@@ -153,10 +147,10 @@ const ArticlesPage: React.FC = () => {
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
                     selectedCategory === category.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
+                      : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
                   }`}
                 >
                   {category.label}
@@ -168,13 +162,12 @@ const ArticlesPage: React.FC = () => {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="bg-card border border-border rounded-lg overflow-hidden animate-pulse">
+                  <div key={i} className="bg-card border border-border overflow-hidden animate-pulse">
                     <div className="h-48 bg-muted"></div>
                     <div className="p-4 space-y-3">
                       <div className="h-4 bg-muted rounded w-1/4"></div>
                       <div className="h-6 bg-muted rounded w-3/4"></div>
                       <div className="h-4 bg-muted rounded w-full"></div>
-                      <div className="h-4 bg-muted rounded w-2/3"></div>
                     </div>
                   </div>
                 ))}
@@ -186,44 +179,41 @@ const ArticlesPage: React.FC = () => {
                     <Link 
                       key={article.id} 
                       href={getContentUrl(article)}
-                      className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all"
+                      className="hover-lift group bg-card border border-border overflow-hidden transition-all"
                     >
                       {/* Image */}
-                      <div className="relative h-48 bg-muted">
+                      <div className="hover-img-zoom relative h-48 bg-muted overflow-hidden">
                         {article.imageUrl ? (
                           <Image
                             src={article.imageUrl}
                             alt={article.title}
                             fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20">
-                            📚
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-ivory to-ash dark:from-ink dark:to-ink/50">
+                            <svg className="w-10 h-10 text-stone/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
                           </div>
                         )}
                         {article.isFeatured && (
-                          <div className="absolute top-2 left-2 bg-yellow-500 text-black px-2 py-1 rounded text-xs font-bold">
-                            ⭐ FEATURED
+                          <div className="absolute top-2 left-2 bg-gold text-ink px-2 py-1 font-mono text-[10px] uppercase tracking-wider font-bold">
+                            Featured
                           </div>
                         )}
-                        <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 font-mono text-[10px]">
                           {article.readingTime || 8} min read
                         </div>
                       </div>
 
                       {/* Content */}
                       <div className="p-4">
-                        {/* Category Badge */}
                         {article.category && (
-                          <span 
-                            className={`inline-block px-2 py-1 rounded text-xs font-medium mb-2 ${getCategoryBadgeStyle(article.category)}`}
-                          >
+                          <span className={`inline-block px-2 py-1 text-xs font-medium mb-2 ${getCategoryBadgeStyle(article.category)}`}>
                             {article.category.name}
                           </span>
                         )}
 
-                        <h2 className="text-lg font-bold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                        <h2 className="font-serif text-lg font-bold text-foreground mb-2 line-clamp-2 group-hover:text-vermillion transition-colors">
                           {article.title}
                         </h2>
 
@@ -240,12 +230,11 @@ const ArticlesPage: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Load More */}
                 {hasMore && (
                   <div className="text-center mt-8">
                     <button
                       onClick={() => setPage(prev => prev + 1)}
-                      className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                      className="hover-magnetic px-6 py-3 bg-vermillion text-white font-mono text-xs tracking-wider uppercase"
                     >
                       Load More Articles
                     </button>
@@ -254,8 +243,8 @@ const ArticlesPage: React.FC = () => {
               </>
             ) : (
               <div className="text-center py-16">
-                <div className="text-6xl mb-4">📚</div>
-                <h3 className="text-xl font-bold text-foreground mb-2">No Articles Found</h3>
+                <svg className="w-12 h-12 text-stone/30 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+                <h3 className="font-serif text-xl font-bold text-foreground mb-2">No Articles Found</h3>
                 <p className="text-muted-foreground">
                   {selectedCategory === 'all' 
                     ? 'Check back later for in-depth articles.'
@@ -268,48 +257,48 @@ const ArticlesPage: React.FC = () => {
           {/* Sidebar */}
           <div className="w-full lg:w-80 space-y-6">
             {/* Content Types */}
-            <div className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-bold text-foreground mb-4">📖 More Content</h3>
+            <div className="bg-card border border-border p-4">
+              <h3 className="font-serif font-bold text-foreground mb-4">More Content</h3>
               <div className="space-y-2">
-                <Link href="/news" className="block p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  <span className="font-medium">📰 Latest News</span>
+                <Link href="/news" className="hover-row block p-3 transition-colors">
+                  <span className="font-medium">Latest News</span>
                   <p className="text-xs text-muted-foreground">Breaking and current events</p>
                 </Link>
-                <Link href="/shorts" className="block p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  <span className="font-medium">⚡ News Shorts</span>
+                <Link href="/shorts" className="hover-row block p-3 transition-colors">
+                  <span className="font-medium">News Shorts</span>
                   <p className="text-xs text-muted-foreground">Quick 1-minute reads</p>
                 </Link>
-                <Link href="/opinion" className="block p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  <span className="font-medium">💭 Opinion</span>
+                <Link href="/opinion" className="hover-row block p-3 transition-colors">
+                  <span className="font-medium">Opinion</span>
                   <p className="text-xs text-muted-foreground">Expert perspectives</p>
                 </Link>
-                <Link href="/analysis" className="block p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  <span className="font-medium">🔍 Analysis</span>
+                <Link href="/analysis" className="hover-row block p-3 transition-colors">
+                  <span className="font-medium">Analysis</span>
                   <p className="text-xs text-muted-foreground">Deep dives and insights</p>
                 </Link>
               </div>
             </div>
 
             {/* Categories */}
-            <div className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-bold text-foreground mb-4">📂 Categories</h3>
-              <div className="space-y-2">
+            <div className="bg-card border border-border p-4">
+              <h3 className="font-serif font-bold text-foreground mb-4">Categories</h3>
+              <div className="space-y-1">
                 {dynamicCategories.map(cat => (
                   <Link
                     key={cat.id}
                     href={`/category/${cat.slug}`}
-                    className="flex items-center justify-between p-2 rounded hover:bg-muted transition-colors"
+                    className="hover-row flex items-center justify-between p-2 transition-colors"
                   >
-                    <span className="text-sm font-medium">{cat.icon} {cat.name}</span>
+                    <span className="text-sm font-medium">{cat.name}</span>
                   </Link>
                 ))}
               </div>
             </div>
 
             {/* Reading Tip */}
-            <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-lg p-4">
-              <h3 className="font-bold text-foreground mb-2">💡 Reading Tip</h3>
-              <p className="text-sm text-muted-foreground">
+            <div className="bg-ink dark:bg-ivory/5 border border-ash dark:border-ash/20 p-4">
+              <h3 className="font-serif font-bold text-ivory mb-2">Reading Tip</h3>
+              <p className="text-sm text-ivory/60">
                 Long-form articles are best enjoyed with your morning coffee. Take your time to absorb the details.
               </p>
             </div>

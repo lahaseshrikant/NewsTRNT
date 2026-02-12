@@ -103,14 +103,14 @@ const TrendingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-border">
+      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
   <div className="container mx-auto py-8">
           <Breadcrumb items={[{ label: 'Trending' }]} className="mb-4" />
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
-              🔥 Trending News
+            <h1 className="font-serif text-4xl font-bold text-ivory mb-4">
+              Trending Now
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-ivory/60">
               What the world is talking about right now
             </p>
           </div>
@@ -127,10 +127,10 @@ const TrendingPage: React.FC = () => {
                 <button
                   key={range.id}
                   onClick={() => setTimeRange(range.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
                     timeRange === range.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
+                      : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
                   }`}
                 >
                   {range.label}
@@ -157,11 +157,11 @@ const TrendingPage: React.FC = () => {
               ) : trendingStories.length > 0 ? (
                 trendingStories.map((story, index) => (
                 <Link key={story.id} href={getContentUrl(story)}
-                      className="group block bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all">
+                      className="hover-lift group block bg-card border border-border p-6 transition-all">
                   <div className="flex items-start gap-4">
                     {/* Trending Rank */}
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      <div className="w-12 h-12 bg-ink dark:bg-ivory flex items-center justify-center text-ivory dark:text-ink font-mono font-bold text-lg">
                         #{index + 1}
                       </div>
                     </div>
@@ -169,15 +169,15 @@ const TrendingPage: React.FC = () => {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
+                        <span className="font-mono text-xs tracking-wider uppercase bg-vermillion/10 text-vermillion px-2 py-1">
                           {story.category}
                         </span>
-                        <span className="text-xs text-muted-foreground">
-                          Trending Score: {story.trendingScore}%
+                        <span className="font-mono text-xs text-stone">
+                          Score: {story.trendingScore}%
                         </span>
                       </div>
                       
-                      <h2 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                      <h2 className="font-serif text-xl font-bold text-foreground mb-2 group-hover:text-vermillion transition-colors">
                         {story.title}
                       </h2>
                       
@@ -225,7 +225,7 @@ const TrendingPage: React.FC = () => {
 
             {/* Load More */}
             <div className="text-center mt-8">
-              <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors">
+              <button className="bg-vermillion text-white px-6 py-3 font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors">
                 Load More Trending Stories
               </button>
             </div>
@@ -235,14 +235,14 @@ const TrendingPage: React.FC = () => {
           <div className="lg:w-80">
             {/* Trending Topics */}
             <div className="bg-card border border-border rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-bold text-foreground mb-4">🔥 Hot Topics</h3>
+              <h3 className="font-serif text-lg font-bold text-foreground mb-4">Hot Topics</h3>
               {trendingTopics.length > 0 ? (
                 <div className="space-y-3">
                   {trendingTopics.map((topic, index) => (
                     <Link key={topic.name} href={`/search?q=${encodeURIComponent(topic.name)}`}
-                          className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors">
+                          className="hover-row flex items-center justify-between p-2 transition-colors">
                       <div className="font-medium text-foreground">{topic.name}</div>
-                      <div className="text-green-600 text-sm font-medium">Trending</div>
+                      <div className="font-mono text-xs text-vermillion font-medium">Trending</div>
                     </Link>
                   ))}
                 </div>
@@ -253,18 +253,18 @@ const TrendingPage: React.FC = () => {
 
             {/* About Trending */}
             <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="text-lg font-bold text-foreground mb-4">📊 How We Rank</h3>
+              <h3 className="font-serif text-lg font-bold text-foreground mb-4">How We Rank</h3>
               <div className="space-y-4 text-sm text-muted-foreground">
                 <div className="flex items-start space-x-3">
-                  <span className="text-primary">🔥</span>
+                  <span className="font-mono text-vermillion text-xs">01</span>
                   <p>Stories ranked by real-time engagement and reader interest</p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <span className="text-primary">⚡</span>
+                  <span className="font-mono text-vermillion text-xs">02</span>
                   <p>Updated continuously throughout the day</p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <span className="text-primary">🎯</span>
+                  <span className="font-mono text-vermillion text-xs">03</span>
                   <p>Smart curation for most relevant stories</p>
                 </div>
               </div>

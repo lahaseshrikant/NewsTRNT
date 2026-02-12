@@ -15,126 +15,128 @@ const ForgotPasswordPage: React.FC = () => {
     setError('');
 
     try {
-      // Simulate password reset request
       await new Promise(resolve => setTimeout(resolve, 1000));
       setIsSubmitted(true);
     } catch (error) {
       console.error('Password reset error:', error);
-      setError('Something went wrong. Please try again!');
+      setError('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Floating Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-200 dark:bg-green-800/50 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200 dark:bg-blue-800/50 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float delay-1000"></div>
-          <div className="absolute top-40 left-40 w-80 h-80 bg-purple-200 dark:bg-purple-800/50 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float delay-500"></div>
-        </div>
-
-        <div className="max-w-md w-full space-y-8 relative z-10">
-          <div className="text-center animate-fade-in">
-            <Link href="/" className="inline-block group">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 animate-gradient">
-                ✨ NewsTRNT
-              </h1>
-            </Link>
-            <div className="mt-8 space-y-6">
-              <div className="text-6xl animate-bounce-gentle">📧</div>
-              <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 animate-bounce-gentle">
-                Email Sent! 🎉
-              </h2>
-              <div className="space-y-4">
-                <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-                  We've sent a magical password reset link to your email! ✨
-                </p>
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-700">
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    🔍 <strong>Don't see it?</strong> Check your spam folder - sometimes magic gets lost! 🧙‍♂️
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 space-y-4">
-            <div className="text-center">
-              <Link
-                href="/auth/signin"
-                className="block w-full text-center py-4 px-6 border-2 border-purple-200 rounded-2xl text-purple-700 hover:bg-purple-50 transition-all duration-300 font-bold text-lg transform hover:scale-105 hover:border-purple-300"
-              >
-                🔐 Back to Sign In
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Floating Background Elements - More Playful */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-16 w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-400 dark:from-yellow-500 dark:to-orange-500 rounded-full opacity-30 dark:opacity-40 animate-bounce"></div>
-        <div className="absolute top-40 right-20 w-12 h-12 bg-gradient-to-br from-pink-400 to-red-400 dark:from-pink-500 dark:to-red-500 rounded-full opacity-30 dark:opacity-40 animate-pulse delay-300"></div>
-        <div className="absolute bottom-32 left-8 w-20 h-20 bg-gradient-to-br from-green-400 to-teal-400 dark:from-green-500 dark:to-teal-500 rounded-full opacity-30 dark:opacity-40 animate-float delay-700"></div>
-        <div className="absolute bottom-20 right-32 w-14 h-14 bg-gradient-to-br from-purple-400 to-indigo-400 dark:from-purple-500 dark:to-indigo-500 rounded-full opacity-30 dark:opacity-40 animate-bounce delay-1000"></div>
-        
-        {/* Fun Memory Icons */}
-        <div className="absolute top-24 left-1/4 text-2xl animate-bounce delay-500">🧠</div>
-        <div className="absolute top-32 right-1/4 text-xl animate-pulse delay-1000">💭</div>
-        <div className="absolute bottom-40 left-1/3 text-3xl animate-float delay-700">🔑</div>
-        <div className="absolute bottom-28 right-1/3 text-2xl animate-bounce delay-200">💡</div>
-      </div>
+    <div className="min-h-screen flex">
+      {/* Left Panel — Brand */}
+      <div className="hidden lg:flex lg:w-[50%] relative overflow-hidden bg-ink">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0D0D0D] via-[#151310] to-[#0D0D0D]" />
+        <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-gold/6 rounded-full filter blur-[130px]" />
+        <div className="absolute bottom-1/4 left-0 w-[300px] h-[300px] bg-vermillion/5 rounded-full filter blur-[100px]" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
-      <div className="max-w-md w-full space-y-4 relative z-10">
-        {/* Compact Header */}
-        <div className="text-center animate-fade-in">
-          <Link href="/" className="inline-block group">
-            <div className="relative">
-              <h1 className="text-3xl font-black bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-purple-400 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 animate-gradient">
-                ✨ NewsTRNT
-              </h1>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-ping"></div>
+        <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 w-full">
+          <Link href="/" className="inline-flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-vermillion flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <div>
+              <h1 className="font-serif text-xl text-ivory tracking-tight">NewsTRNT</h1>
+              <p className="text-[10px] text-ivory/30 font-mono tracking-widest">THE ROAD NOT TAKEN</p>
             </div>
           </Link>
-          
-          <div className="mt-4 space-y-2">
-            {/* Compact Memory Loss Animation */}
-            <div className="flex justify-center items-center space-x-2 mb-2">
-              <span className="text-4xl animate-bounce">🤔</span>
-              <span className="text-3xl animate-pulse delay-300">💭</span>
-              <span className="text-4xl animate-bounce delay-500">❓</span>
+
+          <div className="max-w-md">
+            <div className="w-12 h-0.5 bg-vermillion/50 mb-8" />
+
+            {/* Lock icon decorative */}
+            <div className="mb-8">
+              <div className="w-20 h-20 rounded-2xl bg-ivory/5 border border-ivory/10 flex items-center justify-center mb-6">
+                <svg className="w-10 h-10 text-gold/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+              </div>
             </div>
-            
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-tight animate-bounce-gentle">
-              Memory.exe stopped working! 🧠💥
+
+            <h2 className="font-serif text-3xl xl:text-4xl text-ivory/90 leading-tight mb-4">
+              We all forget sometimes. That&apos;s okay.
             </h2>
-            
-            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed max-w-sm mx-auto">
-              Don't worry! Even superheroes forget passwords! 🦸‍♂️✨
+            <p className="text-ivory/40 text-sm leading-relaxed max-w-sm">
+              Your account is safe. We&apos;ll send you a secure link to reset your password and get back to the stories that matter.
             </p>
           </div>
-        </div>
 
-        {/* Compact Form - Action First */}
-        <div className="mt-4 animate-slide-in-bottom">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-3xl shadow-2xl p-6 space-y-4">
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="relative group">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <span className="inline-flex items-center space-x-2">
-                    <span>📧 Your Email Address</span>
-                    <span className="text-red-500">*</span>
-                  </span>
-                </label>
-                <div className="relative">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-ivory/30">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/></svg>
+              <span className="text-[10px] font-mono uppercase tracking-wider">256-bit encrypted</span>
+            </div>
+            <div className="w-px h-4 bg-ivory/10" />
+            <div className="flex items-center gap-2 text-ivory/30">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.58.926.834 2.19.166 3.4-1.092 1.98-3.15 3.542-5.572 4.49a.75.75 0 01-.428.019c-2.397-.889-4.44-2.357-5.578-4.295A3.8 3.8 0 016 6a3.8 3.8 0 01.166-1.001z" clipRule="evenodd"/></svg>
+              <span className="text-[10px] font-mono uppercase tracking-wider">GDPR compliant</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel — Form */}
+      <div className="flex-1 flex items-center justify-center bg-paper dark:bg-ink px-6 py-12 relative overflow-hidden">
+        <div className="absolute bottom-20 right-20 w-48 h-48 bg-gold/5 dark:bg-gold/3 rounded-full filter blur-[60px]" />
+
+        <div className="w-full max-w-[420px] relative z-10">
+          {/* Mobile Logo */}
+          <div className="lg:hidden text-center mb-10">
+            <Link href="/" className="inline-flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-vermillion flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              </div>
+              <span className="font-serif text-lg text-foreground">NewsTRNT</span>
+            </Link>
+          </div>
+
+          {isSubmitted ? (
+            /* Success State */
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-2xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/30 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="font-serif text-2xl text-foreground mb-3">Check your email</h2>
+              <p className="text-sm text-muted-foreground mb-2">
+                We&apos;ve sent a password reset link to
+              </p>
+              <p className="text-sm font-semibold text-foreground mb-6">
+                {email}
+              </p>
+              <p className="text-xs text-muted-foreground mb-8">
+                Didn&apos;t receive it? Check your spam folder or{' '}
+                <button onClick={() => setIsSubmitted(false)} className="text-vermillion hover:text-vermillion/80 underline underline-offset-2">try again</button>
+              </p>
+              <Link
+                href="/auth/signin"
+                className="hover-magnetic inline-flex items-center justify-center gap-2 py-3 px-8 bg-vermillion text-white font-semibold rounded-xl text-sm"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+                Back to sign in
+              </Link>
+            </div>
+          ) : (
+            /* Form State */
+            <>
+              <div className="mb-8">
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Account Recovery</p>
+                <h2 className="font-serif text-3xl text-foreground mb-2">Reset your password</h2>
+                <p className="text-sm text-muted-foreground">
+                  Enter the email associated with your account and we&apos;ll send a reset link.
+                </p>
+              </div>
+
+              <form className="space-y-5" onSubmit={handleSubmit}>
+                <div>
+                  <label htmlFor="email" className="block text-xs font-semibold text-foreground/80 mb-1.5 uppercase tracking-wider">
+                    Email address
+                  </label>
                   <input
                     id="email"
                     name="email"
@@ -142,96 +144,43 @@ const ForgotPasswordPage: React.FC = () => {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 pl-12 bg-white/90 dark:bg-gray-700/90 border-2 border-gray-300 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-300"
-                    placeholder="your.awesome.email@domain.com 💌"
+                    className="auth-field block w-full px-4 py-3 rounded-xl bg-card text-foreground placeholder-muted-foreground text-sm focus:outline-none"
+                    placeholder="you@example.com"
                   />
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                    <span className="text-xl">📬</span>
-                  </div>
                 </div>
-              </div>
 
-              {/* Main Action Button - Immediately visible */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl disabled:opacity-50 disabled:transform-none overflow-hidden"
-              >
-                <span className="relative flex items-center justify-center space-x-2">
+                {error && (
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400 text-sm">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="hover-magnetic w-full py-3.5 px-6 bg-vermillion text-white font-semibold rounded-xl text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-vermillion/20"
+                >
                   {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Sending Magic... 🪄✨</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-xl">🚀</span>
-                      <span>Send Reset Link!</span>
-                      <span className="text-xl group-hover:animate-bounce">📧</span>
-                    </>
-                  )}
-                </span>
-              </button>
+                    <span className="inline-flex items-center gap-2">
+                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                      Sending...
+                    </span>
+                  ) : 'Send Reset Link'}
+                </button>
+              </form>
 
-              {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-700 rounded-2xl p-3 animate-shake">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xl">😱</span>
-                    <p className="text-red-600 dark:text-red-400 font-medium text-sm">
-                      Oops! {error} Try again, hero! 🦸‍♀️
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {isSubmitted && (
-                <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-700 rounded-2xl p-4 animate-bounce-gentle">
-                  <div className="text-center space-y-2">
-                    <div className="flex justify-center space-x-2">
-                      <span className="text-2xl animate-bounce">🎉</span>
-                      <span className="text-2xl animate-pulse delay-200">📨</span>
-                      <span className="text-2xl animate-bounce delay-400">✅</span>
-                    </div>
-                    <p className="text-green-600 dark:text-green-400 font-semibold">
-                      Mission Accomplished! 🚀
-                    </p>
-                    <p className="text-green-600 dark:text-green-400 text-sm">
-                      Check your inbox for the magical reset link! 🪄✨
-                    </p>
-                  </div>
-                </div>
-              )}
-            </form>
-
-            {/* Compact Pro Tip */}
-            <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl border border-yellow-200 dark:border-yellow-700">
-              <div className="text-center">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  💡 <strong>Pro tip:</strong> Use a password manager next time! 🔐✨
-                </p>
+              <div className="mt-8 text-center">
+                <Link
+                  href="/auth/signin"
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-vermillion transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+                  Back to sign in
+                </Link>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Compact Additional Links */}
-        <div className="text-center space-y-3 animate-fade-in">
-          <div className="text-sm">
-            <Link href="/auth/signin" className="inline-flex items-center font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:from-purple-600 hover:to-blue-600 transition-all duration-300 underline decoration-wavy hover:scale-105 group">
-              <span className="mr-2 group-hover:animate-bounce">🔐</span>
-              Remember your password? Sign in here!
-              <span className="ml-2 group-hover:animate-bounce delay-100">✨</span>
-            </Link>
-          </div>
-          
-          <div className="p-3 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800/50 dark:to-blue-900/50 rounded-2xl border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-center space-x-2">
-              <span className="text-lg">🤝</span>
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                <strong>Need help?</strong> Our support ninjas are standing by 24/7! 🥷💨
-              </p>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
     </div>

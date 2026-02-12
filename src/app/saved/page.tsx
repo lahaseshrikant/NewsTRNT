@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCategories, Category } from '@/hooks/useCategories';
 import { dbApi, Article } from '@/lib/database-real';
+import { DivergenceMark } from '@/components/DivergenceMark';
 import { getContentUrl } from '@/lib/contentUtils';
 
 interface SavedArticle {
@@ -104,25 +105,25 @@ const SavedArticlesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="min-h-screen bg-paper dark:bg-ink">
+        <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
           <div className="container mx-auto py-6">
             <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+              <div className="h-8 bg-ivory/10 w-1/3 mb-2"></div>
+              <div className="h-4 bg-ivory/10 w-1/4"></div>
             </div>
           </div>
         </div>
         <div className="container mx-auto py-8">
           <div className="space-y-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-lg p-6 animate-pulse">
+              <div key={i} className="bg-ivory dark:bg-ash/10 p-6 animate-pulse border border-ash dark:border-ash/20">
                 <div className="flex space-x-4">
-                  <div className="w-48 h-28 bg-gray-200 rounded"></div>
+                  <div className="w-48 h-28 bg-ash/30"></div>
                   <div className="flex-1 space-y-3">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    <div className="h-4 bg-ash/30 w-3/4"></div>
+                    <div className="h-4 bg-ash/30 w-1/2"></div>
+                    <div className="h-4 bg-ash/30 w-2/3"></div>
                   </div>
                 </div>
               </div>
@@ -134,38 +135,38 @@ const SavedArticlesPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper dark:bg-ink">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
   <div className="container mx-auto py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Saved Articles</h1>
-              <p className="text-gray-600 mt-2">
+              <h1 className="font-serif text-3xl font-bold text-ivory">Reading List</h1>
+              <p className="text-ivory/60 mt-2">
                 Your saved articles for later reading
               </p>
             </div>
             <Link 
               href="/dashboard" 
-              className="text-blue-600 hover:text-blue-800 flex items-center"
+              className="font-mono text-xs tracking-wider uppercase text-ivory/60 hover:text-ivory flex items-center"
             >
-              ← Back to Dashboard
+              &larr; Back to Dashboard
             </Link>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-ivory dark:bg-ash/5 border-b border-ash dark:border-ash/20">
   <div className="container mx-auto py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             {/* Category Filter */}
             <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-700">Category:</span>
+              <span className="font-mono text-xs tracking-wider uppercase text-stone">Category:</span>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-ash dark:border-ash/20 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-vermillion/30 bg-paper dark:bg-ink text-ink dark:text-ivory"
               >
                 {categories.map(category => (
                   <option key={category} value={category}>
@@ -177,11 +178,11 @@ const SavedArticlesPage: React.FC = () => {
 
             {/* Sort Options */}
             <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-700">Sort by:</span>
+              <span className="font-mono text-xs tracking-wider uppercase text-stone">Sort by:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-ash dark:border-ash/20 px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-vermillion/30 bg-paper dark:bg-ink text-ink dark:text-ivory"
               >
                 {sortOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -199,7 +200,7 @@ const SavedArticlesPage: React.FC = () => {
         {filteredArticles.length > 0 ? (
           <div className="space-y-6">
             {filteredArticles.map((article) => (
-              <div key={article.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div key={article.id} className="bg-ivory dark:bg-ash/10 border border-ash dark:border-ash/20 overflow-hidden">
                 <div className="p-6">
                   <div className="flex items-start space-x-4">
                     {/* Article Image */}
@@ -217,16 +218,16 @@ const SavedArticlesPage: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            article.category === 'Technology' ? 'bg-blue-100 text-blue-800' :
-                            article.category === 'World' ? 'bg-green-100 text-green-800' :
-                            article.category === 'Business' ? 'bg-purple-100 text-purple-800' :
-                            'bg-gray-100 text-gray-800'
+                          <span className={`px-2 py-1 font-mono text-xs tracking-wider uppercase ${
+                            article.category === 'Technology' ? 'bg-ink/5 text-ink dark:bg-ivory/10 dark:text-ivory' :
+                            article.category === 'World' ? 'bg-ink/5 text-ink dark:bg-ivory/10 dark:text-ivory' :
+                            article.category === 'Business' ? 'bg-ink/5 text-ink dark:bg-ivory/10 dark:text-ivory' :
+                            'bg-ink/5 text-ink dark:bg-ivory/10 dark:text-ivory'
                           }`}>
                             {article.category}
                           </span>
                           {!article.isRead && (
-                            <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
+                            <span className="px-2 py-1 font-mono text-xs tracking-wider uppercase bg-vermillion/10 text-vermillion">
                               Unread
                             </span>
                           )}
@@ -236,13 +237,13 @@ const SavedArticlesPage: React.FC = () => {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handleMarkAsRead(article.id)}
-                            className="text-sm text-gray-500 hover:text-blue-600"
+                            className="text-sm text-stone hover:text-vermillion transition-colors"
                           >
                             {article.isRead ? 'Mark Unread' : 'Mark Read'}
                           </button>
                           <button
                             onClick={() => handleRemoveArticle(article.id)}
-                            className="text-sm text-gray-500 hover:text-red-600"
+                            className="text-sm text-stone hover:text-vermillion transition-colors"
                           >
                             Remove
                           </button>
@@ -250,18 +251,18 @@ const SavedArticlesPage: React.FC = () => {
                       </div>
 
                       <Link href={getContentUrl(article)}>
-                        <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 mb-2 line-clamp-2">
+                        <h3 className="font-serif text-lg font-semibold text-ink dark:text-ivory hover:text-vermillion mb-2 line-clamp-2">
                           {article.title}
                         </h3>
                       </Link>
 
-                      <p className="text-gray-600 mb-3 line-clamp-2">
+                      <p className="text-stone mb-3 line-clamp-2">
                         {article.summary}
                       </p>
 
-                      <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center justify-between text-sm text-stone">
                         <div className="flex items-center space-x-4">
-                          <span>{article.source}</span>
+                          <span className="font-mono text-xs">{article.source}</span>
                           <span>•</span>
                           <span>{article.readingTime} min read</span>
                           <span>•</span>
@@ -282,17 +283,17 @@ const SavedArticlesPage: React.FC = () => {
           <div className="text-center py-12">
             <div className="max-w-md mx-auto">
               <div className="mb-6">
-                <span className="text-6xl">📚</span>
+                <DivergenceMark size={48} className="mx-auto" color="var(--color-vermillion, #C62828)" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No saved articles yet
+              <h3 className="font-serif text-xl font-semibold text-ink dark:text-ivory mb-2">
+                Your reading list is empty
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-stone mb-6">
                 Start saving articles you want to read later by clicking the bookmark icon on any article.
               </p>
               <Link
                 href="/"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 inline-block"
+                className="bg-vermillion text-white px-6 py-3 font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors inline-block"
               >
                 Browse Articles
               </Link>

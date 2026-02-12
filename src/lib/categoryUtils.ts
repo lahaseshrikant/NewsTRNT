@@ -9,23 +9,23 @@ interface PartialCategory {
 
 // Generate category badge styles based on category name or color
 export const getCategoryBadgeStyle = (category: Category | PartialCategory | string | null | undefined): string => {
-  if (!category) return 'bg-gray-100 text-gray-800 dark:bg-gray-950 dark:text-gray-300';
+  if (!category) return 'bg-ash/50 text-ink dark:bg-ink dark:text-ivory';
   
   // If category is a Category object with a color, use it
   if (typeof category === 'object' && category.color) {
-    // Convert hex color to tailwind-compatible classes
+    // Convert hex color to tailwind-compatible editorial classes
     const hexToTailwind = (hex: string): string => {
       const colorMap: Record<string, string> = {
-        '#3182CE': 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
-        '#059669': 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
-        '#DC2626': 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
-        '#EA580C': 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300',
-        '#7C3AED': 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
-        '#F59E0B': 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
-        '#DB2777': 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300',
+        '#3182CE': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
+        '#059669': 'bg-ink/10 text-ink dark:bg-ivory/10 dark:text-ivory',
+        '#DC2626': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
+        '#EA580C': 'bg-gold/15 text-gold dark:bg-gold/20 dark:text-gold/80',
+        '#7C3AED': 'bg-ink/10 text-ink dark:bg-ivory/10 dark:text-ivory',
+        '#F59E0B': 'bg-gold/15 text-gold dark:bg-gold/20 dark:text-gold/80',
+        '#DB2777': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
       };
       
-      return colorMap[hex] || 'bg-gray-100 text-gray-800 dark:bg-gray-950 dark:text-gray-300';
+      return colorMap[hex] || 'bg-ash/50 text-ink dark:bg-ink dark:text-ivory';
     };
     
     return hexToTailwind(category.color);
@@ -33,21 +33,21 @@ export const getCategoryBadgeStyle = (category: Category | PartialCategory | str
 
   // Fallback: generate style based on category name
   const categoryName = typeof category === 'string' ? category : (category.name || '');
-  if (!categoryName) return 'bg-gray-100 text-gray-800 dark:bg-gray-950 dark:text-gray-300';
+  if (!categoryName) return 'bg-ash/50 text-ink dark:bg-ink dark:text-ivory';
   
   const categoryStyles: Record<string, string> = {
-    'Technology': 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
-    'Business': 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
-    'Politics': 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
-    'Sports': 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300',
-    'Health': 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
-    'Science': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
-    'Entertainment': 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
-    'World': 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
-    'Environment': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+    'Technology': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
+    'Business': 'bg-ink/10 text-ink dark:bg-ivory/10 dark:text-ivory',
+    'Politics': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
+    'Sports': 'bg-gold/15 text-gold dark:bg-gold/20 dark:text-gold/80',
+    'Health': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
+    'Science': 'bg-ink/10 text-ink dark:bg-ivory/10 dark:text-ivory',
+    'Entertainment': 'bg-gold/15 text-gold dark:bg-gold/20 dark:text-gold/80',
+    'World': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
+    'Environment': 'bg-ink/10 text-ink dark:bg-ivory/10 dark:text-ivory'
   };
 
-  return categoryStyles[categoryName] || 'bg-gray-100 text-gray-800 dark:bg-gray-950 dark:text-gray-300';
+  return categoryStyles[categoryName] || 'bg-ash/50 text-ink dark:bg-ink dark:text-ivory';
 };
 
 // Get category by name or slug

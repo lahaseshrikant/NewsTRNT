@@ -284,8 +284,8 @@ export function ActionButton({
   if (minLevel && !RBACAuth.hasMinRoleLevel(minLevel)) return null;
   
   const variantClasses = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white',
-    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800',
+    primary: 'bg-vermillion hover:bg-vermillion/90 text-white',
+    secondary: 'bg-ash hover:bg-ash/80 text-ink',
     danger: 'bg-red-600 hover:bg-red-700 text-white'
   };
   

@@ -7,11 +7,13 @@ import { useParams } from 'next/navigation';
 import { dbApi, Article } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
 import CommentSection from '@/components/CommentSection';
+import { BookmarkIcon, ShareIcon, ClockIcon, ArrowRightIcon } from '@/components/icons/EditorialIcons';
+import AdSlot from '@/components/AdSlot';
 
-interface ArticleData extends Partial<Article> {
+interface ArticleData extends Omit<Partial<Article>, 'tags'> {
   content?: string;
   summary?: string;
-  tags?: string[];
+  tags?: string[] | { id: string; name: string; slug: string }[];
   viewCount?: number;
   shareCount?: number;
   readingTime?: number;
@@ -37,7 +39,6 @@ const ArticleDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
 
-  // Load article from database
   useEffect(() => {
     const loadArticle = async () => {
       try {
@@ -45,11 +46,9 @@ const ArticleDetailPage: React.FC = () => {
         setError(null);
         const loadedArticle = await dbApi.getArticle(slug);
         if (loadedArticle) {
-          setArticle(loadedArticle as ArticleData);
-          // Load related articles from same category
+          setArticle(loadedArticle as unknown as ArticleData);
           if (loadedArticle.category?.slug) {
             const related = await dbApi.getArticlesByCategory(loadedArticle.category.slug, 3);
-            // Filter out current article
             setRelatedArticles(related.filter(a => a.slug !== slug));
           }
         } else {
@@ -66,7 +65,6 @@ const ArticleDetailPage: React.FC = () => {
     loadArticle();
   }, [slug]);
 
-  // Track reading progress
   useEffect(() => {
     const handleScroll = () => {
       const articleElement = document.getElementById('article-content');
@@ -90,8 +88,14 @@ const ArticleDetailPage: React.FC = () => {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+    });
+  };
+
+  const formatTime = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -99,7 +103,7 @@ const ArticleDetailPage: React.FC = () => {
     if (!article) return;
     const url = window.location.href;
     const title = article.title || '';
-    
+
     switch (platform) {
       case 'twitter':
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`);
@@ -112,28 +116,36 @@ const ArticleDetailPage: React.FC = () => {
         break;
       case 'copy':
         navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
         break;
     }
     setShowShareMenu(false);
   };
 
-  // Loading state
+  // Loading — editorial skeleton
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="animate-pulse">
-              <div className="h-8 bg-muted rounded w-1/4 mb-4"></div>
-              <div className="h-12 bg-muted rounded w-3/4 mb-4"></div>
-              <div className="h-6 bg-muted rounded w-1/2 mb-8"></div>
-              <div className="h-96 bg-muted rounded mb-8"></div>
-              <div className="space-y-4">
-                <div className="h-4 bg-muted rounded"></div>
-                <div className="h-4 bg-muted rounded w-5/6"></div>
-                <div className="h-4 bg-muted rounded w-4/6"></div>
+      <div className="min-h-screen bg-paper">
+        {/* Progress bar placeholder */}
+        <div className="fixed top-0 left-0 w-full h-0.5 bg-ash/30 z-50" />
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-reading mx-auto">
+            <div className="skeleton-warm h-4 w-20 mb-6" />
+            <div className="skeleton-warm h-10 w-4/5 mb-3" />
+            <div className="skeleton-warm h-10 w-3/5 mb-6" />
+            <div className="skeleton-warm h-5 w-2/3 mb-8" />
+            <div className="flex items-center gap-4 mb-10">
+              <div className="skeleton-warm w-10 h-10 rounded-full" />
+              <div>
+                <div className="skeleton-warm h-3 w-28 mb-2" />
+                <div className="skeleton-warm h-3 w-40" />
               </div>
+            </div>
+            <div className="skeleton-warm w-full h-[400px] mb-10" />
+            <div className="space-y-4">
+              <div className="skeleton-warm h-4 w-full" />
+              <div className="skeleton-warm h-4 w-full" />
+              <div className="skeleton-warm h-4 w-5/6" />
+              <div className="skeleton-warm h-4 w-4/6" />
             </div>
           </div>
         </div>
@@ -144,16 +156,17 @@ const ArticleDetailPage: React.FC = () => {
   // Error state
   if (error || !article) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">📰</div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Article Not Found</h3>
-          <p className="text-muted-foreground mb-4">{error || 'This article may have been removed or is not available.'}</p>
+      <div className="min-h-screen bg-paper flex items-center justify-center">
+        <div className="text-center py-12 max-w-md px-4">
+          <div className="editorial-rule mx-auto mb-6" />
+          <h3 className="font-serif text-2xl text-ink mb-3">Story Not Found</h3>
+          <p className="text-stone text-sm mb-6">{error || 'This article may have been removed or is no longer available.'}</p>
           <Link
             href="/"
-            className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90"
+            className="inline-flex items-center gap-2 text-vermillion hover:text-vermillion-dark text-sm font-medium transition-colors"
           >
-            Go to Homepage
+            <ArrowRightIcon size={14} className="rotate-180" />
+            Back to Headlines
           </Link>
         </div>
       </div>
@@ -163,252 +176,236 @@ const ArticleDetailPage: React.FC = () => {
   const categoryName = article.category?.name || 'News';
   const categorySlug = article.category?.slug || 'news';
   const authorName = article.author || 'NewsTRNT Staff';
-  const articleTags = article.tags || [];
+  const articleTags: string[] = (article.tags || []).map((t) => typeof t === 'string' ? t : t.name);
   const publishedAt = article.published_at || new Date();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper">
       {/* Reading Progress Bar */}
-      <div className="fixed top-0 left-0 w-full h-1 bg-muted/50 z-50">
-        <div 
-          className="h-full bg-primary transition-all duration-100"
-          style={{ width: `${readingProgress}%` }}
-        ></div>
-      </div>
+      <div className="reading-progress" style={{ '--progress': `${readingProgress}%` } as React.CSSProperties} />
 
-      {/* Article Header */}
-      <article className="bg-card">
-  <div className="container mx-auto py-8">
-          <div className="max-w-4xl mx-auto">
-            {/* Breadcrumb */}
-            <nav className="mb-6">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Link href="/" className="hover:text-primary">Home</Link>
-                <span>/</span>
-                <Link href={`/category/${categorySlug}`} className="hover:text-primary">
-                  {categoryName}
-                </Link>
-                <span>/</span>
-                <span className="text-foreground">Article</span>
-              </div>
-            </nav>
+      <article>
+        {/* Article Header */}
+        <header className="container mx-auto px-4 pt-8 pb-6">
+          <div className="max-w-reading mx-auto">
+            {/* Kicker / Category */}
+            <div className="flex items-center gap-3 mb-5">
+              <Link
+                href={`/category/${categorySlug}`}
+                className="kicker text-vermillion hover:text-vermillion-dark transition-colors"
+              >
+                {categoryName}
+              </Link>
+              {article.isBreaking && (
+                <span className="text-xs font-mono uppercase tracking-widest text-vermillion bg-vermillion/8 px-2 py-0.5 border border-vermillion/20">
+                  Breaking
+                </span>
+              )}
+            </div>
 
-            {/* Article Meta */}
-            <div className="mb-6">
-              <div className="flex items-center space-x-4 mb-4">
-                {article.isBreaking && (
-                  <span className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
-                    BREAKING
-                  </span>
-                )}
-                <span className="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 px-3 py-1 rounded-lg text-sm font-semibold">
-                  {categoryName}
-                </span>
-                <span className="text-muted-foreground text-sm">
-                  {article.readingTime || 5} min read
-                </span>
-              </div>
-              
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4 leading-tight">
-                {article.title}
-              </h1>
-              
-              <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
-                {article.summary || article.excerpt || ''}
+            {/* Headline */}
+            <h1 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] text-ink leading-[1.15] mb-4 tracking-tight">
+              {article.title}
+            </h1>
+
+            {/* Deck / Summary */}
+            {(article.summary || article.excerpt) && (
+              <p className="text-lg text-stone leading-relaxed mb-6 max-w-[38rem]">
+                {article.summary || article.excerpt}
               </p>
+            )}
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-xl">👤</span>
+            {/* Editorial Rule */}
+            <div className="editorial-rule mb-6" />
+
+            {/* Byline & Actions */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-ink/5 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="font-serif text-sm text-ink font-semibold">
+                    {authorName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </span>
+                </div>
+                <div>
+                  <div className="byline">
+                    By <span className="byline-author">{authorName}</span>
                   </div>
-                  <div>
-                    <div className="font-semibold text-foreground">{authorName}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Published {formatDate(publishedAt)}
-                    </div>
+                  <div className="dateline flex items-center gap-2">
+                    <span>{formatDate(publishedAt)}</span>
+                    <span className="text-ash">|</span>
+                    <span>{formatTime(publishedAt)}</span>
+                    <span className="text-ash">|</span>
+                    <span className="inline-flex items-center gap-1">
+                      <ClockIcon size={11} />
+                      {article.readingTime || 5} min read
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsBookmarked(!isBookmarked)}
+                  className={`p-2 border transition-colors ${
+                    isBookmarked
+                      ? 'border-vermillion/30 text-vermillion bg-vermillion/5'
+                      : 'border-ash/50 text-stone hover:text-ink hover:border-ink/30'
+                  }`}
+                  title={isBookmarked ? 'Saved' : 'Save for later'}
+                >
+                  <BookmarkIcon size={16} />
+                </button>
+
+                <div className="relative">
                   <button
-                    onClick={() => setIsBookmarked(!isBookmarked)}
-                    className={`p-2 rounded-full transition-colors ${
-                      isBookmarked ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
+                    onClick={() => setShowShareMenu(!showShareMenu)}
+                    className="p-2 border border-ash/50 text-stone hover:text-ink hover:border-ink/30 transition-colors"
+                    title="Share"
                   >
-                    🔖
+                    <ShareIcon size={16} />
                   </button>
-                  
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowShareMenu(!showShareMenu)}
-                      className="p-2 bg-muted text-muted-foreground hover:bg-muted/80 rounded-full transition-colors"
+
+                  {showShareMenu && (
+                    <div className="absolute right-0 mt-2 w-44 bg-paper border border-ash shadow-editorial z-10">
+                      {[
+                        { label: 'Twitter / X', key: 'twitter' },
+                        { label: 'Facebook', key: 'facebook' },
+                        { label: 'LinkedIn', key: 'linkedin' },
+                        { label: 'Copy Link', key: 'copy' },
+                      ].map((item) => (
+                        <button
+                          key={item.key}
+                          onClick={() => shareArticle(item.key)}
+                          className="w-full text-left px-4 py-2.5 text-sm text-ink/70 hover:bg-ivory hover:text-ink transition-colors"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Featured Image — full-bleed */}
+        {article.imageUrl && (
+          <figure className="container mx-auto px-4 mb-10">
+            <div className="max-w-4xl mx-auto">
+              <div className="relative w-full aspect-[16/9]">
+                <Image
+                  src={article.imageUrl}
+                  alt={article.title || 'Article image'}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            </div>
+          </figure>
+        )}
+
+        {/* Article Body */}
+        <div className="container mx-auto px-4 pb-12">
+          <div className="max-w-reading mx-auto">
+            {/* Content */}
+            <div
+              id="article-content"
+              className="prose-editorial"
+              dangerouslySetInnerHTML={{ __html: article.content || '' }}
+            />
+
+            {/* Article Ad */}
+            <div className="my-10">
+              <AdSlot size="inline" label="Sponsored" />
+            </div>
+
+            {/* Tags */}
+            {articleTags.length > 0 && (
+              <div className="mt-10 pt-8 border-t border-ash/40">
+                <div className="flex flex-wrap gap-2">
+                  {articleTags.map((tag) => (
+                    <Link
+                      key={tag}
+                      href={`/search?q=${encodeURIComponent(tag)}`}
+                      className="font-mono text-xs text-stone border border-ash/50 px-3 py-1.5 hover:border-ink/30 hover:text-ink transition-colors"
                     >
-                      📤
-                    </button>
-                    
-                    {showShareMenu && (
-                      <div className="absolute right-0 mt-2 w-48 bg-card rounded-lg shadow-lg border border-border z-10">
-                        <div className="py-2">
-                          <button
-                            onClick={() => shareArticle('twitter')}
-                            className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground"
-                          >
-                            Share on Twitter
-                          </button>
-                          <button
-                            onClick={() => shareArticle('facebook')}
-                            className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground"
-                          >
-                            Share on Facebook
-                          </button>
-                          <button
-                            onClick={() => shareArticle('linkedin')}
-                            className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground"
-                          >
-                            Share on LinkedIn
-                          </button>
-                          <button
-                            onClick={() => shareArticle('copy')}
-                            className="w-full text-left px-4 py-2 hover:bg-muted/50 text-foreground"
-                          >
-                            Copy Link
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      {tag}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Author Bio */}
+            <div className="mt-10 pt-8 border-t border-ash/40">
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-14 bg-ink/5 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="font-serif text-lg text-ink font-semibold">
+                    {authorName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-xs font-mono uppercase tracking-widest text-stone mb-1">About the Author</p>
+                  <h3 className="font-serif text-lg text-ink mb-1">{authorName}</h3>
+                  <p className="text-stone text-sm leading-relaxed">
+                    NewsTRNT contributor covering stories at the intersection of news and deeper understanding.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Featured Image */}
-            <div className="mb-8">
-              <div className="relative w-full h-96 md:h-[500px]">
-                <Image
-                  src={article.imageUrl || '/api/placeholder/800/500'}
-                  alt={article.title || 'Article image'}
-                  fill
-                  className="object-cover rounded-lg"
-                  priority
-                />
-              </div>
+            {/* Pre-Comments Ad */}
+            <div className="my-8">
+              <AdSlot size="rectangle" />
+            </div>
+
+            {/* Comments */}
+            <div className="mt-10 pt-8 border-t border-ash/40">
+              <CommentSection articleId={article.id || ''} />
             </div>
           </div>
         </div>
       </article>
 
-      {/* Article Content */}
-      <div className="bg-card border-t border-border">
-  <div className="container mx-auto py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Main Content */}
-              <div className="lg:col-span-3">
-                <div 
-                  id="article-content"
-                  className="prose prose-lg max-w-none 
-                    prose-headings:text-foreground prose-headings:font-bold prose-headings:leading-tight
-                    prose-p:text-foreground prose-p:leading-relaxed prose-p:text-justify prose-p:mb-6
-                    prose-strong:text-foreground prose-strong:font-semibold
-                    prose-a:text-primary prose-a:no-underline hover:prose-a:text-primary/80 hover:prose-a:underline
-                    prose-ul:text-foreground prose-ol:text-foreground prose-li:mb-2 prose-li:leading-relaxed
-                    prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-b prose-h2:border-border prose-h2:pb-2
-                    prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-                    prose-blockquote:text-muted-foreground prose-blockquote:border-l-primary prose-blockquote:italic
-                    dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: article.content || '' }}
-                />
-
-                {/* Tags */}
-                <div className="mt-8 pt-8 border-t border-border">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {articleTags.length > 0 ? (
-                      articleTags.map((tag) => (
-                        <Link
-                          key={tag}
-                          href={`/search?q=${encodeURIComponent(tag)}`}
-                          className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm hover:bg-primary/10 hover:text-primary transition-colors"
-                        >
-                          #{tag}
-                        </Link>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground text-sm">No tags</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Author Bio */}
-                <div className="mt-8 pt-8 border-t border-border">
-                  <div className="bg-muted/50 rounded-lg p-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-3xl">👤</span>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-foreground mb-2">
-                          About {authorName}
-                        </h3>
-                        <p className="text-muted-foreground text-sm">
-                          NewsTRNT contributor delivering quality journalism and insightful news coverage.
-                        </p>
-                      </div>
+      {/* Related Stories */}
+      {relatedArticles.length > 0 && (
+        <aside className="bg-ivory border-t border-ash/40">
+          <div className="container mx-auto px-4 py-12">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="font-serif text-xl text-ink mb-6">More from {categoryName}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {relatedArticles.map((relatedArticle) => (
+                  <Link key={relatedArticle.id} href={getContentUrl(relatedArticle)} className="group">
+                    <div className="relative w-full aspect-[3/2] mb-3 bg-ash/20 overflow-hidden">
+                      {relatedArticle.imageUrl ? (
+                        <Image
+                          src={relatedArticle.imageUrl}
+                          alt={relatedArticle.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="font-serif text-stone/30 text-2xl">NT</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </div>
-
-                {/* Comments Section */}
-                <div className="mt-8">
-                  <CommentSection articleId={article.id || ''} />
-                </div>
-              </div>
-
-              {/* Sidebar */}
-              <div className="lg:col-span-1">
-                {/* Related Articles */}
-                <div className="bg-card rounded-lg shadow-sm p-6 sticky top-20 border border-border">
-                  <h3 className="text-lg font-bold text-foreground mb-4">Related Articles</h3>
-                  <div className="space-y-4">
-                    {relatedArticles.length > 0 ? (
-                      relatedArticles.map((relatedArticle) => (
-                        <Link key={relatedArticle.id} href={getContentUrl(relatedArticle)}>
-                          <div className="group cursor-pointer">
-                            <div className="relative w-full h-24 mb-2 bg-muted rounded overflow-hidden">
-                              {relatedArticle.imageUrl ? (
-                                <Image
-                                  src={relatedArticle.imageUrl}
-                                  alt={relatedArticle.title}
-                                  fill
-                                  className="object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-2xl">📰</div>
-                              )}
-                            </div>
-                            <h4 className="font-medium text-foreground text-sm group-hover:text-primary line-clamp-2">
-                              {relatedArticle.title}
-                            </h4>
-                            <div className="flex items-center space-x-2 mt-1 text-xs text-muted-foreground">
-                              <span>{relatedArticle.category?.name || 'News'}</span>
-                              <span>•</span>
-                              <span>{relatedArticle.readingTime || 5} min read</span>
-                            </div>
-                          </div>
-                        </Link>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm">No related articles found</p>
-                    )}
-                  </div>
-                </div>
+                    <p className="kicker text-stone text-[10px] mb-1">
+                      {relatedArticle.category?.name || 'News'}
+                    </p>
+                    <h4 className="font-serif text-ink text-base leading-snug group-hover:text-vermillion transition-colors line-clamp-2">
+                      {relatedArticle.title}
+                    </h4>
+                    <p className="dateline mt-1">{relatedArticle.readingTime || 5} min read</p>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </aside>
+      )}
     </div>
   );
 };

@@ -7,16 +7,17 @@ import Breadcrumb from '@/components/Breadcrumb';
 import { dbApi, Article, Category } from '@/lib/database-real';
 import { getContentUrl } from '@/lib/contentUtils';
 import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
+import { getCategoryTheme } from '@/config/categoryThemes';
+import AdSlot from '@/components/AdSlot';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
   const published = typeof publishedAt === 'string' ? new Date(publishedAt) : publishedAt;
   const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
-  
   if (diffInHours < 1) return 'Just now';
-  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 24) return `${diffInHours}h ago`;
   if (diffInHours < 48) return 'Yesterday';
-  return `${Math.floor(diffInHours / 24)} days ago`;
+  return `${Math.floor(diffInHours / 24)}d ago`;
 };
 
 const WorldCategoryPage: React.FC = () => {
@@ -26,6 +27,7 @@ const WorldCategoryPage: React.FC = () => {
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<Category | null>(null);
+  const [activeRegion, setActiveRegion] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -35,12 +37,8 @@ const WorldCategoryPage: React.FC = () => {
           dbApi.getArticlesByCategory('world', 30),
           dbApi.getCategoryBySlug('world')
         ]);
-        if (Array.isArray(articles)) {
-          setAllArticles(articles);
-        }
-        if (categoryData) {
-          setCategory(categoryData);
-        }
+        if (Array.isArray(articles)) setAllArticles(articles);
+        if (categoryData) setCategory(categoryData);
       } catch (error) {
         console.error('Error loading world data:', error);
       } finally {
@@ -51,11 +49,11 @@ const WorldCategoryPage: React.FC = () => {
   }, []);
 
   const contentTypes = [
-    { value: 'all', label: 'All Content' },
-    { value: 'news', label: 'News' },
-    { value: 'article', label: 'Articles' },
+    { value: 'all', label: 'All Dispatches' },
+    { value: 'news', label: 'Breaking' },
+    { value: 'article', label: 'Reports' },
     { value: 'analysis', label: 'Analysis' },
-    { value: 'opinion', label: 'Opinion' }
+    { value: 'opinion', label: 'Commentary' }
   ];
 
   const sortOptions = [
@@ -65,124 +63,171 @@ const WorldCategoryPage: React.FC = () => {
     { value: 'breaking', label: 'Breaking', icon: '🚨' }
   ];
 
+  const regions = [
+    { id: 'europe', name: 'Europe', flag: '🇪🇺', description: 'EU, UK, Eastern Europe', color: '#3B82F6' },
+    { id: 'asia-pacific', name: 'Asia-Pacific', flag: '🌏', description: 'China, Japan, India, ASEAN', color: '#F59E0B' },
+    { id: 'americas', name: 'Americas', flag: '🌎', description: 'US, Canada, Latin America', color: '#10B981' },
+    { id: 'middle-east', name: 'Middle East', flag: '🕌', description: 'Gulf states, Levant, Iran', color: '#EF4444' },
+    { id: 'africa', name: 'Africa', flag: '🌍', description: 'Sub-Saharan, North Africa', color: '#8B5CF6' }
+  ];
+
+  const liveUpdates = [
+    { title: 'UN Security Council', detail: 'Emergency session called to address humanitarian crisis', time: '2 min ago', severity: 'high' as const },
+    { title: 'G7 Economic Summit', detail: 'Joint statement on global trade cooperation released', time: '15 min ago', severity: 'medium' as const },
+    { title: 'Climate Conference', detail: 'New carbon emission targets announced for 2030', time: '32 min ago', severity: 'low' as const },
+    { title: 'Indo-Pacific Security', detail: 'New defense pact signed between three nations', time: '1 hr ago', severity: 'medium' as const }
+  ];
+
   const subCategoryFilters = useSubCategoryFilters(allArticles, category?.subCategories || [], 'ALL');
 
   const filteredArticles = () => {
     let filtered = [...allArticles];
-
-    // Filter by content type
-    if (contentType !== 'all') {
-      filtered = filtered.filter(article => article.contentType === contentType);
-    }
-
-    // Filter by sub-category
-    if (selectedSubCategory !== 'all') {
-      filtered = filtered.filter(article => article.subCategory?.slug === selectedSubCategory);
-    }
-
-    // Sort articles
-    if (sortBy === 'trending') {
-      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
-    } else if (sortBy === 'popular') {
-      filtered.sort((a, b) => (b.readingTime || 0) - (a.readingTime || 0));
-    } else if (sortBy === 'breaking') {
-      filtered = filtered.filter(article => article.isBreaking);
-    }
-    // 'latest' is default order
-
+    if (contentType !== 'all') filtered = filtered.filter(a => a.contentType === contentType);
+    if (selectedSubCategory !== 'all') filtered = filtered.filter(a => a.subCategory?.slug === selectedSubCategory);
+    if (sortBy === 'trending') filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+    else if (sortBy === 'popular') filtered.sort((a, b) => (b.readingTime || 0) - (a.readingTime || 0));
+    else if (sortBy === 'breaking') filtered = filtered.filter(a => a.isBreaking);
     return filtered;
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-  <div className="container mx-auto py-8">
-          <div className="animate-pulse space-y-6">
-            <div className="h-32 bg-muted rounded-lg"></div>
-            <div className="space-y-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-24 bg-muted rounded-lg"></div>
-              ))}
+        <div className="desk-world-hero py-20">
+          <div className="container mx-auto">
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-white/10 rounded w-48"></div>
+              <div className="h-6 bg-white/10 rounded w-96"></div>
             </div>
+          </div>
+        </div>
+        <div className="container mx-auto py-8">
+          <div className="animate-pulse space-y-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 bg-muted rounded-lg"></div>
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
+  const theme = getCategoryTheme('world');
+  const articles = filteredArticles();
+  const heroArticle = articles[0];
+  const remainingArticles = articles.slice(1);
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header Banner with Tabs */}
-      <div className="bg-gradient-to-r from-teal-600/5 to-blue-600/5 border-b border-border/50">
-  <div className="container mx-auto py-4">
+      {/* ═══ THE GLOBE DESK — Immersive Hero ═══ */}
+      <div className="desk-world-hero text-white">
+        <div className="desk-world-grid" />
+        
+        <div className="container mx-auto pt-4 relative z-10">
           <Breadcrumb items={[
             { label: 'Categories', href: '/category' },
             { label: 'World' }
-          ]} className="mb-3" />
-          
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">
-                World News
+          ]} className="mb-6 [&_a]:text-white/60 [&_span]:text-white/40 [&_li:last-child_span]:text-white/80" />
+        </div>
+
+        <div className="container mx-auto pb-8 relative z-10">
+          <div className="flex items-start justify-between gap-8">
+            <div className="flex-1">
+              <div className="desk-kicker text-amber-400/80 mb-2">WORLD DISPATCH</div>
+              <h1 className="text-4xl lg:text-5xl font-bold mb-3 tracking-tight" style={{ fontFamily: 'var(--font-serif), serif' }}>
+                Global News
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Global news & international developments
+              <p className="text-white/60 text-lg max-w-xl">
+                International developments, geopolitics & global affairs — reporting from every corner of the world.
               </p>
+
+              {/* Around the World ticker */}
+              <div className="mt-6 flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3 border border-white/10 max-w-xl">
+                <div className="world-pulse-dot">
+                  <span className="w-2 h-2 bg-amber-400 rounded-full block"></span>
+                </div>
+                <div className="text-xs text-white/50 uppercase tracking-wider font-semibold whitespace-nowrap">Around the World</div>
+                <div className="h-4 w-px bg-white/20"></div>
+                <div className="text-sm text-white/80 truncate">
+                  {heroArticle ? heroArticle.title : 'Latest global developments across 5 continents'}
+                </div>
+              </div>
+            </div>
+
+            {/* Globe Visualization */}
+            <div className="hidden lg:flex items-center justify-center relative" style={{ width: 180, height: 180 }}>
+              <div className="world-globe-ring absolute" style={{ width: 160, height: 160, opacity: 0.5 }}></div>
+              <div className="world-globe-ring absolute" style={{ width: 120, height: 120, opacity: 0.4, animationDirection: 'reverse', animationDuration: '20s' }}></div>
+              <div className="world-globe-ring absolute" style={{ width: 80, height: 80, opacity: 0.3 }}></div>
+              <div className="text-5xl relative z-10">🌐</div>
+              {regions.map((r, i) => (
+                <div
+                  key={r.id}
+                  className="absolute w-3 h-3 rounded-full opacity-60"
+                  style={{
+                    backgroundColor: r.color,
+                    top: `${30 + Math.sin(i * 1.2) * 35}%`,
+                    left: `${30 + Math.cos(i * 1.2) * 35}%`,
+                  }}
+                  title={r.name}
+                />
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Content type tabs moved below header into compact filter bar */}
-
-          {/* Sub-category Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-            {subCategoryFilters.map((subCat) => (
-              <button
-                key={subCat.id}
-                onClick={() => setSelectedSubCategory(subCat.id)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
-                  selectedSubCategory === subCat.id
-                    ? 'bg-teal-400 text-white shadow-md'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/5'
-                }`}
-              >
-                {subCat.label}
-              </button>
-            ))}
+        {/* Sub-category Tabs */}
+        <div className="border-t border-white/10">
+          <div className="container mx-auto py-2">
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+              {subCategoryFilters.map((subCat) => (
+                <button
+                  key={subCat.id}
+                  onClick={() => setSelectedSubCategory(subCat.id)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                    selectedSubCategory === subCat.id
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                  }`}
+                >
+                  {subCat.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-  <div className="container mx-auto py-6">
-        <div className="max-w-6xl mx-auto">
-          {/* Compact Filter Bar: content type + sort */}
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-lg border border-border/50 p-2 mb-5">
+      {/* ═══ Filter Bar ═══ */}
+      <div className="container mx-auto pt-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-xl border border-border/50 p-2 mb-6">
             <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
               {contentTypes.map((type) => (
                 <button
                   key={type.value}
-                  onClick={() => setContentType(type.value as any)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                  onClick={() => setContentType(type.value as typeof contentType)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     contentType === type.value
-                      ? 'bg-teal-500 text-white shadow'
+                      ? 'bg-vermillion text-white shadow'
                       : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
+                  style={contentType === type.value ? { background: theme.primary } : {}}
                 >
                   {type.label}
                 </button>
               ))}
-
               <span className="hidden sm:inline-block mx-2 h-4 w-px bg-border/60" />
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Sort</span>
-
               {sortOptions.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => setSortBy(option.value as any)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                  onClick={() => setSortBy(option.value as typeof sortBy)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     sortBy === option.value
-                      ? 'bg-teal-500 text-white shadow'
+                      ? 'text-white shadow-md'
                       : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
+                  style={sortBy === option.value ? { background: theme.primary } : {}}
                 >
                   <span>{option.icon}</span>
                   <span>{option.label}</span>
@@ -190,152 +235,195 @@ const WorldCategoryPage: React.FC = () => {
               ))}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Articles Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Articles */}
-            <div className="lg:col-span-2 space-y-6">
-              {filteredArticles().map((article, index) => (
-                <article
-                  key={article.id}
-                  className={`bg-card rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow ${
-                    index === 0 && sortBy === 'latest' ? 'lg:col-span-2' : ''
-                  }`}
-                >
-                  <div className={`flex ${index === 0 && sortBy === 'latest' ? 'flex-col lg:flex-row' : 'flex-col sm:flex-row'} gap-4`}>
-                    <div className={`relative ${index === 0 && sortBy === 'latest' ? 'lg:w-2/3' : 'sm:w-1/3'}`}>
+      {/* ═══ Main Content ═══ */}
+      <div className="container mx-auto pb-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Main Column */}
+            <div className="lg:col-span-8 space-y-8">
+              {/* Hero Article */}
+              {heroArticle && (
+                <Link href={getContentUrl(heroArticle)} className="group block">
+                  <article className="relative rounded-2xl overflow-hidden bg-card border border-border hover:shadow-xl transition-all desk-card-hover">
+                    <div className="relative h-72 lg:h-96">
                       <Image
-                        src={article.imageUrl || '/api/placeholder/600/300'}
-                        alt={article.title}
-                        width={600}
-                        height={300}
-                        className={`w-full object-cover ${
-                          index === 0 && sortBy === 'latest' ? 'h-64 lg:h-full' : 'h-48 sm:h-full'
-                        }`}
+                        src={heroArticle.imageUrl || '/api/placeholder/1200/600'}
+                        alt={heroArticle.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
                       />
-                      {article.isBreaking && (
-                        <span className="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold animate-pulse">
-                          BREAKING
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      <div className="absolute top-4 left-4 flex items-center gap-2">
+                        {heroArticle.isBreaking && (
+                          <span className="desk-badge bg-red-600 text-white animate-pulse">BREAKING</span>
+                        )}
+                        <span className="desk-badge text-white" style={{ background: theme.primary }}>
+                          WORLD DISPATCH
                         </span>
-                      )}
-                      {article.sourceName && (
-                        <div className="absolute bottom-3 left-3 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                          📍 {article.sourceName}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className={`p-6 flex-1 ${index === 0 && sortBy === 'latest' ? 'lg:w-1/3' : 'sm:w-2/3'}`}>
-                      <div className="flex items-center space-x-2 mb-3">
-                        <span className="bg-teal-100 text-teal-800 dark:bg-teal-900/20 dark:text-teal-300 px-2 py-1 rounded text-xs font-medium">
-                          {article.category?.name || 'World'}
-                        </span>
-                        <span className="text-muted-foreground text-sm">{article.readingTime || 5} min read</span>
                       </div>
-                      
-                      <Link href={getContentUrl(article)}>
-                        <h2 className={`font-bold text-foreground mb-3 hover:text-primary cursor-pointer transition-colors ${
-                          index === 0 && sortBy === 'latest' ? 'text-2xl' : 'text-lg'
-                        }`}>
-                          {article.title}
+                      <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
+                        <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3 group-hover:text-amber-200 transition-colors" style={{ fontFamily: 'var(--font-serif), serif' }}>
+                          {heroArticle.title}
                         </h2>
-                      </Link>
-                      
-                      <p className="text-muted-foreground mb-4 line-clamp-3">
-                        {article.summary}
-                      </p>
-                      
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>By {article.author || 'Staff Writer'}</span>
-                        <span>{formatPublishedTime(article.published_at)}</span>
+                        <p className="text-white/70 mb-4 line-clamp-2 max-w-2xl">{heroArticle.summary}</p>
+                        <div className="flex items-center gap-4 text-sm text-white/60">
+                          <span>By {heroArticle.author || 'Staff Correspondent'}</span>
+                          <span>•</span>
+                          <span>{heroArticle.readingTime || 5} min read</span>
+                          <span>•</span>
+                          <span>{formatPublishedTime(heroArticle.published_at)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+                  </article>
+                </Link>
+              )}
 
-            {/* Sidebar */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* World Regions */}
-              <div className="bg-card rounded-lg shadow-sm p-6 border border-border">
-                <h3 className="text-lg font-bold text-foreground mb-4">Regions</h3>
-                <div className="space-y-3">
-                  {[
-                    { name: 'Europe', count: 78, color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300', flag: '🇪🇺' },
-                    { name: 'Asia-Pacific', count: 65, color: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300', flag: '🌏' },
-                    { name: 'Americas', count: 54, color: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300', flag: '🌎' },
-                    { name: 'Middle East', count: 43, color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300', flag: '🕌' },
-                    { name: 'Africa', count: 36, color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300', flag: '🌍' }
-                  ].map((region) => (
-                    <Link
-                      key={region.name}
-                      href={`/category/world?region=${region.name.toLowerCase().replace('-', '')}`}
-                      className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <span>{region.flag}</span>
-                        <span className="font-medium text-foreground">{region.name}</span>
-                      </div>
+              {/* Latest Dispatches */}
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="h-px flex-1" style={{ backgroundImage: `linear-gradient(to right, transparent, ${theme.accent}40, transparent)` }}></div>
+                  <h2 className="desk-section-title text-xl text-foreground">Latest Dispatches</h2>
+                  <div className="h-px flex-1" style={{ backgroundImage: `linear-gradient(to left, transparent, ${theme.accent}40, transparent)` }}></div>
+                </div>
+
+                <div className="space-y-5">
+                  {remainingArticles.map((article) => (
+                    <Link key={article.id} href={getContentUrl(article)} className="group block">
+                      <article className="flex flex-col sm:flex-row gap-4 bg-card rounded-xl border border-border p-4 hover:shadow-lg transition-all desk-card-hover world-region-card">
+                        <div className="sm:w-1/3 relative">
+                          <div className="relative h-48 sm:h-full min-h-[140px] rounded-lg overflow-hidden">
+                            <Image
+                              src={article.imageUrl || '/api/placeholder/400/300'}
+                              alt={article.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            {article.isBreaking && (
+                              <span className="absolute top-2 left-2 desk-badge bg-red-600 text-white animate-pulse">BREAKING</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="sm:w-2/3 flex flex-col justify-between py-1">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="desk-badge" style={{ background: `${theme.primary}15`, color: theme.primary }}>
+                                {article.subCategory?.name || article.category?.name || 'World'}
+                              </span>
+                              <span className="text-xs text-muted-foreground">{article.readingTime || 5} min read</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2" style={{ fontFamily: 'var(--font-serif), serif' }}>
+                              {article.title}
+                            </h3>
+                            <p className="text-muted-foreground text-sm line-clamp-2">{article.summary}</p>
+                          </div>
+                          <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                            <span>By {article.author || 'Staff Correspondent'}</span>
+                            <span>{formatPublishedTime(article.published_at)}</span>
+                          </div>
+                        </div>
+                      </article>
                     </Link>
                   ))}
                 </div>
               </div>
 
-              {/* Live Updates */}
-              <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 rounded-lg p-6 border border-red-200/50 dark:border-red-800/50">
-                <div className="text-center mb-4">
-                  <div className="flex items-center justify-center mb-2">
-                    <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-2"></span>
-                    <h3 className="text-lg font-bold text-foreground">Live Updates</h3>
-                  </div>
+              <AdSlot size="inline" className="my-4" />
+
+              <div className="text-center">
+                <button className="px-8 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg" style={{ background: theme.gradient }}>
+                  Load More Dispatches
+                </button>
+              </div>
+            </div>
+
+            {/* ═══ Sidebar ═══ */}
+            <aside className="lg:col-span-4 space-y-6">
+              {/* Regions Navigator */}
+              <div className="rounded-xl border border-border overflow-hidden">
+                <div className="px-5 py-4" style={{ background: theme.gradient }}>
+                  <h3 className="text-sm font-bold text-white tracking-wider uppercase flex items-center gap-2">
+                    <span>🗺️</span> Region Navigator
+                  </h3>
                 </div>
-                <div className="space-y-3 text-sm">
-                  <div className="p-3 bg-background/50 rounded border-l-4 border-red-500">
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="font-medium text-foreground">UN Security Council</span>
-                      <span className="text-xs text-muted-foreground">2 min ago</span>
-                    </div>
-                    <p className="text-muted-foreground">Emergency session called to address humanitarian crisis</p>
-                  </div>
-                  <div className="p-3 bg-background/50 rounded border-l-4 border-orange-500">
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="font-medium text-foreground">G7 Summit</span>
-                      <span className="text-xs text-muted-foreground">15 min ago</span>
-                    </div>
-                    <p className="text-muted-foreground">Joint statement on economic cooperation released</p>
-                  </div>
-                  <div className="p-3 bg-background/50 rounded border-l-4 border-blue-500">
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="font-medium text-foreground">Climate Conference</span>
-                      <span className="text-xs text-muted-foreground">32 min ago</span>
-                    </div>
-                    <p className="text-muted-foreground">New carbon emission targets announced</p>
-                  </div>
+                <div className="bg-card p-3 space-y-1">
+                  {regions.map((region) => (
+                    <button
+                      key={region.id}
+                      onClick={() => setActiveRegion(activeRegion === region.id ? null : region.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left ${
+                        activeRegion === region.id
+                          ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30'
+                          : 'hover:bg-muted/50 border border-transparent'
+                      }`}
+                    >
+                      <span className="text-xl">{region.flag}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-sm text-foreground">{region.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">{region.description}</div>
+                      </div>
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: region.color }}></div>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* World Newsletter */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg p-6 border border-blue-200/50 dark:border-blue-800/50">
-                <div className="text-center">
-                  <div className="text-3xl mb-3">📰</div>
-                  <h3 className="text-lg font-bold text-foreground mb-2">World Brief</h3>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    Daily digest of global events and international developments.
-                  </p>
+              {/* Live Updates */}
+              <div className="rounded-xl border border-border overflow-hidden">
+                <div className="px-5 py-4 bg-gradient-to-r from-red-900 to-red-800 flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white tracking-wider uppercase flex items-center gap-2">
+                    <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></span>
+                    Live Wire
+                  </h3>
+                  <span className="text-[10px] text-red-200/60 font-semibold">UPDATING</span>
+                </div>
+                <div className="bg-card divide-y divide-border">
+                  {liveUpdates.map((update, i) => (
+                    <div key={i} className="p-4 hover:bg-muted/30 transition-colors cursor-pointer">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <span className="font-semibold text-sm text-foreground">{update.title}</span>
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">{update.time}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{update.detail}</p>
+                      <div className="mt-2">
+                        <span className={`inline-block w-8 h-0.5 rounded-full ${
+                          update.severity === 'high' ? 'bg-red-500' :
+                          update.severity === 'medium' ? 'bg-amber-500' : 'bg-blue-500'
+                        }`}></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <AdSlot size="rectangle" />
+
+              {/* World Brief Newsletter */}
+              <div className="rounded-xl overflow-hidden" style={{ background: theme.gradient }}>
+                <div className="p-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">📰</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2" style={{ fontFamily: 'var(--font-serif), serif' }}>
+                    The World Brief
+                  </h3>
+                  <p className="text-white/60 text-sm mb-4">Daily digest of global events delivered at 6 AM.</p>
                   <div className="space-y-3">
                     <input
                       type="email"
-                      placeholder="Enter your email"
-                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="your@email.com"
+                      className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400/50 text-sm"
                     />
-                    <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                      Subscribe
+                    <button className="w-full py-2.5 rounded-lg bg-amber-500 text-white font-semibold text-sm hover:bg-amber-400 transition-colors">
+                      Subscribe Free
                     </button>
                   </div>
                 </div>
               </div>
-            </div>
+            </aside>
           </div>
         </div>
       </div>

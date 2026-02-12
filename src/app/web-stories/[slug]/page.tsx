@@ -211,10 +211,10 @@ const WebStoryViewer: React.FC = () => {
         <div className="text-white text-center max-w-md px-4">
           <div className="text-6xl mb-4">📱</div>
           <h2 className="text-xl font-bold mb-2">Story Not Found</h2>
-          <p className="text-gray-400 mb-6">{loadError || 'This story may have been removed or is not available.'}</p>
+          <p className="text-stone mb-6">{loadError || 'This story may have been removed or is not available.'}</p>
           <Link
             href="/web-stories"
-            className="inline-block bg-white text-black px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition-colors"
+            className="inline-block bg-paper text-ink px-6 py-3 rounded-full font-medium hover:bg-ivory transition-colors"
           >
             Browse All Stories
           </Link>
@@ -324,7 +324,7 @@ const WebStoryViewer: React.FC = () => {
                 }}
               />
               {/* Loading overlay */}
-              <div className="absolute inset-0 bg-gray-900 animate-pulse" 
+              <div className="absolute inset-0 bg-ink animate-pulse" 
                    style={{ display: 'none' }} />
             </div>
           )}
@@ -373,7 +373,7 @@ const WebStoryViewer: React.FC = () => {
                 <div className="pt-3">
                   <Link
                     href={currentSlide.content.cta.url}
-                    className="inline-flex items-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 hover:scale-105 shadow-2xl hover:shadow-3xl border-2 border-white/20 backdrop-blur-sm [text-shadow:_1px_1px_3px_rgb(0_0_0_/_50%)]"
+                    className="inline-flex items-center bg-vermillion hover:bg-vermillion/90 text-white px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 hover:scale-105 shadow-2xl hover:shadow-3xl border-2 border-white/20 backdrop-blur-sm [text-shadow:_1px_1px_3px_rgb(0_0_0_/_50%)]"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {currentSlide.content.cta.text}

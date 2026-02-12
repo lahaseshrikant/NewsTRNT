@@ -8,6 +8,8 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useLogo } from '@/contexts/LogoContext';
 import { useCategories } from '@/hooks/useCategories';
 import { getEmailString } from '@/lib/utils';
+import { DivergenceMark } from '@/components/DivergenceMark';
+import { SearchIcon } from '@/components/icons/EditorialIcons';
 import {
   MagnifyingGlassIcon,
   BellIcon,
@@ -61,7 +63,7 @@ const defaultLogo: LogoConfig = {
   type: 'current',
   text: 'NN',
   shape: 'none',
-  background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.8) 0%, rgba(67, 56, 202, 0.8) 50%, rgba(124, 58, 237, 0.8) 100%)',
+  background: 'linear-gradient(135deg, rgba(198, 40, 40, 0.85) 0%, rgba(184, 134, 11, 0.85) 50%, rgba(198, 40, 40, 0.7) 100%)',
   textColor: '#ffffff',
   size: 'medium',
   animation: 'none',
@@ -69,7 +71,7 @@ const defaultLogo: LogoConfig = {
   clipPath: 'none',
   hasNeuralNetwork: true,
   neuralIntensity: 50,
-  borderRadius: 4,
+  borderRadius: 8,
   borderWidth: 1,
   borderColor: 'rgba(255, 255, 255, 0.3)',
   shadowIntensity: 3,
@@ -478,7 +480,7 @@ const Header = () => {
     const getShadowStyle = () => {
       if (shadowIntensity === 0) return '';
       const intensity = shadowIntensity;
-      return `drop-shadow(0 ${intensity}px ${intensity * 2}px rgba(37, 99, 235, 0.${intensity > 5 ? '4' : '3'}))`;
+      return `drop-shadow(0 ${intensity}px ${intensity * 2}px rgba(198, 40, 40, 0.${intensity > 5 ? '4' : '3'}))`;
     };
 
     // Handle different logo types
@@ -598,22 +600,18 @@ const Header = () => {
   return (
     <>
       {/* Main Header */}
-      <header className="bg-background border-b border-border shadow-sm fixed top-0 left-0 right-0 z-50 transition-colors duration-300">
+      <header className="glass-nav fixed top-0 left-0 right-0 z-50 transition-colors duration-300">
         <div ref={containerRef} className="container mx-auto px-2 sm:px-4">
-          <div className="flex items-center justify-between h-16 gap-4 sm:gap-6">
+          <div className="flex items-center justify-between h-14 gap-4 sm:gap-6">
             {/* Logo */}
             <div className="flex items-center flex-shrink-0">
-              <Link href="/" className="flex items-center space-x-3 py-2 group">
-                {/* Dynamic NewsTRNT Logo */}
-                <div className="flex-shrink-0 relative">
-                  {renderDynamicLogo()}
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                </div>
+              <Link href="/" className="flex items-center gap-2.5 py-2 group">
+                <DivergenceMark size={22} className="text-vermillion flex-shrink-0" />
                 <div className="hidden sm:flex flex-col justify-center min-w-0">
-                  <h1 className="text-lg xl:text-xl font-black text-foreground leading-tight whitespace-nowrap group-hover:text-primary transition-colors">
+                  <h1 className="font-serif text-lg xl:text-xl text-ink leading-tight whitespace-nowrap tracking-tight">
                     NewsTRNT
                   </h1>
-                  <p className="text-[10px] xl:text-xs text-muted-foreground font-medium leading-tight whitespace-nowrap">
+                  <p className="text-[9px] xl:text-[10px] text-stone font-mono leading-tight whitespace-nowrap tracking-wide">
                     The Road Not Taken
                   </p>
                 </div>
@@ -679,10 +677,10 @@ const Header = () => {
                   ) : (
                     <Link
                       href={item.href}
-                      className="text-foreground hover:text-primary px-1.5 lg:px-2 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap relative"
+                      className="text-ink/70 hover:text-ink px-1.5 lg:px-2 py-2 text-sm font-medium transition-colors whitespace-nowrap relative"
                     >
                       {item.name === 'Stories' && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
+                        <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-vermillion rounded-full"></span>
                       )}
                       {item.name}
                     </Link>
@@ -769,20 +767,20 @@ const Header = () => {
                     setIsProfileOpen(false);
                     setIsNotificationsOpen(false);
                   }}
-                  className="p-1.5 sm:p-2 text-muted-foreground hover:text-primary transition-colors"
+                  className="p-1.5 sm:p-2 text-stone hover:text-ink transition-colors"
                 >
                   <MagnifyingGlassIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
                 
                 {isSearchOpen && (
-                  <div className="absolute right-0 mt-2 w-72 sm:w-80 z-[100] dropdown-card p-4">
+                  <div className="absolute right-0 mt-2 w-72 sm:w-80 z-[100] glass-panel p-4">
                     <form onSubmit={handleSearch}>
                       <input
                         type="text"
-                        placeholder="Search news..."
+                        placeholder="Search stories..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-secondary text-foreground placeholder-muted-foreground"
+                        className="w-full px-4 py-2.5 rounded-lg border border-ash focus:border-vermillion/50 focus:outline-none focus:ring-2 focus:ring-vermillion/10 bg-ivory text-ink placeholder-stone font-mono text-sm transition-all"
                         autoFocus
                       />
                     </form>
@@ -806,7 +804,7 @@ const Header = () => {
                   className="p-1.5 sm:p-2 text-muted-foreground hover:text-primary transition-colors relative"
                 >
                   <BellIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-2 w-2 sm:h-3 sm:w-3 bg-primary rounded-full animate-pulse"></span>
+                  <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-2 w-2 sm:h-2.5 sm:w-2.5 bg-vermillion rounded-full"></span>
                 </button>
                 
                 {isNotificationsOpen && (
@@ -902,28 +900,28 @@ const Header = () => {
                             className="dropdown-item"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            📊 Dashboard
+                            Dashboard
                           </Link>
                           <Link
                             href="/saved"
                             className="dropdown-item"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            🔖 Saved Articles
+                            Saved Articles
                           </Link>
                           <Link
                             href="/interests"
                             className="dropdown-item"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            ❤️ My Interests
+                            My Interests
                           </Link>
                           <Link
                             href="/settings"
                             className="dropdown-item"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            ⚙️ Settings
+                            Settings
                           </Link>
                           
                           {/* Admin Section */}
@@ -935,24 +933,24 @@ const Header = () => {
                               </div>
                               <Link
                                 href="/admin"
-                                className="dropdown-item !text-primary"
+                                className="dropdown-item !text-vermillion"
                                 onClick={() => setIsProfileOpen(false)}
                               >
-                                🏛️ Admin Panel
+                                Admin Panel
                               </Link>
                               <Link
                                 href="/admin/content/new"
-                                className="dropdown-item !text-primary"
+                                className="dropdown-item !text-vermillion"
                                 onClick={() => setIsProfileOpen(false)}
                               >
-                                ✏️ New Article
+                                New Article
                               </Link>
                               <Link
                                 href="/admin/logo-manager"
-                                className="dropdown-item !text-primary"
+                                className="dropdown-item !text-vermillion"
                                 onClick={() => setIsProfileOpen(false)}
                               >
-                                🎨 Logo Manager
+                                Logo Manager
                               </Link>
                             </>
                           )}
@@ -961,23 +959,23 @@ const Header = () => {
                           
                           {/* User Logout */}
                           <button
-                            className="block w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                            className="block w-full text-left px-4 py-2.5 text-sm text-vermillion hover:bg-vermillion/5 transition-colors"
                             onClick={handleUserLogout}
                           >
-                            🚪 Sign Out
+                            Sign Out
                           </button>
                           
                           {/* Admin Logout (if also admin) */}
                           {isAdmin && (
                             <button
-                              className="block w-full text-left px-4 py-2.5 text-sm text-orange-500 hover:bg-orange-500/10 transition-colors"
+                              className="block w-full text-left px-4 py-2.5 text-sm text-stone hover:bg-ink/5 transition-colors"
                               onClick={() => {
                                 setIsProfileOpen(false);
                                 logout();
                                 router.push('/');
                               }}
                             >
-                              🔐 Admin Logout
+                              Admin Logout
                             </button>
                           )}
                         </div>
@@ -1000,17 +998,17 @@ const Header = () => {
                         <div className="py-1">
                           <Link
                             href="/auth/signin"
-                            className="dropdown-item !text-primary font-medium"
+                            className="dropdown-item !text-ink font-medium"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            🚀 Sign In
+                            Sign In
                           </Link>
                           <Link
                             href="/auth/signup"
-                            className="dropdown-item !text-green-600 dark:!text-green-400 font-medium"
+                            className="dropdown-item !text-vermillion font-medium"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            ✨ Join NewsTRNT
+                            Join NewsTRNT
                           </Link>
                           
                           <div className="dropdown-divider"></div>
@@ -1020,7 +1018,7 @@ const Header = () => {
                             className="dropdown-item"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            ℹ️ About NewsTRNT
+                            About NewsTRNT
                           </Link>
                         </div>
                       </>
@@ -1049,11 +1047,10 @@ const Header = () => {
           }`}>
             <nav className="flex flex-col space-y-1 py-4">
               {/* Mobile Header Bar - Date & Theme */}
-              <div className="flex items-center justify-between px-3 py-2 mb-2 bg-secondary/50 rounded-lg mx-2">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <span className="text-sm">📅</span>
-                  <span className="text-xs font-medium">
-                    {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              <div className="flex items-center justify-between px-3 py-2 mb-2 bg-secondary/50 rounded-xl mx-2">
+                <div className="flex items-center gap-2 text-stone">
+                  <span className="text-xs font-mono">
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                   </span>
                 </div>
                 <ThemeToggle />
@@ -1127,24 +1124,24 @@ const Header = () => {
                     </div>
                     <Link
                       href="/admin"
-                      className="text-primary hover:text-red-700 px-3 py-2.5 rounded-md text-base font-semibold transition-colors block"
+                      className="text-vermillion hover:text-vermillion-dark px-3 py-2.5 text-base font-medium transition-colors block"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      🏛️ Admin Panel
+                      Admin Panel
                     </Link>
                     <Link
                       href="/admin/content/new"
-                      className="text-primary hover:text-red-700 px-3 py-2.5 rounded-md text-base font-semibold transition-colors block"
+                      className="text-vermillion hover:text-vermillion-dark px-3 py-2.5 text-base font-medium transition-colors block"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      ✏️ New Article
+                      New Article
                     </Link>
                     <Link
                       href="/admin/logo-manager"
-                      className="text-primary hover:text-red-700 px-3 py-2.5 rounded-md text-base font-semibold transition-colors block"
+                      className="text-vermillion hover:text-vermillion-dark px-3 py-2.5 text-base font-medium transition-colors block"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      🎨 Logo Manager
+                      Logo Manager
                     </Link>
                     <div className="border-t border-border mt-2 pt-2"></div>
                   </>
@@ -1186,13 +1183,13 @@ const Header = () => {
                       
                       {/* User Logout */}
                       <button
-                        className="w-full text-left px-3 py-2.5 text-red-500 hover:bg-red-500/10 transition-colors text-sm font-semibold"
+                        className="w-full text-left px-3 py-2.5 text-vermillion hover:bg-vermillion/5 transition-colors text-sm font-medium"
                         onClick={() => {
                           setIsMenuOpen(false);
                           handleUserLogout();
                         }}
                       >
-                        🚪 Sign Out
+                        Sign Out
                       </button>
                     </>
                   ) : (
@@ -1200,17 +1197,17 @@ const Header = () => {
                       {/* Not logged in - show sign in options */}
                       <Link
                         href="/auth/signin"
-                        className="block px-3 py-2.5 text-primary hover:bg-primary/10 transition-colors text-sm font-semibold"
+                        className="block px-3 py-2.5 text-ink hover:bg-ink/5 transition-colors text-sm font-medium"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        🚀 Sign In
+                        Sign In
                       </Link>
                       <Link
                         href="/auth/signup"
-                        className="block px-3 py-2.5 text-green-500 hover:bg-green-500/10 transition-colors text-sm font-semibold"
+                        className="block px-3 py-2.5 text-vermillion hover:bg-vermillion/5 transition-colors text-sm font-medium"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        ✨ Join NewsTRNT
+                        Join NewsTRNT
                       </Link>
                     </>
                   )}
@@ -1219,14 +1216,14 @@ const Header = () => {
                 {/* Mobile Admin Logout */}
                 {isAdmin && (
                   <button
-                    className="w-full text-left px-3 py-2.5 text-orange-500 hover:bg-orange-500/10 transition-colors text-sm font-semibold border-t border-border mt-2 pt-2"
+                    className="w-full text-left px-3 py-2.5 text-stone hover:bg-ink/5 transition-colors text-sm font-medium border-t border-ash/40 mt-2 pt-2"
                     onClick={() => {
                       setIsMenuOpen(false);
                       logout();
                       router.push('/');
                     }}
                   >
-                    🔐 Admin Logout
+                    Admin Logout
                   </button>
                 )}
               </div>
