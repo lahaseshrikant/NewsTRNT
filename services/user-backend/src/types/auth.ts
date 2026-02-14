@@ -1,0 +1,18 @@
+import { Request } from 'express';
+
+export interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    username?: string;
+    fullName?: string;
+    isAdmin: boolean;
+    isVerified?: boolean;
+  };
+}
+
+export interface JWTPayload {
+  userId: string;
+  email: string;
+  isAdmin: boolean;
+}

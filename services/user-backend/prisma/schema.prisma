@@ -1,0 +1,680 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["auth", "public"]
+}
+
+model User {
+  id                    String                   @id @default(uuid())
+  email                 String                   @unique
+  username              String?                  @unique
+  passwordHash          String?                  @map("password_hash")
+  fullName              String?                  @map("full_name")
+  avatarUrl             String?                  @map("avatar_url")
+  bio                   String?
+  isVerified            Boolean                  @default(false) @map("is_verified")
+  isAdmin               Boolean                  @default(false) @map("is_admin")
+  emailVerified         Boolean                  @default(false) @map("email_verified")
+  preferences           Json                     @default("{}")
+  readingHistory        Json                     @default("[]") @map("reading_history")
+  interests             String[]                 @default([])
+  language              String                   @default("en")
+  timezone              String                   @default("UTC")
+  notificationSettings  Json                     @default("{\"push\": true, \"email\": true, \"breaking\": true}") @map("notification_settings")
+  createdAt             DateTime                 @default(now()) @map("created_at")
+  updatedAt             DateTime                 @updatedAt @map("updated_at")
+  lastLoginAt           DateTime?                @map("last_login_at")
+  articles              Article[]                @relation("ArticleAuthor")
+  updatedArticles       Article[]                @relation("ArticleUpdater")
+  comments              Comment[]
+  newsletters           NewsletterSubscription[]
+  pushTokens            PushToken[]
+  readingHistoryRecords ReadingHistory[]
+  savedArticles         SavedArticle[]
+  interactions          UserInteraction[]
+  webStories            WebStory[]               @relation("WebStoryAuthor")
+  updatedWebStories     WebStory[]               @relation("WebStoryUpdater")
+  followedCategories    CategoryFollow[]
+  followedTopics        TopicFollow[]
+
+  @@schema("auth")
+  @@map("users")
+}
+
+model Category {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  slug        String           @unique
+  description String?
+  color       String           @default("#000000")
+  icon        String?
+  isActive    Boolean          @default(true) @map("is_active")
+  sortOrder   Int              @default(0) @map("sort_order")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  deletedAt   DateTime?        @map("deleted_at")
+  deletedBy   String?          @map("deleted_by")
+  isDeleted   Boolean          @default(false) @map("is_deleted")
+  articles    Article[]
+  webStories  WebStory[]
+  followers   CategoryFollow[]
+  subCategories SubCategory[]
+
+  @@schema("public")
+  @@index([isDeleted])
+  @@index([deletedAt])
+  @@map("categories")
+}
+
+model SubCategory {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  categoryId  String   @map("category_id")
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?  @map("deleted_by")
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+  articles    Article[]
+
+  @@schema("public")
+  @@index([isDeleted])
+  @@index([deletedAt])
+  @@map("subcategories")
+}
+
+model Tag {
+  id         String       @id @default(uuid())
+  name       String       @unique
+  slug       String       @unique
+  usageCount Int          @default(0) @map("usage_count")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  deletedAt  DateTime?    @map("deleted_at")
+  deletedBy  String?      @map("deleted_by")
+  isDeleted  Boolean      @default(false) @map("is_deleted")
+  articles   ArticleTag[]
+
+  @@schema("public")
+  @@index([isDeleted])
+  @@index([deletedAt])
+  @@map("tags")
+}
+
+model Article {
+  id              String            @id @default(uuid())
+  title           String
+  slug            String            @unique
+  summary         String?
+  content         String?
+  shortContent    String?           @map("short_content")
+  excerpt         String?
+  author          String?
+  sourceName      String?           @map("source_name")
+  sourceUrl       String?           @map("source_url")
+  imageUrl        String?           @map("image_url")
+  images          Json              @default("[]")
+  videoUrl        String?           @map("video_url")
+  audioUrl        String?           @map("audio_url")
+  categoryId      String?           @map("category_id")
+  subCategoryId   String?           @map("subcategory_id")
+  publishedAt     DateTime?         @map("published_at")
+  scrapedAt       DateTime          @default(now()) @map("scraped_at")
+  isPublished     Boolean           @default(false) @map("is_published")
+  isFeatured      Boolean           @default(false) @map("is_featured")
+  isTrending      Boolean           @default(false) @map("is_trending")
+  isBreaking      Boolean           @default(false) @map("is_breaking")
+  isFactChecked   Boolean           @default(false) @map("is_fact_checked")
+  factCheckStatus String            @default("pending") @map("fact_check_status")
+  factCheckNotes  String?           @map("fact_check_notes")
+  readingTime     Int?              @map("reading_time")
+  engagementScore Float             @default(0) @map("engagement_score")
+  viewCount       Int               @default(0) @map("view_count")
+  likeCount       Int               @default(0) @map("like_count")
+  shareCount      Int               @default(0) @map("share_count")
+  commentCount    Int               @default(0) @map("comment_count")
+  aiGenerated     Boolean           @default(false) @map("ai_generated")
+  aiSummary       Boolean           @default(false) @map("ai_summary")
+  aiMetadata      Json              @default("{}") @map("ai_metadata")
+  seoTitle        String?           @map("seo_title")
+  seoDescription  String?           @map("seo_description")
+  seoKeywords     String[]          @map("seo_keywords")
+  metaData        Json              @default("{}") @map("meta_data")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  createdBy       String?           @map("created_by")
+  updatedBy       String?           @map("updated_by")
+  deletedAt       DateTime?         @map("deleted_at")
+  deletedBy       String?           @map("deleted_by")
+  isDeleted       Boolean           @default(false) @map("is_deleted")
+  contentType     String            @default("news") @map("content_type")
+  authorType      String            @default("staff") @map("author_type")
+  is_original     Boolean           @default(false)
+  news_source     String?
+  priority        String            @default("normal")
+  tags            ArticleTag[]
+  category        Category?         @relation(fields: [categoryId], references: [id])
+  subCategory     SubCategory?      @relation(fields: [subCategoryId], references: [id])
+  createdByUser   User?             @relation("ArticleAuthor", fields: [createdBy], references: [id])
+  updatedByUser   User?             @relation("ArticleUpdater", fields: [updatedBy], references: [id])
+  comments        Comment[]
+  readingHistory  ReadingHistory[]
+  savedByUsers    SavedArticle[]
+  interactions    UserInteraction[]
+
+  @@schema("public")
+  @@index([publishedAt(sort: Desc)])
+  @@index([categoryId])
+  @@index([isPublished])
+  @@index([isTrending])
+  @@index([isFeatured])
+  @@index([slug])
+  @@index([isDeleted])
+  @@index([deletedAt])
+  @@index([contentType])
+  @@index([authorType])
+  @@index([contentType, publishedAt])
+  @@index([is_original])
+  @@index([priority])
+  @@map("articles")
+}
+
+model ArticleTag {
+  articleId String  @map("article_id")
+  tagId     String  @map("tag_id")
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
+
+model Comment {
+  id            String    @id @default(uuid())
+  articleId     String    @map("article_id")
+  userId        String?   @map("user_id")
+  parentId      String?   @map("parent_id")
+  content       String
+  displayName   String?   @map("display_name")
+  isAnonymous   Boolean   @default(false) @map("is_anonymous")
+  isApproved    Boolean   @default(true) @map("is_approved")
+  isFlagged     Boolean   @default(false) @map("is_flagged")
+  likeCount     Int       @default(0) @map("like_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  article       Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  parent        Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies       Comment[] @relation("CommentReplies")
+  user          User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+  @@index([articleId])
+  @@index([userId])
+  @@map("comments")
+}
+
+model SavedArticle {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  articleId String   @map("article_id")
+  savedAt   DateTime @default(now()) @map("saved_at")
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@map("saved_articles")
+}
+
+model ReadingHistory {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  articleId        String   @map("article_id")
+  readAt           DateTime @default(now()) @map("read_at")
+  readingTime      Int?     @map("reading_time")
+  scrollPercentage Float    @default(0) @map("scroll_percentage")
+  article          Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@map("reading_history")
+}
+
+model UserInteraction {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  articleId       String   @map("article_id")
+  interactionType String   @map("interaction_type")
+  createdAt       DateTime @default(now()) @map("created_at")
+  article         Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([userId, articleId, interactionType])
+  @@map("user_interactions")
+}
+
+model NewsletterSubscription {
+  id             String    @id @default(uuid())
+  email          String
+  userId         String?   @map("user_id")
+  frequency      String    @default("daily")
+  categories     String[]  @default([])
+  isActive       Boolean   @default(true) @map("is_active")
+  subscribedAt   DateTime  @default(now()) @map("subscribed_at")
+  unsubscribedAt DateTime? @map("unsubscribed_at")
+  user           User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([email, frequency])
+  @@map("newsletter_subscriptions")
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String
+  platform  String
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([userId, token])
+  @@map("push_tokens")
+}
+
+model WebStory {
+  id            String    @id @default(uuid())
+  title         String
+  slug          String    @unique
+  categoryId    String?   @map("category_id")
+  slides        Json      @default("[]")
+  status        String    @default("draft")
+  author        String?
+  duration      Int       @default(0)
+  coverImage    String?   @map("cover_image")
+  isFeature     Boolean   @default(false) @map("is_featured")
+  priority      String    @default("normal")
+  viewCount     Int       @default(0) @map("view_count")
+  likeCount     Int       @default(0) @map("like_count")
+  shareCount    Int       @default(0) @map("share_count")
+  publishedAt   DateTime? @map("published_at")
+  isDeleted     Boolean   @default(false) @map("is_deleted")
+  deletedAt     DateTime? @map("deleted_at")
+  deletedBy     String?   @map("deleted_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdBy     String?   @map("created_by")
+  updatedBy     String?   @map("updated_by")
+  category      Category? @relation(fields: [categoryId], references: [id])
+  createdByUser User?     @relation("WebStoryAuthor", fields: [createdBy], references: [id])
+  updatedByUser User?     @relation("WebStoryUpdater", fields: [updatedBy], references: [id])
+
+  @@schema("public")
+  @@index([publishedAt(sort: Desc)])
+  @@index([categoryId])
+  @@index([status])
+  @@index([slug])
+  @@index([isDeleted])
+  @@index([deletedAt])
+  @@map("web_stories")
+}
+
+// =============================================================================
+// MARKET DATA MODELS - Cache external API data to avoid rate limits
+// Optimized to store data once and serve many times
+// =============================================================================
+
+model MarketIndex {
+  id            String   @id @default(uuid())
+  symbol        String   @unique
+  name          String
+  country       String
+  exchange      String
+  value         Float
+  previousClose Float    @map("previous_close")
+  change        Float
+  changePercent Float    @map("change_percent")
+  high          Float
+  low           Float
+  open          Float?   // Opening price for the day
+  volume        Float?
+  currency      String
+  timezone      String
+  isOpen        Boolean  @default(false) @map("is_open")
+  lastUpdated   DateTime @map("last_updated")
+  lastSource    String?  @map("last_source") // e.g., "tradingview", "alphavantage", "finnhub"
+  dataQuality   Int      @default(100) @map("data_quality") // 0-100 quality score
+  isStale       Boolean  @default(false) @map("is_stale") // Flag if data is too old
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Historical data relation
+  history       MarketIndexHistory[]
+
+  @@schema("public")
+  @@index([symbol])
+  @@index([country])
+  @@index([lastUpdated])
+  @@index([isStale])
+  @@map("market_indices")
+}
+
+// Historical market data for charts and analysis
+model MarketIndexHistory {
+  id            String      @id @default(uuid())
+  symbol        String
+  value         Float
+  open          Float?
+  high          Float?
+  low           Float?
+  close         Float?
+  volume        Float?
+  changePercent Float?      @map("change_percent")
+  timestamp     DateTime    // The actual time of the data point
+  interval      String      @default("1d") // "1m", "5m", "1h", "1d", "1w"
+  source        String?     // Data provider
+  createdAt     DateTime    @default(now()) @map("created_at")
+  
+  // Relation to parent
+  marketIndex   MarketIndex @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([symbol, timestamp, interval])
+  @@index([symbol, timestamp])
+  @@index([timestamp])
+  @@map("market_index_history")
+}
+
+model MarketProviderPreference {
+  id              String   @id @default(uuid())
+  category        String   @unique
+  providerOrder   String[] @map("provider_order")
+  fallbackStrategy String  @default("sequential") @map("fallback_strategy")
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@schema("public")
+  @@map("market_provider_preferences")
+}
+
+model Cryptocurrency {
+  id            String   @id @default(uuid())
+  symbol        String   @unique
+  name          String
+  coinGeckoId   String   @unique @map("coingecko_id")
+  value         Float
+  previousClose Float?   @map("previous_close")
+  change        Float
+  changePercent Float    @map("change_percent")
+  high24h       Float?   @map("high_24h")
+  low24h        Float?   @map("low_24h")
+  volume24h     Float?   @map("volume_24h")
+  marketCap     Float?   @map("market_cap")
+  circulatingSupply Float? @map("circulating_supply")
+  totalSupply   Float?   @map("total_supply")
+  rank          Int?     // Market cap rank
+  currency      String   @default("USD")
+  lastUpdated   DateTime @map("last_updated")
+  lastSource    String?  @map("last_source")
+  dataQuality   Int      @default(100) @map("data_quality")
+  isStale       Boolean  @default(false) @map("is_stale")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Historical data relation
+  history       CryptoHistory[]
+
+  @@schema("public")
+  @@index([symbol])
+  @@index([lastUpdated])
+  @@index([rank])
+  @@map("cryptocurrencies")
+}
+
+// Historical crypto data
+model CryptoHistory {
+  id            String         @id @default(uuid())
+  symbol        String
+  value         Float
+  volume        Float?
+  marketCap     Float?
+  changePercent Float?         @map("change_percent")
+  timestamp     DateTime
+  interval      String         @default("1d")
+  source        String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+  
+  crypto        Cryptocurrency @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([symbol, timestamp, interval])
+  @@index([symbol, timestamp])
+  @@map("crypto_history")
+}
+
+model CurrencyRate {
+  id            String   @id @default(uuid())
+  currency      String   @unique // ISO currency code: USD, EUR, GBP
+  currencyName  String   @map("currency_name")
+  rateToUSD     Float    @map("rate_to_usd")
+  rateFromUSD   Float?   @map("rate_from_usd") // Inverse rate for convenience
+  symbol        String?  // Currency symbol: $, €, £
+  country       String?  // Primary country: US, EU, GB
+  previousRate  Float?   @map("previous_rate")
+  change        Float?
+  changePercent Float?   @map("change_percent")
+  lastUpdated   DateTime @map("last_updated")
+  lastSource    String?  @map("last_source")
+  isStale       Boolean  @default(false) @map("is_stale")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Historical data
+  history       CurrencyHistory[]
+
+  @@schema("public")
+  @@index([currency])
+  @@index([lastUpdated])
+  @@map("currency_rates")
+}
+
+// Historical currency rate data
+model CurrencyHistory {
+  id          String       @id @default(uuid())
+  currency    String
+  rateToUSD   Float        @map("rate_to_usd")
+  timestamp   DateTime
+  source      String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  
+  currencyRate CurrencyRate @relation(fields: [currency], references: [currency], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([currency, timestamp])
+  @@index([currency, timestamp])
+  @@map("currency_history")
+}
+
+model Commodity {
+  id            String   @id @default(uuid())
+  symbol        String   @unique
+  name          String
+  value         Float
+  previousClose Float?   @map("previous_close")
+  change        Float?
+  changePercent Float?   @map("change_percent")
+  open          Float?
+  high          Float?
+  low           Float?
+  volume        Float?
+  unit          String   @default("USD") // oz, barrel, lb, bushel
+  unitLabel     String?  @map("unit_label") // "per ounce", "per barrel"
+  category      String   @default("general") // Energy, Precious Metals, Agriculture, Industrial
+  currency      String   @default("USD")
+  lastUpdated   DateTime @map("last_updated")
+  lastSource    String?  @map("last_source")
+  dataQuality   Int      @default(100) @map("data_quality")
+  isStale       Boolean  @default(false) @map("is_stale")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Historical data
+  history       CommodityHistory[]
+
+  @@schema("public")
+  @@index([symbol])
+  @@index([category])
+  @@index([lastUpdated])
+  @@map("commodities")
+}
+
+// Historical commodity data
+model CommodityHistory {
+  id            String    @id @default(uuid())
+  symbol        String
+  value         Float
+  open          Float?
+  high          Float?
+  low           Float?
+  volume        Float?
+  timestamp     DateTime
+  interval      String    @default("1d")
+  source        String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  commodity     Commodity @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([symbol, timestamp, interval])
+  @@index([symbol, timestamp])
+  @@map("commodity_history")
+}
+
+// MARKET CONFIGURATION MODELS - Dynamic configuration for market data
+
+model MarketIndexConfig {
+  id          String   @id @default(uuid())
+  symbol      String   @unique // e.g., "^GSPC", "^DJI"
+  name        String // e.g., "S&P 500", "Dow Jones Industrial Average"
+  country     String // ISO 2-letter code: "US", "GB", "JP"
+  region      String[] @default([]) // ["AMERICAS", "GLOBAL"]
+  exchange    String // "NYSE", "NASDAQ", "LSE"
+  currency    String // "USD", "GBP", "EUR"
+  timezone    String // "America/New_York", "Europe/London"
+  marketHours Json     @default("{\"open\": \"09:30\", \"close\": \"16:00\"}") @map("market_hours") // Trading hours
+  isActive    Boolean  @default(true) @map("is_active") // Enable/disable fetching
+  isGlobal    Boolean  @default(false) @map("is_global") // Show in global view
+  sortOrder   Int      @default(0) @map("sort_order") // Display order
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@schema("public")
+  @@index([symbol])
+  @@index([country])
+  @@index([isActive])
+  @@index([region])
+  @@map("market_index_configs")
+}
+
+model CryptocurrencyConfig {
+  id          String   @id @default(uuid())
+  symbol      String   @unique // "BTC", "ETH", "BNB"
+  name        String // "Bitcoin", "Ethereum", "Binance Coin"
+  coinGeckoId String   @unique @map("coingecko_id") // "bitcoin", "ethereum"
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@schema("public")
+  @@index([symbol])
+  @@index([isActive])
+  @@map("cryptocurrency_configs")
+}
+
+model CommodityConfig {
+  id        String   @id @default(uuid())
+  symbol    String   @unique // "GC", "CL", "SI"
+  name      String // "Gold", "Crude Oil WTI", "Silver"
+  category  String // "Energy", "Precious Metals", "Agriculture"
+  unit      String   @default("USD") // "barrel", "oz", "lb"
+  currency  String   @default("USD")
+  isActive  Boolean  @default(true) @map("is_active")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@schema("public")
+  @@index([symbol])
+  @@index([category])
+  @@index([isActive])
+  @@map("commodity_configs")
+}
+
+model CurrencyPairConfig {
+  id        String   @id @default(uuid())
+  pair      String   @unique // "EUR/USD", "GBP/USD"
+  name      String // "Euro vs US Dollar"
+  base      String // "EUR"
+  quote     String // "USD"
+  type      String   @default("major") // "major", "cross", "emerging"
+  isActive  Boolean  @default(true) @map("is_active")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@schema("public")
+  @@index([pair])
+  @@index([type])
+  @@index([isActive])
+  @@map("currency_pair_configs")
+}
+
+// User Personalization Models
+model CategoryFollow {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  categoryId String   @map("category_id")
+  followedAt DateTime @default(now()) @map("followed_at")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([userId, categoryId])
+  @@index([userId])
+  @@index([categoryId])
+  @@map("category_follows")
+}
+
+model TopicFollow {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  topicName  String   @map("topic_name") // e.g., "cricket", "AI", "Tesla"
+  topicSlug  String   @map("topic_slug")
+  parentCategory String? @map("parent_category") // e.g., "sports" for cricket
+  followedAt DateTime @default(now()) @map("followed_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+  @@unique([userId, topicSlug])
+  @@index([userId])
+  @@index([topicSlug])
+  @@map("topic_follows")
+}
+
+// =============================================================================
+

@@ -1,0 +1,91 @@
+import type { Metadata } from "next";
+import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
+import "./globals.css";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { LogoProvider } from "@/contexts/LogoContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ConditionalLayout from "@/components/layout/ConditionalLayout";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: 'swap',
+  preload: true,
+  fallback: ['system-ui', 'arial'],
+  adjustFontFallback: true,
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  display: 'swap',
+  preload: true,
+  weight: ['400', '500', '600', '700', '800', '900'],
+  fallback: ['Georgia', 'serif'],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  display: 'swap',
+  preload: false,
+  weight: ['400', '500', '700'],
+  fallback: ['Courier New', 'monospace'],
+});
+
+export const metadata: Metadata = {
+  title: "NewsTRNT - The Road Not Taken",
+  description: "Discover stories that matter, from perspectives that challenge the mainstream. Alternative journalism powered by AI.",
+  keywords: ["news", "alternative journalism", "independent news", "AI news", "diverse perspectives", "NewsTRNT"],
+  authors: [{ name: "NewsTRNT Team" }],
+  creator: "NewsTRNT",
+  publisher: "NewsTRNT",
+  icons: {
+    icon: '/logo.png',
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://NewsTRNT.com",
+    title: "NewsTRNT - The Road Not Taken",
+    description: "Independent journalism bringing you diverse perspectives and underreported stories. The complete picture with breaking news and in-depth coverage.",
+    siteName: "NewsTRNT",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NewsTRNT - The Road Not Taken",
+    description: "Independent journalism bringing you diverse perspectives and underreported stories. The complete picture with breaking news and in-depth coverage.",
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Early theme apply to avoid always-dark flash and ensure correct contrast before hydration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => { try { const stored = localStorage.getItem('theme'); const mql = window.matchMedia('(prefers-color-scheme: dark)'); const prefersDark = mql.matches; const theme = stored === 'light' || stored === 'dark' ? stored : (stored === 'system' || !stored) ? (prefersDark ? 'dark' : 'light') : 'light'; const root = document.documentElement; if(!root.classList.contains('light') && !root.classList.contains('dark')) { root.classList.add(theme); } } catch(e) {} })();`
+          }}
+        />
+      </head>
+      <body className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
+        <LogoProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <ConditionalLayout>
+                {children}
+              </ConditionalLayout>
+            </AuthProvider>
+          </ThemeProvider>
+        </LogoProvider>
+      </body>
+    </html>
+  );
+}

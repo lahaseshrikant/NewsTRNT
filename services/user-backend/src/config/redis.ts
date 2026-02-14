@@ -90,18 +90,6 @@ export const cacheInvalidatePattern = async (pattern: string): Promise<void> => 
   }
 };
 
-/**
- * Publish a message to a Redis channel (for cross-service Socket.io events).
- */
-export const publish = async (channel: string, message: unknown): Promise<void> => {
-  if (!isConnected) return;
-  try {
-    await redisClient.publish(channel, JSON.stringify(message));
-  } catch {
-    // silent
-  }
-};
-
 export const redisHealthCheck = async (): Promise<boolean> => {
   if (!isConnected) return false;
   try {
