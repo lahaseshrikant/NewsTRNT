@@ -1,6 +1,8 @@
 // src/lib/site-config-cache.ts
 // Note: This is a frontend cache module - it fetches from API endpoints
 
+import adminAuth from '@/lib/admin-auth';
+
 interface CachedConfig {
   allData: Record<string, any>;  // All config data
   publicData: Record<string, any>;  // Only public config data
@@ -22,7 +24,7 @@ export async function getAllSiteConfig(): Promise<Record<string, any>> {
 
   // Fetch from API
   try {
-    const response = await fetch('/api/admin/site-config');
+    const response = await fetch('/api/admin/site-config', { headers: { ...adminAuth.getAuthHeaders() } });
     if (!response.ok) throw new Error('Failed to fetch config');
     const data = await response.json();
     

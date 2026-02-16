@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/layout/Breadcrumb';
+import adminAuth from '@/lib/admin-auth';
 import { showToast } from '@/lib/toast';
 import { getEmailString } from '@/lib/utils';
+import { API_CONFIG } from '@/config/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface Comment {
   id: string;
@@ -32,18 +34,14 @@ const CommentModeration: React.FC = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      if (!token) {
+      if (!adminAuth.getToken()) {
         setError('Authentication required. Please log in.');
         setLoading(false);
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/moderation/queue`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await fetch(`${API_BASE_URL}/admin/moderation/queue`, {
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' }
       });
 
       if (!response.ok) {
@@ -109,22 +107,18 @@ const CommentModeration: React.FC = () => {
     setActionLoading(commentId);
     
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      if (!token) {
+      if (!adminAuth.getToken()) {
         showToast('Authentication required', 'error');
         return;
       }
 
       const endpoint = action === 'approve' 
-        ? `${API_BASE_URL}/api/admin/moderation/comments/${commentId}/approve`
-        : `${API_BASE_URL}/api/admin/moderation/comments/${commentId}/reject`;
+        ? `${API_BASE_URL}/admin/moderation/comments/${commentId}/approve`
+        : `${API_BASE_URL}/admin/moderation/comments/${commentId}/reject`;
 
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: action === 'spam' ? 'Marked as spam' : undefined })
       });
 
@@ -158,8 +152,7 @@ const CommentModeration: React.FC = () => {
       return;
     }
 
-    const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-    if (!token) {
+    if (!adminAuth.getToken()) {
       showToast('Authentication required', 'error');
       return;
     }
@@ -170,15 +163,12 @@ const CommentModeration: React.FC = () => {
     for (const commentId of selectedComments) {
       try {
         const endpoint = action === 'approve' 
-          ? `${API_BASE_URL}/api/admin/moderation/comments/${commentId}/approve`
-          : `${API_BASE_URL}/api/admin/moderation/comments/${commentId}/reject`;
+          ? `${API_BASE_URL}/admin/moderation/comments/${commentId}/approve`
+          : `${API_BASE_URL}/admin/moderation/comments/${commentId}/reject`;
 
         const response = await fetch(endpoint, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
+          headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify({ reason: action === 'spam' ? 'Marked as spam' : undefined })
         });
 

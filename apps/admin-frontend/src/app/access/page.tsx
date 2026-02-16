@@ -10,7 +10,8 @@ import AuditLogger from '@/lib/audit-logger';
 import RBACAuth from '@/lib/rbac-auth';
 import { getEmailString } from '@/lib/utils';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+import { API_CONFIG } from '@/config/api';
+const API_URL = API_CONFIG.baseURL;
 
 interface TeamStats {
   total: number;

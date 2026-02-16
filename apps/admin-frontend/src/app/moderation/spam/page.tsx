@@ -3,9 +3,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/auth/RouteGuard';
+import adminAuth from '@/lib/admin-auth';
 import { getEmailString } from '@/lib/utils';
+import { API_CONFIG } from '@/config/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface SpamRule {
   id: string;
@@ -52,16 +54,12 @@ function SpamFilterContent() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
+      const headers = { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' };
 
       const [queueRes, rulesRes, statsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/admin/moderation/spam/queue`, { headers }),
-        fetch(`${API_BASE_URL}/api/admin/moderation/spam/rules`, { headers }),
-        fetch(`${API_BASE_URL}/api/admin/moderation/spam/stats`, { headers })
+        fetch(`${API_BASE_URL}/admin/moderation/spam/queue`, { headers }),
+        fetch(`${API_BASE_URL}/admin/moderation/spam/rules`, { headers }),
+        fetch(`${API_BASE_URL}/admin/moderation/spam/stats`, { headers })
       ]);
 
       if (queueRes.ok) {
@@ -92,13 +90,9 @@ function SpamFilterContent() {
 
   const handleSpamAction = async (id: string, action: 'approve' | 'delete') => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/moderation/spam/${id}/${action}`, {
+      const response = await fetch(`${API_BASE_URL}/admin/moderation/spam/${id}/${action}`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' }
       });
       
       if (response.ok) {
@@ -111,13 +105,9 @@ function SpamFilterContent() {
 
   const handleToggleRule = async (id: string) => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/moderation/spam/rules/${id}/toggle`, {
+      const response = await fetch(`${API_BASE_URL}/admin/moderation/spam/rules/${id}/toggle`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' }
       });
       
       if (response.ok) {
@@ -131,13 +121,9 @@ function SpamFilterContent() {
   const handleAddRule = async () => {
     if (!newRule.name || !newRule.value) return;
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/moderation/spam/rules`, {
+      const response = await fetch(`${API_BASE_URL}/admin/moderation/spam/rules`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(newRule)
       });
       

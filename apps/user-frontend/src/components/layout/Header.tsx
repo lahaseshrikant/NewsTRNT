@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
 import { useLogo } from '@/contexts/LogoContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCategories } from '@/hooks/useCategories';
+import { useNavigation } from '@/hooks/useNavigation';
 import { getEmailString } from '@/lib/utils';
 import { DivergenceMark } from '@/components/ui/DivergenceMark';
 import { SearchIcon } from '@/components/icons/EditorialIcons';
@@ -92,24 +92,17 @@ const Header = () => {
   
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
-  const { categories } = useCategories(); // Get active categories only
+  const { navigation: navigationItems, loading: navLoading, hydrated: navHydrated } = useNavigation(); // Get navigation from backend (placeholders -> server-hydrated)
   
   // Memoize navigation array to prevent infinite re-renders
-  const navigation: NavigationItem[] = useMemo(() => [
-    { name: 'Home', href: '/', priority: 1 },
-    { name: 'News', href: '/news', priority: 2 },
-    { name: 'Articles', href: '/articles', priority: 3 },
-    { name: 'Opinion', href: '/opinion', priority: 4 },
-    { name: 'Analysis', href: '/analysis', priority: 5 },
-    { name: 'Shorts', href: '/shorts', priority: 6 },
-    { name: 'Stories', href: '/web-stories', priority: 7 },
-    { name: 'Trending', href: '/trending', priority: 8 },
-    ...categories.map((cat, index) => ({
-      name: cat.name,
-      href: `/category/${cat.slug}`,
-      priority: index + 9 // Categories start after the fixed items
-    }))
-  ], [categories]); // Only recreate when categories change
+  // NOTE: do NOT mix categories into the header navigation — header should be driven solely by the `navigation` table.
+  const cleanLabel = (s: string) => String(s || '').replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\s+/g, ' ').trim();
+
+  const navigation: NavigationItem[] = useMemo(() => {
+    return navigationItems
+      .map(item => ({ name: cleanLabel(item.label), href: item.href, priority: item.sortOrder || 0 }))
+      .sort((a, b) => a.priority - b.priority);
+  }, [navigationItems]); // Only recreate when navigation changes
 
   // Destructure setCurrentLogo from useLogo hook
   const { currentLogo, setCurrentLogo } = useLogo();
@@ -613,7 +606,7 @@ const Header = () => {
                   ) : (
                     <Link
                       href={item.href}
-                      className="text-ink/70 hover:text-ink px-1.5 lg:px-2 py-2 text-sm font-medium transition-colors whitespace-nowrap relative"
+                      className="text-ink/70 hover:text-ink px-1.5 lg:px-2 py-2 text-sm font-medium transition-all duration-300 ease-in-out transform whitespace-nowrap relative"
                     >
                       {item.name === 'Stories' && (
                         <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-vermillion rounded-full"></span>
@@ -667,9 +660,8 @@ const Header = () => {
                           key={item.name}
                           href={item.href}
                           onClick={() => setOpenDropdown(null)}
-                          className="dropdown-item"
+                          className="dropdown-item transition-opacity duration-200 ease-in-out"
                         >
-                          {item.name === 'Stories' && <span className="w-2 h-2 bg-primary rounded-full inline-block mr-2"></span>}
                           {item.name}
                         </Link>
                       ))}
@@ -681,7 +673,7 @@ const Header = () => {
                           key={item.name}
                           href={item.href}
                           onClick={() => setOpenDropdown(null)}
-                          className="dropdown-item"
+                          className="dropdown-item transition-opacity duration-200 ease-in-out"
                         >
                           {item.name}
                         </Link>

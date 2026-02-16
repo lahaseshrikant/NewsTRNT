@@ -18,7 +18,13 @@ class MarketDataService {
   private cache: Map<string, CachedMarketData> = new Map();
   private readonly CACHE_DURATION_MARKET_HOURS = 30 * 1000; // 30 seconds during market hours
   private readonly CACHE_DURATION_OFF_HOURS = 5 * 60 * 1000; // 5 minutes off-hours
-  private readonly API_BASE_URL = `${API_CONFIG.baseURL}/market`;
+  // Use the frontend proxy for client-side calls to keep routing consistent
+  // (server-side will call backend directly via API_CONFIG.baseURL)
+  private readonly API_BASE_URL =
+    typeof window === 'undefined'
+      ? `${API_CONFIG.baseURL}/market`
+      : '/api/market';
+
 
   /**
    * Get market data for a specific country
@@ -41,10 +47,30 @@ class MarketDataService {
       
       if (!response.ok) {
         console.error('[MarketDataService] API error:', response.status, response.statusText);
+
+        // Client-side defensive fallback: if backend path doesn't exist (404)
+        // try the frontend proxy route which maps to the correct backend path.
+        if (response.status === 404 && typeof window !== 'undefined' && this.API_BASE_URL !== '/api/market') {
+          const proxyUrl = `/api/market/country/${countryCode}`;
+          // eslint-disable-next-line no-console
+          console.warn('[MarketDataService] 404 from backend; retrying via proxy:', proxyUrl);
+          const proxyRes = await fetch(proxyUrl);
+          if (proxyRes.ok) {
+            const proxyData: MarketDataResponse = await proxyRes.json();
+            this.cacheData(cacheKey, proxyData);
+            return proxyData;
+          }
+        }
+
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const data: MarketDataResponse = await response.json();
+      const raw = await response.json();
+
+      // Normalize payloads coming from backend/proxy — backend returns
+      // { success: true, data: { indices, commodities, currencies, cryptos } }
+      const data = this.normalizeMarketResponse(raw, countryCode);
+
       console.log('[MarketDataService] Received data:', {
         indicesCount: data.indices?.length,
         commoditiesCount: data.commodities?.length,
@@ -95,7 +121,8 @@ class MarketDataService {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const indices: MarketIndex[] = await response.json();
+      const raw = await response.json();
+      const indices: MarketIndex[] = this.unwrapArrayResponse<MarketIndex>(raw);
       return indices;
     } catch (error) {
       console.error('Failed to fetch indices:', error);
@@ -127,7 +154,8 @@ class MarketDataService {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const commodities: Commodity[] = await response.json();
+      const raw = await response.json();
+      const commodities: Commodity[] = this.unwrapArrayResponse<Commodity>(raw);
       return commodities;
     } catch (error) {
       console.error('Failed to fetch commodities:', error);
@@ -157,7 +185,8 @@ class MarketDataService {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const currencies: Currency[] = await response.json();
+      const raw = await response.json();
+      const currencies: Currency[] = this.unwrapArrayResponse<Currency>(raw);
       return currencies;
     } catch (error) {
       console.error('Failed to fetch currencies:', error);
@@ -189,7 +218,8 @@ class MarketDataService {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const cryptos: CryptoCurrency[] = await response.json();
+      const raw = await response.json();
+      const cryptos: CryptoCurrency[] = this.unwrapArrayResponse<CryptoCurrency>(raw);
       return cryptos;
     } catch (error) {
       console.error('Failed to fetch cryptocurrencies:', error);
@@ -224,6 +254,48 @@ class MarketDataService {
       data,
       timestamp: Date.now(),
     });
+  }
+
+  /**
+   * Helper: unwraps API wrapper responses or returns the value directly.
+   * Backend/proxy often returns { success: true, data: ... }.
+   */
+  private unwrapArrayResponse<T>(raw: any): T[] {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw as T[];
+    if (raw.success && raw.data) return (raw.data as T[]);
+    return (raw.data || raw) as T[];
+  }
+
+  /**
+   * Normalize market payloads from backend/proxy into MarketDataResponse
+   */
+  private normalizeMarketResponse(raw: any, fallbackRegion = 'GLOBAL'): MarketDataResponse {
+    const payload = raw && raw.success && raw.data ? raw.data : raw || {};
+
+    const indices = Array.isArray(payload.indices) ? payload.indices : [];
+    const commodities = Array.isArray(payload.commodities) ? payload.commodities : [];
+    const currencies = Array.isArray(payload.currencies) ? payload.currencies : [];
+    // backend uses `cryptos` property; normalize to `cryptocurrencies`
+    const cryptocurrencies = Array.isArray(payload.cryptos)
+      ? payload.cryptos
+      : Array.isArray(payload.cryptocurrencies)
+      ? payload.cryptocurrencies
+      : [];
+
+    const lastUpdated = payload.lastUpdated ? new Date(payload.lastUpdated) : new Date();
+    const region = payload.country || payload.region || fallbackRegion;
+    const cacheExpiry = payload.cacheExpiry ? new Date(payload.cacheExpiry) : new Date(Date.now() + this.CACHE_DURATION_OFF_HOURS);
+
+    return {
+      indices,
+      commodities,
+      currencies,
+      cryptocurrencies,
+      lastUpdated,
+      region,
+      cacheExpiry,
+    } as MarketDataResponse;
   }
 
   /**

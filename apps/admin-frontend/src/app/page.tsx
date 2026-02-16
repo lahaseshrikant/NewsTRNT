@@ -6,24 +6,37 @@ import adminAuth from '@/lib/admin-auth';
 import { adminClient } from '@/lib/admin-client';
 
 interface AdminStats {
-  totalArticles: { count: number; growth: number; growthType: string };
-  activeUsers: { count: number; growth: number; growthType: string };
-  pageViews: { count: number; growth: number; growthType: string };
-  revenue: { count: number; growth: number; growthType: string };
+  // Detailed metric objects (include growth info)
+  totalArticles: { count: number; growth: number; growthType: 'increase' | 'decrease' };
+  activeUsers: { count: number; growth: number; growthType: 'increase' | 'decrease' };
+  pageViews: { count: number; growth: number; growthType: 'increase' | 'decrease' };
+  // Optional revenue (API may not provide this in all environments)
+  revenue?: { count: number; growth: number; growthType: 'increase' | 'decrease' };
+
+  // UI-friendly overview object (counts used in the dashboard header)
+  overview: {
+    totalArticles: number;
+    totalUsers: number;
+    totalViews: number;
+    totalSubscribers: number;
+  };
+
   recentArticles: Array<{
-    id: number;
+    id: string; // comes from API as string
     title: string;
     status: string;
     publishedAt: string | null;
     views: number;
     author: string;
   }>;
+
   systemStatus: {
     server: { status: string; uptime: string };
     database: { status: string; responseTime: string };
     cdn: { status: string; cacheHitRate: string };
     backup: { status: string; lastBackup: string };
   };
+
   recentActivity: Array<{
     id: number;
     type: string;
@@ -32,6 +45,7 @@ interface AdminStats {
     icon: string;
     color: string;
   }>;
+
   performanceMetrics: {
     siteSpeed: number;
     userEngagement: number;
@@ -41,7 +55,7 @@ interface AdminStats {
 }
 
 function AdminPageContent() {
-  const [stats, setStats] = useState<any | null>(null);
+  const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,14 +65,42 @@ function AdminPageContent() {
 
   const fetchAdminStats = async () => {
     try {
-      const data = await adminClient.getStats();
-      setStats(data as any);
+      const api = await adminClient.getStats();
+
+      // Normalize backend response to the AdminStats shape expected by the UI
+      const normalized: AdminStats = {
+        totalArticles: api.totalArticles,
+        activeUsers: api.activeUsers,
+        pageViews: api.pageViews,
+        // revenue not provided by API today — use safe default
+        revenue: { count: 0, growth: 0, growthType: 'increase' },
+        recentArticles: api.recentArticles.map((r) => ({
+          id: String(r.id),
+          title: r.title,
+          status: r.status,
+          publishedAt: r.publishedAt,
+          views: r.views,
+          author: r.author,
+        })),
+        systemStatus: api.systemStatus,
+        recentActivity: api.recentActivity,
+        performanceMetrics: api.performanceMetrics,
+        overview: {
+          totalArticles: api.totalArticles?.count ?? 0,
+          totalUsers: api.totalUsers ?? (api.activeUsers?.count ?? 0),
+          totalViews: api.pageViews?.count ?? 0,
+          // API doesn't return subscribers in this endpoint — default to 0
+          totalSubscribers: 0,
+        },
+      };
+
+      setStats(normalized);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
-  };
+  }; 
 
   const formatNumber = (num: number | undefined | null) => {
     const n = typeof num === 'number' ? num : 0;
@@ -201,7 +243,7 @@ function AdminPageContent() {
               <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">View All</button>
             </div>
             <div className="space-y-4">
-              {(stats.recentArticles || []).map((article) => (
+              {(stats.recentArticles || []).map((article: AdminStats['recentArticles'][number]) => (
                 <div key={article.id} className="flex items-center space-x-3 p-3 bg-muted rounded-lg hover:bg-card transition-colors">
                   <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
                     <span className="text-sm">📄</span>
@@ -358,7 +400,7 @@ function AdminPageContent() {
         <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
           <h2 className="text-lg font-semibold text-foreground mb-4">Recent Activity</h2>
           <div className="space-y-4">
-            {(stats.recentActivity || []).map((activity) => (
+            {(stats.recentActivity || []).map((activity: AdminStats['recentActivity'][number]) => (
               <div key={activity.id} className="flex items-center space-x-3 p-3 bg-muted rounded-lg">
                 <div className={`w-2 h-2 bg-${activity.color}-500 rounded-full`}></div>
                 <span className="text-lg">{activity.icon}</span>

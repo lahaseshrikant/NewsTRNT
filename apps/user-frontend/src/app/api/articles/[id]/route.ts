@@ -6,7 +6,8 @@ type RouteContext = { params: Promise<{ id: string }> };
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    import { API_CONFIG } from '@/config/api';
+    const API_URL = API_CONFIG.baseURL;
     const response = await fetch(`${API_URL}/articles/${id}`);
 
     if (!response.ok) {

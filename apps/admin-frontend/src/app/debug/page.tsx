@@ -41,7 +41,7 @@ export default function DebugPage() {
 
   const loadEnvVars = () => {
     setEnvVars({
-      NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '(not set — fallback: http://localhost:5001/api)',
+      NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '(not set — fallback: http://localhost:5002/api)',
       NEXT_PUBLIC_MARKET_API_URL: process.env.NEXT_PUBLIC_MARKET_API_URL || '(not set)',
       NODE_ENV: process.env.NODE_ENV || 'unknown',
       'API_CONFIG.baseURL': API_CONFIG.baseURL,

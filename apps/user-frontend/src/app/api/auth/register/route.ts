@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { API_CONFIG } from '@/config/api';
 
 export async function POST(request: NextRequest) {
   try {
@@ -6,7 +7,7 @@ export async function POST(request: NextRequest) {
     const { name, email, password } = body;
 
     // Forward the request to the backend API with correct field names
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const backendUrl = API_CONFIG.baseURL.replace(/\/api\/?$/, '');
     
     const response = await fetch(`${backendUrl}/api/auth/register`, {
       method: 'POST',

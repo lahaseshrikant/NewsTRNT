@@ -3,8 +3,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
+import { API_CONFIG } from '@/config/api';
+import adminAuth from '@/lib/admin-auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface SecurityEvent {
   id: string;
@@ -61,16 +63,16 @@ function SecurityContent() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const token = adminAuth.getToken();
       const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       };
 
       const [eventsRes, statsRes, settingsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/admin/system/security/events`, { headers }),
-        fetch(`${API_BASE_URL}/api/admin/system/security/stats`, { headers }),
-        fetch(`${API_BASE_URL}/api/admin/system/security/settings`, { headers })
+        fetch(`${API_BASE_URL}/admin/system/security/events`, { headers }),
+        fetch(`${API_BASE_URL}/admin/system/security/stats`, { headers }),
+        fetch(`${API_BASE_URL}/admin/system/security/settings`, { headers })
       ]);
 
       if (eventsRes.ok) {
@@ -102,7 +104,7 @@ function SecurityContent() {
     setSaveSuccess(false);
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/system/security/settings`, {
+      const response = await fetch(`${API_BASE_URL}/admin/system/security/settings`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -427,18 +427,22 @@ router.get('/:slug', optionalAuth, async (req: AuthRequest, res) => {
       return;
     }
 
-    // Increment view count
-    await prisma.article.update({
-      where: { id: article.id },
-      data: { viewCount: { increment: 1 } }
-    });
+    // Increment view count (non-fatal: log error but still return article)
+    try {
+      await prisma.article.update({
+        where: { id: article.id },
+        data: { viewCount: { increment: 1 } }
+      });
+    } catch (incErr) {
+      console.error('Failed to increment viewCount for article', article.id, incErr);
+    }
 
     const transformedArticle = {
       ...article,
       status: 'published',
       author: article.author || article.createdByUser?.fullName || 'NewsTRNT Staff',
-      tags: article.tags.map((articleTag: any) => articleTag.tag.name),
-      views: article.viewCount + 1
+      tags: Array.isArray(article.tags) ? article.tags.map((articleTag: any) => articleTag.tag?.name).filter(Boolean) : [],
+      views: (typeof article.viewCount === 'number' ? article.viewCount : 0) + 1
     };
 
     res.json({
@@ -446,9 +450,11 @@ router.get('/:slug', optionalAuth, async (req: AuthRequest, res) => {
       article: transformedArticle
     });
 
-  } catch (error) {
-    console.error('Error fetching article:', error);
-    res.status(500).json({ error: 'Failed to fetch article' });
+  } catch (error: any) {
+    console.error('Error fetching article:', error?.stack || error);
+    const payload: any = { error: 'Failed to fetch article' };
+    if (process.env.NODE_ENV !== 'production') payload.details = error?.message || String(error);
+    res.status(500).json(payload);
   }
 });
 

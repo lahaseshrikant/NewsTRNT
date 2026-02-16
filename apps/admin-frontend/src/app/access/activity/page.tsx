@@ -7,8 +7,10 @@ import Link from 'next/link';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
 import { ROLE_DEFINITIONS, ROLE_HIERARCHY, UserRole } from '@/config/rbac';
 import { getEmailString } from '@/lib/utils';
+import { API_CONFIG } from '@/config/api';
+import adminAuth from '@/lib/admin-auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface ActivityEvent {
   id: string;
@@ -66,14 +68,14 @@ function ActivityMonitorContent() {
     setError(null);
     
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const token = adminAuth.getToken();
       if (!token) {
         setError('Authentication required. Please log in.');
         setLoading(false);
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/activity?limit=50`, {
+      const response = await fetch(`${API_BASE_URL}/admin/activity?limit=50`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

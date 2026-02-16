@@ -8,7 +8,8 @@ import RBACAuth from '@/lib/rbac-auth';
 import ErrorHandler from '@/lib/error-handler';
 import AuditLogger from '@/lib/audit-logger';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+import { API_CONFIG } from '@/config/api';
+const API_URL = API_CONFIG.baseURL;
 
 // Helper function to safely get email string from user object
 const getEmailString = (email: any): string => {

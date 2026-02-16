@@ -37,7 +37,8 @@ interface CommentSectionProps {
   userDisplayName?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { API_CONFIG } from '@/config/api';
+const API_URL = API_CONFIG.baseURL;
 
 const CommentSection: React.FC<CommentSectionProps> = ({ 
   articleId, 

@@ -3,8 +3,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
+import { API_CONFIG } from '@/config/api';
+import adminAuth from '@/lib/admin-auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface Backup {
   id: string;
@@ -31,8 +33,8 @@ function BackupContent() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/system/backups`, {
+      const token = adminAuth.getToken();
+      const response = await fetch(`${API_BASE_URL}/admin/system/backups`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -77,8 +79,8 @@ function BackupContent() {
     setBackupProgress(0);
     
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/system/backups`, {
+      const token = adminAuth.getToken();
+      const response = await fetch(`${API_BASE_URL}/admin/system/backups`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -106,8 +108,8 @@ function BackupContent() {
   const handleRestore = async () => {
     if (!selectedBackup) return;
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/system/backups/${selectedBackup.id}/restore`, {
+      const token = adminAuth.getToken();
+      const response = await fetch(`${API_BASE_URL}/admin/system/backups/${selectedBackup.id}/restore`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -128,8 +130,8 @@ function BackupContent() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this backup? This action cannot be undone.')) {
       try {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/api/admin/system/backups/${id}`, {
+        const token = adminAuth.getToken();
+        const response = await fetch(`${API_BASE_URL}/admin/system/backups/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,

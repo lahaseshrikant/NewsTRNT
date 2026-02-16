@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/layout/Breadcrumb';
+import adminAuth from '@/lib/admin-auth';
+import { API_CONFIG } from '@/config/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface MediaFile {
   id: string;
@@ -30,12 +32,8 @@ const MediaLibrary: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/media`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await fetch(`${API_BASE_URL}/admin/media`, {
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' }
       });
       
       if (response.ok) {

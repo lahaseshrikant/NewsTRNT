@@ -15,7 +15,9 @@ const createCategorySchema = z.object({
   isActive: z.boolean().optional().default(true)
 });
 
-const updateCategorySchema = createCategorySchema.partial();
+const updateCategorySchema = createCategorySchema.partial().extend({
+  sortOrder: z.number().min(0).optional()
+});
 
 // GET /api/categories - List all categories
 router.get('/', async (req, res) => {

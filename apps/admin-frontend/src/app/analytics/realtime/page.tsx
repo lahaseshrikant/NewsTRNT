@@ -3,8 +3,10 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AdminRoute } from '@/components/auth/RouteGuard';
+import { API_CONFIG } from '@/config/api';
+import adminAuth from '@/lib/admin-auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface LiveVisitor {
   id: string;
@@ -51,14 +53,14 @@ function RealtimeAnalyticsContent() {
 
   const fetchRealtimeData = useCallback(async () => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const token = adminAuth.getToken();
       if (!token) {
         setError('Authentication required. Please log in.');
         setLoading(false);
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/analytics/realtime`, {
+      const response = await fetch(`${API_BASE_URL}/admin/analytics/realtime`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -117,10 +119,10 @@ function RealtimeAnalyticsContent() {
   // Fetch trending articles
   const fetchTrendingArticles = useCallback(async () => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const token = adminAuth.getToken();
       if (!token) return;
 
-      const response = await fetch(`${API_BASE_URL}/api/articles?limit=5&sortBy=views&sortOrder=desc`, {
+      const response = await fetch(`${API_BASE_URL}/articles?limit=5&sortBy=views&sortOrder=desc`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

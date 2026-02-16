@@ -4,6 +4,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/auth/RouteGuard';
 import { getEmailString } from '@/lib/utils';
+import adminAuth from '@/lib/admin-auth';
+import { API_CONFIG } from '@/config/api';
 
 interface AdRequest {
   id: string;
@@ -28,8 +30,8 @@ function AdRequestsContent() {
 
   const fetchRequests = useCallback(async () => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/admin/advertising/requests`, {
+      const token = adminAuth.getToken();
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/advertising/requests`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -69,7 +71,7 @@ function AdRequestsContent() {
   const handleStatusChange = async (id: string, newStatus: AdRequest['status']) => {
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/admin/advertising/requests/${id}`, {
+      const response = await fetch(`${API_CONFIG.baseURL}/admin/advertising/requests/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

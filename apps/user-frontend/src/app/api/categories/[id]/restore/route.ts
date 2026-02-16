@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { API_CONFIG } from '@/config/api';
+const BACKEND_API_URL = API_CONFIG.baseURL;
 
 type RouteContext = { params: Promise<{ id: string }> };
 

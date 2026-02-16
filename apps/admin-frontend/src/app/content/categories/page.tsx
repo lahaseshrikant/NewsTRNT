@@ -71,10 +71,11 @@ const CategoriesPage: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formState, setFormState] = useState<CategoryFormState>(DEFAULT_FORM_STATE);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const originalOverflowRef = useRef<string | null>(null);
+  const [draggedCategory, setDraggedCategory] = useState<Category | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const originalAlertRef = useRef<typeof window.alert | null>(null);
+  const originalOverflowRef = useRef<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -186,9 +187,10 @@ const CategoriesPage: React.FC = () => {
         }
 
         const payload = await response.json();
-        // Next.js API route returns { categories: [...] }
-        const items = payload?.categories ?? [];
-        const normalized = (items as any[]).map(normalizeCategory);
+        // Backend may return either an array or a wrapped object { categories: [...] }.
+        // Accept both shapes for backward-compatibility.
+        const items = Array.isArray(payload) ? payload : payload?.categories ?? [];
+        const normalized = (Array.isArray(items) ? items : []).map(normalizeCategory);
 
         setCategories(normalized);
       } catch (err) {
@@ -379,6 +381,84 @@ const CategoriesPage: React.FC = () => {
       
       showToast(errorMessage, "error");
     }
+  };
+
+  const handleDragStart = (e: React.DragEvent, category: Category) => {
+    setDraggedCategory(category);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+    
+    if (!draggedCategory) return;
+
+    const draggedIndex = sortedCategories.findIndex(cat => cat.id === draggedCategory.id);
+    if (draggedIndex === -1 || draggedIndex === dropIndex) return;
+
+    // Create new order
+    const newCategories = [...sortedCategories];
+    const [removed] = newCategories.splice(draggedIndex, 1);
+    newCategories.splice(dropIndex, 0, removed);
+
+    // Update sortOrder for all categories
+    const updatedCategories = newCategories.map((cat, index) => ({
+      ...cat,
+      sortOrder: index
+    }));
+
+    setCategories(updatedCategories);
+    setDraggedCategory(null);
+
+    // Save the new order to backend
+    try {
+      const headers = getAuthHeaders();
+      if (!headers.Authorization) {
+        showToast("Authentication required. Please log in again.", "error");
+        await fetchCategories(false); // Revert changes
+        return;
+      }
+
+      // Update each category's sortOrder
+      const updatePromises = updatedCategories.map((cat, index) => 
+        fetch(`/api/categories/${cat.id}`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify({ sortOrder: index }),
+        })
+      );
+
+      const results = await Promise.allSettled(updatePromises);
+      const failedUpdates = results.filter(result => result.status === 'rejected');
+
+      if (failedUpdates.length > 0) {
+        console.error('Some category updates failed:', failedUpdates);
+        showToast("Some reordering changes may not have been saved. Please refresh and try again.", "warning");
+        await fetchCategories(false); // Revert changes
+      } else {
+        showToast("Category order updated successfully", "success");
+      }
+    } catch (error) {
+      console.error("Error updating category order:", error);
+      showToast("Failed to save new order. Please try again.", "error");
+      await fetchCategories(false); // Revert changes
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedCategory(null);
+    setDragOverIndex(null);
   };
 
   const sortedCategories = useMemo(
@@ -596,6 +676,18 @@ const CategoriesPage: React.FC = () => {
         </section>
 
         <section className="rounded-3xl border border-border bg-card p-6 shadow-lg transition-colors">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Category Order</h2>
+              <p className="text-sm text-muted-foreground">
+                Drag and drop categories to reorder them. Display order affects how they appear in navigation and listings.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>🔀</span>
+              <span>Drag to reorder</span>
+            </div>
+          </div>
           {loading ? (
             <div className="flex flex-col items-center justify-center gap-4 py-16 text-muted-foreground">
               <span className="h-10 w-10 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
@@ -628,13 +720,21 @@ const CategoriesPage: React.FC = () => {
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-              {sortedCategories.map((category) => (
+              {sortedCategories.map((category, index) => (
                 <article
                   key={category.id}
-                  className={`group relative overflow-hidden rounded-2xl border border-border/70 p-6 shadow-md transition hover:-translate-y-1 hover:shadow-xl supports-[backdrop-filter]:bg-card/75 ${
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, category)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`group relative overflow-hidden rounded-2xl border border-border/70 p-6 shadow-md transition hover:-translate-y-1 hover:shadow-xl supports-[backdrop-filter]:bg-card/75 cursor-move ${
                     category.isActive 
                       ? 'bg-card/95' 
                       : 'bg-card/50 opacity-75 grayscale-[25%]'
+                  } ${dragOverIndex === index ? 'ring-2 ring-blue-500 ring-opacity-50' : ''} ${
+                    draggedCategory?.id === category.id ? 'opacity-50' : ''
                   }`}
                 >
                   <div
@@ -644,12 +744,19 @@ const CategoriesPage: React.FC = () => {
 
                   <div className="mb-6 flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <span
-                        className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white shadow-lg"
-                        style={{ backgroundColor: category.color }}
-                      >
-                        {category.icon || category.name.charAt(0).toUpperCase()}
-                      </span>
+                      <div className="flex flex-col items-center gap-1">
+                        <span
+                          className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white shadow-lg"
+                          style={{ backgroundColor: category.color }}
+                        >
+                          {category.icon || category.name.charAt(0).toUpperCase()}
+                        </span>
+                        <div className="flex gap-0.5">
+                          <div className="h-1 w-1 rounded-full bg-muted-foreground/40"></div>
+                          <div className="h-1 w-1 rounded-full bg-muted-foreground/40"></div>
+                          <div className="h-1 w-1 rounded-full bg-muted-foreground/40"></div>
+                        </div>
+                      </div>
                       <div>
                         <h3 className="text-xl font-semibold text-foreground">{category.name}</h3>
                         <p className="text-xs text-muted-foreground">Slug: {category.slug}</p>

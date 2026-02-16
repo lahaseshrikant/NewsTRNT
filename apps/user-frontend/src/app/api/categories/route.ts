@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { API_CONFIG } from '@/config/api';
 
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const BACKEND_API_URL = API_CONFIG.baseURL;
 
 export async function GET(request: NextRequest) {
   try {
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('Authorization');
     
     // Forward the request to the backend API
-    const response = await fetch('http://localhost:5000/api/categories', {
+    const response = await fetch(`${BACKEND_API_URL}/categories`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

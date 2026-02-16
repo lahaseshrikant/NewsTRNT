@@ -1,8 +1,7 @@
 import { ApiResponse } from '@/types/api';
+import { API_CONFIG } from '@/config/api';
 
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? process.env.NEXT_PUBLIC_API_URL 
-  : 'http://localhost:5001';
+const API_URL = API_CONFIG.baseURL;
 
 export class AdminClient {
   private getAuthHeaders(): Record<string, string> {
@@ -21,7 +20,7 @@ export class AdminClient {
     options: RequestInit = {}
   ): Promise<T> {
     try {
-      const response = await fetch(`${API_URL}/api/admin${endpoint}`, {
+      const response = await fetch(`${API_URL}/admin${endpoint}`, {
         ...options,
         headers: {
           ...this.getAuthHeaders(),

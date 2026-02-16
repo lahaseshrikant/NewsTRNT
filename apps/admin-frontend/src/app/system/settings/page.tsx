@@ -5,8 +5,9 @@ import React, { useState, useEffect } from 'react';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
 import AuditLogger from '@/lib/audit-logger';
 import { ROLE_DEFINITIONS, ROLE_HIERARCHY, RoleName } from '@/config/rbac';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+import adminAuth from '@/lib/admin-auth';
+import { API_CONFIG } from '@/config/api';
+const API_URL = API_CONFIG.baseURL;
 
 interface SystemSettings {
   security: {
@@ -103,7 +104,7 @@ function SystemSettingsContent() {
     setLoading(true);
     try {
       // Try to load from API first
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const token = adminAuth.getToken();
       if (token) {
         const response = await fetch(`${API_URL}/admin/settings`, {
           headers: {
@@ -141,7 +142,7 @@ function SystemSettingsContent() {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const token = adminAuth.getToken();
       if (token) {
         // Save each section as a separate setting
         const settingsToSave = [

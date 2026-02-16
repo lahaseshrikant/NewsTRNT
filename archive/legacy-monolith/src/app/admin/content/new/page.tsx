@@ -263,7 +263,7 @@ const NewArticle: React.FC = () => {
         message = err.message;
         // Enhance network diagnostics
         if (/Backend server is not accessible/i.test(err.message)) {
-          message += '\nTroubleshooting: Ensure Express API is running on ' + (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api') + '\nIf your backend uses a different port, set NEXT_PUBLIC_API_URL accordingly.';
+          message += '\nTroubleshooting: Ensure Express API is running on ' + (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api') + '\nIf your backend uses a different port, set NEXT_PUBLIC_API_URL accordingly.';
         } else if (/401|Invalid or expired token/i.test(err.message)) {
           message += '\nAuthentication issue: Re-login to admin panel.';
         } else if (/Failed to fetch|NetworkError/i.test(err.message)) {

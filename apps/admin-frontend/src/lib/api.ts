@@ -1,12 +1,13 @@
 // Secure API service layer for article management - NO DEVELOPMENT BYPASSES
 import RBACAuth from './rbac-auth';
+import { API_CONFIG } from '@/config/api';
 
 // --------------------------------------------------------------
 // Unified API base URL logic
 // Ensures a single canonical base, always ending with /api
-// Adds dev fallback probing (5000,5001,5002) if primary target unreachable.
+// Adds dev fallback probing (5000,5002) if primary target unreachable.
 // --------------------------------------------------------------
-const rawEnv = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api').replace(/\/$/, '');
+const rawEnv = API_CONFIG.baseURL.replace(/\/$/, '');
 const primaryBase = rawEnv.endsWith('/api') ? rawEnv : `${rawEnv}/api`;
 
 let cachedWorkingBase: string | null = null;
@@ -31,7 +32,8 @@ async function resolveApiBase(): Promise<string> {
     return cachedWorkingBase;
   }
   // Development probing sequence
-  const candidates = [primaryBase, 'http://localhost:5001/api', 'http://localhost:5001/api', 'http://localhost:5002/api']
+  // Prefer admin backend (5002) as a dev fallback after the canonical `API_CONFIG.baseURL`.
+  const candidates = [primaryBase, 'http://localhost:5002/api', 'http://localhost:5000/api']
     .filter((v, i, arr) => arr.indexOf(v) === i); // de-duplicate
 
   for (const base of candidates) {
@@ -194,7 +196,7 @@ class ArticleAPI {
         throw new Error(`Network Failure: Could not reach backend at ${base}.\n` +
           'Troubleshooting:\n' +
           '- Is the Express/API server running?\n' +
-          `- Does NEXT_PUBLIC_API_URL match the running port (current: ${process.env.NEXT_PUBLIC_API_URL || 'unset'})?\n` +
+          `- Does NEXT_PUBLIC_API_URL match the running port (current: ${API_CONFIG.baseURL})?\n` +
           '- Any CORS errors in browser devtools?\n' +
           '- Mixed content? (HTTPS frontend calling HTTP backend).');
       }

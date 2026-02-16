@@ -1,0 +1,1532 @@
+"use client";
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import Breadcrumb from "@/components/layout/Breadcrumb";
+import UnifiedAdminGuard from "@/components/auth/UnifiedAdminGuard";
+import AdminJWTBridge from "@/lib/jwt-auth";
+import { showToast } from "@/lib/toast";
+
+// Navigation configuration stored in localStorage for now
+const NAVIGATION_STORAGE_KEY = 'newstrnt-navigation-config';
+
+interface NavigationItem {
+  id: string;
+  name: string;
+  label: string;
+  href: string;
+  icon?: string;
+  isActive: boolean;
+  sortOrder: number;
+  isSystem: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface NavigationFormState {
+  name: string;
+  label: string;
+  href: string;
+  icon: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+const DEFAULT_FORM_STATE: NavigationFormState = {
+  name: "",
+  label: "",
+  href: "",
+  icon: "",
+  isActive: true,
+  sortOrder: 0,
+};
+
+const defaultNavigationItems: NavigationItem[] = [
+  {
+    id: 'home',
+    name: 'home',
+    label: 'Home',
+    href: '/',
+    icon: '🏠',
+    isActive: true,
+    sortOrder: 1,
+    isSystem: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'news',
+    name: 'news',
+    label: 'News',
+    href: '/news',
+    icon: '📰',
+    isActive: true,
+    sortOrder: 2,
+    isSystem: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'articles',
+    name: 'articles',
+    label: 'Articles',
+    href: '/articles',
+    icon: '📄',
+    isActive: true,
+    sortOrder: 3,
+    isSystem: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'opinion',
+    name: 'opinion',
+    label: 'Opinion',
+    href: '/opinion',
+    icon: '💭',
+    isActive: true,
+    sortOrder: 4,
+    isSystem: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'analysis',
+    name: 'analysis',
+    label: 'Analysis',
+    href: '/analysis',
+    icon: '📊',
+    isActive: true,
+    sortOrder: 5,
+    isSystem: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'shorts',
+    name: 'shorts',
+    label: 'Shorts',
+    href: '/shorts',
+    icon: '⚡',
+    isActive: true,
+    sortOrder: 6,
+    isSystem: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'stories',
+    name: 'stories',
+    label: 'Stories',
+    href: '/web-stories',
+    icon: '📖',
+    isActive: true,
+    sortOrder: 7,
+    isSystem: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'trending',
+    name: 'trending',
+    label: 'Trending',
+    href: '/trending',
+    icon: '🔥',
+    isActive: true,
+    sortOrder: 8,
+    isSystem: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+
+const NavigationPage: React.FC = () => {
+  const [navigation, setNavigation] = useState<NavigationItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [editingItem, setEditingItem] = useState<NavigationItem | null>(null);
+  const [formState, setFormState] = useState<NavigationFormState>(DEFAULT_FORM_STATE);
+  const [draggedItem, setDraggedItem] = useState<NavigationItem | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const originalAlertRef = useRef<typeof window.alert | null>(null);
+  const originalOverflowRef = useRef<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Load navigation from localStorage
+  const loadNavigation = useCallback(() => {
+    try {
+      const stored = localStorage.getItem(NAVIGATION_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setNavigation(parsed);
+      } else {
+        // Initialize with default navigation
+        setNavigation(defaultNavigationItems);
+        localStorage.setItem(NAVIGATION_STORAGE_KEY, JSON.stringify(defaultNavigationItems));
+      }
+    } catch (error) {
+      console.error('Error loading navigation:', error);
+      setNavigation(defaultNavigationItems);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Save navigation to localStorage
+  const saveNavigation = useCallback((items: NavigationItem[]) => {
+    try {
+      localStorage.setItem(NAVIGATION_STORAGE_KEY, JSON.stringify(items));
+      // Also update the global navigation for the frontend
+      localStorage.setItem('newstrnt-navigation-data', JSON.stringify(items.filter(item => item.isActive)));
+    } catch (error) {
+      console.error('Error saving navigation:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      loadNavigation();
+    }
+  }, [isMounted, loadNavigation]);
+
+  // Prevent any default alerts on this page with multiple strategies
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Store original functions
+      originalAlertRef.current = window.alert;
+      const originalError = console.error;
+
+      // Override window.alert
+      window.alert = (message) => {
+        console.warn('🚫 Default alert blocked on navigation page:', message);
+        console.trace('Alert call stack:'); // Show where the alert came from
+        showToast(String(message), 'warning');
+        return undefined;
+      };
+
+      // Also intercept any unhandled promise rejections that might cause alerts
+      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+        console.warn('🚫 Unhandled promise rejection blocked:', event.reason);
+        event.preventDefault();
+        showToast('Operation failed. Please try again.', 'error');
+      };
+
+      // Add global error handler for this page
+      const handleError = (event: ErrorEvent) => {
+        console.warn('🚫 Global error intercepted:', event.message);
+        event.preventDefault();
+        showToast('An error occurred. Please try again.', 'error');
+      };
+
+      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+      window.addEventListener('error', handleError);
+
+      return () => {
+        // Restore original functions
+        if (originalAlertRef.current) {
+          window.alert = originalAlertRef.current;
+        }
+        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        window.removeEventListener('error', handleError);
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    if (isModalOpen) {
+      if (originalOverflowRef.current === null) {
+        originalOverflowRef.current = document.body.style.overflow;
+      }
+      document.body.style.overflow = "hidden";
+    } else if (originalOverflowRef.current !== null) {
+      document.body.style.overflow = originalOverflowRef.current ?? "";
+      originalOverflowRef.current = null;
+    }
+
+    return () => {
+      if (originalOverflowRef.current !== null) {
+        document.body.style.overflow = originalOverflowRef.current ?? "";
+        originalOverflowRef.current = null;
+      }
+    };
+  }, [isModalOpen, isMounted]);
+
+  const handleFieldChange = (field: keyof NavigationFormState, value: string | boolean) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const openModal = (item?: NavigationItem) => {
+    if (item) {
+      setEditingItem(item);
+      setFormState({
+        name: item.name,
+        label: item.label,
+        href: item.href,
+        icon: item.icon || "",
+        isActive: item.isActive,
+        sortOrder: item.sortOrder,
+      });
+    } else {
+      setEditingItem(null);
+      setFormState(DEFAULT_FORM_STATE);
+    }
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+    setFormState(DEFAULT_FORM_STATE);
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      if (editingItem) {
+        // Update existing item
+        const updatedNavigation = navigation.map((item) =>
+          item.id === editingItem.id
+            ? { ...item, ...formState, updatedAt: new Date().toISOString() }
+            : item
+        );
+        setNavigation(updatedNavigation);
+        saveNavigation(updatedNavigation);
+        showToast("Navigation item updated successfully", "success");
+      } else {
+        // Create new item
+        const newItem: NavigationItem = {
+          id: Date.now().toString(),
+          ...formState,
+          isSystem: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        const updatedNavigation = [...navigation, newItem];
+        setNavigation(updatedNavigation);
+        saveNavigation(updatedNavigation);
+        showToast("Navigation item created successfully", "success");
+      }
+
+      closeModal();
+    } catch (error) {
+      console.error("Error saving navigation item:", error);
+      showToast(error instanceof Error ? error.message : "Failed to save navigation item", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const toggleItemStatus = (item: NavigationItem) => {
+    const updatedNavigation = navigation.map((nav) =>
+      nav.id === item.id ? { ...nav, isActive: !nav.isActive, updatedAt: new Date().toISOString() } : nav
+    );
+    setNavigation(updatedNavigation);
+    saveNavigation(updatedNavigation);
+    showToast(`Navigation item ${!item.isActive ? "activated" : "deactivated"}`, "success");
+  };
+
+  const deleteItem = (item: NavigationItem) => {
+    if (item.isSystem) {
+      showToast("Cannot delete system navigation items", "error");
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete "${item.label}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    const updatedNavigation = navigation.filter((nav) => nav.id !== item.id);
+    setNavigation(updatedNavigation);
+    saveNavigation(updatedNavigation);
+    showToast("Navigation item deleted successfully", "success");
+  };
+
+  const handleDragStart = (e: React.DragEvent, item: NavigationItem) => {
+    setDraggedItem(item);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+
+    if (!draggedItem) return;
+
+    const draggedIndex = sortedNavigation.findIndex(nav => nav.id === draggedItem.id);
+    if (draggedIndex === -1 || draggedIndex === dropIndex) return;
+
+    // Create new order
+    const newNavigation = [...sortedNavigation];
+    const [removed] = newNavigation.splice(draggedIndex, 1);
+    newNavigation.splice(dropIndex, 0, removed);
+
+    // Update sortOrder for all items
+    const updatedNavigation = newNavigation.map((nav, index) => ({
+      ...nav,
+      sortOrder: index,
+      updatedAt: new Date().toISOString()
+    }));
+
+    setNavigation(updatedNavigation);
+    saveNavigation(updatedNavigation);
+    setDraggedItem(null);
+    showToast("Navigation order updated successfully", "success");
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDragOverIndex(null);
+  };
+
+  const sortedNavigation = useMemo(
+    () =>
+      [...navigation].sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) {
+          return a.sortOrder - b.sortOrder;
+        }
+        return a.label.localeCompare(b.label);
+      }),
+    [navigation]
+  );
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const stats = useMemo(() => {
+    const totalItems = navigation.length;
+    const activeCount = navigation.filter(item => item.isActive).length;
+    const inactiveCount = navigation.filter(item => !item.isActive).length;
+    const systemCount = navigation.filter(item => item.isSystem).length;
+
+    return {
+      totalItems,
+      activeCount,
+      inactiveCount,
+      systemCount,
+    };
+  }, [navigation]);
+
+  const renderModal = () => {
+    if (!isModalOpen) return null;
+
+    return createPortal(
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border border-border bg-card shadow-2xl transition-colors">
+          <div className="border-b border-border/60 p-8">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {editingItem ? "Edit Navigation Item" : "Add Navigation Item"}
+            </h2>
+            <p className="mt-2 text-muted-foreground">
+              {editingItem ? "Update navigation item details and ordering." : "Create a new navigation item."}
+            </p>
+          </div>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-6 p-8">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Name *</label>
+                <input
+                  type="text"
+                  value={formState.name}
+                  onChange={(event) => handleFieldChange("name", event.target.value)}
+                  placeholder="e.g., home, news, opinion"
+                  className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-foreground shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  required
+                  disabled={editingItem?.isSystem}
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Unique identifier for the navigation item.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Display Label *</label>
+                <input
+                  type="text"
+                  value={formState.label}
+                  onChange={(event) => handleFieldChange("label", event.target.value)}
+                  placeholder="e.g., Home, News, Opinion"
+                  className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-foreground shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  required
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Text shown in the navigation menu.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">URL Path *</label>
+                <input
+                  type="text"
+                  value={formState.href}
+                  onChange={(event) => handleFieldChange("href", event.target.value)}
+                  placeholder="e.g., /, /news, /opinion"
+                  className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-foreground shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  required
+                  disabled={editingItem?.isSystem}
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  The URL this navigation item links to.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Icon</label>
+                <input
+                  type="text"
+                  value={formState.icon}
+                  onChange={(event) => handleFieldChange("icon", event.target.value)}
+                  placeholder="Optional emoji or short label"
+                  maxLength={10}
+                  className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-center text-2xl text-foreground shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                />
+                <p className="mt-2 text-xs text-muted-foreground">For quick visual identification in navigation.</p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Display Order</label>
+                <input
+                  type="number"
+                  value={formState.sortOrder}
+                  onChange={(event) => handleFieldChange("sortOrder", event.target.value)}
+                  min={0}
+                  className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-foreground shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Lower numbers appear first. Use 0 to rely on alphabetical ordering.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={formState.isActive}
+                  onChange={(event) => handleFieldChange("isActive", event.target.checked)}
+                  className="rounded border-border text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="isActive" className="text-sm font-medium text-foreground">
+                  Active (visible in navigation)
+                </label>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t border-border/60 p-8">
+              <button
+                type="button"
+                className="rounded-xl border border-border bg-muted px-6 py-3 font-medium text-foreground transition hover:bg-muted/80"
+                onClick={closeModal}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Saving..." : editingItem ? "Update Item" : "Create Item"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/admin" },
+          { label: "Content", href: "/admin/content" },
+          { label: "Navigation", href: "/admin/content/navigation" },
+        ]}
+      />
+
+      <div className="mx-auto max-w-7xl space-y-8 p-6">
+        <section className="rounded-3xl border border-border bg-card p-6 shadow-lg transition-colors">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Navigation Management
+              </h1>
+              <p className="mt-2 text-muted-foreground">
+                Manage navigation menu items and their display order. Drag and drop to reorder items.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => loadNavigation()}
+                className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted/60"
+                disabled={loading}
+              >
+                🔄 Refresh
+              </button>
+              <button
+                type="button"
+                onClick={() => openModal()}
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-purple-700"
+              >
+                ➕ Add Navigation Item
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard label="Total Items" value={stats.totalItems} accent="from-blue-500/20 to-blue-500/5" />
+            <StatCard label="Active" value={stats.activeCount} accent="from-emerald-500/20 to-emerald-500/5" />
+            <StatCard label="Inactive" value={stats.inactiveCount} accent="from-amber-500/20 to-amber-500/5" />
+            <StatCard label="System Items" value={stats.systemCount} accent="from-purple-500/20 to-purple-500/5" />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-border bg-card p-6 shadow-lg transition-colors">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Navigation Order</h2>
+              <p className="text-sm text-muted-foreground">
+                Drag and drop navigation items to reorder them. Display order affects how they appear in the header navigation.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>🔀</span>
+              <span>Drag to reorder</span>
+            </div>
+          </div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center gap-4 py-16 text-muted-foreground">
+              <span className="h-10 w-10 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+              <p>Loading navigation items...</p>
+            </div>
+          ) : error ? (
+            <div className="py-16 text-center">
+              <p className="text-lg font-semibold text-red-500">{error}</p>
+              <button
+                type="button"
+                onClick={() => loadNavigation()}
+                className="mt-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-purple-700"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : sortedNavigation.length === 0 ? (
+            <div className="py-16 text-center">
+              <p className="text-lg font-semibold text-muted-foreground">No navigation items yet</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Get started by creating your first navigation item.
+              </p>
+              <button
+                type="button"
+                onClick={() => openModal()}
+                className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-purple-700"
+              >
+                Create Navigation Item
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {sortedNavigation.map((item, index) => (
+                <article
+                  key={item.id}
+                  draggable={!item.isSystem}
+                  onDragStart={(e) => handleDragStart(e, item)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`group relative overflow-hidden rounded-2xl border border-border/70 p-6 shadow-md transition hover:-translate-y-1 hover:shadow-xl supports-[backdrop-filter]:bg-card/75 ${item.isSystem ? 'cursor-default' : 'cursor-move'} ${
+                    item.isActive
+                      ? 'bg-card/95'
+                      : 'bg-card/50 opacity-75 grayscale-[25%]'
+                  } ${dragOverIndex === index ? 'ring-2 ring-blue-500 ring-opacity-50' : ''} ${
+                    draggedItem?.id === item.id ? 'opacity-50' : ''
+                  }`}
+                >
+                  <div
+                    className="absolute inset-x-0 top-0 h-1"
+                    style={{ backgroundColor: item.isActive ? '#10b981' : '#f59e0b' }}
+                  />
+
+                  <div className="mb-6 flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col items-center gap-1">
+                        <span
+                          className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white shadow-lg"
+                          style={{ backgroundColor: item.isActive ? '#10b981' : '#f59e0b' }}
+                        >
+                          {item.icon || item.label.charAt(0).toUpperCase()}
+                        </span>
+                        {item.isSystem && (
+                          <div className="rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                            System
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold text-foreground">{item.label}</h3>
+                        <p className="text-xs text-muted-foreground">Name: {item.name}</p>
+                      </div>
+                    </div>
+                    <span
+                      className={`rounded-lg px-3 py-1 text-xs font-semibold transition ${
+                        item.isActive
+                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                          : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                      }`}
+                    >
+                      {item.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+
+                  <p className="mb-4 line-clamp-3 min-h-[3.75rem] text-sm leading-relaxed text-muted-foreground">
+                    Links to: <code className="rounded bg-muted px-2 py-1 font-mono">{item.href}</code>
+                  </p>
+
+                  <div className="mb-6 grid gap-2 rounded-xl border border-border/50 bg-muted/40 p-4 text-xs transition">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Display Order</span>
+                      <span className="font-mono text-sm text-foreground">#{item.sortOrder}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Created</span>
+                      <span className="text-sm text-foreground">{formatDate(item.createdAt || new Date().toISOString())}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleItemStatus(item)}
+                      className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
+                        item.isActive
+                          ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                          : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                      }`}
+                    >
+                      {item.isActive ? "Deactivate" : "Activate"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openModal(item)}
+                      className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition hover:text-blue-600 hover:shadow dark:hover:text-blue-400"
+                      title="Edit navigation item"
+                    >
+                      ✏️
+                    </button>
+                    {!item.isSystem && (
+                      <button
+                        type="button"
+                        onClick={() => deleteItem(item)}
+                        className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition hover:text-red-600 hover:shadow dark:hover:text-red-400"
+                        title="Move to trash"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {renderModal()}
+    </div>
+  );
+};
+
+const StatCard: React.FC<{ label: string; value: number; accent: string }> = ({ label, value, accent }) => (
+  <div className={`rounded-2xl border border-border bg-gradient-to-br ${accent} p-6 shadow-sm transition`}>
+    <p className="text-sm font-medium text-muted-foreground">{label}</p>
+    <p className="mt-2 text-3xl font-semibold text-foreground">{value}</p>
+  </div>
+);
+
+const NavigationRoute: React.FC = () => (
+  <UnifiedAdminGuard>
+    <NavigationPage />
+  </UnifiedAdminGuard>
+);
+
+export default NavigationRoute;
+  sortOrder: typeof raw.sortOrder === "number" ? raw.sortOrder : 0,
+  isSystem: raw.isSystem || false,
+  createdAt: raw.createdAt ?? new Date().toISOString(),
+  updatedAt: raw.updatedAt ?? raw.createdAt ?? new Date().toISOString(),
+});
+
+const generateSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+
+const NavigationPage: React.FC = () => {
+  const [navigation, setNavigation] = useState<NavigationItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [editingItem, setEditingItem] = useState<NavigationItem | null>(null);
+  const [formState, setFormState] = useState<NavigationFormState>(DEFAULT_FORM_STATE);
+  const [draggedItem, setDraggedItem] = useState<NavigationItem | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const originalAlertRef = useRef<typeof window.alert | null>(null);
+  const originalOverflowRef = useRef<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Prevent any default alerts on this page with multiple strategies
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Store original functions
+      originalAlertRef.current = window.alert;
+      const originalError = console.error;
+
+      // Override window.alert
+      window.alert = (message) => {
+        console.warn('🚫 Default alert blocked on navigation page:', message);
+        console.trace('Alert call stack:'); // Show where the alert came from
+        showToast(String(message), 'warning');
+        return undefined;
+      };
+
+      // Also intercept any unhandled promise rejections that might cause alerts
+      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+        console.warn('🚫 Unhandled promise rejection blocked:', event.reason);
+        event.preventDefault();
+        showToast('Operation failed. Please try again.', 'error');
+      };
+
+      // Add global error handler for this page
+      const handleError = (event: ErrorEvent) => {
+        console.warn('🚫 Global error intercepted:', event.message);
+        event.preventDefault();
+        showToast('An error occurred. Please try again.', 'error');
+      };
+
+      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+      window.addEventListener('error', handleError);
+
+      return () => {
+        // Restore original functions
+        if (originalAlertRef.current) {
+          window.alert = originalAlertRef.current;
+        }
+        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        window.removeEventListener('error', handleError);
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    if (isModalOpen) {
+      if (originalOverflowRef.current === null) {
+        originalOverflowRef.current = document.body.style.overflow;
+      }
+      document.body.style.overflow = "hidden";
+    } else if (originalOverflowRef.current !== null) {
+      document.body.style.overflow = originalOverflowRef.current ?? "";
+      originalOverflowRef.current = null;
+    }
+
+    return () => {
+      if (originalOverflowRef.current !== null) {
+        document.body.style.overflow = originalOverflowRef.current ?? "";
+        originalOverflowRef.current = null;
+      }
+    };
+  }, [isModalOpen, isMounted]);
+
+  const getAuthHeaders = useCallback((): Record<string, string> => {
+    const token = AdminJWTBridge.getJWTToken();
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    return headers;
+  }, []);
+
+  const fetchNavigation = useCallback(
+    async (showLoader = true) => {
+      try {
+        if (showLoader) {
+          setLoading(true);
+        }
+        setError(null);
+
+        const response = await fetch(`/api/navigation/admin`, {
+          method: "GET",
+          headers: getAuthHeaders(),
+          cache: "no-cache",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch navigation (${response.status})`);
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload) ? payload : [];
+        const normalized = items.map(normalizeNavigation);
+
+        setNavigation(normalized);
+      } catch (err) {
+        console.error("Error fetching navigation", err);
+        setNavigation([]);
+        setError(err instanceof Error ? err.message : "Unable to load navigation");
+      } finally {
+        if (showLoader) {
+          setLoading(false);
+        }
+      }
+    },
+    [getAuthHeaders]
+  );
+
+  useEffect(() => {
+    if (isMounted) {
+      fetchNavigation();
+    }
+  }, [isMounted, fetchNavigation]);
+
+  const handleFieldChange = (field: keyof NavigationFormState, value: string | boolean) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const openModal = (item?: NavigationItem) => {
+    if (item) {
+      setEditingItem(item);
+      setFormState({
+        name: item.name,
+        label: item.label,
+        href: item.href,
+        icon: item.icon || "",
+        isActive: item.isActive,
+        sortOrder: item.sortOrder,
+      });
+    } else {
+      setEditingItem(null);
+      setFormState(DEFAULT_FORM_STATE);
+    }
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+    setFormState(DEFAULT_FORM_STATE);
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const headers = getAuthHeaders();
+      if (!headers.Authorization) {
+        showToast("Authentication required. Please log in again.", "error");
+        return;
+      }
+
+      const url = editingItem
+        ? `/api/navigation/${editingItem.id}`
+        : "/api/navigation";
+      const method = editingItem ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        headers,
+        body: JSON.stringify(formState),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to ${editingItem ? "update" : "create"} navigation item`);
+      }
+
+      const savedItem = await response.json();
+
+      if (editingItem) {
+        setNavigation((prev) =>
+          prev.map((item) => (item.id === editingItem.id ? normalizeNavigation(savedItem) : item))
+        );
+        showToast("Navigation item updated successfully", "success");
+      } else {
+        setNavigation((prev) => [...prev, normalizeNavigation(savedItem)]);
+        showToast("Navigation item created successfully", "success");
+      }
+
+      closeModal();
+      await fetchNavigation(false); // Refresh to get updated order
+    } catch (error) {
+      console.error("Error saving navigation item:", error);
+      showToast(error instanceof Error ? error.message : "Failed to save navigation item", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const toggleItemStatus = async (item: NavigationItem) => {
+    try {
+      const headers = getAuthHeaders();
+      if (!headers.Authorization) {
+        showToast("Authentication required. Please log in again.", "error");
+        return;
+      }
+
+      const response = await fetch(`/api/navigation/${item.id}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ isActive: !item.isActive }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update navigation item status");
+      }
+
+      setNavigation((prev) =>
+        prev.map((nav) => (nav.id === item.id ? { ...nav, isActive: !nav.isActive } : nav))
+      );
+      showToast(`Navigation item ${!item.isActive ? "activated" : "deactivated"}`, "success");
+    } catch (error) {
+      console.error("Error toggling navigation item status:", error);
+      showToast("Failed to update navigation item status", "error");
+    }
+  };
+
+  const deleteItem = async (item: NavigationItem) => {
+    if (item.isSystem) {
+      showToast("Cannot delete system navigation items", "error");
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete "${item.label}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const headers = getAuthHeaders();
+      if (!headers.Authorization) {
+        showToast("Authentication required. Please log in again.", "error");
+        return;
+      }
+
+      const response = await fetch(`/api/navigation/${item.id}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete navigation item");
+      }
+
+      setNavigation((prev) => prev.filter((nav) => nav.id !== item.id));
+      showToast("Navigation item deleted successfully", "success");
+    } catch (error) {
+      console.error("Error deleting navigation item:", error);
+      showToast("Failed to delete navigation item", "error");
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, item: NavigationItem) => {
+    setDraggedItem(item);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+
+    if (!draggedItem) return;
+
+    const draggedIndex = sortedNavigation.findIndex(nav => nav.id === draggedItem.id);
+    if (draggedIndex === -1 || draggedIndex === dropIndex) return;
+
+    // Create new order
+    const newNavigation = [...sortedNavigation];
+    const [removed] = newNavigation.splice(draggedIndex, 1);
+    newNavigation.splice(dropIndex, 0, removed);
+
+    // Update sortOrder for all items
+    const updatedNavigation = newNavigation.map((nav, index) => ({
+      ...nav,
+      sortOrder: index
+    }));
+
+    setNavigation(updatedNavigation);
+    setDraggedItem(null);
+
+    // Save the new order to backend
+    try {
+      const headers = getAuthHeaders();
+      if (!headers.Authorization) {
+        showToast("Authentication required. Please log in again.", "error");
+        await fetchNavigation(false); // Revert changes
+        return;
+      }
+
+      // Update each navigation item's sortOrder
+      const updatePromises = updatedNavigation.map((nav, index) =>
+        fetch(`/api/navigation/${nav.id}`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify({ sortOrder: index }),
+        })
+      );
+
+      const results = await Promise.allSettled(updatePromises);
+      const failedUpdates = results.filter(result => result.status === 'rejected');
+
+      if (failedUpdates.length > 0) {
+        console.error('Some navigation updates failed:', failedUpdates);
+        showToast("Some reordering changes may not have been saved. Please refresh and try again.", "warning");
+        await fetchNavigation(false); // Revert changes
+      } else {
+        showToast("Navigation order updated successfully", "success");
+      }
+    } catch (error) {
+      console.error("Error updating navigation order:", error);
+      showToast("Failed to save new order. Please try again.", "error");
+      await fetchNavigation(false); // Revert changes
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDragOverIndex(null);
+  };
+
+  const sortedNavigation = useMemo(
+    () =>
+      [...navigation].sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) {
+          return a.sortOrder - b.sortOrder;
+        }
+        return a.label.localeCompare(b.label);
+      }),
+    [navigation]
+  );
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const stats = useMemo(() => {
+    const totalItems = navigation.length;
+    const activeCount = navigation.filter(item => item.isActive).length;
+    const inactiveCount = navigation.filter(item => !item.isActive).length;
+    const systemCount = navigation.filter(item => item.isSystem).length;
+
+    return {
+      totalItems,
+      activeCount,
+      inactiveCount,
+      systemCount,
+    };
+  }, [navigation]);
+
+  const renderModal = () => {
+    if (!isModalOpen) return null;
+
+    return createPortal(
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border border-border bg-card shadow-2xl transition-colors">
+          <div className="border-b border-border/60 p-8">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {editingItem ? "Edit Navigation Item" : "Add Navigation Item"}
+            </h2>
+            <p className="mt-2 text-muted-foreground">
+              {editingItem ? "Update navigation item details and ordering." : "Create a new navigation item."}
+            </p>
+          </div>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-6 p-8">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Name *</label>
+                <input
+                  type="text"
+                  value={formState.name}
+                  onChange={(event) => handleFieldChange("name", event.target.value)}
+                  placeholder="e.g., home, news, opinion"
+                  className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-foreground shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  required
+                  disabled={editingItem?.isSystem}
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Unique identifier for the navigation item.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Display Label *</label>
+                <input
+                  type="text"
+                  value={formState.label}
+                  onChange={(event) => handleFieldChange("label", event.target.value)}
+                  placeholder="e.g., Home, News, Opinion"
+                  className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-foreground shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  required
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Text shown in the navigation menu.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">URL Path *</label>
+                <input
+                  type="text"
+                  value={formState.href}
+                  onChange={(event) => handleFieldChange("href", event.target.value)}
+                  placeholder="e.g., /, /news, /opinion"
+                  className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-foreground shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  required
+                  disabled={editingItem?.isSystem}
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  The URL this navigation item links to.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Icon</label>
+                <input
+                  type="text"
+                  value={formState.icon}
+                  onChange={(event) => handleFieldChange("icon", event.target.value)}
+                  placeholder="Optional emoji or short label"
+                  maxLength={10}
+                  className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-center text-2xl text-foreground shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                />
+                <p className="mt-2 text-xs text-muted-foreground">For quick visual identification in navigation.</p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Display Order</label>
+                <input
+                  type="number"
+                  value={formState.sortOrder}
+                  onChange={(event) => handleFieldChange("sortOrder", event.target.value)}
+                  min={0}
+                  className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-foreground shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Lower numbers appear first. Use 0 to rely on alphabetical ordering.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={formState.isActive}
+                  onChange={(event) => handleFieldChange("isActive", event.target.checked)}
+                  className="rounded border-border text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="isActive" className="text-sm font-medium text-foreground">
+                  Active (visible in navigation)
+                </label>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t border-border/60 p-8">
+              <button
+                type="button"
+                className="rounded-xl border border-border bg-muted px-6 py-3 font-medium text-foreground transition hover:bg-muted/80"
+                onClick={closeModal}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Saving..." : editingItem ? "Update Item" : "Create Item"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/admin" },
+          { label: "Content", href: "/admin/content" },
+          { label: "Navigation", href: "/admin/content/navigation" },
+        ]}
+      />
+
+      <div className="mx-auto max-w-7xl space-y-8 p-6">
+        <section className="rounded-3xl border border-border bg-card p-6 shadow-lg transition-colors">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Navigation Management
+              </h1>
+              <p className="mt-2 text-muted-foreground">
+                Manage navigation menu items and their display order. Drag and drop to reorder items.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => fetchNavigation(false)}
+                className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted/60"
+                disabled={loading}
+              >
+                🔄 Refresh
+              </button>
+              <button
+                type="button"
+                onClick={() => openModal()}
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-purple-700"
+              >
+                ➕ Add Navigation Item
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard label="Total Items" value={stats.totalItems} accent="from-blue-500/20 to-blue-500/5" />
+            <StatCard label="Active" value={stats.activeCount} accent="from-emerald-500/20 to-emerald-500/5" />
+            <StatCard label="Inactive" value={stats.inactiveCount} accent="from-amber-500/20 to-amber-500/5" />
+            <StatCard label="System Items" value={stats.systemCount} accent="from-purple-500/20 to-purple-500/5" />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-border bg-card p-6 shadow-lg transition-colors">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Navigation Order</h2>
+              <p className="text-sm text-muted-foreground">
+                Drag and drop navigation items to reorder them. Display order affects how they appear in the header navigation.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>🔀</span>
+              <span>Drag to reorder</span>
+            </div>
+          </div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center gap-4 py-16 text-muted-foreground">
+              <span className="h-10 w-10 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+              <p>Loading navigation items...</p>
+            </div>
+          ) : error ? (
+            <div className="py-16 text-center">
+              <p className="text-lg font-semibold text-red-500">{error}</p>
+              <button
+                type="button"
+                onClick={() => fetchNavigation()}
+                className="mt-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-purple-700"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : sortedNavigation.length === 0 ? (
+            <div className="py-16 text-center">
+              <p className="text-lg font-semibold text-muted-foreground">No navigation items yet</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Get started by creating your first navigation item.
+              </p>
+              <button
+                type="button"
+                onClick={() => openModal()}
+                className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-purple-700"
+              >
+                Create Navigation Item
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {sortedNavigation.map((item, index) => (
+                <article
+                  key={item.id}
+                  draggable={!item.isSystem}
+                  onDragStart={(e) => handleDragStart(e, item)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`group relative overflow-hidden rounded-2xl border border-border/70 p-6 shadow-md transition hover:-translate-y-1 hover:shadow-xl supports-[backdrop-filter]:bg-card/75 ${item.isSystem ? 'cursor-default' : 'cursor-move'} ${
+                    item.isActive
+                      ? 'bg-card/95'
+                      : 'bg-card/50 opacity-75 grayscale-[25%]'
+                  } ${dragOverIndex === index ? 'ring-2 ring-blue-500 ring-opacity-50' : ''} ${
+                    draggedItem?.id === item.id ? 'opacity-50' : ''
+                  }`}
+                >
+                  <div
+                    className="absolute inset-x-0 top-0 h-1"
+                    style={{ backgroundColor: item.isActive ? '#10b981' : '#f59e0b' }}
+                  />
+
+                  <div className="mb-6 flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col items-center gap-1">
+                        <span
+                          className="flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white shadow-lg"
+                          style={{ backgroundColor: item.isActive ? '#10b981' : '#f59e0b' }}
+                        >
+                          {item.icon || item.label.charAt(0).toUpperCase()}
+                        </span>
+                        {item.isSystem && (
+                          <div className="rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                            System
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold text-foreground">{item.label}</h3>
+                        <p className="text-xs text-muted-foreground">Name: {item.name}</p>
+                      </div>
+                    </div>
+                    <span
+                      className={`rounded-lg px-3 py-1 text-xs font-semibold transition ${
+                        item.isActive
+                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                          : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                      }`}
+                    >
+                      {item.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+
+                  <p className="mb-4 line-clamp-3 min-h-[3.75rem] text-sm leading-relaxed text-muted-foreground">
+                    Links to: <code className="rounded bg-muted px-2 py-1 font-mono">{item.href}</code>
+                  </p>
+
+                  <div className="mb-6 grid gap-2 rounded-xl border border-border/50 bg-muted/40 p-4 text-xs transition">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Display Order</span>
+                      <span className="font-mono text-sm text-foreground">#{item.sortOrder}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Created</span>
+                      <span className="text-sm text-foreground">{formatDate(item.createdAt)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleItemStatus(item)}
+                      className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
+                        item.isActive
+                          ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                          : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                      }`}
+                    >
+                      {item.isActive ? "Deactivate" : "Activate"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openModal(item)}
+                      className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition hover:text-blue-600 hover:shadow dark:hover:text-blue-400"
+                      title="Edit navigation item"
+                    >
+                      ✏️
+                    </button>
+                    {!item.isSystem && (
+                      <button
+                        type="button"
+                        onClick={() => deleteItem(item)}
+                        className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition hover:text-red-600 hover:shadow dark:hover:text-red-400"
+                        title="Move to trash"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {renderModal()}
+    </div>
+  );
+};
+
+const StatCard: React.FC<{ label: string; value: number; accent: string }> = ({ label, value, accent }) => (
+  <div className={`rounded-2xl border border-border bg-gradient-to-br ${accent} p-6 shadow-sm transition`}>
+    <p className="text-sm font-medium text-muted-foreground">{label}</p>
+    <p className="mt-2 text-3xl font-semibold text-foreground">{value}</p>
+  </div>
+);
+
+async function safeErrorMessage(response: Response): Promise<string | null> {
+  try {
+    const text = await response.text();
+    if (!text) return null;
+    try {
+      const parsed = JSON.parse(text);
+      if (typeof parsed === "string") return parsed;
+      if (parsed?.error) return parsed.error;
+      if (parsed?.message) return parsed.message;
+      return text;
+    } catch (err) {
+      return text;
+    }
+  } catch (error) {
+    return null;
+  }
+}
+
+const NavigationRoute: React.FC = () => (
+  <UnifiedAdminGuard>
+    <NavigationPage />
+  </UnifiedAdminGuard>
+);
+
+export default NavigationRoute;

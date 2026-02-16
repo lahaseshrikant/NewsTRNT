@@ -3,8 +3,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/auth/RouteGuard';
+import adminAuth from '@/lib/admin-auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+import { API_CONFIG } from '@/config/api';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface UserActivity {
   id: string;
@@ -49,19 +51,15 @@ function UserActivityContent() {
     setError(null);
     
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      if (!token) {
+      if (!adminAuth.getToken()) {
         setError('Authentication required');
         setLoading(false);
         return;
       }
 
       // Fetch activity logs
-      const activityResponse = await fetch(`${API_BASE_URL}/api/admin/activity?limit=50`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const activityResponse = await fetch(`${API_BASE_URL}/admin/activity?limit=50`, {
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' }
       });
 
       if (activityResponse.ok) {
@@ -82,7 +80,7 @@ function UserActivityContent() {
       }
 
       // Fetch analytics for stats
-      const analyticsResponse = await fetch(`${API_BASE_URL}/api/admin/analytics/overview`, {
+      const analyticsResponse = await fetch(`${API_BASE_URL}/admin/analytics/overview`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

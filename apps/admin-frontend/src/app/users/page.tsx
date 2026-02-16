@@ -5,6 +5,7 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import UnifiedAdminGuard from '@/components/auth/UnifiedAdminGuard';
 import { getEmailString } from '@/lib/utils';
 import adminAuth from '@/lib/admin-auth';
+import { API_CONFIG } from '@/config/api';
 
 interface User {
   id: string;
@@ -34,7 +35,7 @@ interface Pagination {
   totalPages: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -82,7 +83,7 @@ const UserManagement: React.FC = () => {
       if (selectedStatus !== 'all') params.append('status', selectedStatus);
       if (debouncedSearch) params.append('search', debouncedSearch);
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/users?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/admin/users?${params}`, {
         headers: {
           ...adminAuth.getAuthHeaders(),
           'Content-Type': 'application/json'
@@ -139,8 +140,8 @@ const UserManagement: React.FC = () => {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+      const token = adminAuth.getToken();
+      const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -5,7 +5,8 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import { getEmailString } from '@/lib/utils';
 import adminAuth from '@/lib/admin-auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+import { API_CONFIG } from '@/config/api';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface Campaign {
   id: string;
@@ -53,7 +54,7 @@ const AdvertisingManager: React.FC = () => {
       }
 
       // Fetch campaigns
-      const analyticsResponse = await fetch(`${API_BASE_URL}/api/admin/analytics/overview`, {
+      const analyticsResponse = await fetch(`${API_BASE_URL}/admin/analytics/overview`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

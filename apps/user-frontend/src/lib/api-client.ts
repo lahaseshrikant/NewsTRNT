@@ -1,8 +1,10 @@
 // Real Database API for NewsTRNT
 // Pure API client — connects to backend API server (no direct DB, no mock fallback)
 
+import { API_CONFIG } from '@/config/api';
+
 // Backend API URL based on environment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = API_CONFIG.baseURL;
 
 // =============================================================================
 // API CLIENT

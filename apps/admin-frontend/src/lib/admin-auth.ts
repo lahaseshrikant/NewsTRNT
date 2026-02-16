@@ -1,6 +1,6 @@
 // apps/admin-frontend/src/lib/admin-auth.ts
 // Single source of truth for admin authentication.
-// Talks to admin-backend (5001). Stores real JWT in localStorage.
+// Talks to admin-backend (5002). Stores real JWT in localStorage.
 // NO frontend token generation. NO client-side permission definitions.
 
 import { API_CONFIG, API_ENDPOINTS } from '@/config/api';

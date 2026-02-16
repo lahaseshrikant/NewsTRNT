@@ -3,8 +3,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/auth/RouteGuard';
+import { API_CONFIG } from '@/config/api';
+import adminAuth from '@/lib/admin-auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface EmailTemplate {
   id: string;
@@ -29,8 +31,8 @@ function NewsletterTemplatesContent() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/newsletter/templates`, {
+      const token = adminAuth.getToken();
+      const response = await fetch(`${API_BASE_URL}/admin/newsletter/templates`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -83,7 +85,7 @@ function NewsletterTemplatesContent() {
   const handleDuplicate = async (template: EmailTemplate) => {
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/newsletter/templates/${template.id}/duplicate`, {
+      const response = await fetch(`${API_BASE_URL}/admin/newsletter/templates/${template.id}/duplicate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -103,7 +105,7 @@ function NewsletterTemplatesContent() {
     if (confirm('Are you sure you want to delete this template?')) {
       try {
         const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/api/admin/newsletter/templates/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/admin/newsletter/templates/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -3,7 +3,7 @@ import prisma from '../config/database';
 import { authenticateToken, optionalAuth } from '../middleware/auth';
 import { AuthRequest } from '../types/auth';
 import { z } from 'zod';
-import { Security } from '../lib/security';
+import Security from '../lib/security';
 
 const router = Router();
 
@@ -547,13 +547,26 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res): Promi
     });
 
   } catch (error: any) {
-    console.error('Error updating article:', error);
+    // More verbose logging for debugging — includes stack and request context in dev
+    console.error('Error updating article:', {
+      message: error?.message ?? String(error),
+      stack: error?.stack,
+      articleId: id,
+      bodyPreview: {
+        title: title?.slice?.(0, 120),
+        categoryId,
+        tags: Array.isArray(tags) ? tags.slice(0, 10) : tags
+      }
+    });
+
     const prismaCode = error?.code;
     if (prismaCode === 'P2003') {
       res.status(400).json({ error: 'Invalid user reference for updatedBy/createdBy (foreign key)' });
       return;
     }
-    res.status(500).json({ error: 'Failed to update article' });
+
+    const devMsg = process.env.NODE_ENV !== 'production' ? ` | ${error?.message ?? 'internal'}` : '';
+    res.status(500).json({ error: `Failed to update article${devMsg}` });
   }
 });
 

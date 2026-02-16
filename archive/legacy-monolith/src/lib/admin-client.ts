@@ -2,7 +2,7 @@ import { ApiResponse } from '@/types/api';
 
 const API_URL = process.env.NODE_ENV === 'production' 
   ? process.env.NEXT_PUBLIC_API_URL 
-  : 'http://localhost:5001';
+  : 'http://localhost:5002';
 
 export class AdminClient {
   private getAuthHeaders(): Record<string, string> {

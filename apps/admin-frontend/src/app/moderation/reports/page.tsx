@@ -3,8 +3,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/auth/RouteGuard';
+import { API_CONFIG } from '@/config/api';
+import adminAuth from '@/lib/admin-auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface Report {
   id: string;
@@ -33,8 +35,8 @@ function ReportsContent() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/moderation/reports`, {
+      const token = adminAuth.getToken();
+      const response = await fetch(`${API_BASE_URL}/admin/moderation/reports`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -87,8 +89,8 @@ function ReportsContent() {
 
   const handleAction = async (reportId: string, action: 'resolve' | 'dismiss' | 'escalate') => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/moderation/reports/${reportId}/${action}`, {
+      const token = adminAuth.getToken();
+      const response = await fetch(`${API_BASE_URL}/admin/moderation/reports/${reportId}/${action}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

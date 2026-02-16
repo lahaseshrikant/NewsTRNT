@@ -4,8 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { siteConfig } from '@/config/site';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { showToast } from '@/lib/toast';
+import adminAuth from '@/lib/admin-auth';
+import { API_CONFIG } from '@/config/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 // Helper function to safely get nested object values
 const getNestedValue = (obj: any, path: string, defaultValue: any = ''): any => {
@@ -61,8 +63,8 @@ const AdminConfigPage: React.FC = () => {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/api/admin/site-config`, {
+        const token = adminAuth.getToken();
+        const response = await fetch(`${API_BASE_URL}/admin/site-config`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -228,7 +230,7 @@ const AdminConfigPage: React.FC = () => {
     setIsSaving(true);
     
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const token = adminAuth.getToken();
       console.log('Config save - Token found:', !!token, 'Token preview:', token ? token.substring(0, 20) + '...' : 'none');
       
       if (!token) {
@@ -239,7 +241,7 @@ const AdminConfigPage: React.FC = () => {
       
       // Save each changed field to the database
       for (const change of detectedChanges) {
-        const response = await fetch(`${API_BASE_URL}/api/admin/site-config/${encodeURIComponent(change.field)}`, {
+        const response = await fetch(`${API_BASE_URL}/admin/site-config/${encodeURIComponent(change.field)}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,

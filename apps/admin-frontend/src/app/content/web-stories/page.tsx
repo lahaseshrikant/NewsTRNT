@@ -6,7 +6,8 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import RBACAuth from '@/lib/rbac-auth';
 import ErrorHandler from '@/lib/error-handler';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+import { API_CONFIG } from '@/config/api';
+const API_URL = API_CONFIG.baseURL;
 
 interface WebStory {
   id: string;

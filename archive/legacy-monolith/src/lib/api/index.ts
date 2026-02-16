@@ -209,7 +209,7 @@ class APIClient {
 
 // Backend API URL (either Express server or Next.js API routes)
 // IMPORTANT: The Express backend currently defaults to port 5000. We previously
-// had a fallback of 5001 which caused network failures in dev if the env var
+// had a fallback of 5002 which caused network failures in dev if the env var
 // NEXT_PUBLIC_API_URL was not provided. Adjusting the fallback back to 5000 and
 // surfacing a clear console warning when the fallback (implicit) URL is used.
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';

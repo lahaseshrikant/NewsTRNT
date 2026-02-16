@@ -13,7 +13,7 @@ apps/
   admin-frontend/   → Next.js admin dashboard (port 3001)
   user-frontend/    → Next.js user-facing app (port 3000)
 services/
-  admin-backend/    → Express admin API (port 5001)
+  admin-backend/    → Express admin API (port 5002)
   user-backend/     → Express user API (port 5000)
 ```
 

@@ -7,6 +7,8 @@ import { AdminRoute } from '@/components/auth/RouteGuard';
 import { useRBAC, RoleBadge, PermissionGate, SuperAdminOnly } from '@/components/rbac';
 import { UserRole, ROLES } from '@/config/rbac';
 import { getEmailString } from '@/lib/utils';
+import { API_CONFIG } from '@/config/api';
+import adminAuth from '@/lib/admin-auth';
 
 interface TeamMember {
   id: string;
@@ -20,7 +22,7 @@ interface TeamMember {
   articlesCount?: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 function TeamManagementContent() {
   const { session, isSuperAdmin, isAdmin } = useRBAC();
@@ -42,7 +44,7 @@ function TeamManagementContent() {
     setError(null);
 
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const token = adminAuth.getToken();
       if (!token) {
         setError('Authentication required. Please log in.');
         setLoading(false);
@@ -52,7 +54,7 @@ function TeamManagementContent() {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/team?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/admin/team?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -112,7 +114,7 @@ function TeamManagementContent() {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/team/invite`, {
+      const response = await fetch(`${API_BASE_URL}/admin/team/invite`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

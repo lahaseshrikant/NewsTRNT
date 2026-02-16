@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/auth/RouteGuard';
+import adminAuth from '@/lib/admin-auth';
 
 interface AdCampaign {
   id: string;
@@ -24,11 +25,8 @@ function AdPerformanceContent() {
 
   const fetchCampaigns = useCallback(async () => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/admin/advertising/campaigns`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await fetch(`${API_BASE_URL}/admin/advertising/campaigns`, {
+        headers: { ...adminAuth.getAuthHeaders() }
       });
       
       if (response.ok) {

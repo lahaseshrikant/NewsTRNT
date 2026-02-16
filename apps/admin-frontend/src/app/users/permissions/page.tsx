@@ -5,8 +5,9 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 import UnifiedAdminGuard from '@/components/auth/UnifiedAdminGuard';
 import { getEmailString } from '@/lib/utils';
 import adminAuth from '@/lib/admin-auth';
+import { API_CONFIG } from '@/config/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface User {
   id: string;
@@ -90,7 +91,7 @@ const UserPermissions: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/users?limit=50`, {
+      const response = await fetch(`${API_BASE_URL}/admin/users?limit=50`, {
         headers: {
           ...adminAuth.getAuthHeaders(),
           'Content-Type': 'application/json'

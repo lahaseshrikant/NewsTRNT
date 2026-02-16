@@ -89,7 +89,7 @@ export default function APITestPage() {
   const NIFTY_SYMBOL = '^NSEI';
   const NIFTY_MARKETSTACK_SYMBOL = 'NIFTY50';
 
-  const ADMIN_API = API_CONFIG.baseURL; // http://localhost:5001/api
+  const ADMIN_API = API_CONFIG.baseURL; // http://localhost:5002/api
   const MARKET_API = 'http://localhost:5000/api'; // user-backend for market data
 
   const apiEndpoints = [
@@ -227,15 +227,53 @@ export default function APITestPage() {
       }
 
       const payload = await response.json();
-      const data = payload?.data as MarketConfigResponse | undefined;
+      const data = payload?.data;
       const counts = payload?.counts as MarketConfigCounts | undefined;
 
       if (!data) {
         throw new Error('Invalid response payload for market configuration overview');
       }
 
-      setConfigOverview(data);
-      setConfigCounts(counts ?? null);
+      // Backend `/market-config` returns a counts-only shape ({ indices: { total, active }, ... })
+      // while other endpoints return full arrays. Normalize so UI can always read arrays.
+      const isCountsOnly = typeof data.indices === 'object' && !Array.isArray(data.indices);
+
+      if (isCountsOnly) {
+        // set counts from overview and fetch detail lists separately
+        setConfigCounts({
+          indices: data.indices?.total ?? 0,
+          cryptocurrencies: data.cryptos?.total ?? 0,
+          commodities: data.commodities?.total ?? 0,
+          currencies: data.currencies?.total ?? 0,
+          total: (data.indices?.total || 0) + (data.cryptos?.total || 0) + (data.commodities?.total || 0) + (data.currencies?.total || 0),
+        });
+
+        // fetch detailed lists (small previews)
+        const [indicesRes, currenciesRes, commoditiesRes, cryptosRes] = await Promise.all([
+          fetch(`${API_CONFIG.baseURL}/admin/market-config/indices?includeInactive=true`, { headers: { ...adminAuth.getAuthHeaders() as Record<string,string> } }),
+          fetch(`${API_CONFIG.baseURL}/admin/market-config/currencies?includeInactive=true`, { headers: { ...adminAuth.getAuthHeaders() as Record<string,string> } }),
+          fetch(`${API_CONFIG.baseURL}/admin/market-config/commodities?includeInactive=true`, { headers: { ...adminAuth.getAuthHeaders() as Record<string,string> } }),
+          fetch(`${API_CONFIG.baseURL}/admin/market-config/cryptos?includeInactive=true`, { headers: { ...adminAuth.getAuthHeaders() as Record<string,string> } }),
+        ]);
+
+        const [indicesPayload, currenciesPayload, commoditiesPayload, cryptosPayload] = await Promise.all([
+          indicesRes.ok ? indicesRes.json().catch(() => ({ data: [] })) : { data: [] },
+          currenciesRes.ok ? currenciesRes.json().catch(() => ({ data: [] })) : { data: [] },
+          commoditiesRes.ok ? commoditiesRes.json().catch(() => ({ data: [] })) : { data: [] },
+          cryptosRes.ok ? cryptosRes.json().catch(() => ({ data: [] })) : { data: [] },
+        ]);
+
+        setConfigOverview({
+          indices: indicesPayload.data || [],
+          currencies: currenciesPayload.data || [],
+          commodities: commoditiesPayload.data || [],
+          cryptocurrencies: cryptosPayload.data || [],
+        });
+      } else {
+        // backend returned full arrays in data — use directly
+        setConfigOverview(data as MarketConfigResponse);
+        setConfigCounts(counts ?? null);
+      }
     } catch (error) {
       console.error('[API Test] Failed to fetch market configuration overview:', error);
       setOverviewError(error instanceof Error ? error.message : 'Failed to fetch configuration overview');

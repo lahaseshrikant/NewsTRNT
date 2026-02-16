@@ -1,7 +1,9 @@
 // Authentication Service for NewsNerve
 // Handles JWT tokens, user sessions, and API communication
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { API_CONFIG } from '@/config/api';
+// Use origin (strip trailing /api) because callers append `/api/...` themselves
+const API_URL = API_CONFIG.baseURL.replace(/\/api\/?$/, '');
 
 export interface User {
   id: string;

@@ -2,7 +2,8 @@
 // Connects to backend API server instead of direct database access
 
 // Backend API URL based on environment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+import { API_CONFIG } from '@/config/api';
+const API_URL = API_CONFIG.baseURL;
 
 // =============================================================================
 // API CLIENT WITH AUTOMATIC FALLBACK

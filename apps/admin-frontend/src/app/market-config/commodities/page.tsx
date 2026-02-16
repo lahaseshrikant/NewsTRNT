@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import adminAuth from '@/lib/admin-auth';
 
 interface CommodityConfig {
   id: string;
@@ -30,7 +31,7 @@ export default function CommoditiesConfigPage() {
   const fetchCommodities = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/market-config/commodities?includeInactive=true');
+      const response = await fetch('/api/admin/market-config/commodities?includeInactive=true', { headers: { ...adminAuth.getAuthHeaders() } });
       const data = await response.json();
       setCommodities(data.commodities || []);
     } catch (error) {
@@ -50,7 +51,7 @@ export default function CommoditiesConfigPage() {
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
@@ -71,6 +72,7 @@ export default function CommoditiesConfigPage() {
     try {
       const response = await fetch(`/api/admin/market-config/commodities/${id}`, {
         method: 'DELETE',
+        headers: { ...adminAuth.getAuthHeaders() }
       });
 
       if (response.ok) {
@@ -85,7 +87,7 @@ export default function CommoditiesConfigPage() {
     try {
       await fetch(`/api/admin/market-config/commodities/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !isActive }),
       });
       await fetchCommodities();

@@ -4,7 +4,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/auth/RouteGuard';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+import { API_CONFIG } from '@/config/api';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface ContentItem {
   id: string;
@@ -45,7 +46,7 @@ function WorkflowContent() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/articles?limit=50`);
+      const response = await fetch(`${API_BASE_URL}/articles?limit=50`);
       
       if (response.ok) {
         const data = await response.json();

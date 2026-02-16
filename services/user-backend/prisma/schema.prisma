@@ -332,6 +332,23 @@ model WebStory {
   @@map("web_stories")
 }
 
+// Admin schema navigation table (read-only from user-backend)
+model Navigation {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  label       String   // Display name in navigation
+  href        String   // URL path
+  icon        String?  // Optional icon/emoji
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  isSystem    Boolean  @default(false) @map("is_system") // System items can't be deleted
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@schema("public")
+  @@map("navigation")
+}
+
 // =============================================================================
 // MARKET DATA MODELS - Cache external API data to avoid rate limits
 // Optimized to store data once and serve many times

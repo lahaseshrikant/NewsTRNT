@@ -3,8 +3,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
+import { API_CONFIG } from '@/config/api';
+import adminAuth from '@/lib/admin-auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface Integration {
   id: string;
@@ -28,8 +30,8 @@ function IntegrationsContent() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/system/integrations`, {
+      const token = adminAuth.getToken();
+      const response = await fetch(`${API_BASE_URL}/admin/system/integrations`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -90,8 +92,8 @@ function IntegrationsContent() {
 
   const handleConnect = async (id: string) => {
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/system/integrations/${id}/connect`, {
+      const token = adminAuth.getToken();
+      const response = await fetch(`${API_BASE_URL}/admin/system/integrations/${id}/connect`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -111,8 +113,8 @@ function IntegrationsContent() {
   const handleDisconnect = async (id: string) => {
     if (confirm('Are you sure you want to disconnect this integration?')) {
       try {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/api/admin/system/integrations/${id}/disconnect`, {
+        const token = adminAuth.getToken();
+        const response = await fetch(`${API_BASE_URL}/admin/system/integrations/${id}/disconnect`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

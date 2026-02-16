@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { getEmailString } from '@/lib/utils';
+import { API_CONFIG } from '@/config/api';
+import adminAuth from '@/lib/admin-auth';
 
 interface Subscriber {
   id: string;
@@ -35,7 +37,7 @@ interface Pagination {
   totalPages: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 const Subscribers: React.FC = () => {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -64,7 +66,7 @@ const Subscribers: React.FC = () => {
     setError(null);
 
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const token = adminAuth.getToken();
       if (!token) {
         setError('Authentication required. Please log in.');
         setLoading(false);
@@ -79,7 +81,7 @@ const Subscribers: React.FC = () => {
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (debouncedSearch) params.append('search', debouncedSearch);
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/subscribers?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/admin/subscribers?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -160,7 +162,7 @@ const Subscribers: React.FC = () => {
   const updateSubscriberStatus = async (subscriberId: string, newStatus: Subscriber['status']) => {
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/subscribers/${subscriberId}`, {
+      const response = await fetch(`${API_BASE_URL}/admin/subscribers/${subscriberId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

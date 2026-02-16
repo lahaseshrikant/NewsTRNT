@@ -8,6 +8,7 @@ import { dbApi, Article, Category } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
 import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 import { getCategoryTheme } from '@/config/categoryThemes';
+import { useCategories } from '@/hooks/useCategories';
 import AdSlot from '@/components/ui/AdSlot';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
@@ -28,14 +29,27 @@ const HealthCategoryPage: React.FC = () => {
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const { categories: cachedCategories, loading: categoriesLoading } = useCategories();
+
+  useEffect(() => {
+    const cached = cachedCategories.find(c => c.slug === 'health');
+    if (cached && cached.isActive) {
+      setCategory(cached as Category);
+      setLoading(false);
+    }
+  }, [cachedCategories]);
+
   useEffect(() => {
     const loadData = async () => {
       try {
-        setLoading(true);
-        const [articles, categoryData] = await Promise.all([
-          dbApi.getArticlesByCategory('health', 30),
-          dbApi.getCategoryBySlug('health')
-        ]);
+        if (!category) {
+          setLoading(true);
+        }
+        const articlesPromise = dbApi.getArticlesByCategory('health', 30);
+        const categoryPromise = category ? Promise.resolve(null) : dbApi.getCategoryBySlug('health');
+        
+        const [articles, categoryData] = await Promise.all([articlesPromise, categoryPromise]);
+        
         if (Array.isArray(articles)) setAllArticles(articles);
         if (categoryData) setCategory(categoryData);
       } catch (error) {
@@ -45,7 +59,7 @@ const HealthCategoryPage: React.FC = () => {
       }
     };
     loadData();
-  }, []);
+  }, [category]);
 
   const contentTypes = [
     { value: 'all', label: 'All' },
@@ -87,6 +101,30 @@ const HealthCategoryPage: React.FC = () => {
     else if (sortBy === 'breaking') filtered = filtered.filter(a => a.isBreaking);
     return filtered;
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center">
+        <div className="text-center">
+          <p className="font-mono text-xs tracking-wider uppercase text-stone">Loading section...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!category || !category.isActive) {
+    return (
+      <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="font-serif text-3xl font-bold text-ink dark:text-ivory mb-4">Section Not Found</h1>
+          <p className="text-stone mb-8">The section you&apos;re looking for doesn&apos;t exist.</p>
+          <Link href="/" className="bg-ink text-ivory px-6 py-3 hover:bg-ink/80 transition-colors font-mono text-xs tracking-wider uppercase">
+            Back to Front Page
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const theme = getCategoryTheme('health');
   const articles = filteredArticles();

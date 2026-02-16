@@ -3,8 +3,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { getEmailString } from '@/lib/utils';
+import { API_CONFIG } from '@/config/api';
+import adminAuth from '@/lib/admin-auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 interface Newsletter {
   id: string;
@@ -44,7 +46,7 @@ const NewsletterManagement: React.FC = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const token = adminAuth.getToken();
       if (!token) {
         setError('Authentication required. Please log in.');
         setLoading(false);
@@ -52,7 +54,7 @@ const NewsletterManagement: React.FC = () => {
       }
 
       // Fetch subscribers
-      const subscribersResponse = await fetch(`${API_BASE_URL}/api/admin/subscribers`, {
+      const subscribersResponse = await fetch(`${API_BASE_URL}/admin/subscribers`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

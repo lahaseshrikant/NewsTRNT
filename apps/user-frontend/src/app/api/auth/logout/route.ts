@@ -1,7 +1,8 @@
 // src/app/api/auth/logout/route.ts - Proxies to user-backend
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { API_CONFIG } from '@/config/api';
+const API_URL = API_CONFIG.baseURL.replace(/\/api\/?$/, '');
 
 export async function POST(request: NextRequest) {
   try {

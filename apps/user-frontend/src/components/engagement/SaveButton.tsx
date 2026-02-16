@@ -11,7 +11,8 @@ interface SaveButtonProps {
   showText?: boolean;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { API_CONFIG } from '@/config/api';
+const API_URL = API_CONFIG.baseURL;
 
 const SaveButton: React.FC<SaveButtonProps> = ({
   articleId,

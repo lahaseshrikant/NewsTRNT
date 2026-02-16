@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import adminAuth from '@/lib/admin-auth';
 
 interface MarketIndexConfig {
   id: string;
@@ -33,7 +34,7 @@ export default function MarketIndicesConfigPage() {
   const fetchIndices = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/market-config/indices');
+      const response = await fetch('/api/admin/market-config/indices', { headers: { ...adminAuth.getAuthHeaders() } });
       const data = await response.json();
       setIndices(data.indices || []);
     } catch (error) {
@@ -69,7 +70,7 @@ export default function MarketIndicesConfigPage() {
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
@@ -96,6 +97,7 @@ export default function MarketIndicesConfigPage() {
     try {
       const response = await fetch(`/api/admin/market-config/indices/${id}`, {
         method: 'DELETE',
+        headers: { ...adminAuth.getAuthHeaders() }
       });
 
       if (response.ok) {
@@ -110,7 +112,7 @@ export default function MarketIndicesConfigPage() {
     try {
       await fetch(`/api/admin/market-config/indices/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !isActive }),
       });
       await fetchIndices();

@@ -299,6 +299,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       { id: 'content-calendar', label: 'Content Calendar', href: '/content/calendar', icon: '📅', requiredPermissions: ['content.view'] },
       { id: 'content-workflow', label: 'Workflow', href: '/content/workflow', icon: '📋', requiredPermissions: ['content.view'] },
       { id: 'categories', label: 'Categories', href: '/content/categories', icon: '🏷️', requiredPermissions: ['categories.view'] },
+      { id: 'navigation', label: 'Navigation', href: '/content/navigation', icon: '🧭', requiredPermissions: ['categories.manage'] },
       { id: 'tags', label: 'Tags', href: '/content/tags', icon: '🔖', requiredPermissions: ['tags.view'] },
       { id: 'drafts', label: 'My Drafts', href: '/content/drafts', icon: '✏️', requiredPermissions: ['content.create'] },
       { id: 'trash', label: 'Trash', href: '/content/trash', icon: '🗑️', requiredPermissions: ['content.restore'] }

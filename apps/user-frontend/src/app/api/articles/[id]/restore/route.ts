@@ -20,7 +20,8 @@ export async function POST(
     }
     
     // Forward the request to the backend API
-    const response = await fetch(`http://localhost:5000/api/articles/admin/${id}/restore`, {
+    const { API_CONFIG } = await import('@/config/api');
+    const response = await fetch(`${API_CONFIG.baseURL}/articles/admin/${id}/restore`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

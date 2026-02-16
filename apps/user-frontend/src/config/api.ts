@@ -13,6 +13,27 @@ export const API_CONFIG: ApiConfig = {
   retries: 3
 };
 
+// Development-time validations to catch SSR vs client env mismatches early
+if (process.env.NODE_ENV === 'development') {
+  const raw = process.env.NEXT_PUBLIC_API_URL;
+  if (!raw) {
+    // helpful reminder for devs who forget to set .env.local
+    // (NEXT_PUBLIC_* is injected at build/start time for Next.js)
+    // eslint-disable-next-line no-console
+    console.warn('[API_CONFIG] NEXT_PUBLIC_API_URL is not set — using fallback', API_CONFIG.baseURL);
+  } else {
+    // common mistake: admin-frontend env accidentally used for user-frontend
+    if (raw.includes('localhost') && raw.includes(':5002')) {
+      // eslint-disable-next-line no-console
+      console.warn('[API_CONFIG] NEXT_PUBLIC_API_URL looks like admin-backend (port 5002). For user-frontend use http://localhost:5000/api');
+    }
+    if (!raw.endsWith('/api')) {
+      // eslint-disable-next-line no-console
+      console.warn('[API_CONFIG] NEXT_PUBLIC_API_URL should include the `/api` suffix for correct routing (current=', raw, ')');
+    }
+  }
+}
+
 // API endpoints - centralized and type-safe (reader-facing only)
 export const API_ENDPOINTS = {
   // User Authentication

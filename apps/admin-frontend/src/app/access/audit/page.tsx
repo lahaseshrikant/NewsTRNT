@@ -9,7 +9,8 @@ import { ROLE_DEFINITIONS, UserRole } from '@/config/rbac';
 import AuditLogger, { AuditLogEntry, AuditAction, AuditSeverity } from '@/lib/audit-logger';
 import { getEmailString } from '@/lib/utils';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+import { API_CONFIG } from '@/config/api';
+const API_BASE_URL = API_CONFIG.baseURL;
 
 // Local interface for display purposes
 interface DisplayLog {
@@ -44,7 +45,7 @@ function AuditLogsContent() {
     setError(null);
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/activity`, {
+      const response = await fetch(`${API_BASE_URL}/admin/activity`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

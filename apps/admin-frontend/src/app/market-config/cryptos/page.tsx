@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import adminAuth from '@/lib/admin-auth';
 
 interface CryptoConfig {
   id: string;
@@ -27,7 +28,7 @@ export default function CryptocurrenciesConfigPage() {
   const fetchCryptos = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/market-config/cryptos?includeInactive=true');
+      const response = await fetch('/api/admin/market-config/cryptos?includeInactive=true', { headers: { ...adminAuth.getAuthHeaders() } });
       const data = await response.json();
       setCryptos(data.cryptos || []);
     } catch (error) {
@@ -72,7 +73,7 @@ export default function CryptocurrenciesConfigPage() {
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
@@ -99,6 +100,7 @@ export default function CryptocurrenciesConfigPage() {
     try {
       const response = await fetch(`/api/admin/market-config/cryptos/${id}`, {
         method: 'DELETE',
+        headers: { ...adminAuth.getAuthHeaders() }
       });
 
       if (response.ok) {
@@ -113,7 +115,7 @@ export default function CryptocurrenciesConfigPage() {
     try {
       await fetch(`/api/admin/market-config/cryptos/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !isActive }),
       });
       await fetchCryptos();

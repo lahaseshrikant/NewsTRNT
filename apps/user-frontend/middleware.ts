@@ -28,8 +28,9 @@ const securityHeaders = {
 };
 
 // Content Security Policy - dynamically include API URL
+import { API_CONFIG } from '@/config/api';
 const getCSPDirectives = () => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const apiUrl = API_CONFIG.baseURL.replace(/\/api\/?$/, '');
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
   
   return {

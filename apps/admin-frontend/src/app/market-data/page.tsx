@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import adminAuth from '@/lib/admin-auth';
 
 interface APITestResult {
   status: string;
@@ -300,7 +301,7 @@ export default function AdminMarketData() {
   useEffect(() => {
     async function testAPIs() {
       try {
-        const res = await fetch('/api/market/test-connectivity');
+        const res = await fetch('/api/market/test-connectivity', { headers: { ...adminAuth.getAuthHeaders() } });
         if (!res.ok) throw new Error('API test failed');
         const data = await res.json();
         setResults(data);
@@ -313,7 +314,7 @@ export default function AdminMarketData() {
     
     async function checkAutoUpdateStatus() {
       try {
-        const res = await fetch('/api/market/auto-update');
+        const res = await fetch('/api/market/auto-update', { headers: { ...adminAuth.getAuthHeaders() } });
         if (res.ok) {
           const data = await res.json();
           setAutoUpdateStatus(data.status);
@@ -336,11 +337,17 @@ export default function AdminMarketData() {
         });
       }
     }
-    
+
+    // If not logged in, skip admin-only calls to avoid 401 flood in console
+    if (!adminAuth.getToken()) {
+      setLoading(false);
+      return;
+    }
+
     testAPIs();
     checkAutoUpdateStatus();
     loadConfigSnapshot();
-  loadProviderPreferences();
+    loadProviderPreferences();
     
     // Check auto-update status every 30 seconds
     const interval = setInterval(checkAutoUpdateStatus, 30000);
@@ -350,7 +357,7 @@ export default function AdminMarketData() {
   const invokeMarketEndpoint = async (endpoint: string, label: string): Promise<ApiResponseState> => {
     const timestamp = new Date().toISOString();
     try {
-      const res = await fetch(endpoint);
+      const res = await fetch(endpoint, { headers: { ...adminAuth.getAuthHeaders() } });
       const text = await res.text();
       let payload: unknown = null;
 
@@ -398,7 +405,7 @@ export default function AdminMarketData() {
   const loadConfigSnapshot = async () => {
     setConfigLoading(true);
     try {
-      const response = await fetch('/api/admin/market-config?includeInactive=true');
+      const response = await fetch('/api/admin/market-config?includeInactive=true', { headers: { ...adminAuth.getAuthHeaders() } });
 
       if (!response.ok) {
         const errorPayload = await response.json().catch(() => ({}));
@@ -429,7 +436,7 @@ export default function AdminMarketData() {
   const loadProviderPreferences = async () => {
     setProviderLoading(true);
     try {
-      const response = await fetch('/api/market/providers');
+      const response = await fetch('/api/market/providers', { headers: { ...adminAuth.getAuthHeaders() } });
       if (!response.ok) {
         throw new Error(`Failed to load provider preferences (${response.status})`);
       }
@@ -498,7 +505,7 @@ export default function AdminMarketData() {
     try {
       const res = await fetch('/api/market/auto-update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
       });
 
@@ -518,7 +525,7 @@ export default function AdminMarketData() {
     try {
       const res = await fetch('/api/market/auto-update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           action: 'update-intervals',
           intervals: intervalInputs,
@@ -549,7 +556,7 @@ export default function AdminMarketData() {
     try {
       const res = await fetch('/api/market/auto-update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'run-tradingview-scraper' }),
       });
 
@@ -608,8 +615,8 @@ export default function AdminMarketData() {
     setProviderSaving((prev) => ({ ...prev, [category]: true }));
     try {
       const res = await fetch('/api/market/providers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PUT',
+        headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ category, providerOrder: order }),
       });
 
@@ -660,9 +667,39 @@ export default function AdminMarketData() {
 
   if (!results) return null;
 
-  const allConnected = Object.values(results.apis).every(v => v);
-  const connectedCount = Object.values(results.apis).filter(v => v).length;
-  const totalCount = Object.keys(results.apis).length;
+  // Defensive: normalize `apis` so later JSX can safely reference individual provider booleans.
+  const apis = results.apis ?? {
+    alphaVantage: false,
+    finnhub: false,
+    coingecko: false,
+    exchangeRate: false,
+    marketstack: false,
+    twelveData: false,
+    fmp: false,
+    tradingview: false,
+  };
+  const recommendations = results.recommendations ?? {
+    alphaVantage: '',
+    finnhub: '',
+    coingecko: '',
+    exchangeRate: '',
+    marketstack: '',
+    twelveData: '',
+    fmp: '',
+    tradingview: '',
+  };
+  const errors = results.errors ?? {};
+
+  // Normalize config snapshot arrays to avoid runtime errors when backend returns a partial/invalid shape
+  const cfgIndices = Array.isArray(configSnapshot?.indices) ? configSnapshot.indices : [];
+  const cfgCurrencies = Array.isArray(configSnapshot?.currencies) ? configSnapshot.currencies : [];
+  const cfgCommodities = Array.isArray(configSnapshot?.commodities) ? configSnapshot.commodities : [];
+  const cfgCryptocurrencies = Array.isArray(configSnapshot?.cryptocurrencies) ? configSnapshot.cryptocurrencies : [];
+
+  const apiValues = Object.values(apis) as boolean[];
+  const allConnected = apiValues.length > 0 ? apiValues.every(Boolean) : false;
+  const connectedCount = apiValues.filter(Boolean).length;
+  const totalCount = Object.keys(apis).length;
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -690,7 +727,7 @@ export default function AdminMarketData() {
               {connectedCount}/{totalCount} APIs Connected
             </div>
             <div className="text-sm text-muted-foreground">
-              Tested at: {new Date(results.timestamp).toLocaleString()}
+              Tested at: {results.timestamp ? new Date(results.timestamp).toLocaleString() : '—'}
             </div>
             <button
               onClick={() => window.location.reload()}
@@ -1054,7 +1091,7 @@ export default function AdminMarketData() {
             <div className="mt-6 space-y-4">
               <details className="border border-border rounded-lg bg-muted/40">
                 <summary className="px-4 py-3 cursor-pointer text-sm font-semibold text-foreground">
-                  Stock Indices ({configSnapshot.indices.length})
+                  Stock Indices ({cfgIndices.length})
                 </summary>
                 <div className="px-4 pb-4 overflow-x-auto">
                   <table className="min-w-full text-sm">
@@ -1072,7 +1109,7 @@ export default function AdminMarketData() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {configSnapshot.indices.slice(0, CONFIG_PREVIEW_LIMIT).map((index) => (
+                      {cfgIndices.slice(0, CONFIG_PREVIEW_LIMIT).map((index) => (
                         <tr key={index.id} className="text-foreground">
                           <td className="px-3 py-2 font-mono text-xs">{index.symbol}</td>
                           <td className="px-3 py-2">{index.name}</td>
@@ -1099,7 +1136,7 @@ export default function AdminMarketData() {
                       ))}
                     </tbody>
                   </table>
-                  {configSnapshot.indices.length > CONFIG_PREVIEW_LIMIT && (
+                  {cfgIndices.length > CONFIG_PREVIEW_LIMIT && (
                     <p className="mt-2 text-xs text-muted-foreground">
                       Showing first {CONFIG_PREVIEW_LIMIT} indices. Use the Market Configuration admin pages to manage the full list.
                     </p>
@@ -1109,7 +1146,7 @@ export default function AdminMarketData() {
 
               <details className="border border-border rounded-lg bg-muted/40">
                 <summary className="px-4 py-3 cursor-pointer text-sm font-semibold text-foreground">
-                  Currency Pairs ({configSnapshot.currencies.length})
+                  Currency Pairs ({cfgCurrencies.length})
                 </summary>
                 <div className="px-4 pb-4 overflow-x-auto">
                   <table className="min-w-full text-sm">
@@ -1125,7 +1162,7 @@ export default function AdminMarketData() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {configSnapshot.currencies.slice(0, CONFIG_PREVIEW_LIMIT).map((pair) => (
+                      {cfgCurrencies.slice(0, CONFIG_PREVIEW_LIMIT).map((pair) => (
                         <tr key={pair.id} className="text-foreground">
                           <td className="px-3 py-2 font-mono text-xs">{pair.pair}</td>
                           <td className="px-3 py-2">{pair.name || '—'}</td>
@@ -1144,7 +1181,7 @@ export default function AdminMarketData() {
                       ))}
                     </tbody>
                   </table>
-                  {configSnapshot.currencies.length > CONFIG_PREVIEW_LIMIT && (
+                  {cfgCurrencies.length > CONFIG_PREVIEW_LIMIT && (
                     <p className="mt-2 text-xs text-muted-foreground">
                       Showing first {CONFIG_PREVIEW_LIMIT} currency pairs.
                     </p>
@@ -1154,7 +1191,7 @@ export default function AdminMarketData() {
 
               <details className="border border-border rounded-lg bg-muted/40">
                 <summary className="px-4 py-3 cursor-pointer text-sm font-semibold text-foreground">
-                  Commodities ({configSnapshot.commodities.length})
+                  Commodities ({cfgCommodities.length})
                 </summary>
                 <div className="px-4 pb-4 overflow-x-auto">
                   <table className="min-w-full text-sm">
@@ -1170,7 +1207,7 @@ export default function AdminMarketData() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {configSnapshot.commodities.slice(0, CONFIG_PREVIEW_LIMIT).map((commodity) => (
+                      {cfgCommodities.slice(0, CONFIG_PREVIEW_LIMIT).map((commodity) => (
                         <tr key={commodity.id} className="text-foreground">
                           <td className="px-3 py-2 font-mono text-xs">{commodity.symbol}</td>
                           <td className="px-3 py-2">{commodity.name}</td>
@@ -1189,7 +1226,7 @@ export default function AdminMarketData() {
                       ))}
                     </tbody>
                   </table>
-                  {configSnapshot.commodities.length > CONFIG_PREVIEW_LIMIT && (
+                  {cfgCommodities.length > CONFIG_PREVIEW_LIMIT && (
                     <p className="mt-2 text-xs text-muted-foreground">
                       Showing first {CONFIG_PREVIEW_LIMIT} commodities.
                     </p>
@@ -1199,7 +1236,7 @@ export default function AdminMarketData() {
 
               <details className="border border-border rounded-lg bg-muted/40">
                 <summary className="px-4 py-3 cursor-pointer text-sm font-semibold text-foreground">
-                  Cryptocurrencies ({configSnapshot.cryptocurrencies.length})
+                  Cryptocurrencies ({cfgCryptocurrencies.length})
                 </summary>
                 <div className="px-4 pb-4 overflow-x-auto">
                   <table className="min-w-full text-sm">
@@ -1213,7 +1250,7 @@ export default function AdminMarketData() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {configSnapshot.cryptocurrencies.slice(0, CONFIG_PREVIEW_LIMIT).map((crypto) => (
+                      {cfgCryptocurrencies.slice(0, CONFIG_PREVIEW_LIMIT).map((crypto) => (
                         <tr key={crypto.id} className="text-foreground">
                           <td className="px-3 py-2 font-mono text-xs">{crypto.symbol}</td>
                           <td className="px-3 py-2">{crypto.name}</td>
@@ -1230,7 +1267,7 @@ export default function AdminMarketData() {
                       ))}
                     </tbody>
                   </table>
-                  {configSnapshot.cryptocurrencies.length > CONFIG_PREVIEW_LIMIT && (
+                  {cfgCryptocurrencies.length > CONFIG_PREVIEW_LIMIT && (
                     <p className="mt-2 text-xs text-muted-foreground">
                       Showing first {CONFIG_PREVIEW_LIMIT} cryptocurrencies.
                     </p>
@@ -1391,20 +1428,20 @@ export default function AdminMarketData() {
                 <h2 className="text-xl font-bold text-foreground">Alpha Vantage</h2>
                 <p className="text-sm text-muted-foreground">Stock Indices & Commodities</p>
               </div>
-              {getStatusIcon(results.apis.alphaVantage)}
+              {getStatusIcon(apis.alphaVantage)}
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              {results.recommendations.alphaVantage}
+              {recommendations.alphaVantage}
             </p>
             <div className="text-xs text-muted-foreground">
               Free Tier: 25 requests/day
             </div>
-            {!results.apis.alphaVantage && results.errors?.alphaVantage && (
+            {!apis.alphaVantage && errors?.alphaVantage && (
               <p className="mt-2 text-xs text-destructive">
-                {results.errors.alphaVantage}
+                {errors.alphaVantage}
               </p>
             )}
-            {!results.apis.alphaVantage && (
+            {!apis.alphaVantage && (
               <a
                 href="https://www.alphavantage.co/support/#api-key"
                 target="_blank"
@@ -1423,20 +1460,20 @@ export default function AdminMarketData() {
                 <h2 className="text-xl font-bold text-foreground">Finnhub</h2>
                 <p className="text-sm text-muted-foreground">Real-time Stock Data</p>
               </div>
-              {getStatusIcon(results.apis.finnhub)}
+              {getStatusIcon(apis.finnhub)}
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              {results.recommendations.finnhub}
+              {recommendations.finnhub}
             </p>
             <div className="text-xs text-muted-foreground">
               Free Tier: 60 calls/minute (Optional)
             </div>
-            {!results.apis.finnhub && results.errors?.finnhub && (
+            {!apis.finnhub && errors?.finnhub && (
               <p className="mt-2 text-xs text-destructive">
-                {results.errors.finnhub}
+                {errors.finnhub}
               </p>
             )}
-            {!results.apis.finnhub && (
+            {!apis.finnhub && (
               <a
                 href="https://finnhub.io/register"
                 target="_blank"
@@ -1455,10 +1492,10 @@ export default function AdminMarketData() {
                 <h2 className="text-xl font-bold text-foreground">CoinGecko</h2>
                 <p className="text-sm text-muted-foreground">Cryptocurrency Data</p>
               </div>
-              {getStatusIcon(results.apis.coingecko)}
+              {getStatusIcon(apis.coingecko)}
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              {results.recommendations.coingecko}
+              {recommendations.coingecko}
             </p>
             <div className="text-xs text-muted-foreground">
               Free Tier: No API key needed! 🎉
@@ -1472,17 +1509,17 @@ export default function AdminMarketData() {
                 <h2 className="text-xl font-bold text-foreground">Exchange Rate API</h2>
                 <p className="text-sm text-muted-foreground">Currency Conversion</p>
               </div>
-              {getStatusIcon(results.apis.exchangeRate)}
+              {getStatusIcon(apis.exchangeRate)}
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              {results.recommendations.exchangeRate}
+              {recommendations.exchangeRate}
             </p>
             <div className="text-xs text-muted-foreground">
               Free Tier: No API key needed! 🎉
             </div>
-            {!results.apis.exchangeRate && results.errors?.exchangeRate && (
+            {!apis.exchangeRate && errors?.exchangeRate && (
               <p className="mt-2 text-xs text-destructive">
-                {results.errors.exchangeRate}
+                {errors.exchangeRate}
               </p>
             )}
           </div>
@@ -1494,20 +1531,20 @@ export default function AdminMarketData() {
                 <h2 className="text-xl font-bold text-foreground">MarketStack</h2>
                 <p className="text-sm text-muted-foreground">End-of-day Equity & Index Data</p>
               </div>
-              {getStatusIcon(results.apis.marketstack)}
+              {getStatusIcon(apis.marketstack)}
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              {results.recommendations.marketstack}
+              {recommendations.marketstack}
             </p>
             <div className="text-xs text-muted-foreground">
               Free Tier: 1K calls/month (requires API key)
             </div>
-            {!results.apis.marketstack && results.errors?.marketstack && (
+            {!apis.marketstack && errors?.marketstack && (
               <p className="mt-2 text-xs text-destructive">
-                {results.errors.marketstack}
+                {errors.marketstack}
               </p>
             )}
-            {!results.apis.marketstack && (
+            {!apis.marketstack && (
               <a
                 href="https://marketstack.com/signup"
                 target="_blank"
@@ -1526,20 +1563,20 @@ export default function AdminMarketData() {
                 <h2 className="text-xl font-bold text-foreground">TwelveData</h2>
                 <p className="text-sm text-muted-foreground">Intraday Series & Commodities</p>
               </div>
-              {getStatusIcon(results.apis.twelveData)}
+              {getStatusIcon(apis.twelveData)}
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              {results.recommendations.twelveData}
+              {recommendations.twelveData}
             </p>
             <div className="text-xs text-muted-foreground">
               Free Tier: 800 calls/day (requires API key)
             </div>
-            {!results.apis.twelveData && results.errors?.twelveData && (
+            {!apis.twelveData && errors?.twelveData && (
               <p className="mt-2 text-xs text-destructive">
-                {results.errors.twelveData}
+                {errors.twelveData}
               </p>
             )}
-            {!results.apis.twelveData && (
+            {!apis.twelveData && (
               <a
                 href="https://twelvedata.com/sign-up"
                 target="_blank"
@@ -1558,20 +1595,20 @@ export default function AdminMarketData() {
                 <h2 className="text-xl font-bold text-foreground">Financial Modeling Prep</h2>
                 <p className="text-sm text-muted-foreground">Quotes & Fundamentals</p>
               </div>
-              {getStatusIcon(results.apis.fmp)}
+              {getStatusIcon(apis.fmp)}
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              {results.recommendations.fmp}
+              {recommendations.fmp}
             </p>
             <div className="text-xs text-muted-foreground">
               Free Tier: 250 calls/day (requires API key)
             </div>
-            {!results.apis.fmp && results.errors?.fmp && (
+            {!apis.fmp && errors?.fmp && (
               <p className="mt-2 text-xs text-destructive">
-                {results.errors.fmp}
+                {errors.fmp}
               </p>
             )}
-            {!results.apis.fmp && (
+            {!apis.fmp && (
               <a
                 href="https://financialmodelingprep.com/register"
                 target="_blank"
@@ -1590,17 +1627,17 @@ export default function AdminMarketData() {
                 <h2 className="text-xl font-bold text-foreground">TradingView Fallback</h2>
                 <p className="text-sm text-muted-foreground">Scraped Index Snapshot</p>
               </div>
-              {getStatusIcon(results.apis.tradingview)}
+              {getStatusIcon(apis.tradingview)}
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              {results.recommendations.tradingview}
+              {recommendations.tradingview}
             </p>
             <div className="text-xs text-muted-foreground">
               Runs via internal scraper every {autoUpdateStatus?.intervals.scraper ?? '60m'}
             </div>
-            {!results.apis.tradingview && results.errors?.tradingview && (
+            {!apis.tradingview && errors?.tradingview && (
               <p className="mt-2 text-xs text-destructive">
-                {results.errors.tradingview}
+                {errors.tradingview}
               </p>
             )}
             <button

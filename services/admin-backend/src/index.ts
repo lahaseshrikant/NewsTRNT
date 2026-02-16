@@ -11,6 +11,7 @@ import adminAuthRoutes from './routes/admin-auth';
 import authRoutes from './routes/auth';
 import articleRoutes from './routes/articles';
 import categoryRoutes from './routes/categories';
+import navigationRoutes from './routes/navigation';
 import webstoryRoutes from './routes/webstories';
 import marketRoutes from './routes/market';
 import uploadRoutes from './routes/upload';
@@ -74,6 +75,7 @@ app.use('/api/auth', adminAuthRoutes); // admin login/logout/verify/refresh (DB-
 app.use('/api/auth', authRoutes);      // general auth fallback
 app.use('/api/articles', articleRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/navigation', navigationRoutes);
 app.use('/api/webstories', webstoryRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/upload', uploadRoutes);

@@ -31,7 +31,7 @@ async function resolveApiBase(): Promise<string> {
     return cachedWorkingBase;
   }
   // Development probing sequence
-  const candidates = [primaryBase, 'http://localhost:5000/api', 'http://localhost:5001/api', 'http://localhost:5002/api']
+  const candidates = [primaryBase, 'http://localhost:5000/api', 'http://localhost:5002/api', 'http://localhost:5002/api']
     .filter((v, i, arr) => arr.indexOf(v) === i); // de-duplicate
 
   for (const base of candidates) {
