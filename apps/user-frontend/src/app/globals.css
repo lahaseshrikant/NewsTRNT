@@ -1329,6 +1329,29 @@ html {
   animation-play-state: paused;
 }
 
+/* Market ticker infinite scroll */
+.ticker-scroll {
+  animation: scroll 40s linear infinite;
+}
+
+@media (max-width: 768px) {
+  .ticker-scroll {
+    animation-duration: 20s;
+  }
+}
+
+/* Reading progress bar at top of viewport */
+.reading-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: rgb(var(--primary));
+  z-index: 9999;
+  transition: width 100ms linear;
+  border-radius: 0 2px 2px 0;
+}
+
 /* ============================================
    EDITORIAL TYPOGRAPHY SYSTEM
    ============================================ */

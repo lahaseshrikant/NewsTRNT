@@ -420,6 +420,21 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     ]
   },
   {
+    id: 'content-engine',
+    label: 'Content Engine',
+    href: '/content-engine',
+    icon: '🤖',
+    requiredRole: 'SUPER_ADMIN',
+    description: 'AI content pipeline, scraping, scheduling',
+    children: [
+      { id: 'engine-dashboard', label: 'Dashboard', href: '/content-engine', icon: '📊', requiredRole: 'SUPER_ADMIN' },
+      { id: 'engine-pipeline', label: 'Pipeline', href: '/content-engine/pipeline', icon: '🔄', requiredRole: 'SUPER_ADMIN' },
+      { id: 'engine-scheduler', label: 'Scheduler', href: '/content-engine/scheduler', icon: '⏰', requiredRole: 'SUPER_ADMIN' },
+      { id: 'engine-sources', label: 'Sources', href: '/content-engine/sources', icon: '📡', requiredRole: 'SUPER_ADMIN' },
+      { id: 'engine-ai', label: 'AI Processing', href: '/content-engine/ai', icon: '🧠', requiredRole: 'SUPER_ADMIN' },
+    ]
+  },
+  {
     id: 'system',
     label: 'System Settings',
     href: '/system',

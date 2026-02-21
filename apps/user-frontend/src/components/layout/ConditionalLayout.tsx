@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import MarketTicker from "@/components/layout/MarketTicker";
 import PerformanceMonitor from "@/components/monitoring/PerformanceMonitor";
 
 interface ConditionalLayoutProps {
@@ -46,6 +47,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
       <PerformanceMonitor />
       <Header />
+      <MarketTicker />
       <main className="flex-1 pt-16">
         {children}
       </main>

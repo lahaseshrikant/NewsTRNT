@@ -15,7 +15,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "db:seed": "ts-node prisma/seed-all.ts"
+    "db:seed": "ts-node prisma/seed-all.ts",
+    "market:update": "ts-node src/scripts/market-update.ts"
   },
   "dependencies": {
     "@lexical/code": "^0.35.0",

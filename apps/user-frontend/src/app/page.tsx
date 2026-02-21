@@ -19,6 +19,7 @@ import {
   TagsIcon,
   ArrowRightIcon,
 } from '@/components/icons/EditorialIcons';
+import ArticleActions from '@/components/engagement/ArticleActions';
 import AdSlot from '@/components/ui/AdSlot';
 
 // Helper function to format published time
@@ -133,6 +134,13 @@ const EditorialCard = ({ article }: { article: Article }) => (
           className="object-cover transition-transform duration-500 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, 400px"
         />
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <ArticleActions
+            articleId={article.id}
+            articleTitle={article.title}
+            articleUrl={typeof window !== 'undefined' ? `${window.location.origin}${getContentUrl(article)}` : ''}
+          />
+        </div>
       </div>
       <div className="p-5">
         <span className="kicker">{article.category?.name || 'News'}</span>

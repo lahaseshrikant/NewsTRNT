@@ -24,7 +24,7 @@ class MarketDataService {
     typeof window === 'undefined'
       ? `${API_CONFIG.baseURL}/market`
       : '/api/market';
-
+  
 
   /**
    * Get market data for a specific country
@@ -44,7 +44,7 @@ class MarketDataService {
       const url = `${this.API_BASE_URL}/country/${countryCode}`;
       console.log('[MarketDataService] Fetching from:', url);
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         console.error('[MarketDataService] API error:', response.status, response.statusText);
 

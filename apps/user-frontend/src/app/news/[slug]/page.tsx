@@ -7,6 +7,7 @@ import { useParams } from 'next/navigation';
 import { dbApi, Article } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
 import CommentSection from '@/components/articles/CommentSection';
+import ReadingProgressBar from '@/components/ui/ReadingProgressBar';
 
 interface ArticleData extends Partial<Omit<Article, 'tags'>> {
   content?: string;
@@ -171,12 +172,7 @@ const NewsDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Reading Progress Bar */}
-      <div className="fixed top-0 left-0 w-full h-1 bg-muted/50 z-50">
-        <div 
-          className="h-full bg-red-600 transition-all duration-100"
-          style={{ width: `${readingProgress}%` }}
-        ></div>
-      </div>
+      <ReadingProgressBar />
 
       {/* News Header Banner */}
       <div className="bg-gradient-to-r from-red-600/10 to-orange-600/10 border-b border-border">

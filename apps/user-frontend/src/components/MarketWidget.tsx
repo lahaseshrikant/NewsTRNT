@@ -74,7 +74,7 @@ export default function MarketWidget({
   const [activeTab, setActiveTab] = useState<'indices' | 'commodities' | 'currencies' | 'crypto'>('indices');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCY_SYMBOLS.US);
-
+  
   // Update currency when location changes
   useEffect(() => {
     if (location?.country) {

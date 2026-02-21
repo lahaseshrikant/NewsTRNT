@@ -7,6 +7,7 @@ import { useParams } from 'next/navigation';
 import { dbApi, Article } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
 import CommentSection from '@/components/articles/CommentSection';
+import ReadingProgressBar from '@/components/ui/ReadingProgressBar';
 import { BookmarkIcon, ShareIcon, ClockIcon, ArrowRightIcon } from '@/components/icons/EditorialIcons';
 import AdSlot from '@/components/ui/AdSlot';
 
@@ -182,7 +183,7 @@ const ArticleDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-paper">
       {/* Reading Progress Bar */}
-      <div className="reading-progress" style={{ '--progress': `${readingProgress}%` } as React.CSSProperties} />
+      <ReadingProgressBar />
 
       <article>
         {/* Article Header */}

@@ -1,0 +1,34 @@
+# Content Engine — Python dependencies
+# ────────────────────────────────────
+
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# HTTP
+aiohttp==3.11.11
+requests==2.32.3
+
+# Scraping
+beautifulsoup4==4.12.3
+feedparser==6.0.11
+lxml==5.3.0
+
+# AI
+openai==1.58.1
+
+# Scheduling
+apscheduler==3.10.4
+
+# Environment
+python-dotenv==1.0.1
+
+# Optional ML (install if you need classifier training)
+# scikit-learn==1.6.0
+
+# Dev / testing
+httpx==0.28.1
+pytest==8.3.4
+pytest-asyncio==0.25.0
