@@ -317,7 +317,8 @@ export default function AdminMarketData() {
         const res = await fetch('/api/market/auto-update', { headers: { ...adminAuth.getAuthHeaders() } });
         if (res.ok) {
           const data = await res.json();
-          setAutoUpdateStatus(data.status);
+          const status = data.data || data.status || null;
+          setAutoUpdateStatus(status);
         } else {
           console.warn('Auto-update API returned non-OK status:', res.status);
           // Set default status if API fails
@@ -511,7 +512,8 @@ export default function AdminMarketData() {
 
       if (res.ok) {
         const data = await res.json();
-        setAutoUpdateStatus(data.status);
+        const status = data.data || data.status || null;
+        setAutoUpdateStatus(status);
       }
     } catch (err) {
       console.error(`Failed to ${action} auto-update:`, err);
@@ -534,7 +536,8 @@ export default function AdminMarketData() {
 
       if (res.ok) {
         const data = await res.json();
-        setAutoUpdateStatus(data.status);
+        const status = data.data || data.status || null;
+        setAutoUpdateStatus(status);
         setShowIntervalEditor(false);
         
         // Restart service to apply new intervals
@@ -562,8 +565,9 @@ export default function AdminMarketData() {
 
       if (res.ok) {
         const data = await res.json();
-        if (data.status) {
-          setAutoUpdateStatus(data.status);
+        const status = data.data || data.status || null;
+        if (status) {
+          setAutoUpdateStatus(status);
         }
         console.info('[Admin] TradingView fallback refreshed', data.result);
       } else {
@@ -785,27 +789,31 @@ export default function AdminMarketData() {
               <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">
                 <div className="bg-muted p-4 rounded-lg border border-border">
                   <div className="text-sm text-muted-foreground mb-1">Cryptocurrencies</div>
-                  <div className="text-2xl font-bold text-foreground">Every {autoUpdateStatus.intervals.crypto}</div>
+                  <div className="text-2xl font-bold text-foreground">Every {autoUpdateStatus?.intervals?.crypto ?? '...'}</div>
                   <div className="text-xs text-muted-foreground mt-1">🪙 Bitcoin, Ethereum, etc.</div>
                 </div>
                 <div className="bg-muted p-4 rounded-lg border border-border">
                   <div className="text-sm text-muted-foreground mb-1">Stock Indices</div>
-                  <div className="text-2xl font-bold text-foreground">Every {autoUpdateStatus.intervals.indices}</div>
+                  <div className="text-2xl font-bold text-foreground">Every {autoUpdateStatus?.intervals?.indices ?? '...'}</div>
                   <div className="text-xs text-muted-foreground mt-1">📈 S&P 500, NASDAQ, etc.</div>
                 </div>
                 <div className="bg-muted p-4 rounded-lg border border-border">
                   <div className="text-sm text-muted-foreground mb-1">Currency Rates</div>
-                  <div className="text-2xl font-bold text-foreground">Every {autoUpdateStatus.intervals.currencies}</div>
+                  <div className="text-2xl font-bold text-foreground">Every {autoUpdateStatus?.intervals?.currencies ?? '...'}</div>
                   <div className="text-xs text-muted-foreground mt-1">💱 USD, EUR, GBP, etc.</div>
                 </div>
                 <div className="bg-muted p-4 rounded-lg border border-border">
                   <div className="text-sm text-muted-foreground mb-1">Commodities</div>
-                  <div className="text-2xl font-bold text-foreground">Every {autoUpdateStatus.intervals.commodities}</div>
+                  <div className="text-2xl font-bold text-foreground">
+                    Every {autoUpdateStatus?.intervals?.commodities ?? '...'}
+                  </div>
                   <div className="text-xs text-muted-foreground mt-1">🛢️ Gold, Oil, Silver, etc.</div>
                 </div>
                 <div className="bg-muted p-4 rounded-lg border border-border">
                   <div className="text-sm text-muted-foreground mb-1">TradingView Fallback</div>
-                  <div className="text-2xl font-bold text-foreground">Every {autoUpdateStatus.intervals.scraper}</div>
+                  <div className="text-2xl font-bold text-foreground">
+                    Every {autoUpdateStatus?.intervals?.scraper ?? '...'}
+                  </div>
                   <div className="text-xs text-muted-foreground mt-1">🧹 Scrapes indices when APIs fail</div>
                 </div>
               </div>
@@ -816,12 +824,12 @@ export default function AdminMarketData() {
                   <h3 className="font-semibold text-purple-900 dark:text-purple-300">⚙️ Customize Update Intervals</h3>
                   <button
                     onClick={() => {
-                      if (autoUpdateStatus.intervalsMinutes) {
+                      if (autoUpdateStatus?.intervalsMinutes) {
                         setIntervalInputs({
-                          crypto: autoUpdateStatus.intervalsMinutes.crypto,
-                          indices: autoUpdateStatus.intervalsMinutes.indices,
-                          currencies: autoUpdateStatus.intervalsMinutes.currencies,
-                          commodities: autoUpdateStatus.intervalsMinutes.commodities,
+                          crypto: autoUpdateStatus.intervalsMinutes.crypto ?? intervalInputs.crypto,
+                          indices: autoUpdateStatus.intervalsMinutes.indices ?? intervalInputs.indices,
+                          currencies: autoUpdateStatus.intervalsMinutes.currencies ?? intervalInputs.currencies,
+                          commodities: autoUpdateStatus.intervalsMinutes.commodities ?? intervalInputs.commodities,
                           scraper: autoUpdateStatus.intervalsMinutes.scraper ?? intervalInputs.scraper,
                         });
                       }
@@ -845,7 +853,10 @@ export default function AdminMarketData() {
                           min="0.5"
                           step="0.5"
                           value={intervalInputs.crypto}
-                          onChange={(e) => setIntervalInputs(prev => ({ ...prev, crypto: parseFloat(e.target.value) }))}
+                          onChange={(e) => {
+                            const v = parseFloat(e.target.value);
+                            setIntervalInputs(prev => ({ ...prev, crypto: isNaN(v) ? 0 : v }));
+                          }}
                           className="w-full px-3 py-2 rounded border border-purple-300 dark:border-purple-700 bg-white dark:bg-gray-800 text-foreground"
                         />
                       </div>
@@ -858,7 +869,10 @@ export default function AdminMarketData() {
                           min="0.5"
                           step="0.5"
                           value={intervalInputs.indices}
-                          onChange={(e) => setIntervalInputs(prev => ({ ...prev, indices: parseFloat(e.target.value) }))}
+                          onChange={(e) => {
+                            const v = parseFloat(e.target.value);
+                            setIntervalInputs(prev => ({ ...prev, indices: isNaN(v) ? 0 : v }));
+                          }}
                           className="w-full px-3 py-2 rounded border border-purple-300 dark:border-purple-700 bg-white dark:bg-gray-800 text-foreground"
                         />
                       </div>
@@ -871,7 +885,10 @@ export default function AdminMarketData() {
                           min="0.5"
                           step="0.5"
                           value={intervalInputs.currencies}
-                          onChange={(e) => setIntervalInputs(prev => ({ ...prev, currencies: parseFloat(e.target.value) }))}
+                          onChange={(e) => {
+                            const v = parseFloat(e.target.value);
+                            setIntervalInputs(prev => ({ ...prev, currencies: isNaN(v) ? 0 : v }));
+                          }}
                           className="w-full px-3 py-2 rounded border border-purple-300 dark:border-purple-700 bg-white dark:bg-gray-800 text-foreground"
                         />
                       </div>
@@ -884,7 +901,10 @@ export default function AdminMarketData() {
                           min="0.5"
                           step="0.5"
                           value={intervalInputs.commodities}
-                          onChange={(e) => setIntervalInputs(prev => ({ ...prev, commodities: parseFloat(e.target.value) }))}
+                          onChange={(e) => {
+                            const v = parseFloat(e.target.value);
+                            setIntervalInputs(prev => ({ ...prev, commodities: isNaN(v) ? 0 : v }));
+                          }}
                           className="w-full px-3 py-2 rounded border border-purple-300 dark:border-purple-700 bg-white dark:bg-gray-800 text-foreground"
                         />
                       </div>
@@ -897,7 +917,10 @@ export default function AdminMarketData() {
                           min="5"
                           step="5"
                           value={intervalInputs.scraper}
-                          onChange={(e) => setIntervalInputs(prev => ({ ...prev, scraper: parseFloat(e.target.value) }))}
+                          onChange={(e) => {
+                            const v = parseFloat(e.target.value);
+                            setIntervalInputs(prev => ({ ...prev, scraper: isNaN(v) ? 0 : v }));
+                          }}
                           className="w-full px-3 py-2 rounded border border-purple-300 dark:border-purple-700 bg-white dark:bg-gray-800 text-foreground"
                         />
                       </div>

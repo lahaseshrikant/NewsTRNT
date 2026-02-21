@@ -2,7 +2,12 @@
 // Fetches live data from multiple market data APIs
 
 import { MarketIndex, Commodity } from '@/types/market';
-import { loadTradingViewSnapshot } from './tradingview-fallback';
+// tradingview snapshot no longer used; connectivity test replaced by scraper service check
+
+// helper used by multiple providers when they do not accept the leading caret
+function stripCaret(sym: string): string {
+  return sym.startsWith('^') ? sym.slice(1) : sym;
+}
 
 // API Configuration
 const ALPHA_VANTAGE_KEY = process.env.ALPHA_VANTAGE_API_KEY || 'demo';
@@ -13,7 +18,9 @@ const TWELVE_DATA_KEY =
   process.env.TWELVE_DATA_API_KEY || process.env.TWELVEDATA_API_KEY || '';
 const FMP_API_KEY =
   process.env.FMP_API_KEY || process.env.FINANCIAL_MODELING_PREP_API_KEY || '';
-const ENABLE_REAL_DATA = process.env.ENABLE_REAL_MARKET_DATA === 'true';
+// (previously _ENABLE_REAL_DATA_ env var controlled this but
+// that flag has been retired. Providers are invoked based on the
+// presence of their API keys; no global disable is necessary.)
 
 // Rate limiting cache
 const cache = new Map<string, { data: any; timestamp: number }>();
@@ -53,10 +60,6 @@ export async function fetchIndexFromFinnhub(symbol: string): Promise<Partial<Mar
     return null;
   }
   
-  if (!ENABLE_REAL_DATA) {
-    console.log(`[Finnhub] Real data disabled (ENABLE_REAL_MARKET_DATA=${ENABLE_REAL_DATA})`);
-    return null;
-  }
   
   // Finnhub doesn't support index symbols well (those starting with ^)
   // Skip to Alpha Vantage for indices
@@ -66,7 +69,8 @@ export async function fetchIndexFromFinnhub(symbol: string): Promise<Partial<Mar
   }
 
   try {
-    console.log(`[Finnhub] Fetching ${symbol}...`);
+    const querySymbol = stripCaret(symbol);
+    console.log(`[Finnhub] Fetching ${querySymbol} (original ${symbol})...`);
     const [quoteRes, profileRes] = await Promise.all([
       fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`),
       fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${FINNHUB_KEY}`)
@@ -111,17 +115,14 @@ export async function fetchIndexFromAlphaVantage(symbol: string): Promise<Partia
     return null;
   }
   
-  if (!ENABLE_REAL_DATA) {
-    console.log(`[Alpha Vantage] Real data disabled`);
-    return null;
-  }
 
   try {
     const cacheKey = `av_${symbol}`;
     return getCached(cacheKey, async () => {
       console.log(`[Alpha Vantage] Fetching ${symbol}...`);
+      const useSym = stripCaret(symbol);
       const res = await fetch(
-        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_KEY}`
+        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${useSym}&apikey=${ALPHA_VANTAGE_KEY}`
       );
 
       if (!res.ok) {
@@ -169,7 +170,7 @@ export async function fetchIndexFromAlphaVantage(symbol: string): Promise<Partia
 }
 
 export async function fetchIndexFromMarketStack(symbol: string): Promise<Partial<MarketIndex> | null> {
-  if (!MARKETSTACK_KEY || !ENABLE_REAL_DATA) {
+  if (!MARKETSTACK_KEY) {
     return null;
   }
 
@@ -218,7 +219,7 @@ export async function fetchIndexFromMarketStack(symbol: string): Promise<Partial
 }
 
 export async function fetchIndexFromTwelveData(symbol: string): Promise<Partial<MarketIndex> | null> {
-  if (!TWELVE_DATA_KEY || !ENABLE_REAL_DATA) {
+  if (!TWELVE_DATA_KEY) {
     return null;
   }
 
@@ -226,7 +227,7 @@ export async function fetchIndexFromTwelveData(symbol: string): Promise<Partial<
     const cacheKey = `twelvedata_${symbol}`;
     return getCached(cacheKey, async () => {
       const encodedSymbol = encodeURIComponent(symbol);
-      const url = `https://api.twelvedata.com/time_series?symbol=${encodedSymbol}&interval=1min&outputsize=2&apikey=${TWELVE_DATA_KEY}`;
+      const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(stripCaret(symbol))}&interval=1min&outputsize=2&apikey=${TWELVE_DATA_KEY}`;
       const res = await fetch(url);
       if (!res.ok) {
         console.log(`[TwelveData] API response not OK for ${symbol}: ${res.status}`);
@@ -272,7 +273,7 @@ export async function fetchIndexFromTwelveData(symbol: string): Promise<Partial<
 }
 
 export async function fetchIndexFromFMP(symbol: string): Promise<Partial<MarketIndex> | null> {
-  if (!FMP_API_KEY || !ENABLE_REAL_DATA) {
+  if (!FMP_API_KEY) {
     return null;
   }
 
@@ -280,7 +281,7 @@ export async function fetchIndexFromFMP(symbol: string): Promise<Partial<MarketI
     const cacheKey = `fmp_${symbol}`;
     return getCached(cacheKey, async () => {
       const encodedSymbol = encodeURIComponent(symbol);
-      const url = `https://financialmodelingprep.com/api/v3/quote/${encodedSymbol}?apikey=${FMP_API_KEY}`;
+      const url = `https://financialmodelingprep.com/api/v3/quote/${encodeURIComponent(stripCaret(symbol))}?apikey=${FMP_API_KEY}`;
       const res = await fetch(url);
       if (!res.ok) {
         console.log(`[FMP] API response not OK for ${symbol}: ${res.status}`);
@@ -345,9 +346,6 @@ export interface CoinGeckoQuote {
 }
 
 export async function fetchCryptoFromCoinGecko(ids: string[]): Promise<CoinGeckoQuote[]> {
-  if (!ENABLE_REAL_DATA) {
-    return [];
-  }
 
   const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
   if (uniqueIds.length === 0) {
@@ -399,9 +397,6 @@ export interface ExchangeRateSnapshot {
 }
 
 export async function fetchExchangeRates(baseCurrency: string): Promise<Record<string, ExchangeRateSnapshot>> {
-  if (!ENABLE_REAL_DATA) {
-    return {};
-  }
 
   try {
     const cacheKey = `exchange_${baseCurrency}`;
@@ -451,7 +446,7 @@ export async function fetchExchangeRates(baseCurrency: string): Promise<Record<s
  * Fetch commodity prices from Alpha Vantage
  */
 async function fetchCommodityFromAlphaVantage(symbol: string): Promise<Partial<Commodity> | null> {
-  if (!ALPHA_VANTAGE_KEY || !ENABLE_REAL_DATA) {
+  if (!ALPHA_VANTAGE_KEY) {
     return null;
   }
 
@@ -509,7 +504,7 @@ async function fetchCommodityFromAlphaVantage(symbol: string): Promise<Partial<C
 }
 
 async function fetchCommodityFromFMP(symbol: string): Promise<Partial<Commodity> | null> {
-  if (!FMP_API_KEY || !ENABLE_REAL_DATA) {
+  if (!FMP_API_KEY) {
     return null;
   }
 
@@ -547,7 +542,7 @@ async function fetchCommodityFromFMP(symbol: string): Promise<Partial<Commodity>
 }
 
 async function fetchCommodityFromTwelveData(symbol: string): Promise<Partial<Commodity> | null> {
-  if (!TWELVE_DATA_KEY || !ENABLE_REAL_DATA) {
+  if (!TWELVE_DATA_KEY) {
     return null;
   }
 
@@ -596,9 +591,6 @@ export async function fetchCommodityPrice(
   _commodityType: string,
   providerOrder?: string[],
 ): Promise<Partial<Commodity> | null> {
-  if (!ENABLE_REAL_DATA) {
-    return null;
-  }
 
   const cacheKey = `commodity_${symbol}`;
   return getCached(cacheKey, async () => {
@@ -632,6 +624,20 @@ export async function fetchCommodityPrice(
       }
     }
 
+    // if nothing succeeds, notify the scraper service
+    if (process.env.SCRAPER_SERVICE_URL) {
+      try {
+        await fetch(process.env.SCRAPER_SERVICE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbol, type: 'commodities' }),
+        });
+        console.log(`[market-cache] notified scraper for commodity ${symbol}`);
+      } catch (err) {
+        console.warn(`[market-cache] failed to notify scraper for commodity ${symbol}:`, err);
+      }
+    }
+
     return null;
   });
 }
@@ -640,9 +646,6 @@ export async function fetchCommodityPrice(
  * Fetch gold/silver prices (special commodity endpoint)
  */
 export async function fetchMetalPrice(metal: 'XAU' | 'XAG'): Promise<Partial<Commodity> | null> {
-  if (!ENABLE_REAL_DATA) {
-    return null;
-  }
 
   try {
     const cacheKey = `metal_${metal}`;
@@ -839,17 +842,23 @@ export async function testAPIConnectivity() {
     }
   }
 
-  // Test TradingView fallback snapshot
-  try {
-    const snapshot = await loadTradingViewSnapshot();
-    if (snapshot && Array.isArray(snapshot.items) && snapshot.items.length > 0) {
-      statuses.tradingview = true;
-    } else {
-      errors.tradingview = 'Snapshot missing or empty. Trigger scraper refresh.';
+  // Test scraper service availability (TradingView endpoint)
+  if (process.env.SCRAPER_SERVICE_URL) {
+    try {
+      const res = await fetch(process.env.SCRAPER_SERVICE_URL, { method: 'GET' });
+      if (res.ok) {
+        statuses.tradingview = true;
+      } else {
+        statuses.tradingview = false;
+        errors.tradingview = `scraper service returned ${res.status}`;
+      }
+    } catch (error) {
+      console.error('Scraper service test failed:', error);
+      errors.tradingview = error instanceof Error ? error.message : 'Unknown error';
     }
-  } catch (error) {
-    console.error('TradingView snapshot test failed:', error);
-    errors.tradingview = error instanceof Error ? error.message : 'Unknown error';
+  } else {
+    statuses.tradingview = false;
+    errors.tradingview = 'SCRAPER_SERVICE_URL not configured';
   }
 
   return { statuses, errors };

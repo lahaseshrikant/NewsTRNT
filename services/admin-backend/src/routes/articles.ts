@@ -1277,4 +1277,237 @@ router.get('/:slug', optionalAuth, async (req: AuthRequest, res) => {
   }
 });
 
+// ═════════════════════════════════════════════════════════════════════════════
+// CONTENT ENGINE INGEST ROUTES (service-to-service)
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * POST /api/articles/ingest
+ *
+ * Bulk-ingest articles sent by the Content Engine service.
+ * Auth: Bearer token matching CONTENT_ENGINE_API_KEY env var, OR valid admin JWT.
+ *
+ * Body: { articles: Array<ArticlePayload>, pipelineRunId?: string }
+ *
+ * Each ArticlePayload should contain at minimum: title, content/summary, sourceUrl.
+ * Optional: category (slug), tags[], imageUrl, sentiment, seoTitle, seoDescription,
+ *           seoKeywords[], aiMetadata, publishedAt, sourceName, author, priority.
+ *
+ * Duplicate detection: upserts by matching slug (generated from title).
+ * Returns: { success, inserted, updated, failed, errors[] }
+ */
+router.post('/ingest', async (req: AuthRequest, res) => {
+  // ── Auth: API key OR admin JWT ──────────────────────────────────────────
+  const authHeader = req.headers.authorization;
+  const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const engineKey = process.env.CONTENT_ENGINE_API_KEY || process.env.MARKET_INGEST_API_KEY;
+
+  if (!req.user?.isAdmin && bearerKey !== engineKey) {
+    res.status(401).json({ success: false, error: 'Unauthorized — valid API key or admin token required' });
+    return;
+  }
+
+  const { articles, pipelineRunId } = req.body;
+
+  if (!Array.isArray(articles) || articles.length === 0) {
+    res.status(400).json({ success: false, error: '`articles` array is required and must not be empty' });
+    return;
+  }
+
+  // Log a scraper run
+  const run = await prisma.scraperRun.create({
+    data: {
+      scraperName: 'content-engine',
+      dataType: 'articles',
+      status: 'running',
+      itemsFound: articles.length,
+      metadata: { pipelineRunId: pipelineRunId || null },
+    },
+  });
+
+  let inserted = 0;
+  let updated = 0;
+  let failed = 0;
+  const errors: { index: number; title?: string; error: string }[] = [];
+
+  for (let i = 0; i < articles.length; i++) {
+    const item = articles[i];
+    try {
+      if (!item.title) {
+        throw new Error('title is required');
+      }
+
+      // Generate deterministic slug from title
+      const slug = item.slug || item.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+        .slice(0, 200) + '-' + Date.now();
+
+      // Resolve category by slug (if provided)
+      let categoryId: string | null = null;
+      if (item.categorySlug || item.category) {
+        const catSlug = (item.categorySlug || item.category)
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+        const cat = await prisma.category.findFirst({
+          where: {
+            OR: [
+              { slug: catSlug },
+              { name: { equals: item.categorySlug || item.category, mode: 'insensitive' } },
+            ],
+          },
+        });
+        categoryId = cat?.id || null;
+      }
+      if (item.categoryId) categoryId = item.categoryId;
+
+      // Build AI metadata
+      const aiMetadata: Record<string, any> = {
+        ...(item.aiMetadata || {}),
+        sentiment: item.sentiment || null,
+        seoScore: item.seoScore || null,
+        pipelineRunId: pipelineRunId || null,
+        ingestedAt: new Date().toISOString(),
+      };
+
+      // Check if article already exists (by slug or sourceUrl)
+      const existing = await prisma.article.findFirst({
+        where: {
+          OR: [
+            { slug },
+            ...(item.sourceUrl ? [{ sourceUrl: item.sourceUrl }] : []),
+          ],
+        },
+      });
+
+      const articleData = {
+        title: item.title,
+        summary: item.summary || item.shortSummary || null,
+        content: item.content ? Security.sanitizeHTML(item.content) : null,
+        shortContent: item.shortContent || item.shortSummary || null,
+        excerpt: item.excerpt || (item.summary || '').slice(0, 200) || null,
+        author: item.author || item.sourceName || 'Content Engine',
+        sourceName: item.sourceName || null,
+        sourceUrl: item.sourceUrl || null,
+        imageUrl: item.imageUrl || null,
+        categoryId,
+        publishedAt: item.publishedAt ? new Date(item.publishedAt) : new Date(),
+        isPublished: item.isPublished ?? true,
+        isFeatured: item.isFeatured ?? false,
+        isTrending: item.isTrending ?? false,
+        isBreaking: item.isBreaking ?? false,
+        contentType: item.contentType || 'news',
+        authorType: item.authorType || 'ai',
+        aiGenerated: true,
+        aiSummary: !!(item.summary || item.shortSummary),
+        aiMetadata,
+        seoTitle: item.seoTitle || item.title,
+        seoDescription: item.seoDescription || item.summary?.slice(0, 160) || null,
+        seoKeywords: item.seoKeywords || [],
+        is_original: false,
+        news_source: item.sourceName || 'content-engine',
+        priority: item.priority || 'normal',
+        readingTime: item.readingTime || Math.ceil((item.content || '').split(/\s+/).length / 200) || 1,
+      };
+
+      if (existing) {
+        // Update existing article
+        await prisma.article.update({
+          where: { id: existing.id },
+          data: {
+            ...articleData,
+            slug: existing.slug, // keep original slug
+          },
+        });
+        updated++;
+      } else {
+        // Create new article
+        const newArticle = await prisma.article.create({
+          data: {
+            ...articleData,
+            slug,
+          },
+        });
+
+        // Handle tags
+        const tags: string[] = item.tags || item.seoKeywords?.slice(0, 5) || [];
+        for (const tagName of tags.slice(0, 10)) {
+          try {
+            const tagSlug = tagName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            if (!tagSlug) continue;
+
+            let tag = await prisma.tag.findUnique({ where: { name: tagName } });
+            if (!tag) {
+              tag = await prisma.tag.create({ data: { name: tagName, slug: tagSlug } });
+            }
+            await prisma.articleTag.create({
+              data: { articleId: newArticle.id, tagId: tag.id },
+            }).catch(() => { /* duplicate — ignore */ });
+          } catch {
+            // tag creation errors are non-fatal
+          }
+        }
+
+        inserted++;
+      }
+    } catch (err: any) {
+      failed++;
+      errors.push({ index: i, title: item?.title, error: err.message || String(err) });
+      console.error(`[Article Ingest] item ${i} error:`, err.message || err);
+    }
+  }
+
+  // Update scraper run
+  await prisma.scraperRun.update({
+    where: { id: run.id },
+    data: {
+      status: failed === articles.length ? 'failed' : failed > 0 ? 'partial' : 'success',
+      completedAt: new Date(),
+      itemsInserted: inserted + updated,
+      itemsFailed: failed,
+      metadata: { pipelineRunId: pipelineRunId || null, updated },
+    },
+  });
+
+  console.log(`[Article Ingest] Done: ${inserted} inserted, ${updated} updated, ${failed} failed`);
+
+  res.json({
+    success: true,
+    inserted,
+    updated,
+    failed,
+    total: articles.length,
+    scraperRunId: run.id,
+    ...(errors.length > 0 ? { errors: errors.slice(0, 20) } : {}),
+  });
+});
+
+/**
+ * GET /api/articles/ingest/stats — return recent content engine pipeline runs
+ */
+router.get('/ingest/stats', async (req: AuthRequest, res) => {
+  const authHeader = req.headers.authorization;
+  const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const engineKey = process.env.CONTENT_ENGINE_API_KEY || process.env.MARKET_INGEST_API_KEY;
+
+  if (!req.user?.isAdmin && bearerKey !== engineKey) {
+    res.status(401).json({ success: false, error: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    const runs = await prisma.scraperRun.findMany({
+      where: { scraperName: 'content-engine' },
+      orderBy: { startedAt: 'desc' },
+      take: 50,
+    });
+    res.json({ success: true, runs, total: runs.length });
+  } catch (error) {
+    console.error('[Article Ingest] stats error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch ingest stats' });
+  }
+});
+
 export default router;

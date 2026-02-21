@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { showToast } from '@/lib/toast';
 import UnifiedAdminGuard from '@/components/auth/UnifiedAdminGuard';
+import adminAuth from '@/lib/admin-auth';
 
 interface SystemSetting {
   id: string;
@@ -185,6 +186,22 @@ const SystemSettings: React.FC = () => {
     }
   ]);
 
+  const [loadingMaintenance, setLoadingMaintenance] = useState(true);
+
+  // fetch current maintenance state on mount
+  useEffect(() => {
+    fetch('/api/market/auto-update', { headers: { ...adminAuth.getAuthHeaders() } })
+      .then(res => res.json())
+      .then(data => {
+        const enabled = !!data?.data?.enabled;
+        setSettings(prev => prev.map(s =>
+          s.id === 'site_maintenance' ? { ...s, value: enabled } : s
+        ));
+      })
+      .catch(err => console.error('fetch status', err))
+      .finally(() => setLoadingMaintenance(false));
+  }, []);
+
   const categories = [
     { id: 'general', name: 'General', icon: '⚙️' },
     { id: 'security', name: 'Security', icon: '🔒' },
@@ -193,7 +210,29 @@ const SystemSettings: React.FC = () => {
     { id: 'api', name: 'API & Integrations', icon: '🔌' }
   ];
 
-  const updateSetting = (settingId: string, value: any) => {
+  const updateSetting = async (settingId: string, value: any) => {
+    if (settingId === 'site_maintenance') {
+      try {
+        const res = await fetch('/api/market/auto-update', {
+          method: 'POST',
+          headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: value ? 'stop' : 'start' }),
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          console.error('toggle maintenance bad status', res.status, text);
+          throw new Error(`status ${res.status}`);
+        }
+        setSettings(prev => prev.map(setting => 
+          setting.id === settingId ? { ...setting, value } : setting
+        ));
+        showToast('Maintenance mode updated', 'success');
+      } catch (err) {
+        console.error('toggle maintenance', err);
+        showToast('Failed to update maintenance mode', 'error');
+      }
+      return;
+    }
     setSettings(prev => prev.map(setting => 
       setting.id === settingId ? { ...setting, value } : setting
     ));
@@ -209,6 +248,7 @@ const SystemSettings: React.FC = () => {
             <input
               type="checkbox"
               checked={setting.value}
+              disabled={setting.id === 'site_maintenance' && loadingMaintenance}
               onChange={(e) => updateSetting(setting.id, e.target.checked)}
               className="sr-only peer"
             />
@@ -270,7 +310,7 @@ const SystemSettings: React.FC = () => {
   <div className="container mx-auto py-8">
         <Breadcrumb 
           items={[
-            { label: 'Admin Dashboard', href: '/' },
+            { label: 'Admin Dashboard', href: '/admin' },
             { label: 'System Settings' }
           ]} 
           className="mb-6" 
@@ -456,5 +496,4 @@ export default function AdminSystemPage() {
     </UnifiedAdminGuard>
   );
 }
-
 

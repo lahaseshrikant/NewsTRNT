@@ -6,6 +6,13 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../config/database';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { getServiceStatus } from '../lib/market-auto-update';
+import {
+  updateStockIndices,
+  updateCryptocurrencies,
+  updateCurrencyRates,
+  updateCommodities,
+} from '../lib/market-cache';
 
 const router = Router();
 
@@ -222,31 +229,32 @@ router.put('/providers', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// ── Auto-Update Management ───────────────────────────────────────────────────
+// ── Auto-Update Management (deprecated) ─────────────────────────────────────
+// These endpoints traditionally managed the market_auto_update setting. The
+// service no longer uses that flag; auto-update is controlled globally via the
+// `site_maintenance` system setting. The routes remain for backward
+// compatibility (and because the UI still points here) but they simply toggle
+// maintenance mode now.
 
 /**
- * GET /api/market/auto-update — Get auto-update status and configuration
+ * GET /api/market/auto-update — Get auto-update (maintenance) status
  */
 router.get('/auto-update', async (req: Request, res: Response) => {
   try {
-    const autoUpdateSetting = await prisma.systemSetting.findUnique({
-      where: { key: 'market_auto_update' },
+    const maintenance = await prisma.systemSetting.findUnique({
+      where: { key: 'site_maintenance' },
     });
-
-    const defaultConfig = {
-      enabled: false,
-      intervalMinutes: 30,
-      indices: true,
-      crypto: true,
-      currencies: true,
-      commodities: true,
-      lastRun: null,
-      nextRun: null,
-    };
+    const enabled = maintenance ? (!!maintenance.value && maintenance.value !== 'false') : false;
+    const status = await getServiceStatus();
 
     res.json({
       success: true,
-      data: autoUpdateSetting ? autoUpdateSetting.value : defaultConfig,
+      data: {
+        enabled,
+        note: 'auto-update follows global maintenance flag',
+        intervals: status.intervalsMinutes,
+        isRunning: status.isRunning,
+      },
     });
   } catch (error) {
     console.error('[Market] Auto-update status error:', error);
@@ -255,36 +263,86 @@ router.get('/auto-update', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/market/auto-update — Enable/configure auto-update
+ * POST /api/market/auto-update — Enable maintenance (disables updates)
  */
 router.post('/auto-update', async (req: AuthRequest, res: Response) => {
   try {
-    const config = req.body;
+    const { action, intervals } = req.body as any;
 
-    const result = await prisma.systemSetting.upsert({
-      where: { key: 'market_auto_update' },
-      update: {
-        value: config,
-        updatedBy: req.user?.id,
-      },
-      create: {
-        key: 'market_auto_update',
-        value: config,
-        category: 'market',
-        description: 'Market data auto-update configuration',
-        updatedBy: req.user?.id,
-      },
-    });
+    switch (action) {
+      case 'start':
+        // disable maintenance
+        await prisma.systemSetting.upsert({
+          where: { key: 'site_maintenance' },
+          update: { value: false, updatedBy: req.user?.id },
+          create: {
+            key: 'site_maintenance',
+            value: false,
+            category: 'general',
+            description: 'Global maintenance mode (disables background jobs)',
+            updatedBy: req.user?.id,
+          },
+        });
+        break;
 
-    res.json({ success: true, data: result.value });
+      case 'stop':
+        // enable maintenance
+        await prisma.systemSetting.upsert({
+          where: { key: 'site_maintenance' },
+          update: { value: true, updatedBy: req.user?.id },
+          create: {
+            key: 'site_maintenance',
+            value: true,
+            category: 'general',
+            description: 'Global maintenance mode (disables background jobs)',
+            updatedBy: req.user?.id,
+          },
+        });
+        break;
+
+      case 'update-intervals':
+        if (intervals && typeof intervals === 'object') {
+          // apply intervals to running service
+          const { updateIntervals } = await import('../lib/market-auto-update');
+          await updateIntervals(intervals);
+        }
+        break;
+
+      case 'run-tradingview-scraper':
+        // trigger scraper service via runner helper
+        const { runTradingViewScraper } = await import('../lib/tradingview-runner');
+        await runTradingViewScraper();
+        break;
+
+      default:
+        // default: treat as enable maintenance for backwards compat
+        await prisma.systemSetting.upsert({
+          where: { key: 'site_maintenance' },
+          update: {
+            value: true,
+            updatedBy: req.user?.id,
+          },
+          create: {
+            key: 'site_maintenance',
+            value: true,
+            category: 'general',
+            description: 'Global maintenance mode (disables background jobs)',
+            updatedBy: req.user?.id,
+          },
+        });
+    }
+
+    const status = await getServiceStatus();
+    res.json({ success: true, status });
   } catch (error) {
     console.error('[Market] Auto-update config error:', error);
-    res.status(500).json({ error: 'Failed to update auto-update config' });
+    res.status(500).json({ error: 'Failed to update auto-update configuration' });
   }
 });
 
 /**
  * PUT /api/market/auto-update — Trigger manual update for specific data type
+ * (kept for backward-compatibility; does not touch maintenance)
  */
 router.put('/auto-update', async (req: AuthRequest, res: Response) => {
   try {
@@ -304,12 +362,26 @@ router.put('/auto-update', async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // TODO: Trigger actual market data fetch from providers
-    // For now, return acknowledgment
+    // perform requested update(s)
+    let result: any = {};
+    if (!type || type === 'all' || type === 'indices') {
+      result.indices = await updateStockIndices();
+    }
+    if (!type || type === 'all' || type === 'crypto') {
+      result.crypto = await updateCryptocurrencies();
+    }
+    if (!type || type === 'all' || type === 'currencies') {
+      result.currencies = await updateCurrencyRates();
+    }
+    if (!type || type === 'all' || type === 'commodities') {
+      result.commodities = await updateCommodities();
+    }
+
     res.json({
       success: true,
       message: `Manual update triggered for: ${type || 'all'}`,
       triggeredAt: new Date().toISOString(),
+      result,
     });
   } catch (error) {
     console.error('[Market] Manual update trigger error:', error);
@@ -318,28 +390,178 @@ router.put('/auto-update', async (req: AuthRequest, res: Response) => {
 });
 
 /**
- * DELETE /api/market/auto-update — Disable auto-update
+ * DELETE /api/market/auto-update — Disable maintenance (reenables updates)
  */
 router.delete('/auto-update', async (req: AuthRequest, res: Response) => {
   try {
     const existing = await prisma.systemSetting.findUnique({
-      where: { key: 'market_auto_update' },
+      where: { key: 'site_maintenance' },
     });
 
     if (existing) {
       await prisma.systemSetting.update({
-        where: { key: 'market_auto_update' },
+        where: { key: 'site_maintenance' },
         data: {
-          value: { ...(existing.value as any), enabled: false },
+          value: false,
           updatedBy: req.user?.id,
         },
       });
     }
 
-    res.json({ success: true, message: 'Auto-update disabled' });
+    res.json({ success: true, message: 'Maintenance disabled' });
   } catch (error) {
     console.error('[Market] Disable auto-update error:', error);
-    res.status(500).json({ error: 'Failed to disable auto-update' });
+    res.status(500).json({ error: 'Failed to disable maintenance' });
+  }
+});
+
+// ============================================
+// INGESTION / SCRAPER ROUTES
+// ============================================
+
+/**
+ * POST /api/market/ingest
+ * Ingest market data sent by an external scraper (TradingView, etc.).
+ * Requires either valid admin auth or a bearer key matching
+ * process.env.MARKET_INGEST_API_KEY.
+ */
+router.post('/ingest', async (req: AuthRequest, res: Response) => {
+  const authHeader = req.headers.authorization;
+  const apiKey = authHeader && authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : null;
+
+  if (req.user == null && apiKey !== process.env.MARKET_INGEST_API_KEY) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+
+  const { scraperName, dataType, items, generatedAt } = req.body as any;
+  if (!dataType || !Array.isArray(items)) {
+    return res.status(400).json({ success: false, error: 'dataType and items are required' });
+  }
+
+  // start a scraper run log
+  const run = await prisma.scraperRun.create({
+    data: {
+      scraperName: scraperName || 'unknown',
+      dataType,
+      status: 'running',
+      itemsFound: items.length,
+      metadata: { generatedAt },
+    },
+  });
+
+  let inserted = 0;
+  let failed = 0;
+
+  try {
+    for (const item of items) {
+      try {
+        switch (dataType) {
+          case 'indices': {
+            const symbol = item.symbol;
+            if (!symbol) throw new Error('missing symbol');
+            const previousClose =
+              typeof item.previousClose === 'number'
+                ? item.previousClose
+                : item.last - (item.change || 0);
+            await prisma.marketIndex.upsert({
+              where: { symbol },
+              update: {
+                name: item.name ?? symbol,
+                country: item.country ?? item.country ?? 'US',
+                exchange: item.exchange ?? '',
+                value: item.last,
+                previousClose,
+                change: item.change ?? 0,
+                changePercent: item.change_percent ?? 0,
+                high: item.high ?? item.last,
+                low: item.low ?? item.last,
+                currency: item.currency ?? 'USD',
+                timezone: item.timezone ?? 'UTC',
+                lastUpdated: item.generatedAt ? new Date(item.generatedAt) : new Date(),
+                lastSource: item.source || scraperName || 'scraper',
+                isStale: false,
+              },
+              create: {
+                symbol,
+                name: item.name ?? symbol,
+                country: item.country ?? 'US',
+                exchange: item.exchange ?? '',
+                value: item.last,
+                previousClose,
+                change: item.change ?? 0,
+                changePercent: item.change_percent ?? 0,
+                high: item.high ?? item.last,
+                low: item.low ?? item.last,
+                currency: item.currency ?? 'USD',
+                timezone: item.timezone ?? 'UTC',
+                lastUpdated: item.generatedAt ? new Date(item.generatedAt) : new Date(),
+                lastSource: item.source || scraperName || 'scraper',
+              },
+            });
+            inserted++;
+            break;
+          }
+          case 'crypto':
+            // similar upsert logic could be added here if needed
+            // for now only indices are expected via scraper
+            failed++;
+            break;
+          case 'currencies':
+            failed++;
+            break;
+          case 'commodities':
+            failed++;
+            break;
+          default:
+            failed++;
+            break;
+        }
+      } catch (e) {
+        console.error('[Market Ingest] item error', e);
+        failed++;
+      }
+    }
+
+    await prisma.scraperRun.update({
+      where: { id: run.id },
+      data: {
+        status: 'success',
+        completedAt: new Date(),
+        itemsInserted: inserted,
+        itemsFailed: failed,
+      },
+    });
+
+    return res.json({ success: true, inserted, failed });
+  } catch (err) {
+    console.error('[Market Ingest] failure:', err);
+    await prisma.scraperRun.update({
+      where: { id: run.id },
+      data: {
+        status: 'failed',
+        completedAt: new Date(),
+        errorMessage: String(err),
+      },
+    });
+    return res.status(500).json({ success: false, error: 'Ingestion failed', details: err });
+  }
+});
+
+/**
+ * GET /api/market/ingest/stats — return recent scraper runs
+ */
+router.get('/ingest/stats', async (req: Request, res: Response) => {
+  try {
+    const runs = await prisma.scraperRun.findMany({
+      orderBy: { startedAt: 'desc' },
+      take: 20,
+    });
+    res.json({ success: true, runs });
+  } catch (error) {
+    console.error('[Market] ingest stats error', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch ingest stats' });
   }
 });
 

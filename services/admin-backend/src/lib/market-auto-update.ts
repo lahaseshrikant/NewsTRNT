@@ -3,6 +3,7 @@
 // Runs updates based on data type (crypto: 2min, indices: 5min, currencies: 15min)
 // Now fetches active symbols from database configuration
 
+import prisma from '../config/database';
 import { 
   updateStockIndices, 
   updateCryptocurrencies, 
@@ -10,7 +11,8 @@ import {
   updateCommodities
 } from './market-cache';
 import { getActiveSymbols } from './market-config';
-import { refreshTradingViewFallback } from './tradingview-runner';
+// scraper-runner removed; external scraping service will post to /api/market/ingest
+
 
 // Update intervals in milliseconds (can be changed dynamically)
 let UPDATE_INTERVALS = {
@@ -18,20 +20,95 @@ let UPDATE_INTERVALS = {
   indices: 5 * 60 * 1000,      // 5 minutes - market hours
   currencies: 15 * 60 * 1000,  // 15 minutes - more stable
   commodities: 30 * 60 * 1000, // 30 minutes - commodities
-  scraper: 60 * 60 * 1000,     // 60 minutes - TradingView fallback refresh
+  scraper: 60 * 60 * 1000,     // 60 minutes - TradingView fallback refresh (unused)
 };
+
+// read persisted intervals from settings and apply
+async function loadIntervalsFromDb() {
+  try {
+    const setting = await prisma.systemSetting.findUnique({
+      where: { key: 'market_update_intervals' },
+    });
+    if (setting && setting.value) {
+      const val = setting.value as any;
+      // expect minutes
+      if (typeof val.crypto === 'number') UPDATE_INTERVALS.crypto = val.crypto * 60 * 1000;
+      if (typeof val.indices === 'number') UPDATE_INTERVALS.indices = val.indices * 60 * 1000;
+      if (typeof val.currencies === 'number') UPDATE_INTERVALS.currencies = val.currencies * 60 * 1000;
+      if (typeof val.commodities === 'number') UPDATE_INTERVALS.commodities = val.commodities * 60 * 1000;
+      // scraper interval not exposed
+      console.log('[Auto-Update] Loaded intervals from DB', val);
+    }
+  } catch (err) {
+    console.error('[Auto-Update] Failed to load intervals from DB', err);
+  }
+}
 
 let isRunning = false;
 let intervals: NodeJS.Timeout[] = [];
 
+// track whether we've already warned about maintenance so we don't spam the log
+let maintenanceMessageShown = false;
+
 /**
  * Start auto-update service
  */
-export function startMarketDataUpdates() {
+async function isAutoUpdateEnabled(): Promise<boolean> {
+  try {
+    // use the global maintenance setting; when maintenance is active we
+    // disable *all* background jobs including market updates
+    // check for a global maintenance flag first
+    const setting = await prisma.systemSetting.findUnique({
+      where: { key: 'site_maintenance' },
+    });
+    if (!setting) {
+      // no maintenance entry means regular operation
+      // also look for and warn about the legacy market_auto_update key
+      const legacy = await prisma.systemSetting.findUnique({
+        where: { key: 'market_auto_update' },
+      });
+      if (legacy) {
+        console.warn('[Auto-Update] legacy market_auto_update setting exists; ignoring');
+      }
+      maintenanceMessageShown = false;
+      return true;
+    }
+    // the setting may be stored as a plain boolean or an object with
+    // { enabled: boolean }
+    const raw = setting.value;
+    let active = false;
+    if (typeof raw === 'boolean') {
+      active = raw;
+    } else if (raw && typeof (raw as any).enabled === 'boolean') {
+      active = (raw as any).enabled;
+    }
+    if (active) {
+      if (!maintenanceMessageShown) {
+        console.log('[Auto-Update] disabled due to site maintenance mode');
+        maintenanceMessageShown = true;
+      }
+      return false;
+    }
+    maintenanceMessageShown = false;
+    return true;
+  } catch (err) {
+    console.error('[Auto-Update] failed to read maintenance flag:', err);
+    // on error we keep running rather than silently disabling
+    return true;
+  }
+}
+
+export async function startMarketDataUpdates() {
   if (isRunning) {
     console.log('[Auto-Update] Service already running');
     return;
   }
+
+  // clear out any previous console history so only new log lines remain
+  console.clear();
+
+  // load persisted intervals before doing anything else
+  await loadIntervalsFromDb();
 
   console.log('');
   console.log('='.repeat(60));
@@ -46,26 +123,46 @@ export function startMarketDataUpdates() {
 
   isRunning = true;
 
-  // Initial update - run all immediately on startup
-  console.log('[Auto-Update] Running initial data fetch...');
-  console.log('[Auto-Update] Loading active symbols from database configuration...');
-  
-  // Fetch active symbols from database config
-  getActiveSymbols().then(activeSymbols => {
-    console.log(`[Auto-Update] Active symbols: ${activeSymbols.indices.length} indices, ${activeSymbols.cryptos.length} cryptos, ${activeSymbols.commodities.length} commodities`);
-  }).catch(err => console.error('[Auto-Update] Failed to load active symbols:', err));
-  
-  Promise.all([
-    updateCryptocurrencies().catch(err => console.error('[Auto-Update] Crypto init failed:', err)),
-    updateCurrencyRates().catch(err => console.error('[Auto-Update] Currency init failed:', err)),
-    refreshTradingViewFallback().catch(err => console.error('[Auto-Update] TradingView init failed:', err)),
-    // Note: Stock indices and commodities update takes time due to rate limiting, skip on startup
-  ]).then(() => {
-    console.log('[Auto-Update] ✅ Initial data fetch complete\n');
-  });
+  // load persisted intervals before scheduling
+  await loadIntervalsFromDb();
+
+  // Initial update - run all immediately on startup (if enabled)
+  (async () => {
+    if (await isAutoUpdateEnabled()) {
+      console.log('[Auto-Update] Running initial data fetch...');
+      console.log('[Auto-Update] Loading active symbols from database configuration...');
+      
+      // Fetch active symbols from database config
+      try {
+        const activeSymbols = await getActiveSymbols();
+        console.log(`[Auto-Update] Active symbols: ${activeSymbols.indices.length} indices, ${activeSymbols.cryptos.length} cryptos, ${activeSymbols.commodities.length} commodities`);
+      } catch (err) {
+        console.error('[Auto-Update] Failed to load active symbols:', err);
+      }
+      
+      const ops: Promise<any>[] = [
+        updateCryptocurrencies().catch(err => console.error('[Auto-Update] Crypto init failed:', err)),
+        updateCurrencyRates().catch(err => console.error('[Auto-Update] Currency init failed:', err)),
+        // Note: Stock indices and commodities update takes time due to rate limiting, skip on startup
+      ];
+
+      // we no longer run an internal scraper; external scraper service will
+      // post data to the ingest endpoint. just note for clarity.
+      console.log('[Auto-Update] using external scraper service (if configured)');
+
+      await Promise.all(ops);
+      console.log('[Auto-Update] ✅ Initial data fetch complete\n');
+    } else {
+      console.log('[Auto-Update] initial fetch skipped because auto-update disabled');
+    }
+  })();
 
   // Crypto updates - Every 2 minutes
   const cryptoInterval = setInterval(async () => {
+    if (!(await isAutoUpdateEnabled())) {
+      console.log('[Auto-Update] 🪙 Crypto update skipped (disabled)');
+      return;
+    }
     console.log('[Auto-Update] 🪙 Starting crypto update...');
     try {
       const result = await updateCryptocurrencies();
@@ -77,6 +174,10 @@ export function startMarketDataUpdates() {
 
   // Stock indices updates - Every 5 minutes
   const indicesInterval = setInterval(async () => {
+    if (!(await isAutoUpdateEnabled())) {
+      console.log('[Auto-Update] 📈 Stock indices update skipped (disabled)');
+      return;
+    }
     console.log('[Auto-Update] 📈 Starting stock indices update...');
     try {
       const result = await updateStockIndices();
@@ -88,6 +189,10 @@ export function startMarketDataUpdates() {
 
   // Currency updates - Every 15 minutes
   const currencyInterval = setInterval(async () => {
+    if (!(await isAutoUpdateEnabled())) {
+      console.log('[Auto-Update] 💱 Currency update skipped (disabled)');
+      return;
+    }
     console.log('[Auto-Update] 💱 Starting currency rates update...');
     try {
       const result = await updateCurrencyRates();
@@ -99,6 +204,10 @@ export function startMarketDataUpdates() {
 
   // Commodities updates - Every 30 minutes
   const commoditiesInterval = setInterval(async () => {
+    if (!(await isAutoUpdateEnabled())) {
+      console.log('[Auto-Update] 🛢️  Commodities update skipped (disabled)');
+      return;
+    }
     console.log('[Auto-Update] 🛢️  Starting commodities update...');
     try {
       const result = await updateCommodities();
@@ -110,26 +219,11 @@ export function startMarketDataUpdates() {
 
   intervals.push(cryptoInterval, indicesInterval, currencyInterval, commoditiesInterval);
 
-  // TradingView scraper refresh - default hourly
-  const tradingViewInterval = setInterval(async () => {
-    console.log('[Auto-Update] 🧹 Refreshing TradingView fallback snapshot...');
-    try {
-      const result = await refreshTradingViewFallback();
-      if ('successCount' in result) {
-        console.log(
-          `[Auto-Update] ✅ TradingView fallback refreshed: ${result.successCount} indices updated (missed ${result.missCount})`,
-        );
-      } else {
-        console.log(
-          `[Auto-Update] ✅ TradingView fallback refreshed via ${result.mode} mode`,
-        );
-      }
-    } catch (error) {
-      console.error('[Auto-Update] ❌ TradingView fallback refresh failed:', error);
-    }
-  }, UPDATE_INTERVALS.scraper);
+  // NOTE: internal TradingView scraper support has been removed. the
+  // external scraper service should POST to /api/market/ingest instead.
+  // the previous hourly refresh logic is no longer necessary.
 
-  intervals.push(tradingViewInterval);
+  // (no tradingViewInterval added)
 
   // Log status every 30 minutes
   const statusInterval = setInterval(() => {
@@ -189,7 +283,7 @@ export function getServiceStatus() {
 /**
  * Update service intervals (requires restart to take effect)
  */
-export function updateIntervals(newIntervals: {
+export async function updateIntervals(newIntervals: {
   crypto?: number;
   indices?: number;
   currencies?: number;
@@ -220,13 +314,36 @@ export function updateIntervals(newIntervals: {
     scraper: `${UPDATE_INTERVALS.scraper / 60000} min`,
   });
   
+  // persist to DB so future restarts keep same values
+  try {
+    await prisma.systemSetting.upsert({
+      where: { key: 'market_update_intervals' },
+      update: { value: {
+        crypto: UPDATE_INTERVALS.crypto / 60000,
+        indices: UPDATE_INTERVALS.indices / 60000,
+        currencies: UPDATE_INTERVALS.currencies / 60000,
+        commodities: UPDATE_INTERVALS.commodities / 60000,
+      }} as any,
+      create: { key: 'market_update_intervals',
+                value: {
+                  crypto: UPDATE_INTERVALS.crypto / 60000,
+                  indices: UPDATE_INTERVALS.indices / 60000,
+                  currencies: UPDATE_INTERVALS.currencies / 60000,
+                  commodities: UPDATE_INTERVALS.commodities / 60000,
+                },
+                category: 'market',
+                description: 'Refresh intervals (minutes) for market auto-update',
+      } as any,
+    });
+    console.log('[Auto-Update] intervals saved to DB');
+  } catch (err) {
+    console.error('[Auto-Update] failed to persist intervals:', err);
+  }
+  
   return UPDATE_INTERVALS;
 }
 
-export async function runTradingViewScrapeNow() {
-  console.log('[Auto-Update] Manual TradingView scrape triggered');
-  return refreshTradingViewFallback();
-}
+// exported helper removed; scraping is handled by the external service
 
 // Auto-start in production/development
 if (process.env.NODE_ENV !== 'test') {

@@ -16,6 +16,7 @@ import webstoryRoutes from './routes/webstories';
 import marketRoutes from './routes/market';
 import uploadRoutes from './routes/upload';
 import healthRoutes from './routes/health';
+import contentEngineRoutes from './routes/content-engine';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -79,6 +80,7 @@ app.use('/api/navigation', navigationRoutes);
 app.use('/api/webstories', webstoryRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/content-engine', contentEngineRoutes);
 app.use('/api', healthRoutes);
 
 // Error handling
@@ -98,10 +100,13 @@ const start = async () => {
     console.log(`🚀 admin-backend running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
 
-    // Start market data auto-update service if enabled
-    if (process.env.ENABLE_MARKET_AUTO_UPDATE === 'true') {
-      startMarketDataUpdates();
-    }
+    // Start market data auto-update service. Whether updates actually execute
+    // is governed by the global `site_maintenance` system setting (toggled
+    // via the admin UI). If maintenance mode is enabled the service will still
+    // be running but it will skip any fetch operations.
+    startMarketDataUpdates().catch(err => {
+      console.error('[Auto-Update] failed to start:', err);
+    });
   });
 };
 

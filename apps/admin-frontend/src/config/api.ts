@@ -62,6 +62,19 @@ export const API_ENDPOINTS = {
   ADMIN: {
     STATS: '/stats',
     HEALTH: '/health'
+  },
+
+  // Content Engine (proxied through admin-backend or direct)
+  CONTENT_ENGINE: {
+    HEALTH: '/content-engine/health',
+    PIPELINE_TRIGGER: '/content-engine/pipeline/trigger',
+    PIPELINE_HISTORY: '/content-engine/pipeline/history',
+    SCHEDULER_STATUS: '/content-engine/scheduler/status',
+    SCHEDULER_JOBS: '/content-engine/scheduler/jobs',
+    SCRAPING_SOURCES: '/content-engine/scraping/sources',
+    AI_STATUS: '/content-engine/ai/status',
+    CONFIG: '/content-engine/config',
+    INGEST_STATS: '/articles/ingest/stats',
   }
 } as const;
 
