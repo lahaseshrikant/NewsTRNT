@@ -1,58 +1,91 @@
-# 📰 NewsNerve
+# 📰 NewsTRNT
 
 **Your world. Your interests. Your news.**
 
-A comprehensive, production-ready AI-powered news platform built with modern web technologies. Features personalized news feeds, intelligent content curation, real-time market data, and a complete admin CMS.
+NewsTRNT is a modular, multi‑service news platform built for scale and experimentation. The repository contains three cooperating subsystems with separated concerns:
 
-![License](https://img.shields.io/badge/license-Private-red)
-![Next.js](https://img.shields.io/badge/Next.js-15.4-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791)
+1. **User‑facing** – a Next.js/TypeScript frontend (`apps/user-frontend`) backed by an Express&nbsp;API (`services/user-backend`).
+2. **Admin tools** – a dedicated Next.js dashboard (`apps/admin-frontend`) with its own Express&nbsp;API (`services/admin-backend`) for managing content, scheduling, market data, and configuration.
+3. **Content Engine** – a standalone Python/FastAPI microservice (`services/content-engine`) responsible for scraping feeds, running AI pipelines, and delivering processed articles back to the admin backend.
 
----
-
-## 🎯 Overview
-
-NewsNerve is a full-stack news platform that demonstrates enterprise-grade architecture with:
-
-- **Frontend**: Next.js 15 with App Router, React 19, TypeScript, Tailwind CSS
-- **Backend**: Express.js REST API with comprehensive authentication
-- **Database**: PostgreSQL with Prisma ORM (15+ interconnected models)
-- **AI Services**: Python-based content scraping and summarization pipeline
-- **Infrastructure**: Docker-ready with environment-based configuration
+The platform uses a shared Neon/PostgreSQL database accessed via Prisma in the Node services, while the Content Engine communicates exclusively over HTTP with API keys. Authentication is handled with JWTs for user/admin flows and service‑to‑service bearer tokens.
 
 ---
 
-## ✨ Key Features
+## 📦 Project Layout
 
-### 📱 User Features
-- **Personalized News Feed** - AI-curated content based on interests
-- **Category Browsing** - Politics, Technology, Business, Sports, Entertainment
-- **Search & Filters** - Full-text search with advanced filtering
-- **Reading List** - Save articles for later
-- **User Dashboard** - Profile, preferences, reading history
-- **Responsive Design** - Mobile-first, works on all devices
+```
+news-platform/
+├── apps/
+│   ├── user-frontend/        # public Next.js website
+│   └── admin-frontend/       # internal administration UI
+├── services/
+│   ├── user-backend/         # Express API for user features
+│   ├── admin-backend/        # Express API for admin & ingest
+│   └── content-engine/       # FastAPI Python scraping/AI microservice
+├── docs/                     # design docs, architecture, guides
+├── .github/                  # Copilot instructions (current file)
+├── prisma/                   # shared Prisma schema & migrations
+└── ...                       # misc (scripts, legacy, data)
+```
 
-### 🔐 Authentication
-- JWT-based secure authentication
-- Email verification flow
-- Password reset functionality
-- Role-based access control (User, Admin)
-
-### 📊 Admin Portal
-- **Content Management** - Create, edit, publish articles
-- **Rich Text Editor** - TipTap integration with full formatting
-- **User Management** - Admin user creation and permissions
-- **Analytics Dashboard** - Real-time platform metrics
-- **Category Management** - Dynamic category CRUD operations
-
-### 📈 Market Data Integration
-- Real-time stock indices (S&P 500, NASDAQ, etc.)
-- Cryptocurrency tracking
-- Forex rates
-- Caching strategy for cost optimization
+Each service has its own dependency manifest (`package.json` or `requirements.txt`) and should be developed/installed independently. The root `node_modules` and `.venv` directories are not used and can be deleted.
 
 ---
+
+## 🛠️ Setup & Development
+
+Most work happens inside the service folder you care about. Typical workflow:
+
+```bash
+# frontend or backend service
+cd apps/user-frontend       # or apps/admin-frontend
+npm install
+npm run dev
+
+# backend API
+cd services/user-backend
+npm install
+npm run dev
+
+# content engine
+cd services/content-engine
+python -m venv .venv        # or use configure_python_environment tool
+pip install -r requirements.txt
+python main.py
+```
+
+Copy and fill `.env`/`.env.local` from the provided examples in each service directory.
+
+For database work, run migrations from any Node service that includes Prisma: `npx prisma migrate dev`.
+
+Dockerfiles exist for all services if you prefer containerised development.
+
+---
+
+## 📚 Documentation
+
+The `docs/` folder contains detailed architecture notes, API reference, feature guides, and other long‑form documentation. See `docs/SERVICE_ARCHITECTURE.md` for an overview of inter‑service communication.
+
+---
+
+## 🧭 Useful Links
+
+- **Content Engine README**: `services/content-engine/README.md`  (scraper & AI pipeline details)
+- **Admin UI pages**: `/content-engine`, `/market-data`, `/system`, etc.
+- **API references**: search for `router.get` in `services/*/src/routes`.
+
+---
+
+## ✅ Contribution Notes
+
+- Keep TypeScript in Node services; use Python 3.11+ in Content Engine.
+- Follow existing patterns when adding new features (see examples in each service).
+- Always update environment variable docs in `.env.example` files.
+- Add new admin‑backend endpoints through the proxy if the frontend needs them.
+
+Happy hacking!
+
 
 ## 🏗️ Architecture
 
