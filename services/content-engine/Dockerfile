@@ -25,6 +25,9 @@ ENV ENGINE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=8000
 
+# API key used by admin-backend and other callers. Must be set at runtime
+ENV ENGINE_API_KEY=""
+
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

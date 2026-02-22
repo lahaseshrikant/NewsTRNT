@@ -1309,10 +1309,7 @@ export default function AdminMarketData() {
         <div className="bg-card rounded-lg shadow-xl p-6 border border-border mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-3">Direct API Calls & Last Responses</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            These endpoints respond with whatever is currently stored in the database cache. Real-time values appear only when
-            <code className="mx-1 px-1 py-0.5 bg-muted rounded">ENABLE_REAL_MARKET_DATA</code>
-            is set to <code className="mx-1 px-1 py-0.5 bg-muted rounded">"true"</code> and the external API keys are configured.
-          </p>
+            These endpoints return the most recent cached values from the database. External API keys must be configured for real data to be fetched during the update cycle.
 
           <div className="space-y-4">
             {MARKET_API_ENDPOINTS.map(({ label, endpoint, description }) => {
@@ -1377,10 +1374,7 @@ export default function AdminMarketData() {
         <div className="bg-card rounded-lg shadow-xl p-6 border border-border mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-3">External Provider Probes</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Trigger direct calls to the third-party services (bypassing the cache) to verify credentials, rate limits, and the
-            <code className="mx-1 px-1 py-0.5 bg-muted rounded">ENABLE_REAL_MARKET_DATA</code>
-            setting. Responses stream straight from the providers through our server.
-          </p>
+            Trigger direct calls to the third-party services (bypassing the cache) to verify credentials and rate limits. Responses stream straight from the providers through our server.
 
           <div className="space-y-4">
             {LIVE_PROVIDER_ENDPOINTS.map(({ label, endpoint, description, provider }) => {
@@ -1677,9 +1671,7 @@ export default function AdminMarketData() {
         <div className="bg-card rounded-lg shadow-xl p-8 border border-border mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-4">Live Market Data Test</h2>
           <p className="text-muted-foreground mb-4">
-            Fetch actual data from the APIs to verify they're working correctly. This shows REAL data only - no mock data fallbacks. Ensure
-            <code className="mx-1 px-1 py-0.5 bg-muted rounded">ENABLE_REAL_MARKET_DATA</code>
-            is enabled when you want fresh values from external providers, otherwise the cached snapshot is returned.
+            Fetch actual data from the APIs to verify they're working correctly. This shows real-time values directly from the providers; the cache is bypassed.
           </p>
           
           <button
@@ -1839,8 +1831,7 @@ export default function AdminMarketData() {
                 <h3 className="font-semibold text-foreground mb-2">2. Add to .env.local</h3>
                 <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm overflow-x-auto">
 {`ALPHA_VANTAGE_API_KEY="your-key-here"
-FINNHUB_API_KEY="your-key-here"
-ENABLE_REAL_MARKET_DATA="true"`}
+FINNHUB_API_KEY="your-key-here"`}
                 </pre>
               </div>
 

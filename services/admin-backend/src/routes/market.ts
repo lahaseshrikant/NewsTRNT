@@ -364,9 +364,6 @@ router.put('/auto-update', async (req: AuthRequest, res: Response) => {
 
     // perform requested update(s)
     let result: any = {};
-    if (!type || type === 'all' || type === 'indices') {
-      result.indices = await updateStockIndices();
-    }
     if (!type || type === 'all' || type === 'crypto') {
       result.crypto = await updateCryptocurrencies();
     }
@@ -375,6 +372,9 @@ router.put('/auto-update', async (req: AuthRequest, res: Response) => {
     }
     if (!type || type === 'all' || type === 'commodities') {
       result.commodities = await updateCommodities();
+    }
+    if (!type || type === 'all' || type === 'indices') {
+      result.indices = await updateStockIndices();
     }
 
     res.json({

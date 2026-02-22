@@ -14,6 +14,7 @@ import siteConfigRoutes from './site-config';
 import marketConfigRoutes from './market-config';
 import rbacRoutes from './rbac';
 import notificationsRoutes from './notifications';
+import scrapedItemsRoutes from './scraped-items';
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use('/', siteConfigRoutes);    // /site-config, /site-config/public
 router.use('/', marketConfigRoutes);  // /market-config, /market-config/indices|cryptos|currencies|commodities
 router.use('/', rbacRoutes);
 router.use('/', notificationsRoutes);          // /roles, /roles/:id, /permissions
+router.use('/', scrapedItemsRoutes);   // /scraped-items, /scraped-items/:id/approve
 
 export default router;

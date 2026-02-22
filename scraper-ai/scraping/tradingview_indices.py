@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -311,6 +312,8 @@ def send_to_api(quotes: List[IndexQuote], api_url: str, api_key: Optional[str] =
     
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
+    else:
+        logger.warning("No API key provided for ingestion; requests will be unauthorized")
     
     response = requests.post(api_url, json=payload, headers=headers, timeout=30)
     response.raise_for_status()
@@ -341,8 +344,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--api-key",
         type=str,
-        default=None,
-        help="API key for authentication (from MARKET_INGEST_API_KEY env var).",
+        default=os.environ.get("MARKET_INGEST_API_KEY"),
+        help="API key for authentication (defaults to MARKET_INGEST_API_KEY env var).",
     )
     return parser
 

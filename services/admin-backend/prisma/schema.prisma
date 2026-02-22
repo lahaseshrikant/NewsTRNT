@@ -111,6 +111,50 @@ model Tag {
   @@map("tags")
 }
 
+// legacy table used during rollout; new code writes into ScrapedItem
+// DEPRECATED: retained for reference/migration. will be removed later.
+model ScrapedArticle {
+  id              String            @id @default(uuid())
+  title           String
+  slug            String            @unique
+  summary         String?
+  content         String?
+  shortContent    String?
+  excerpt         String?
+  author          String?
+  sourceName      String?
+  sourceUrl       String?
+  imageUrl        String?
+  tags            Json              @default("[]")
+  categoryId      String?           @map("category_id")
+  publishedAt     DateTime?         @map("published_at")
+  scrapedAt       DateTime          @default(now()) @map("scraped_at")
+  pipelineRunId   String?           @map("pipeline_run_id")
+  aiMetadata      Json              @default("{}")
+  isApproved      Boolean           @default(false) @map("is_approved")
+  approvedAt      DateTime?         @map("approved_at")
+  approvedBy      String?           @map("approved_by")
+
+  @@schema("public")
+  @@index([scrapedAt])
+  @@map("scraped_articles")
+}
+
+model ScrapedItem {
+  id             String    @id @default(uuid())
+  itemType       String    @default("article")
+  payload        Json      @default("{}")
+  scrapedAt      DateTime  @default(now()) @map("scraped_at")
+  pipelineRunId  String?   @map("pipeline_run_id")
+  isApproved     Boolean   @default(false) @map("is_approved")
+  approvedAt     DateTime? @map("approved_at")
+  approvedBy     String?   @map("approved_by")
+
+  @@schema("public")
+  @@index([itemType, scrapedAt])
+  @@map("scraped_items")
+}
+
 model Article {
   id              String            @id @default(uuid())
   title           String

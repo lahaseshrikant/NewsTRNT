@@ -119,23 +119,21 @@ export async function fetchIndexFromAlphaVantage(symbol: string): Promise<Partia
   try {
     const cacheKey = `av_${symbol}`;
     return getCached(cacheKey, async () => {
-      console.log(`[Alpha Vantage] Fetching ${symbol}...`);
+      // console.debug(`[Alpha Vantage] Fetching ${symbol}`);
       const useSym = stripCaret(symbol);
       const res = await fetch(
         `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${useSym}&apikey=${ALPHA_VANTAGE_KEY}`
       );
 
       if (!res.ok) {
-        console.log(`[Alpha Vantage] API response not OK for ${symbol}: ${res.status}`);
+        console.warn(`[Alpha Vantage] response not OK for ${symbol}: ${res.status}`);
         return null;
       }
 
       const data: any = await res.json();
-      console.log(`[Alpha Vantage] Response for ${symbol}:`, JSON.stringify(data).substring(0, 150));
       const quote = data['Global Quote'];
 
       if (!quote || !quote['05. price']) {
-        console.log(`[Alpha Vantage] No quote data for ${symbol}`);
         return null;
       }
 
@@ -181,7 +179,7 @@ export async function fetchIndexFromMarketStack(symbol: string): Promise<Partial
       const url = `https://api.marketstack.com/v1/eod?access_key=${MARKETSTACK_KEY}&symbols=${encodedSymbol}&limit=2`;
       const res = await fetch(url);
       if (!res.ok) {
-        console.log(`[MarketStack] API response not OK for ${symbol}: ${res.status}`);
+        console.warn(`[MarketStack] response not OK for ${symbol}: ${res.status}`);
         return null;
       }
 
@@ -230,13 +228,13 @@ export async function fetchIndexFromTwelveData(symbol: string): Promise<Partial<
       const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(stripCaret(symbol))}&interval=1min&outputsize=2&apikey=${TWELVE_DATA_KEY}`;
       const res = await fetch(url);
       if (!res.ok) {
-        console.log(`[TwelveData] API response not OK for ${symbol}: ${res.status}`);
+        console.warn(`[TwelveData] response not OK for ${symbol}: ${res.status}`);
         return null;
       }
 
       const data: any = await res.json();
       if (data?.status && data.status !== 'ok') {
-        console.log(`[TwelveData] Status not ok for ${symbol}: ${data?.message}`);
+        console.warn(`[TwelveData] status not ok for ${symbol}: ${data?.message}`);
         return null;
       }
 
@@ -284,7 +282,7 @@ export async function fetchIndexFromFMP(symbol: string): Promise<Partial<MarketI
       const url = `https://financialmodelingprep.com/api/v3/quote/${encodeURIComponent(stripCaret(symbol))}?apikey=${FMP_API_KEY}`;
       const res = await fetch(url);
       if (!res.ok) {
-        console.log(`[FMP] API response not OK for ${symbol}: ${res.status}`);
+        console.warn(`[FMP] response not OK for ${symbol}: ${res.status}`);
         return null;
       }
 

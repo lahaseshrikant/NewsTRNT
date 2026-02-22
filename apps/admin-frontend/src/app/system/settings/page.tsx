@@ -45,6 +45,7 @@ interface SystemSettings {
     defaultArticleStatus: 'draft' | 'published';
     requireApproval: boolean;
     approvalRoles: RoleName[];
+    scrapedAutoPromote: boolean; // whether scraped articles auto‑promote to live
   };
 }
 
@@ -83,7 +84,8 @@ const DEFAULT_SETTINGS: SystemSettings = {
     allowedFileTypes: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'pdf'],
     defaultArticleStatus: 'draft',
     requireApproval: false,
-    approvalRoles: ['ADMIN', 'SUPER_ADMIN', 'EDITOR']
+    approvalRoles: ['ADMIN', 'SUPER_ADMIN', 'EDITOR'],
+    scrapedAutoPromote: false,
   }
 };
 
@@ -678,6 +680,18 @@ function SystemSettingsContent() {
                       </div>
                     </div>
                   )}
+                  <label className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer">
+                    <div>
+                      <p className="font-medium text-foreground">Auto‑promote scraped articles</p>
+                      <p className="text-sm text-muted-foreground">When enabled, content engine scraps are automatically moved into the live articles table.</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings.content.scrapedAutoPromote}
+                      onChange={(e) => updateSettings('content', 'scrapedAutoPromote', e.target.checked)}
+                      className="rounded border-border w-5 h-5"
+                    />
+                  </label>
                 </div>
               </div>
             </div>

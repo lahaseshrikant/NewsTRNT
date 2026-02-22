@@ -41,6 +41,7 @@ const ROLE_QUICK_ACTIONS: Record<UserRole, QuickAction[]> = {
     { label: 'Articles', href: '/content/articles', icon: '📄', description: 'Manage articles', color: 'from-green-500 to-emerald-500' },
     { label: 'Web Stories', href: '/content/web-stories', icon: '📱', description: 'Create stories', color: 'from-pink-500 to-rose-500' },
     { label: 'Moderation', href: '/moderation', icon: '💬', description: 'Moderate content', color: 'from-orange-500 to-amber-500' },
+    { label: 'Scraped Items', href: '/scraped-items', icon: '🗞️', description: 'Review engine‑scraped items', color: 'from-green-500 to-emerald-500' },
   ],
   AUTHOR: [
     { label: 'New Draft', href: '/content/new', icon: '✍️', description: 'Start writing', color: 'from-blue-500 to-purple-500' },

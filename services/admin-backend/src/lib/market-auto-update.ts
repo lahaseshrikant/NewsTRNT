@@ -115,9 +115,9 @@ export async function startMarketDataUpdates() {
   console.log('🚀 Market Data Auto-Update Service Starting...');
   console.log('='.repeat(60));
   console.log('📊 Cryptocurrencies: Every 2 minutes');
-  console.log('📈 Stock Indices: Every 5 minutes');
-  console.log('💱 Currency Rates: Every 15 minutes');
+  console.log('� Currency Rates: Every 15 minutes');
   console.log('🛢️  Commodities: Every 30 minutes');
+  console.log('📈 Stock Indices: Every 5 minutes');
   console.log('='.repeat(60));
   console.log('');
 
@@ -143,7 +143,8 @@ export async function startMarketDataUpdates() {
       const ops: Promise<any>[] = [
         updateCryptocurrencies().catch(err => console.error('[Auto-Update] Crypto init failed:', err)),
         updateCurrencyRates().catch(err => console.error('[Auto-Update] Currency init failed:', err)),
-        // Note: Stock indices and commodities update takes time due to rate limiting, skip on startup
+        updateCommodities().catch(err => console.error('[Auto-Update] Commodities init failed:', err)),
+        // Note: Stock indices update takes time due to rate limiting, skip on startup
       ];
 
       // we no longer run an internal scraper; external scraper service will
@@ -172,60 +173,54 @@ export async function startMarketDataUpdates() {
     }
   }, UPDATE_INTERVALS.crypto);
 
-  // Stock indices updates - Every 5 minutes
-  const indicesInterval = setInterval(async () => {
-    if (!(await isAutoUpdateEnabled())) {
-      console.log('[Auto-Update] 📈 Stock indices update skipped (disabled)');
-      return;
-    }
-    console.log('[Auto-Update] 📈 Starting stock indices update...');
-    try {
-      const result = await updateStockIndices();
-      console.log(`[Auto-Update] ✅ Indices updated: ${result.successCount} indices\n`);
-    } catch (error) {
-      console.error('[Auto-Update] ❌ Indices update failed:', error, '\n');
-    }
-  }, UPDATE_INTERVALS.indices);
+      // Currency updates - Every 15 minutes
+      const currencyInterval = setInterval(async () => {
+        if (!(await isAutoUpdateEnabled())) {
+          console.log('[Auto-Update] 💱 Currency update skipped (disabled)');
+          return;
+        }
+        console.log('[Auto-Update] 💱 Starting currency rates update...');
+        try {
+          const result = await updateCurrencyRates();
+          console.log(`[Auto-Update] ✅ Currencies updated: ${result.successCount} rates\n`);
+        } catch (error) {
+          console.error('[Auto-Update] ❌ Currency update failed:', error, '\n');
+        }
+      }, UPDATE_INTERVALS.currencies);
 
-  // Currency updates - Every 15 minutes
-  const currencyInterval = setInterval(async () => {
-    if (!(await isAutoUpdateEnabled())) {
-      console.log('[Auto-Update] 💱 Currency update skipped (disabled)');
-      return;
-    }
-    console.log('[Auto-Update] 💱 Starting currency rates update...');
-    try {
-      const result = await updateCurrencyRates();
-      console.log(`[Auto-Update] ✅ Currencies updated: ${result.successCount} rates\n`);
-    } catch (error) {
-      console.error('[Auto-Update] ❌ Currency update failed:', error, '\n');
-    }
-  }, UPDATE_INTERVALS.currencies);
+      // Commodities updates - Every 30 minutes
+      const commoditiesInterval = setInterval(async () => {
+        if (!(await isAutoUpdateEnabled())) {
+          console.log('[Auto-Update] 🛢️  Commodities update skipped (disabled)');
+          return;
+        }
+        console.log('[Auto-Update] 🛢️  Starting commodities update...');
+        try {
+          const result = await updateCommodities();
+          console.log(`[Auto-Update] ✅ Commodities updated: ${result.successCount} items\n`);
+        } catch (error) {
+          console.error('[Auto-Update] ❌ Commodities update failed:', error, '\n');
+        }
+      }, UPDATE_INTERVALS.commodities);
 
-  // Commodities updates - Every 30 minutes
-  const commoditiesInterval = setInterval(async () => {
-    if (!(await isAutoUpdateEnabled())) {
-      console.log('[Auto-Update] 🛢️  Commodities update skipped (disabled)');
-      return;
-    }
-    console.log('[Auto-Update] 🛢️  Starting commodities update...');
-    try {
-      const result = await updateCommodities();
-      console.log(`[Auto-Update] ✅ Commodities updated: ${result.successCount} items\n`);
-    } catch (error) {
-      console.error('[Auto-Update] ❌ Commodities update failed:', error, '\n');
-    }
-  }, UPDATE_INTERVALS.commodities);
+      // Stock indices updates - Every 5 minutes
+      const indicesInterval = setInterval(async () => {
+        if (!(await isAutoUpdateEnabled())) {
+          console.log('[Auto-Update] 📈 Stock indices update skipped (disabled)');
+          return;
+        }
+        console.log('[Auto-Update] 📈 Starting stock indices update...');
+        try {
+          const result = await updateStockIndices();
+          console.log(`[Auto-Update] ✅ Indices updated: ${result.successCount} indices\n`);
+        } catch (error) {
+          console.error('[Auto-Update] ❌ Indices update failed:', error, '\n');
+        }
+      }, UPDATE_INTERVALS.indices);
 
-  intervals.push(cryptoInterval, indicesInterval, currencyInterval, commoditiesInterval);
+      intervals.push(cryptoInterval, currencyInterval, commoditiesInterval, indicesInterval);
 
-  // NOTE: internal TradingView scraper support has been removed. the
-  // external scraper service should POST to /api/market/ingest instead.
-  // the previous hourly refresh logic is no longer necessary.
-
-  // (no tradingViewInterval added)
-
-  // Log status every 30 minutes
+  // Log overall service status periodically (every 30 minutes)
   const statusInterval = setInterval(() => {
     const now = new Date();
     console.log('\n' + '='.repeat(60));

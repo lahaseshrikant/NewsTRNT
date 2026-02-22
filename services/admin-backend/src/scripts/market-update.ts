@@ -6,13 +6,6 @@ async function run() {
   const results: Record<string, any> = {};
 
   try {
-    results.indices = await updateStockIndices();
-    console.log('Indices update result', results.indices);
-  } catch (e) {
-    console.error('Indices update failed', e);
-  }
-
-  try {
     results.crypto = await updateCryptocurrencies();
     console.log('Crypto update result', results.crypto);
   } catch (e) {
@@ -31,6 +24,13 @@ async function run() {
     console.log('Commodities update result', results.commodities);
   } catch (e) {
     console.error('Commodities update failed', e);
+  }
+
+  try {
+    results.indices = await updateStockIndices();
+    console.log('Indices update result', results.indices);
+  } catch (e) {
+    console.error('Indices update failed', e);
   }
 
   console.log('Manual update complete:', JSON.stringify(results, null, 2));

@@ -34,14 +34,24 @@ async function notifyScraper(symbol: string, type = 'indices') {
     return;
   }
   try {
-    await fetch(url, {
+    const headers: any = { 'Content-Type': 'application/json' };
+    const engineKey = process.env.CONTENT_ENGINE_API_KEY || process.env.ENGINE_API_KEY;
+    if (engineKey) {
+      headers['X-API-Key'] = engineKey;
+      headers['Authorization'] = `Bearer ${engineKey}`;
+    }
+    const resp = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ symbol, type }),
     });
-    console.log(`[market-cache] notified scraper for ${symbol}`);
+    if (!resp.ok) {
+      console.warn(`[Auto-Update] scraper notification for ${symbol} returned ${resp.status}`);
+    } else {
+      console.log(`[Auto-Update] scraper notified for ${symbol}`);
+    }
   } catch (err) {
-    console.warn(`[market-cache] failed to notify scraper for ${symbol}:`, err);
+    console.warn(`[Auto-Update] failed to notify scraper for ${symbol}:`, err);
   }
 }
 
@@ -57,10 +67,6 @@ export async function updateStockIndices(): Promise<UpdateResult> {
 
     // threshold to consider an existing quote fresh (5 minutes)
     const STALE_MS = 5 * 60 * 1000;
-
-    if (!process.env.ENABLE_REAL_MARKET_DATA || process.env.ENABLE_REAL_MARKET_DATA !== 'true') {
-      console.warn('[market-cache] ENABLE_REAL_MARKET_DATA is false; provider calls will be skipped');
-    }
 
     for (const cfg of configs) {
       // skip if we already have a recent value
@@ -86,8 +92,8 @@ export async function updateStockIndices(): Promise<UpdateResult> {
       }
 
       // try providers in computed order
+      let gotResponse = false;
       for (const providerId of providersToTry) {
-        console.log(`[market-cache] trying provider ${providerId} for ${cfg.symbol}`);
         try {
           switch (providerId) {
             case 'alphavantage':
@@ -113,19 +119,19 @@ export async function updateStockIndices(): Promise<UpdateResult> {
               // unknown provider, skip
               break;
           }
-        } catch (err) {
-          console.error(`[market-cache] provider ${providerId} failed for ${cfg.symbol}:`, err);
+        } catch (_err) {
+          // provider failure, silently continue
         }
 
         if (quote && typeof quote.value === 'number') {
+          gotResponse = true;
           quote.lastSource = quote.provider || providerId;
           break; // stop at first successful provider
         }
       }
 
-      if (!quote || typeof quote.value !== 'number') {
-        console.log(`[market-cache] providers produced no quote for ${cfg.symbol}`);
-        // if we have a scraper service configured, ask it to scrape this symbol
+      if (!gotResponse) {
+        console.log(`[Auto-Update] ${cfg.symbol}: providers failed, notifying scraper`);
         await notifyScraper(cfg.symbol, 'indices');
       } else {
         // successful provider, update lastSource column to help future runs
