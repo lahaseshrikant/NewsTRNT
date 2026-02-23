@@ -60,15 +60,7 @@ export async function fetchIndexFromFinnhub(symbol: string): Promise<Partial<Mar
     console.log(`[Finnhub] No API key configured`);
     return null;
   }
-  
-  
-  // Finnhub doesn't support index symbols well (those starting with ^)
-  // Skip to Alpha Vantage for indices
-  if (symbol.startsWith('^')) {
-    console.log(`[Finnhub] Skipping index symbol ${symbol}, will try Alpha Vantage`);
-    return null;
-  }
-
+ 
   try {
     const querySymbol = stripCaret(symbol);
     console.log(`[Finnhub] Fetching ${querySymbol} (original ${symbol})...`);
@@ -78,7 +70,10 @@ export async function fetchIndexFromFinnhub(symbol: string): Promise<Partial<Mar
     ]);
 
     if (!quoteRes.ok || !profileRes.ok) {
-      console.log(`[Finnhub] API response not OK for ${symbol}: ${quoteRes.status}/${profileRes.status}`);
+      // ignore rate-limit responses (403) to reduce log noise
+      if (quoteRes.status !== 403 && profileRes.status !== 403) {
+        console.log(`[Finnhub] API response not OK for ${symbol}: ${quoteRes.status}/${profileRes.status}`);
+      }
       return null;
     }
 
@@ -127,7 +122,9 @@ export async function fetchIndexFromAlphaVantage(symbol: string): Promise<Partia
       );
 
       if (!res.ok) {
+        if (res.status !== 403) {
         console.warn(`[Alpha Vantage] response not OK for ${symbol}: ${res.status}`);
+      }
         return null;
       }
 
@@ -235,7 +232,10 @@ export async function fetchIndexFromTwelveData(symbol: string): Promise<Partial<
 
       const data: any = await res.json();
       if (data?.status && data.status !== 'ok') {
-        console.warn(`[TwelveData] status not ok for ${symbol}: ${data?.message}`);
+        // ignore rate-limit exceeding messages to reduce noise
+        if (data?.message && !data.message.toLowerCase().includes('run out of api credits') && !data.message.toLowerCase().includes('limit')) {
+          console.warn(`[TwelveData] status not ok for ${symbol}: ${data?.message}`);
+        }
         return null;
       }
 
@@ -283,7 +283,9 @@ export async function fetchIndexFromFMP(symbol: string): Promise<Partial<MarketI
       const url = `https://financialmodelingprep.com/api/v3/quote/${encodeURIComponent(stripCaret(symbol))}?apikey=${FMP_API_KEY}`;
       const res = await fetch(url);
       if (!res.ok) {
+        if (res.status !== 403) {
         console.warn(`[FMP] response not OK for ${symbol}: ${res.status}`);
+      }
         return null;
       }
 
@@ -510,7 +512,9 @@ async function fetchCommodityFromFMP(symbol: string): Promise<Partial<Commodity>
   const url = `https://financialmodelingprep.com/api/v3/quote/${encodeURIComponent(symbol)}?apikey=${FMP_API_KEY}`;
   const res = await fetch(url);
   if (!res.ok) {
-    console.log(`[FMP] Commodity response not OK for ${symbol}: ${res.status}`);
+    if (res.status !== 403) {
+        console.log(`[FMP] Commodity response not OK for ${symbol}: ${res.status}`);
+      }
     return null;
   }
 
@@ -554,7 +558,11 @@ async function fetchCommodityFromTwelveData(symbol: string): Promise<Partial<Com
 
   const data: any = await res.json();
   if (data?.status && data.status !== 'ok') {
-    console.log(`[TwelveData] Commodity status not ok for ${symbol}: ${data?.message}`);
+    // throttle down logging when limit exceeded
+    const msg = data?.message || '';
+    if (!msg.toLowerCase().includes('api credits') && !msg.toLowerCase().includes('limit')) {
+      console.log(`[TwelveData] Commodity status not ok for ${symbol}: ${msg}`);
+    }
     return null;
   }
 

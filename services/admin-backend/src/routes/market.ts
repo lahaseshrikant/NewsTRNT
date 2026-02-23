@@ -430,14 +430,33 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
   const apiKey = authHeader && authHeader.startsWith('Bearer ')
     ? authHeader.slice(7)
     : null;
-  console.log("----------------------------SHRIKANT------------------------------")
-  if (req.user == null && apiKey !== process.env.MARKET_INGEST_API_KEY) {
+  // authenticate either admin user or ingest key.
+  // the Content Engine also delivers so accept its shared key too.
+  const validIngestKey = process.env.MARKET_INGEST_API_KEY;
+  const validEngineKey = process.env.CONTENT_ENGINE_API_KEY;
+  if (
+    req.user == null &&
+    apiKey !== validIngestKey &&
+    apiKey !== validEngineKey
+  ) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
   const { scraperName, dataType, items, generatedAt } = req.body as any;
+  console.log(`[Market Ingest] received ${items?.length || 0} items type=${dataType} from=${scraperName}`);
   if (!dataType || !Array.isArray(items)) {
     return res.status(400).json({ success: false, error: 'dataType and items are required' });
+  }
+
+  // Build a map from bare symbol (no ^) → config symbol (with ^) so that
+  // TradingView symbols (e.g. "SPX", "DJI") are normalised to the canonical
+  // config format ("^GSPC", "^DJI") before upsert.  This prevents phantom
+  // duplicate rows when the two symbol conventions differ.
+  const configRows = await prisma.marketIndexConfig.findMany({ select: { symbol: true } });
+  const bareToConfig = new Map<string, string>();
+  for (const cfg of configRows) {
+    const bare = cfg.symbol.replace(/^\^/, '').toUpperCase();
+    bareToConfig.set(bare, cfg.symbol);
   }
 
   // start a scraper run log
@@ -451,6 +470,9 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
     },
   });
 
+  // History retention: keep this many days of daily history
+  const HISTORY_RETENTION_DAYS = 90;
+
   let inserted = 0;
   let failed = 0;
 
@@ -459,17 +481,22 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
       try {
         switch (dataType) {
           case 'indices': {
-            const symbol = item.symbol;
-            if (!symbol) throw new Error('missing symbol');
+            // Normalise symbol: prefer the config's canonical form when available
+            const rawSymbol: string = item.symbol;
+            if (!rawSymbol) throw new Error('missing symbol');
+            const canonicalSymbol =
+              bareToConfig.get(rawSymbol.replace(/^\^/, '').toUpperCase()) ?? rawSymbol;
+
             const previousClose =
               typeof item.previousClose === 'number'
                 ? item.previousClose
-                : item.last - (item.change || 0);
+                : (item.last ?? 0) - (item.change ?? 0);
+
             await prisma.marketIndex.upsert({
-              where: { symbol },
+              where: { symbol: canonicalSymbol },
               update: {
-                name: item.name ?? symbol,
-                country: item.country ?? item.country ?? 'US',
+                name: item.name ?? canonicalSymbol,
+                country: item.country ?? 'US',
                 exchange: item.exchange ?? '',
                 value: item.last,
                 previousClose,
@@ -484,8 +511,8 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
                 isStale: false,
               },
               create: {
-                symbol,
-                name: item.name ?? symbol,
+                symbol: canonicalSymbol,
+                name: item.name ?? canonicalSymbol,
                 country: item.country ?? 'US',
                 exchange: item.exchange ?? '',
                 value: item.last,
@@ -500,12 +527,48 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
                 lastSource: item.source || scraperName || 'scraper',
               },
             });
+
+            // Write daily history record (upsert to avoid duplicates within same day)
+            const dayTs = new Date();
+            dayTs.setUTCHours(0, 0, 0, 0);
+            await prisma.marketIndexHistory.upsert({
+              where: {
+                symbol_timestamp_interval: {
+                  symbol: canonicalSymbol,
+                  timestamp: dayTs,
+                  interval: '1d',
+                },
+              },
+              update: {
+                value: item.last,
+                open: item.open ?? null,
+                high: item.high ?? item.last,
+                low: item.low ?? item.last,
+                close: item.last,
+                volume: item.volume ?? null,
+                changePercent: item.change_percent ?? 0,
+                source: item.source || scraperName || 'scraper',
+              },
+              create: {
+                symbol: canonicalSymbol,
+                value: item.last,
+                open: item.open ?? null,
+                high: item.high ?? item.last,
+                low: item.low ?? item.last,
+                close: item.last,
+                volume: item.volume ?? null,
+                changePercent: item.change_percent ?? 0,
+                timestamp: dayTs,
+                interval: '1d',
+                source: item.source || scraperName || 'scraper',
+              },
+            });
+
             inserted++;
             break;
           }
           case 'crypto':
             // similar upsert logic could be added here if needed
-            // for now only indices are expected via scraper
             failed++;
             break;
           case 'currencies':
@@ -524,6 +587,16 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
       }
     }
 
+    // Prune history older than the retention window to keep storage lean
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - HISTORY_RETENTION_DAYS);
+    const pruned = await prisma.marketIndexHistory.deleteMany({
+      where: { timestamp: { lt: cutoff } },
+    });
+    if (pruned.count > 0) {
+      console.log(`[Market Ingest] pruned ${pruned.count} history records older than ${HISTORY_RETENTION_DAYS} days`);
+    }
+
     await prisma.scraperRun.update({
       where: { id: run.id },
       data: {
@@ -534,6 +607,7 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
       },
     });
 
+    console.log(`[Market Ingest] completed inserted=${inserted} failed=${failed}`);
     return res.json({ success: true, inserted, failed });
   } catch (err) {
     console.error('[Market Ingest] failure:', err);

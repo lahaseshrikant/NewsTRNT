@@ -21,7 +21,9 @@ class DeliveryService:
     def __init__(self) -> None:
         settings = get_settings()
         self._base_url = settings.admin_backend_url.rstrip("/")
-        self._api_key = settings.engine_api_key
+        # note: admin-backend expects CONTENT_ENGINE_API_KEY in bearer token
+        # ENGINE_API_KEY is for auth when the backend calls the engine itself
+        self._api_key = settings.content_engine_api_key or settings.engine_api_key
         self._client = HttpClient(
             base_url=self._base_url,
             headers={
@@ -44,10 +46,13 @@ class DeliveryService:
             "source": "content-engine",
             "articles": articles,
         }
-
+        
+        logger.debug("Posting articles payload: %s", payload)
         result = await self._client.post_json("/api/articles/ingest", payload)
+        if not result:
+            logger.warning("Article delivery returned empty response")
         delivered = result.get("inserted", len(articles))
-        logger.info("Delivered %d articles to admin-backend", delivered)
+        logger.warning("Delivered %d articles to admin-backend", delivered)
         return result
 
     # ── Market data ──────────────────────────────────────────────────
@@ -62,8 +67,12 @@ class DeliveryService:
             "dataType": "indices",
             "items": items,
         }
+        print(f"Delivering market data payload: {payload}")
+        logger.debug("Posting market payload: %s", payload)
         result = await self._client.post_json("/api/market/ingest", payload)
-        logger.info(
+        if not result:
+            logger.warning("Market delivery returned empty response")
+        logger.warning(
             "Market delivery: %d inserted, %d failed",
             result.get("inserted", 0),
             result.get("failed", 0),

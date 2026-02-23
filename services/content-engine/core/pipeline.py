@@ -116,13 +116,17 @@ class PipelineOrchestrator:
     async def run_market(self, limit: int | None = None, triggered_by: str = "scheduler") -> PipelineRun:
         """Market-only pipeline: scrape TradingView → deliver."""
         run = self._new_run("market_only", triggered_by)
-        logger.info("Pipeline %s started (market)", run.run_id)
-
+        logger.warning("Pipeline %s started (market)", run.run_id)
+        print(f"Market pipeline started with limit={limit}")
         try:
             items = await self.tradingview.fetch_and_format(limit)
             run.articles_scraped = len(items)
-
+            logger.warning("Market pipeline scraped %d items", len(items))
+            print(f"Market pipeline scraped {len(items)} items: {items[:3]}...")
+            # deliver to admin-backend
+            logger.warning("Market pipeline sending %d items to delivery service", len(items))
             result = await self.delivery.deliver_market_data(items)
+            logger.warning("Market pipeline delivery result: %s", result)
             run.articles_delivered = result.get("stats", {}).get("inserted", 0)
             run.status = PipelineStatus.SUCCESS
 

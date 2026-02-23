@@ -87,7 +87,11 @@ export const authenticateToken = async (
   // support a special ingestion API key (bypass admin JWT)
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const maybeKey = authHeader.slice(7);
-    if (maybeKey && maybeKey === process.env.MARKET_INGEST_API_KEY) {
+    if (
+      maybeKey &&
+      (maybeKey === process.env.MARKET_INGEST_API_KEY ||
+        maybeKey === process.env.CONTENT_ENGINE_API_KEY)
+    ) {
       // allow request to continue without populating req.user
       return next();
     }

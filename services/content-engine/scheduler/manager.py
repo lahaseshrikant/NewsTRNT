@@ -54,7 +54,7 @@ class SchedulerManager:
 
         self._scheduler.start()
         self._started_at = datetime.utcnow()
-        logger.info("Scheduler started with %d jobs", len(self._jobs))
+        logger.warning("Scheduler started with %d jobs", len(self._jobs))
 
     async def stop(self) -> None:
         if self._scheduler.running:
@@ -118,7 +118,7 @@ class SchedulerManager:
             self._jobs["news_pipeline"].last_run_at = datetime.utcnow()
         except Exception as exc:
             self._failed_runs += 1
-            logger.error("Scheduled news pipeline failed: %s", exc)
+            logger.warning("Scheduled news pipeline failed: %s", exc)
 
     async def _run_market_pipeline(self) -> None:
         if not self._pipeline:
@@ -134,7 +134,7 @@ class SchedulerManager:
             self._jobs["market_pipeline"].last_run_at = datetime.utcnow()
         except Exception as exc:
             self._failed_runs += 1
-            logger.error("Scheduled market pipeline failed: %s", exc)
+            logger.warning("Scheduled market pipeline failed: %s", exc)
 
     # ── Job management ───────────────────────────────────────────────
 
