@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { articleAPI, type Article } from '@/lib/api';
-import { api } from '@/lib/api-client';
-import UnifiedAdminAuth from '@/lib/admin-auth';
+import { api } from '@/lib/api/api-client';
+import UnifiedAdminAuth from '@/lib/auth/admin-auth';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { useCategories } from '@/hooks/useCategories';
-import { showToast } from '@/lib/toast';
+import { showToast } from '@/lib/utils/toast';
 
 interface Draft {
   id: string;

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 import { API_CONFIG } from '@/config/api';
 const API_URL = API_CONFIG.baseURL;
 

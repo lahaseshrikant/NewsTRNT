@@ -224,7 +224,7 @@ class AuditLogger {
     if (typeof window === 'undefined') return null;
 
     try {
-      const { default: adminAuth } = await import('@/lib/admin-auth');
+      const { default: adminAuth } = await import('@/lib/auth/admin-auth');
       const user = adminAuth.getUser();
       if (!user) {
         return this.log({

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { API_CONFIG } from '@/config/api';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 export interface Notification {
   id: string;
@@ -20,7 +20,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   { id: '2', type: 'warning', title: 'API Rate Limit Warning', message: 'NewsAPI usage at 85% of daily limit', read: false, createdAt: new Date(Date.now() - 1800000).toISOString(), link: '/external-apis', icon: '⚠️' },
   { id: '3', type: 'success', title: 'Backup Complete', message: 'Automatic backup finished successfully', read: false, createdAt: new Date(Date.now() - 7200000).toISOString(), link: '/system/backup', icon: '✅' },
   { id: '4', type: 'system', title: 'System Update Available', message: 'NewsTRNT v2.1.0 is ready to install', read: true, createdAt: new Date(Date.now() - 86400000).toISOString(), icon: '🔄' },
-  { id: '5', type: 'error', title: 'Scraper Error', message: 'Reuters feed scraper failed 3 times', read: true, createdAt: new Date(Date.now() - 172800000).toISOString(), link: '/debug', icon: '🚨' },
+  { id: '5', type: 'error', title: 'Scraper Error', message: 'Reuters feed scraper failed 3 times', read: true, createdAt: new Date(Date.now() - 172800000).toISOString(), link: '/dev-tools/debug', icon: '🚨' },
 ];
 
 export default function NotificationDropdown() {

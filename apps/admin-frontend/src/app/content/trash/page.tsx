@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2, RotateCcw, AlertTriangle, Search, Filter } from 'lucide-react';
-import { showToast } from '@/lib/toast';
+import { showToast } from '@/lib/utils/toast';
 import UnifiedAdminGuard from '@/components/auth/UnifiedAdminGuard';
-import AdminJWTBridge from '@/lib/jwt-auth';
+import AdminJWTBridge from '@/lib/auth/jwt-auth';
 import Breadcrumb from '@/components/layout/Breadcrumb';
-import api from '@/lib/api-client';
+import api from '@/lib/api/api-client';
 
 interface TrashItem {
   id: string;

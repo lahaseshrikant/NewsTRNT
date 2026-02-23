@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/layout/Breadcrumb';
-import MarketWidget from '@/components/MarketWidget';
+import MarketWidget from '@/components/widgets/MarketWidget';
 import { dbApi, Article, Category } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
 import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';

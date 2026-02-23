@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
-import AuditLogger from '@/lib/audit-logger';
+import AuditLogger from '@/lib/utils/audit-logger';
 
 interface SecuritySettings {
   mfa: {

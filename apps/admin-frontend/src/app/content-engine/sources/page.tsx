@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 interface Source {
   name: string;

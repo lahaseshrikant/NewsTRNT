@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom";
 import Breadcrumb from "@/components/layout/Breadcrumb";
 import UnifiedAdminGuard from "@/components/auth/UnifiedAdminGuard";
-import AdminJWTBridge from "@/lib/jwt-auth";
+import AdminJWTBridge from "@/lib/auth/jwt-auth";
 import { showToast } from "@/lib/toast";
 
 // Use Next.js API routes instead of direct backend calls

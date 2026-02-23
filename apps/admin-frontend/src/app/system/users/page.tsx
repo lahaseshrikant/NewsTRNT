@@ -4,9 +4,9 @@
 import React, { useState, useEffect } from 'react';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
 import { ROLE_DEFINITIONS, ROLE_HIERARCHY, Permission, RoleName } from '@/config/rbac';
-import RBACAuth from '@/lib/rbac-auth';
-import ErrorHandler from '@/lib/error-handler';
-import AuditLogger from '@/lib/audit-logger';
+import RBACAuth from '@/lib/auth/rbac-auth';
+import ErrorHandler from '@/lib/utils/error-handler';
+import AuditLogger from '@/lib/utils/audit-logger';
 
 import { API_CONFIG } from '@/config/api';
 const API_URL = API_CONFIG.baseURL;

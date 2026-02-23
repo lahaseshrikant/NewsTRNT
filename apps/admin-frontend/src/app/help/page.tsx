@@ -95,7 +95,7 @@ const GUIDES: { section: string; icon: string; items: Guide[] }[] = [
       { title: 'Site Configuration', description: 'Customize site name, logo, SEO defaults, and feature toggles', link: '/config', icon: '🔧', readTime: '5 min' },
       { title: 'External API Setup', description: 'Connect news feeds, AI services, and third-party integrations', link: '/external-apis', icon: '🔌', readTime: '8 min' },
       { title: 'System Backup & Recovery', description: 'Configure automated backups and restore from snapshots', link: '/system/backup', icon: '💾', readTime: '4 min' },
-      { title: 'Debug & Diagnostics', description: 'Check service health, auth state, and environment configuration', link: '/debug', icon: '🏥', readTime: '3 min' },
+      { title: 'Debug & Diagnostics', description: 'Check service health, auth state, and environment configuration', link: '/dev-tools/debug', icon: '🏥', readTime: '3 min' },
     ]
   },
 ];
@@ -157,8 +157,8 @@ export default function HelpPage() {
           { label: 'Analytics', href: '/analytics', icon: '📊' },
           { label: 'Users', href: '/users', icon: '👥' },
           { label: 'Settings', href: '/system/settings', icon: '⚙️' },
-          { label: 'API Test', href: '/api-test', icon: '🧪' },
-          { label: 'Debug', href: '/debug', icon: '🏥' },
+          { label: 'API Tester', href: '/dev-tools/api-tester', icon: '🧪' },
+          { label: 'Debug', href: '/dev-tools/debug', icon: '🏥' },
         ].map(link => (
           <Link
             key={link.href}
@@ -292,13 +292,13 @@ export default function HelpPage() {
                 Email Support
               </a>
               <Link
-                href="/debug"
+                href="/dev-tools/debug"
                 className="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl text-sm font-medium hover:bg-muted/50 transition-colors"
               >
                 System Diagnostics
               </Link>
               <Link
-                href="/api-test"
+                href="/dev-tools/api-tester"
                 className="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl text-sm font-medium hover:bg-muted/50 transition-colors"
               >
                 API Health

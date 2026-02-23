@@ -32,21 +32,21 @@ class ApiClient {
 
       return await response.json();
     } catch (error) {
-      console.warn(`Backend API not available (${endpoint}), falling back to mock data:`, error);
+      console.warn(`Backend API not available (${endpoint}), falling back to legacy DB client:`, error);
       
-      // Fallback to mock data when backend is not available
+      // Fallback to legacy DB client when backend is not available
       if (process.env.NODE_ENV === 'development') {
-        const { dbApi: mockApi } = await import('./mock-data');
+        const { dbApi: legacyApi } = await import('./legacy-db-client');
         
-        // Map API endpoints to mock functions
+        // Map API endpoints to legacy DB functions
         if (endpoint.includes('/articles')) {
           if (endpoint.includes('featured')) {
-            const result = await mockApi.getFeaturedArticles();
+            const result = await legacyApi.getFeaturedArticles();
             return result.data as unknown as T;
           }
           if (endpoint.includes('breaking')) {
             // Use trending articles as breaking news fallback
-            const result = await mockApi.getTrendingArticles();
+            const result = await legacyApi.getTrendingArticles();
             return result.data as unknown as T;
           }
           if (endpoint.includes('/category/')) {
@@ -54,7 +54,7 @@ class ApiClient {
             const slugMatch = endpoint.match(/\/category\/([^?]+)/);
             if (slugMatch) {
               const categorySlug = slugMatch[1];
-              const result = await mockApi.getArticlesByCategory(categorySlug);
+              const result = await legacyApi.getArticlesByCategory(categorySlug);
               return result.data as unknown as T;
             }
           }
@@ -63,17 +63,17 @@ class ApiClient {
             const queryMatch = endpoint.match(/[?&]q=([^&]+)/);
             if (queryMatch) {
               const searchQuery = decodeURIComponent(queryMatch[1]);
-              const result = await mockApi.searchArticles(searchQuery);
+              const result = await legacyApi.searchArticles(searchQuery);
               return result.data as unknown as T;
             }
           }
           // Default: return all articles
-          const result = await mockApi.getArticles();
+          const result = await legacyApi.getArticles();
           return result.data as unknown as T;
         }
         
         if (endpoint.includes('/categories')) {
-          const result = await mockApi.getCategories();
+          const result = await legacyApi.getCategories();
           return result.data as unknown as T;
         }
       }

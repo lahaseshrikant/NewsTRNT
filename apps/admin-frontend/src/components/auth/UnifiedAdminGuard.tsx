@@ -5,7 +5,7 @@
 
 import { ReactNode, useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import adminAuth, { AdminUser } from '@/lib/admin-auth';
+import adminAuth, { AdminUser } from '@/lib/auth/admin-auth';
 
 interface UnifiedAdminGuardProps {
   children: ReactNode;

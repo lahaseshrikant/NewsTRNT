@@ -7,10 +7,10 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
 import { ROLES, ROLE_HIERARCHY, ROLE_DEFINITIONS, UserRole } from '@/config/rbac';
-import AuditLogger from '@/lib/audit-logger';
-import ErrorHandler from '@/lib/error-handler';
-import RBACAuth from '@/lib/rbac-auth';
-import { getEmailString } from '@/lib/utils';
+import AuditLogger from '@/lib/utils/audit-logger';
+import ErrorHandler from '@/lib/utils/error-handler';
+import RBACAuth from '@/lib/auth/rbac-auth';
+import { getEmailString } from '@/lib/utils/utils';
 
 import { API_CONFIG } from '@/config/api';
 const API_URL = API_CONFIG.baseURL;

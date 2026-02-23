@@ -3,9 +3,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
-import AuditLogger from '@/lib/audit-logger';
+import AuditLogger from '@/lib/utils/audit-logger';
 import { ROLE_DEFINITIONS, ROLE_HIERARCHY, RoleName } from '@/config/rbac';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 import { API_CONFIG } from '@/config/api';
 const API_URL = API_CONFIG.baseURL;
 

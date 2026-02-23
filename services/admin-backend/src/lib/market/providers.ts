@@ -1,5 +1,6 @@
-// Real Market Data Integration
-// Fetches live data from multiple market data APIs
+// Market Data Providers
+// Fetches live data from multiple market data APIs (Alpha Vantage, Finnhub,
+// MarketStack, Twelve Data, FMP, CoinGecko, Exchange Rate API, etc.)
 
 import { MarketIndex, Commodity } from '@/types/market';
 // tradingview snapshot no longer used; connectivity test replaced by scraper service check

@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/auth/RouteGuard';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 interface AdCampaign {
   id: string;

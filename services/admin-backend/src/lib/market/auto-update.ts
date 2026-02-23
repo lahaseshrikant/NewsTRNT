@@ -3,14 +3,14 @@
 // Runs updates based on data type (crypto: 2min, indices: 5min, currencies: 15min)
 // Now fetches active symbols from database configuration
 
-import prisma from '../config/database';
+import prisma from '../../config/database';
 import { 
   updateStockIndices, 
   updateCryptocurrencies, 
   updateCurrencyRates,
   updateCommodities
-} from './market-cache';
-import { getActiveSymbols } from './market-config';
+} from './cache';
+import { getActiveSymbols } from './config';
 // scraper-runner removed; external scraping service will post to /api/market/ingest
 
 

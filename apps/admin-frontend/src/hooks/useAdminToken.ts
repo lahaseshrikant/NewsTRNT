@@ -1,6 +1,6 @@
 'use client';
 
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 /**
  * Hook to get the admin authentication token

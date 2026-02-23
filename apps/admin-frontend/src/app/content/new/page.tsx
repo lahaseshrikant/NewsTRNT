@@ -7,7 +7,7 @@ import { articleAPI, type Article } from '@/lib/api';
 import { API_CONFIG } from '@/config/api';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import ArticlePreview from '@/components/editors/ArticlePreview';
-import { showToast } from '@/lib/toast';
+import { showToast } from '@/lib/utils/toast';
 import { useCategories } from '@/hooks/useCategories';
 
 interface ArticleForm {

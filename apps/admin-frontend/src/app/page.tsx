@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import UnifiedAdminGuard from '@/components/auth/UnifiedAdminGuard';
-import adminAuth from '@/lib/admin-auth';
-import { adminClient } from '@/lib/admin-client';
+import adminAuth from '@/lib/auth/admin-auth';
+import { adminClient } from '@/lib/api/admin-client';
 
 interface AdminStats {
   // Detailed metric objects (include growth info)

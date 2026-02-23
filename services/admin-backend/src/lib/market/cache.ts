@@ -2,7 +2,7 @@
 // These functions write fresh market data into the Prisma database.
 // The route handlers then read from the same tables to serve users.
 
-import prisma from '../config/database';
+import prisma from '../../config/database';
 import {
   fetchIndexFromAlphaVantage,
   fetchIndexFromFinnhub,
@@ -12,7 +12,7 @@ import {
   fetchCryptoFromCoinGecko,
   fetchExchangeRates,
   fetchCommodityPrice,
-} from './real-market-data';
+} from './providers';
 // The backend no longer performs any TradingView scraping itself.  When
 // providers fail we notify the external scraper service via
 // SCRAPER_SERVICE_URL.

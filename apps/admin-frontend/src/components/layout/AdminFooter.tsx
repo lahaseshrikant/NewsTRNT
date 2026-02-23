@@ -16,8 +16,8 @@ const AdminFooter: React.FC = () => {
 
   const supportLinks = [
     { name: 'Help Center', href: '/help' },
-    { name: 'API Docs', href: '/api-test' },
-    { name: 'Debug Tools', href: '/debug' },
+    { name: 'API Tester', href: '/dev-tools/api-tester' },
+    { name: 'Debug Tools', href: '/dev-tools/debug' },
   ];
 
   return (

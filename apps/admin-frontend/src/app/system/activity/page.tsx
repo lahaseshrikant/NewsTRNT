@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
-import AuditLogger, { AuditLogEntry } from '@/lib/audit-logger';
-import { getEmailString } from '@/lib/utils';
+import AuditLogger, { AuditLogEntry } from '@/lib/utils/audit-logger';
+import { getEmailString } from '@/lib/utils/utils';
 
 function ActivityMonitoringContent() {
   const [stats, setStats] = useState<ReturnType<typeof AuditLogger.getStats> | null>(null);

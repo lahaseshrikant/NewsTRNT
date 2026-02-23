@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import UnifiedAdminGuard from '@/components/auth/UnifiedAdminGuard';
 import AdminLayoutContent from '@/components/layout/AdminLayoutContent';
-import { showToast } from '@/lib/toast';
+import { showToast } from '@/lib/utils/toast';
 
 export default function AdminClientWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

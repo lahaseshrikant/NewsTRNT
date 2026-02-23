@@ -25,16 +25,18 @@ import { errorHandler } from './middleware/errorHandler';
 import { initializeDatabase, closeDatabase } from './config/database';
 
 // Import market services
-import { startMarketDataUpdates, stopMarketDataUpdates } from './lib/market-auto-update';
+import { startMarketDataUpdates, stopMarketDataUpdates } from './lib/market/auto-update';
 
 // Load environment
 dotenv.config({ path: '.env' });
 
-console.log('📧 Environment loaded:', {
-  hasDB: !!process.env.DATABASE_URL,
-  hasJWT: !!process.env.JWT_SECRET,
-  nodeEnv: process.env.NODE_ENV || 'development',
-});
+// sanity check for content-engine integration
+if (!process.env.CONTENT_ENGINE_API_KEY) {
+  console.warn('[Config] CONTENT_ENGINE_API_KEY is not set; requests to the content-engine will be unauthenticated and likely fail.');
+}
+if (!process.env.CONTENT_ENGINE_URL) {
+  console.warn('[Config] CONTENT_ENGINE_URL is not set; content-engine proxy has no target URL.');
+}
 
 const app = express();
 const PORT = process.env.PORT || 5002;
@@ -98,7 +100,6 @@ const start = async () => {
 
   app.listen(PORT, () => {
     console.log(`🚀 admin-backend running on http://localhost:${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
 
     // Start market data auto-update service. Whether updates actually execute
     // is governed by the global `site_maintenance` system setting (toggled

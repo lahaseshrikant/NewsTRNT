@@ -455,13 +455,13 @@ export const ADMIN_NAVIGATION: NavItem[] = [
   {
     id: 'developer',
     label: 'Developer Tools',
-    href: '/debug',
+    href: '/dev-tools/debug',
     icon: '🛠️',
     requiredRole: 'SUPER_ADMIN',
     description: 'Developer and debugging tools',
     children: [
-      { id: 'debug', label: 'Debug Console', href: '/debug', icon: '🐛', requiredRole: 'SUPER_ADMIN' },
-      { id: 'api-test', label: 'API Tester', href: '/api-test', icon: '🧪', requiredRole: 'SUPER_ADMIN' },
+      { id: 'debug', label: 'Debug Console', href: '/dev-tools/debug', icon: '🐛', requiredRole: 'SUPER_ADMIN' },
+      { id: 'api-tester', label: 'API Tester', href: '/dev-tools/api-tester', icon: '🧪', requiredRole: 'SUPER_ADMIN' },
       { id: 'help', label: 'Help & Docs', href: '/help', icon: '❓', requiredPermissions: ['dashboard.view'] }
     ]
   }

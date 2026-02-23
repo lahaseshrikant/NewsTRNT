@@ -12,7 +12,7 @@ import {
   UserRole,
   Permission
 } from '@/config/rbac';
-import AuditLogger from '@/lib/audit-logger';
+import AuditLogger from '@/lib/utils/audit-logger';
 
 interface RolePermissions {
   role: UserRole;

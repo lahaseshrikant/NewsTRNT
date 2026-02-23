@@ -1,5 +1,5 @@
 #!/usr/bin/env ts-node
-import { updateStockIndices, updateCryptocurrencies, updateCurrencyRates, updateCommodities } from '../lib/market-cache';
+import { updateStockIndices, updateCryptocurrencies, updateCurrencyRates, updateCommodities } from '../lib/market/cache';
 
 async function run() {
   console.log('Starting manual market update...');

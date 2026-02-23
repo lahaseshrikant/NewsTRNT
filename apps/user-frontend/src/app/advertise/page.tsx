@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { DivergenceMark } from '@/components/ui/DivergenceMark';
-import ContactInfo from '@/components/ContactInfo';
+import ContactInfo from '@/components/ui/ContactInfo';
 import { siteConfig, getContactByDepartment } from '@/config/site';
 
 const AdvertisePage: React.FC = () => {

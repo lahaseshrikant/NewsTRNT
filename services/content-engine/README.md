@@ -153,6 +153,7 @@ Base URL: `http://localhost:8000/api/v1`
 | `ENGINE_PORT` | No | `8000` | Server port |
 | `ENGINE_HOST` | No | `0.0.0.0` | Bind address |
 | `ENGINE_API_KEY` | **Yes** | — | API key for incoming requests |
+| | | | *(must match `CONTENT_ENGINE_API_KEY` in admin-backend)*
 | `ENGINE_ENV` | No | `development` | Environment (development/production) |
 | `ENGINE_LOG_LEVEL` | No | `INFO` | Log level (DEBUG/INFO/WARNING/ERROR) |
 | `ENGINE_WORKERS` | No | `1` | Uvicorn worker count |

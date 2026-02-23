@@ -1,7 +1,7 @@
 // src/lib/site-config-cache.ts
 // Note: This is a frontend cache module - it fetches from API endpoints
 
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 interface CachedConfig {
   allData: Record<string, any>;  // All config data

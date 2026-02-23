@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import RBACAuth from '@/lib/rbac-auth';
+import RBACAuth from '@/lib/auth/rbac-auth';
 import { ADMIN_NAVIGATION, NavItem, ROLES, UserRole, RBACUtils } from '@/config/rbac';
-import { getEmailString } from '@/lib/utils';
+import { getEmailString } from '@/lib/utils/utils';
 import { useTheme } from '@/contexts/ThemeContext';
 import { RoleBadge, CurrentUserRole, useRBAC } from '@/components/rbac';
 import AdminFooter from './AdminFooter';

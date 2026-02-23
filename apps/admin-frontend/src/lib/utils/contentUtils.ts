@@ -1,4 +1,4 @@
-import { Article } from '@/lib/content-api';
+import { Article } from '@/lib/api/content-api';
 
 /**
  * Get the correct URL for an article based on its contentType

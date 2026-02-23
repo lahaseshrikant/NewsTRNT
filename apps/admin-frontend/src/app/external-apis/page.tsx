@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { API_CONFIG } from '@/config/api';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 interface ApiIntegration {
   id: string;

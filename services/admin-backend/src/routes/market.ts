@@ -6,13 +6,13 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../config/database';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
-import { getServiceStatus } from '../lib/market-auto-update';
+import { getServiceStatus } from '../lib/market/auto-update';
 import {
   updateStockIndices,
   updateCryptocurrencies,
   updateCurrencyRates,
   updateCommodities,
-} from '../lib/market-cache';
+} from '../lib/market/cache';
 
 const router = Router();
 
@@ -303,14 +303,14 @@ router.post('/auto-update', async (req: AuthRequest, res: Response) => {
       case 'update-intervals':
         if (intervals && typeof intervals === 'object') {
           // apply intervals to running service
-          const { updateIntervals } = await import('../lib/market-auto-update');
+          const { updateIntervals } = await import('../lib/market/auto-update');
           await updateIntervals(intervals);
         }
         break;
 
       case 'run-tradingview-scraper':
         // trigger scraper service via runner helper
-        const { runTradingViewScraper } = await import('../lib/tradingview-runner');
+        const { runTradingViewScraper } = await import('../lib/market/tradingview-runner');
         await runTradingViewScraper();
         break;
 
@@ -430,7 +430,7 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
   const apiKey = authHeader && authHeader.startsWith('Bearer ')
     ? authHeader.slice(7)
     : null;
-
+  console.log("----------------------------SHRIKANT------------------------------")
   if (req.user == null && apiKey !== process.env.MARKET_INGEST_API_KEY) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }

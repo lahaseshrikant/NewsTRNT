@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Breadcrumb from '@/components/layout/Breadcrumb';
-import RBACAuth from '@/lib/rbac-auth';
-import ErrorHandler from '@/lib/error-handler';
+import RBACAuth from '@/lib/auth/rbac-auth';
+import ErrorHandler from '@/lib/utils/error-handler';
 
 import { API_CONFIG } from '@/config/api';
 const API_URL = API_CONFIG.baseURL;

@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { siteConfig } from '@/config/site';
 import Breadcrumb from '@/components/layout/Breadcrumb';
-import { showToast } from '@/lib/toast';
-import adminAuth from '@/lib/admin-auth';
+import { showToast } from '@/lib/utils/toast';
+import adminAuth from '@/lib/auth/admin-auth';
 import { API_CONFIG } from '@/config/api';
 
 const API_BASE_URL = API_CONFIG.baseURL;

@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/layout/Breadcrumb';
-import { getEmailString } from '@/lib/utils';
+import { getEmailString } from '@/lib/utils/utils';
 import { API_CONFIG } from '@/config/api';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 interface Subscriber {
   id: string;

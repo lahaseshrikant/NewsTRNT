@@ -3,8 +3,8 @@
 
 import React, { useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import adminAuth from '@/lib/admin-auth';
-import RBACAuth from '@/lib/rbac-auth';
+import adminAuth from '@/lib/auth/admin-auth';
+import RBACAuth from '@/lib/auth/rbac-auth';
 import { Permission, UserRole, ADMIN_NAVIGATION, RBACUtils, NavItem } from '@/config/rbac';
 import { PermissionDenied } from '@/components/rbac';
 

@@ -32,10 +32,12 @@ async function proxyGet(path: string): Promise<any> {
 
 async function proxyPost(path: string, body: any = {}): Promise<any> {
   const url = `${ENGINE_URL()}/api/v1${path}`;
+  const key = ENGINE_KEY();
+  console.log(`[Proxy] POST ${url} with key: ${key ? 'set' : 'missing'}`);
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      'X-API-Key': ENGINE_KEY(),
+      'X-API-Key': key,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),

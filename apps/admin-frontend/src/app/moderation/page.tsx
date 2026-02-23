@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Breadcrumb from '@/components/layout/Breadcrumb';
-import adminAuth from '@/lib/admin-auth';
-import { showToast } from '@/lib/toast';
-import { getEmailString } from '@/lib/utils';
+import adminAuth from '@/lib/auth/admin-auth';
+import { showToast } from '@/lib/utils/toast';
+import { getEmailString } from '@/lib/utils/utils';
 import { API_CONFIG } from '@/config/api';
 
 const API_BASE_URL = API_CONFIG.baseURL;

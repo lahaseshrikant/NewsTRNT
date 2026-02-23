@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
 import { ROLES, UserRole, Permission, RoleConfig } from '@/config/rbac';
-import AuditLogger from '@/lib/audit-logger';
+import AuditLogger from '@/lib/utils/audit-logger';
 
 // Permission categories for display
 const PERMISSION_CATEGORIES: Record<string, { label: string; permissions: Permission[] }> = {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import adminAuth, { AdminUser } from '@/lib/admin-auth';
+import adminAuth, { AdminUser } from '@/lib/auth/admin-auth';
 import { API_CONFIG } from '@/config/api';
 
 export default function ProfilePage() {

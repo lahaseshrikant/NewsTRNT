@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
-import AuditLogger, { AuditLogEntry, AuditAction, AuditSeverity } from '@/lib/audit-logger';
-import { getEmailString } from '@/lib/utils';
+import AuditLogger, { AuditLogEntry, AuditAction, AuditSeverity } from '@/lib/utils/audit-logger';
+import { getEmailString } from '@/lib/utils/utils';
 
 function AuditLogsContent() {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);

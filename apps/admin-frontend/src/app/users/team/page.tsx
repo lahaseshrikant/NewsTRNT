@@ -6,9 +6,9 @@ import Link from 'next/link';
 import { AdminRoute } from '@/components/auth/RouteGuard';
 import { useRBAC, RoleBadge, PermissionGate, SuperAdminOnly } from '@/components/rbac';
 import { UserRole, ROLES } from '@/config/rbac';
-import { getEmailString } from '@/lib/utils';
+import { getEmailString } from '@/lib/utils/utils';
 import { API_CONFIG } from '@/config/api';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 interface TeamMember {
   id: string;

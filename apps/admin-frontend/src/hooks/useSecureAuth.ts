@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { SecurityManager } from '@/lib/security';
+import { SecurityManager } from '@/lib/auth/security';
 
 interface User {
   id: string;

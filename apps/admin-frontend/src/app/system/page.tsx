@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Breadcrumb from '@/components/layout/Breadcrumb';
-import { showToast } from '@/lib/toast';
+import { showToast } from '@/lib/utils/toast';
 import UnifiedAdminGuard from '@/components/auth/UnifiedAdminGuard';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 interface SystemSetting {
   id: string;

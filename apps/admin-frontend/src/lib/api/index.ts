@@ -1,5 +1,5 @@
 // src/lib/api/index.ts - API client with authentication
-import adminAuth from '../admin-auth';
+import adminAuth from '../auth/admin-auth';
 
 // Types
 export interface Article {

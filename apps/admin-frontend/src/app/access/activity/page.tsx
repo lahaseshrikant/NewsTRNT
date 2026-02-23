@@ -6,9 +6,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
 import { ROLE_DEFINITIONS, ROLE_HIERARCHY, UserRole } from '@/config/rbac';
-import { getEmailString } from '@/lib/utils';
+import { getEmailString } from '@/lib/utils/utils';
 import { API_CONFIG } from '@/config/api';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 const API_BASE_URL = API_CONFIG.baseURL;
 

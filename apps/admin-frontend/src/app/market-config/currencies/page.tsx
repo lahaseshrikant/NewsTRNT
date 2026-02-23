@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 interface CurrencyPairConfig {
   id: string;

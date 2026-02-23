@@ -3,8 +3,8 @@
 
 import React, { ReactNode, useMemo, useState, useEffect } from 'react';
 import { Permission, UserRole, ROLES, RBACUtils, ADMIN_NAVIGATION } from '@/config/rbac';
-import RBACAuth, { EnhancedAdminSession } from '@/lib/rbac-auth';
-import { getEmailString } from '@/lib/utils';
+import RBACAuth, { EnhancedAdminSession } from '@/lib/auth/rbac-auth';
+import { getEmailString } from '@/lib/utils/utils';
 
 interface PermissionGateProps {
   permission: Permission | Permission[];

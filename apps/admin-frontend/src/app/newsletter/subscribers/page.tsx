@@ -3,9 +3,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { AdminRoute } from '@/components/auth/RouteGuard';
-import { getEmailString } from '@/lib/utils';
+import { getEmailString } from '@/lib/utils/utils';
 import { API_CONFIG } from '@/config/api';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 const API_BASE_URL = API_CONFIG.baseURL;
 

@@ -36,6 +36,11 @@ from scheduler.manager import SchedulerManager
 
 settings = get_settings()
 
+# sanity-check critical environment variables
+if not settings.engine_api_key:
+    logger = logging.getLogger("content-engine")
+    logger.warning("ENGINE_API_KEY is not configured; incoming requests will be rejected unless running in development with no key set")
+
 # ── Logging setup ─────────────────────────────────────────────
 logging.basicConfig(
     level=getattr(logging, settings.log_level, logging.INFO),

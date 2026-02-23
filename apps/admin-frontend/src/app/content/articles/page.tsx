@@ -7,7 +7,7 @@ import UnifiedAdminGuard from '@/components/auth/UnifiedAdminGuard';
 import { articleAPI } from '@/lib/api';
 import { useCategories } from '@/hooks/useCategories';
 import { Category } from '@/types/api';
-import { showToast } from '@/lib/toast';
+import { showToast } from '@/lib/utils/toast';
 
 interface Article {
   id: string;

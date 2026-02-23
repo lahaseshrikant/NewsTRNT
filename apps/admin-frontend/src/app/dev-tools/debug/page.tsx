@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { API_CONFIG } from '@/config/api';
-import adminAuth from '@/lib/admin-auth';
+import adminAuth from '@/lib/auth/admin-auth';
 
 interface HealthCheck {
   service: string;
@@ -176,7 +176,7 @@ export default function DebugPage() {
             🗑️ Clear LocalStorage
           </button>
           <button
-            onClick={() => window.location.href = '/api-test'}
+            onClick={() => window.location.href = '/dev-tools/api-tester'}
             className="px-4 py-2 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors border border-blue-200 dark:border-blue-800"
           >
             🧪 API Test Dashboard

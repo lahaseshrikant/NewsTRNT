@@ -1,11 +1,13 @@
-// Database connection utility for NewsTRNT
+// Legacy Supabase DB client for NewsTRNT
+// Used as a development-only fallback when the admin backend is unavailable.
+// The primary data path is now through the Express admin-backend API.
 import { createClient } from '@supabase/supabase-js'
 
-// Supabase configuration (we'll use Neon instead for better PostgreSQL features)
+// Supabase configuration (legacy — production uses Neon via Prisma in the backend)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-// For now, let's create a simple database interface that works with any PostgreSQL
+// Simple database interface for PostgreSQL
 export interface Article {
   id: string
   title: string

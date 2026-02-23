@@ -1,7 +1,7 @@
 // Market configuration — reads directly from Prisma database
 // No HTTP calls — this is backend code with direct DB access
 
-import prisma from '../config/database';
+import prisma from '../../config/database';
 
 /**
  * Get all active market indices from DB

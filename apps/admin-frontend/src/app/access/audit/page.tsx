@@ -6,8 +6,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { SuperAdminRoute } from '@/components/auth/RouteGuard';
 import { ROLE_DEFINITIONS, UserRole } from '@/config/rbac';
-import AuditLogger, { AuditLogEntry, AuditAction, AuditSeverity } from '@/lib/audit-logger';
-import { getEmailString } from '@/lib/utils';
+import AuditLogger, { AuditLogEntry, AuditAction, AuditSeverity } from '@/lib/utils/audit-logger';
+import { getEmailString } from '@/lib/utils/utils';
 
 import { API_CONFIG } from '@/config/api';
 const API_BASE_URL = API_CONFIG.baseURL;
