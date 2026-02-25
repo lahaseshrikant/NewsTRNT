@@ -99,23 +99,90 @@ router.get('/crypto', async (req: Request, res: Response) => {
 
 /**
  * GET /api/market/currencies
- * Get all cached currency rates
+ * Returns exchange rates keyed to the pairs defined in CurrencyPairConfig.
+ *
+ * Rates stored in CurrencyRate are always in "units per 1 USD" (rateToUSD).
+ * For a pair BASE/QUOTE the live rate is:
+ *   rate = rateToUSD[QUOTE] / rateToUSD[BASE]
+ * e.g.  USD/INR  → rateToUSD[INR] / 1     = 85.5   → "1 USD = 85.5 INR"
+ *       EUR/USD  → 1 / rateToUSD[EUR]     = 1.087  → "1 EUR = 1.087 USD"
+ *       EUR/GBP  → rateToUSD[GBP] / rateToUSD[EUR] → cross rate
  */
 router.get('/currencies', async (req: Request, res: Response) => {
   try {
-    const rates = await prisma.currencyRate.findMany({
-      orderBy: { currency: 'asc' },
+    // 1. All configured pairs (sorted by sortOrder)
+    const pairs = await prisma.currencyPairConfig.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
     });
-    
-    // Check if data needs refresh
-    const needsUpdate = rates.length === 0 || 
-      (rates[0] && isDataStale(rates[0].lastUpdated, CACHE_DURATION.currencies));
-    
+
+    // 2. All individual currency rates (base-vs-USD cache)
+    const rawRates = await prisma.currencyRate.findMany();
+
+    // Build a quick lookup: ISO code → CurrencyRate row
+    const rateMap = new Map<string, typeof rawRates[0]>();
+    for (const r of rawRates) {
+      rateMap.set(r.currency.toUpperCase(), r);
+    }
+
+    // staleness check
+    const mostRecentUpdate = rawRates.length
+      ? rawRates.reduce((prev, cur) => (cur.lastUpdated > prev.lastUpdated ? cur : prev)).lastUpdated
+      : new Date(0);
+    const needsUpdate = rawRates.length === 0 || isDataStale(mostRecentUpdate, CACHE_DURATION.currencies);
+
+    // 3. Build formatted pair objects
+    const formatted = pairs.map((pair, idx) => {
+      const baseRow = rateMap.get(pair.base.toUpperCase());
+      const quoteRow = rateMap.get(pair.quote.toUpperCase());
+
+      // Both sides must have data; otherwise rate = null
+      const baseRateToUSD  = baseRow?.rateToUSD  ?? 0;
+      const quoteRateToUSD = quoteRow?.rateToUSD ?? 0;
+
+      let rate: number | null = null;
+      let changePercent: number | null = null;
+
+      if (baseRateToUSD > 0 && quoteRateToUSD > 0) {
+        rate = quoteRateToUSD / baseRateToUSD;
+
+        // Approximate changePercent using quote currency's change data
+        // (more accurate than no data at all)
+        if (quoteRow?.changePercent != null) {
+          changePercent = quoteRow.changePercent;
+        }
+
+        // If both have previous rates, compute a true cross-rate change
+        const basePrev  = baseRow?.previousRate  ?? baseRateToUSD;
+        const quotePrev = quoteRow?.previousRate ?? quoteRateToUSD;
+        if (basePrev > 0 && quotePrev > 0) {
+          const prevRate = quotePrev / basePrev;
+          if (prevRate > 0) {
+            changePercent = ((rate - prevRate) / prevRate) * 100;
+          }
+        }
+      }
+
+      return {
+        id: pair.id,
+        pair: pair.pair,            // "USD/INR"
+        name: pair.name,            // "US Dollar vs Indian Rupee"
+        baseCurrency: pair.base,
+        quoteCurrency: pair.quote,
+        type: pair.type,            // "major" | "cross" | "emerging"
+        rate: rate ?? 0,
+        change: changePercent != null ? (rate ?? 0) - ((quoteRow?.previousRate ?? 0) / (baseRow?.previousRate ?? 1)) : 0,
+        changePercent: changePercent ?? 0,
+        isPopular: pair.type === 'major',
+        lastUpdated: quoteRow?.lastUpdated ?? mostRecentUpdate,
+      };
+    });
+
     res.json({
       success: true,
-      data: rates,
+      data: formatted,
       needsUpdate,
-      count: rates.length,
+      count: formatted.length,
     });
   } catch (error) {
     console.error('[Market API] Error fetching currency rates:', error);
@@ -231,7 +298,7 @@ router.get('/by-country/:country', async (req: Request, res: Response) => {
   try {
     const { country } = req.params;
     
-    const [indices, commodities, currencies, cryptos] = await Promise.all([
+    const [indices, commodities, pairs, rawRates, cryptos] = await Promise.all([
       prisma.marketIndex.findMany({
         where: { country: { equals: country, mode: 'insensitive' } },
         orderBy: { symbol: 'asc' },
@@ -239,15 +306,63 @@ router.get('/by-country/:country', async (req: Request, res: Response) => {
       prisma.commodity.findMany({
         orderBy: { symbol: 'asc' },
       }),
-      prisma.currencyRate.findMany({
-        orderBy: { currency: 'asc' },
+      prisma.currencyPairConfig.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: 'asc' },
       }),
+      prisma.currencyRate.findMany(),
       prisma.cryptocurrency.findMany({
         orderBy: { marketCap: 'desc' },
         take: 10,
       }),
     ]);
-    
+
+    // Build pair-based currency data (same logic as /currencies endpoint)
+    const rateMap = new Map<string, typeof rawRates[0]>();
+    for (const r of rawRates) {
+      rateMap.set(r.currency.toUpperCase(), r);
+    }
+
+    const currencies = pairs.map((pair) => {
+      const baseRow = rateMap.get(pair.base.toUpperCase());
+      const quoteRow = rateMap.get(pair.quote.toUpperCase());
+
+      const baseRateToUSD  = baseRow?.rateToUSD  ?? 0;
+      const quoteRateToUSD = quoteRow?.rateToUSD ?? 0;
+
+      let rate: number | null = null;
+      let changePercent: number | null = null;
+
+      if (baseRateToUSD > 0 && quoteRateToUSD > 0) {
+        rate = quoteRateToUSD / baseRateToUSD;
+
+        const basePrev  = baseRow?.previousRate  ?? baseRateToUSD;
+        const quotePrev = quoteRow?.previousRate ?? quoteRateToUSD;
+        if (basePrev > 0 && quotePrev > 0) {
+          const prevRate = quotePrev / basePrev;
+          if (prevRate > 0) {
+            changePercent = ((rate - prevRate) / prevRate) * 100;
+          }
+        }
+      }
+
+      return {
+        id: pair.id,
+        pair: pair.pair,
+        name: pair.name,
+        baseCurrency: pair.base,
+        quoteCurrency: pair.quote,
+        type: pair.type,
+        rate: rate ?? 0,
+        change: changePercent != null && rate != null
+          ? rate - ((quoteRow?.previousRate ?? 0) / (baseRow?.previousRate ?? 1))
+          : 0,
+        changePercent: changePercent ?? 0,
+        isPopular: pair.type === 'major',
+        lastUpdated: quoteRow?.lastUpdated ?? new Date(),
+      };
+    });
+
     res.json({
       success: true,
       data: {

@@ -9,6 +9,9 @@ import { dbApi, Article, Category } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
 import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 import { getCategoryTheme } from '@/config/categoryThemes';
+import { useMarketData } from '@/hooks/useMarketData';
+import QuickCurrencyConverter from '@/components/widgets/QuickCurrencyConverter';
+import MarketMovers from '@/components/widgets/MarketMovers';
 import AdSlot from '@/components/ui/AdSlot';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
@@ -28,6 +31,9 @@ const BusinessPage: React.FC = () => {
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<Category | null>(null);
+
+  // Live market data from API
+  const { indices, currencies, commodities, cryptocurrencies, isLoading: marketLoading } = useMarketData();
 
   useEffect(() => {
     const loadData = async () => {
@@ -57,22 +63,62 @@ const BusinessPage: React.FC = () => {
   ];
 
   const sortOptions = [
-    { value: 'latest', label: 'Latest', icon: '🕐' },
-    { value: 'trending', label: 'Trending', icon: '🔥' },
-    { value: 'popular', label: 'Popular', icon: '⭐' },
-    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+    { value: 'latest', label: 'Latest' },
+    { value: 'trending', label: 'Trending' },
+    { value: 'popular', label: 'Popular' },
+    { value: 'breaking', label: 'Breaking' }
   ];
 
-  const marketTickerItems = [
-    { symbol: 'S&P 500', value: '5,234.18', change: '+0.8%', up: true },
-    { symbol: 'NASDAQ', value: '16,742.39', change: '+1.2%', up: true },
-    { symbol: 'DOW', value: '39,512.84', change: '+0.4%', up: true },
-    { symbol: 'BTC', value: '$67,245', change: '-2.1%', up: false },
-    { symbol: 'EUR/USD', value: '1.0847', change: '+0.1%', up: true },
-    { symbol: 'GOLD', value: '$2,342.50', change: '+0.6%', up: true },
-    { symbol: 'OIL', value: '$78.43', change: '-0.9%', up: false },
-    { symbol: 'NIFTY', value: '22,456.80', change: '+0.5%', up: true },
-  ];
+  // Build live ticker items from real market data
+  const liveTickerItems = React.useMemo(() => {
+    const items: { symbol: string; value: string; change: string; up: boolean }[] = [];
+
+    // Add top indices
+    indices.slice(0, 3).forEach(idx => {
+      items.push({
+        symbol: idx.name || idx.symbol,
+        value: idx.value?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '—',
+        change: `${(idx.changePercent ?? 0) >= 0 ? '+' : ''}${(idx.changePercent ?? 0).toFixed(2)}%`,
+        up: (idx.changePercent ?? 0) >= 0,
+      });
+    });
+
+    // Add top crypto
+    cryptocurrencies.slice(0, 1).forEach(c => {
+      items.push({
+        symbol: c.symbol || c.name,
+        value: `$${c.value?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '—'}`,
+        change: `${(c.changePercent ?? 0) >= 0 ? '+' : ''}${(c.changePercent ?? 0).toFixed(2)}%`,
+        up: (c.changePercent ?? 0) >= 0,
+      });
+    });
+
+    // Add currencies
+    currencies.slice(0, 2).forEach(cur => {
+      const decimals = cur.rate >= 10 ? 2 : 4;
+      items.push({
+        symbol: cur.pair || `${cur.baseCurrency}/${cur.quoteCurrency}`,
+        value: cur.rate?.toFixed(decimals) ?? '—',
+        change: `${(cur.changePercent ?? 0) >= 0 ? '+' : ''}${(cur.changePercent ?? 0).toFixed(2)}%`,
+        up: (cur.changePercent ?? 0) >= 0,
+      });
+    });
+
+    // Add top commodities
+    commodities.slice(0, 2).forEach(com => {
+      items.push({
+        symbol: com.name || com.symbol,
+        value: `$${com.value?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '—'}`,
+        change: `${(com.changePercent ?? 0) >= 0 ? '+' : ''}${(com.changePercent ?? 0).toFixed(2)}%`,
+        up: (com.changePercent ?? 0) >= 0,
+      });
+    });
+
+    return items;
+  }, [indices, currencies, commodities, cryptocurrencies]);
+
+  // Use first 4 for the hero dashboard
+  const heroDashboardItems = liveTickerItems.slice(0, 4);
 
   const trendingTopics = [
     { name: "Interest Rates", count: 89 },
@@ -102,20 +148,32 @@ const BusinessPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* ═══ THE MARKET FLOOR — Data-Driven Hero ═══ */}
       <div className="desk-business-hero text-white">
-        {/* Animated Market Ticker Bar */}
+        {/* Animated Market Ticker Bar — LIVE DATA */}
         <div className="business-ticker-bar border-b border-white/5">
           <div className="py-2 overflow-hidden">
-            <div className="business-ticker-inner">
-              {[...marketTickerItems, ...marketTickerItems].map((item, i) => (
-                <div key={i} className="inline-flex items-center gap-2 px-6 text-sm">
-                  <span className="font-semibold text-white/70">{item.symbol}</span>
-                  <span className="text-white/90 tabular-nums">{item.value}</span>
-                  <span className={`text-xs font-bold tabular-nums ${item.up ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {item.change}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {marketLoading || liveTickerItems.length === 0 ? (
+              <div className="flex items-center gap-6 px-4 animate-pulse">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="inline-flex items-center gap-2 px-6">
+                    <div className="h-3 w-16 bg-white/10 rounded" />
+                    <div className="h-3 w-20 bg-white/10 rounded" />
+                    <div className="h-3 w-12 bg-white/10 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="business-ticker-inner">
+                {[...liveTickerItems, ...liveTickerItems].map((item, i) => (
+                  <div key={i} className="inline-flex items-center gap-2 px-6 text-sm">
+                    <span className="font-semibold text-white/70">{item.symbol}</span>
+                    <span className="text-white/90 tabular-nums">{item.value}</span>
+                    <span className={`text-xs font-bold tabular-nums ${item.up ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {item.change}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -136,9 +194,9 @@ const BusinessPage: React.FC = () => {
               </p>
             </div>
 
-            {/* Market Pulse Mini Dashboard */}
+            {/* Market Pulse Mini Dashboard — LIVE DATA */}
             <div className="hidden lg:grid grid-cols-2 gap-3">
-              {marketTickerItems.slice(0, 4).map((item) => (
+              {heroDashboardItems.map((item) => (
                 <div key={item.symbol} className="business-metric-card p-3">
                   <div className="text-[10px] text-white/40 font-semibold tracking-wider mb-1">{item.symbol}</div>
                   <div className="text-lg text-white font-bold tabular-nums">{item.value}</div>
@@ -151,74 +209,74 @@ const BusinessPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Sub-category Tabs */}
+        {/* Sub-category Tabs + Integrated Filters */}
         <div className="border-t border-white/10">
           <div className="container mx-auto py-2">
-            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-              {subCategoryFilters.map((subCat) => (
-                <button
-                  key={subCat.id}
-                  onClick={() => setSelectedSubCategory(subCat.id)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
-                    selectedSubCategory === subCat.id
-                      ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
-                      : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-                  }`}
-                >
-                  {subCat.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+            <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
+              {/* Sub-categories */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {subCategoryFilters.map((subCat) => (
+                  <button
+                    key={subCat.id}
+                    onClick={() => setSelectedSubCategory(subCat.id)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                      selectedSubCategory === subCat.id
+                        ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
+                        : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                    }`}
+                  >
+                    {subCat.label}
+                  </button>
+                ))}
+              </div>
 
-      {/* ═══ Filters ═══ */}
-      <div className="container mx-auto pt-6">
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-xl border border-border/50 p-2 flex-1">
-            <div className="flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-hide">
-              {contentTypes.map((type) => (
-                <button
-                  key={type.value}
-                  onClick={() => setContentType(type.value as typeof contentType)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    contentType === type.value
-                      ? 'text-white shadow'
-                      : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
-                  style={contentType === type.value ? { background: theme.primary } : {}}
-                >
-                  {type.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="bg-card/60 supports-[backdrop-filter]:bg-card/40 backdrop-blur-sm rounded-xl border border-border/50 p-2">
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Sort:</span>
-              {sortOptions.map(option => (
-                <button
-                  key={option.value}
-                  onClick={() => setSortBy(option.value as typeof sortBy)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    sortBy === option.value
-                      ? 'text-white shadow'
-                      : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
-                  style={sortBy === option.value ? { background: theme.primary } : {}}
-                >
-                  <span className="text-sm">{option.icon}</span>
-                  <span className="hidden sm:inline">{option.label}</span>
-                </button>
-              ))}
+              {/* Divider */}
+              <div className="w-px h-5 bg-white/15 flex-shrink-0" />
+
+              {/* Content type pills */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {contentTypes.map((type) => (
+                  <button
+                    key={type.value}
+                    onClick={() => setContentType(type.value as typeof contentType)}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${
+                      contentType === type.value
+                        ? 'bg-white/15 text-white'
+                        : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                    }`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Divider */}
+              <div className="w-px h-5 bg-white/15 flex-shrink-0" />
+
+              {/* Sort pills */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <span className="text-[10px] text-white/30 font-semibold uppercase tracking-wider mr-1">Sort</span>
+                {sortOptions.map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSortBy(option.value as typeof sortBy)}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${
+                      sortBy === option.value
+                        ? 'bg-teal-500/20 text-teal-300'
+                        : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* ═══ Main Content ═══ */}
-      <div className="container mx-auto pb-12">
+      <div className="container mx-auto pt-6 pb-12">
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1">
             {/* Featured: Market Moving News */}
@@ -359,6 +417,12 @@ const BusinessPage: React.FC = () => {
             <div className="mb-0">
               <MarketWidget showCommodities={true} showCurrencies={true} showCrypto={true} maxItems={8} />
             </div>
+
+            {/* Market Movers — Top Gainers / Losers */}
+            <MarketMovers indices={indices} commodities={commodities} currencies={currencies} />
+
+            {/* Quick Currency Converter */}
+            <QuickCurrencyConverter currencies={currencies} />
 
             {/* Trending in Business */}
             <div className="rounded-xl border border-border overflow-hidden">

@@ -59,6 +59,7 @@ export function useMarketData(options: UseMarketDataOptions = {}): UseMarketData
         country: userLocation.country,
         indicesCount: marketData?.indices?.length ?? 0,
         indices: (marketData?.indices || []).map(i => i.symbol),
+        currencies: marketData?.currencies?.map(c => ({ pair:c.pair, rate:c.rate, quote:c.quoteCurrency })),
       });
 
       setIndices(marketData?.indices || []);

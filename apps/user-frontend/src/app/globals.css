@@ -1815,6 +1815,46 @@ html {
   background: linear-gradient(to bottom, rgba(139,0,0,0.4), transparent);
 }
 
+/* ─── PREMIUM MARKET WIDGET ─── */
+.market-widget-premium {
+  background: rgb(var(--card));
+  border: 1px solid rgb(var(--border) / 0.5);
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.04),
+    0 1px 2px -1px rgb(0 0 0 / 0.04),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.04);
+}
+.market-widget-icon {
+  background: rgb(var(--primary) / 0.08);
+  border: 1px solid rgb(var(--primary) / 0.12);
+}
+.market-row {
+  position: relative;
+}
+.market-row::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: rgb(var(--border) / 0.3);
+}
+.market-row:last-child::after {
+  display: none;
+}
+.market-row-local {
+  background: rgb(var(--primary) / 0.03);
+}
+@media (prefers-color-scheme: dark) {
+  .market-widget-premium {
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.15),
+      0 1px 2px -1px rgb(0 0 0 / 0.15),
+      inset 0 1px 0 0 rgb(255 255 255 / 0.02);
+  }
+}
+
 /* ─── BUSINESS DESK — "The Market Floor" ─── */
 @keyframes ticker-scroll {
   0% { transform: translateX(0); }

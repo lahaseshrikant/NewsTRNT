@@ -27,8 +27,8 @@ import { initializeDatabase, closeDatabase } from './config/database';
 // Import market services
 import { startMarketDataUpdates, stopMarketDataUpdates } from './lib/market/auto-update';
 
-// Load environment
-dotenv.config({ path: '.env' });
+// Load environment — override any inherited shell vars so the .env file always wins
+dotenv.config({ path: '.env', override: true });
 
 // sanity check for content-engine integration
 if (!process.env.CONTENT_ENGINE_API_KEY) {

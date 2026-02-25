@@ -87,12 +87,26 @@ const CURRENCIES = [
 
 async function main() {
   console.log('💱 Starting currency data seed...\n');
+  console.log('ℹ️  Only creating records where NO automated data exists (lastSource !== "seed" records are preserved).\n');
 
   try {
     const now = new Date();
-    let count = 0;
+    let created = 0;
+    let skipped = 0;
     
     for (const currency of CURRENCIES) {
+      // Check if an automated record already exists — if so, skip it
+      const existing = await prisma.currencyRate.findUnique({
+        where: { currency: currency.currency },
+      });
+
+      if (existing && existing.lastSource !== 'seed') {
+        // Automated data present — don't overwrite
+        skipped++;
+        continue;
+      }
+
+      // Either no record, or previous seed record — safe to upsert seed values
       await prisma.currencyRate.upsert({
         where: { currency: currency.currency },
         update: {
@@ -115,10 +129,10 @@ async function main() {
           lastSource: 'seed',
         },
       });
-      count++;
+      created++;
     }
     
-    console.log(`✅ Seeded ${count} currencies\n`);
+    console.log(`✅ Created/updated ${created} seed currencies, skipped ${skipped} automated records\n`);
     console.log('🎉 Currency seed completed successfully!');
   } catch (error) {
     console.error('❌ Error seeding currencies:', error);

@@ -13,6 +13,7 @@ import {
   updateCurrencyRates,
   updateCommodities,
 } from '../lib/market/cache';
+import { resolveIndexSymbol } from '../lib/market/symbol-aliases';
 
 const router = Router();
 
@@ -91,64 +92,9 @@ router.get('/country/:code', async (req: Request, res: Response) => {
   }
 });
 
-// ── Connectivity Test ────────────────────────────────────────────────────────
-
-/**
- * GET /api/market/test-connectivity — Test database and external API connectivity
- */
-router.get('/test-connectivity', async (req: Request, res: Response) => {
-  try {
-    const checks: Record<string, { status: string; latency?: number; error?: string }> = {};
-
-    // Database check
-    const dbStart = Date.now();
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      checks.database = { status: 'ok', latency: Date.now() - dbStart };
-    } catch (e: any) {
-      checks.database = { status: 'error', error: e.message };
-    }
-
-    // Market data freshness check
-    try {
-      const latestIndex = await prisma.marketIndex.findFirst({ orderBy: { lastUpdated: 'desc' } });
-      const latestCrypto = await prisma.cryptocurrency.findFirst({ orderBy: { lastUpdated: 'desc' } });
-
-      checks.marketData = {
-        status: 'ok',
-        latency: 0,
-      };
-
-      if (latestIndex) {
-        const ageMinutes = (Date.now() - latestIndex.lastUpdated.getTime()) / 60000;
-        checks.indices = {
-          status: ageMinutes < 60 ? 'ok' : ageMinutes < 720 ? 'stale' : 'outdated',
-          latency: Math.round(ageMinutes),
-        };
-      } else {
-        checks.indices = { status: 'empty' };
-      }
-
-      if (latestCrypto) {
-        const ageMinutes = (Date.now() - latestCrypto.lastUpdated.getTime()) / 60000;
-        checks.crypto = {
-          status: ageMinutes < 15 ? 'ok' : ageMinutes < 120 ? 'stale' : 'outdated',
-          latency: Math.round(ageMinutes),
-        };
-      } else {
-        checks.crypto = { status: 'empty' };
-      }
-    } catch (e: any) {
-      checks.marketData = { status: 'error', error: e.message };
-    }
-
-    const overallStatus = Object.values(checks).every((c) => c.status === 'ok') ? 'healthy' : 'degraded';
-    res.json({ success: true, status: overallStatus, checks });
-  } catch (error) {
-    console.error('[Market] Connectivity test error:', error);
-    res.status(500).json({ error: 'Connectivity test failed' });
-  }
-});
+// the connectivity test route has been removed; it was only needed during
+development/troubleshooting and is no longer required.  
+// If necessary, the original implementation can be recovered from git history.
 
 // ── Provider Management ──────────────────────────────────────────────────────
 
@@ -448,15 +394,17 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
     return res.status(400).json({ success: false, error: 'dataType and items are required' });
   }
 
-  // Build a map from bare symbol (no ^) → config symbol (with ^) so that
-  // TradingView symbols (e.g. "SPX", "DJI") are normalised to the canonical
-  // config format ("^GSPC", "^DJI") before upsert.  This prevents phantom
-  // duplicate rows when the two symbol conventions differ.
-  const configRows = await prisma.marketIndexConfig.findMany({ select: { symbol: true } });
-  const bareToConfig = new Map<string, string>();
+  // Load the full config so we can:
+  //   1. Resolve scraper symbols to canonical ^ -prefixed symbols
+  //   2. Override ALL dimension metadata (country, exchange, currency, timezone)
+  //      with config values — providers/scrapers only supply live facts (value, change…)
+  const configRows = await prisma.marketIndexConfig.findMany({
+    select: { symbol: true, country: true, exchange: true, currency: true, timezone: true, name: true },
+  });
+  const configSymbolSet = new Set<string>(configRows.map(r => r.symbol));
+  const configMap = new Map<string, typeof configRows[0]>();
   for (const cfg of configRows) {
-    const bare = cfg.symbol.replace(/^\^/, '').toUpperCase();
-    bareToConfig.set(bare, cfg.symbol);
+    configMap.set(cfg.symbol, cfg);
   }
 
   // start a scraper run log
@@ -481,11 +429,13 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
       try {
         switch (dataType) {
           case 'indices': {
-            // Normalise symbol: prefer the config's canonical form when available
+            // Resolve scraper symbol to canonical config symbol using alias map
             const rawSymbol: string = item.symbol;
             if (!rawSymbol) throw new Error('missing symbol');
-            const canonicalSymbol =
-              bareToConfig.get(rawSymbol.replace(/^\^/, '').toUpperCase()) ?? rawSymbol;
+            const canonicalSymbol = resolveIndexSymbol(rawSymbol, configSymbolSet);
+
+            // Config metadata always wins — scrapers/providers only supply live facts
+            const cfg = configMap.get(canonicalSymbol);
 
             const previousClose =
               typeof item.previousClose === 'number'
@@ -495,34 +445,37 @@ router.post('/ingest', async (req: AuthRequest, res: Response) => {
             await prisma.marketIndex.upsert({
               where: { symbol: canonicalSymbol },
               update: {
-                name: item.name ?? canonicalSymbol,
-                country: item.country ?? 'US',
-                exchange: item.exchange ?? '',
+                // name: config display name wins; fall back to scraper name
+                name: cfg?.name ?? item.name ?? canonicalSymbol,
+                // Use config metadata, fallback to item data
+                country: cfg?.country ?? item.country ?? 'US',
+                exchange: cfg?.exchange ?? item.exchange ?? '',
+                currency: cfg?.currency ?? item.currency ?? 'USD',
+                timezone: cfg?.timezone ?? item.timezone ?? 'UTC',
                 value: item.last,
                 previousClose,
                 change: item.change ?? 0,
                 changePercent: item.change_percent ?? 0,
                 high: item.high ?? item.last,
                 low: item.low ?? item.last,
-                currency: item.currency ?? 'USD',
-                timezone: item.timezone ?? 'UTC',
                 lastUpdated: item.generatedAt ? new Date(item.generatedAt) : new Date(),
                 lastSource: item.source || scraperName || 'scraper',
                 isStale: false,
               },
               create: {
                 symbol: canonicalSymbol,
-                name: item.name ?? canonicalSymbol,
-                country: item.country ?? 'US',
-                exchange: item.exchange ?? '',
+                // name: config display name wins; fall back to scraper name
+                name: cfg?.name ?? item.name ?? canonicalSymbol,
+                country: cfg?.country ?? item.country ?? 'US',
+                exchange: cfg?.exchange ?? item.exchange ?? '',
+                currency: cfg?.currency ?? item.currency ?? 'USD',
+                timezone: cfg?.timezone ?? item.timezone ?? 'UTC',
                 value: item.last,
                 previousClose,
                 change: item.change ?? 0,
                 changePercent: item.change_percent ?? 0,
                 high: item.high ?? item.last,
                 low: item.low ?? item.last,
-                currency: item.currency ?? 'USD',
-                timezone: item.timezone ?? 'UTC',
                 lastUpdated: item.generatedAt ? new Date(item.generatedAt) : new Date(),
                 lastSource: item.source || scraperName || 'scraper',
               },

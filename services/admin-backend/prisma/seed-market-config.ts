@@ -81,7 +81,7 @@ const MARKET_INDICES = [
   
   // India
   { symbol: '^NSEI', name: 'NIFTY 50', country: 'IN', region: ['ASIA', 'GLOBAL'], exchange: 'NSE', currency: 'INR', timezone: 'Asia/Kolkata', marketHours: { open: '09:15', close: '15:30' }, isGlobal: true, sortOrder: 47 },
-  { symbol: '^BSESN', name: 'S&P BSE SENSEX', country: 'IN', region: ['ASIA', 'GLOBAL'], exchange: 'BSE', currency: 'INR', timezone: 'Asia/Kolkata', marketHours: { open: '09:15', close: '15:30' }, isGlobal: true, sortOrder: 48 },
+  { symbol: '^BSESN', name: 'SENSEX', country: 'IN', region: ['ASIA', 'GLOBAL'], exchange: 'BSE', currency: 'INR', timezone: 'Asia/Kolkata', marketHours: { open: '09:15', close: '15:30' }, isGlobal: true, sortOrder: 48 },
   { symbol: '^NSEBANK', name: 'NIFTY Bank', country: 'IN', region: ['ASIA'], exchange: 'NSE', currency: 'INR', timezone: 'Asia/Kolkata', marketHours: { open: '09:15', close: '15:30' }, isGlobal: false, sortOrder: 49 },
   
   // South Korea
@@ -138,6 +138,25 @@ const MARKET_INDICES = [
   
   // Nigeria
   { symbol: '^NGS30', name: 'NSE All Share Index', country: 'NG', region: ['AFRICA'], exchange: 'NSE', currency: 'NGN', timezone: 'Africa/Lagos', marketHours: { open: '10:00', close: '14:30' }, isGlobal: false, sortOrder: 77 },
+
+  // ============= ADDITIONAL EUROPE =============
+  { symbol: '^WIG20',   name: 'WIG 20',                  country: 'PL', region: ['EUROPE'], exchange: 'WSE',               currency: 'PLN', timezone: 'Europe/Warsaw',     marketHours: { open: '09:00', close: '17:00' }, isGlobal: false, sortOrder: 34 },
+  { symbol: '^OMXH25',  name: 'OMX Helsinki 25',         country: 'FI', region: ['EUROPE'], exchange: 'Nasdaq Helsinki',    currency: 'EUR', timezone: 'Europe/Helsinki',   marketHours: { open: '10:00', close: '18:30' }, isGlobal: false, sortOrder: 35 },
+  { symbol: '^OMXC25',  name: 'OMX Copenhagen 25',       country: 'DK', region: ['EUROPE'], exchange: 'Nasdaq Copenhagen',  currency: 'DKK', timezone: 'Europe/Copenhagen', marketHours: { open: '09:00', close: '17:00' }, isGlobal: false, sortOrder: 36 },
+  { symbol: '^BELEX15', name: 'BELEX 15',                country: 'RS', region: ['EUROPE'], exchange: 'BELEX',              currency: 'RSD', timezone: 'Europe/Belgrade',   marketHours: { open: '10:00', close: '16:00' }, isGlobal: false, sortOrder: 37 },
+  { symbol: '^OMXRGI',  name: 'OMX Riga GI',            country: 'LV', region: ['EUROPE'], exchange: 'Nasdaq Riga',        currency: 'EUR', timezone: 'Europe/Riga',       marketHours: { open: '10:00', close: '15:30' }, isGlobal: false, sortOrder: 38 },
+  { symbol: '^OMXTGI',  name: 'OMX Tallinn GI',         country: 'EE', region: ['EUROPE'], exchange: 'Nasdaq Tallinn',     currency: 'EUR', timezone: 'Europe/Tallinn',    marketHours: { open: '10:00', close: '15:30' }, isGlobal: false, sortOrder: 39 },
+  { symbol: '^GD',      name: 'Athens Stock Exchange',   country: 'GR', region: ['EUROPE'], exchange: 'ATHEX',              currency: 'EUR', timezone: 'Europe/Athens',     marketHours: { open: '10:15', close: '17:20' }, isGlobal: false, sortOrder: 41 },
+  { symbol: '^BET',     name: 'BET Bucharest',           country: 'RO', region: ['EUROPE'], exchange: 'BVB',                currency: 'RON', timezone: 'Europe/Bucharest',  marketHours: { open: '10:00', close: '17:30' }, isGlobal: false, sortOrder: 42 },
+  { symbol: '^BUX',     name: 'Budapest Stock Exchange', country: 'HU', region: ['EUROPE'], exchange: 'BSE',                currency: 'HUF', timezone: 'Europe/Budapest',   marketHours: { open: '09:00', close: '16:30' }, isGlobal: false, sortOrder: 43 },
+  { symbol: '^XU100',   name: 'BIST 100',                country: 'TR', region: ['EUROPE'], exchange: 'Borsa Istanbul',     currency: 'TRY', timezone: 'Europe/Istanbul',   marketHours: { open: '10:00', close: '18:00' }, isGlobal: false, sortOrder: 44 },
+
+  // ============= ADDITIONAL AMERICAS =============
+  { symbol: '^NYA',      name: 'NYSE Composite',         country: 'US', region: ['AMERICAS'], exchange: 'NYSE',            currency: 'USD', timezone: 'America/New_York', marketHours: { open: '09:30', close: '16:00' }, isGlobal: false, sortOrder: 14 },
+  { symbol: '^N100',     name: 'Euronext 100',           country: 'EU', region: ['EUROPE'],   exchange: 'Euronext',        currency: 'EUR', timezone: 'Europe/Paris',     marketHours: { open: '09:00', close: '17:30' }, isGlobal: false, sortOrder: 45 },
+  { symbol: '^COLCAP',   name: 'COLCAP Index',           country: 'CO', region: ['AMERICAS'], exchange: 'BVC',             currency: 'COP', timezone: 'America/Bogota',   marketHours: { open: '09:00', close: '16:00' }, isGlobal: false, sortOrder: 15 },
+  { symbol: '^IPSA',     name: 'S&P IPSA',               country: 'CL', region: ['AMERICAS'], exchange: 'BCS',             currency: 'CLP', timezone: 'America/Santiago', marketHours: { open: '09:30', close: '17:30' }, isGlobal: false, sortOrder: 16 },
+  { symbol: '^SPBLPGPT', name: 'S&P Lima General',       country: 'PE', region: ['AMERICAS'], exchange: 'BVL',             currency: 'PEN', timezone: 'America/Lima',     marketHours: { open: '09:00', close: '16:00' }, isGlobal: false, sortOrder: 17 },
 ];
 
 // Cryptocurrencies Configuration - Top 25 by Market Cap

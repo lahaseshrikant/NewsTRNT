@@ -147,37 +147,41 @@ export async function updateStockIndices(): Promise<UpdateResult> {
             ? quote.previousClose
             : quote.value - (quote.change || 0);
 
+        // merge data with config defaults, metadata always comes from cfg
         await prisma.marketIndex.upsert({
           where: { symbol: cfg.symbol },
           update: {
-            name: quote.name ?? cfg.symbol,
-            country: quote.country ?? cfg.country ?? 'US',
-            exchange: quote.exchange ?? cfg.exchange ?? '',
+            // name: config display name wins; fall back to provider name
+            name: cfg.name ?? quote.name ?? cfg.symbol,
+            // enforce canonical metadata from config regardless of provider
+            country: cfg.country,
+            exchange: cfg.exchange,
+            currency: cfg.currency,
+            timezone: cfg.timezone,
             value: quote.value,
             previousClose,
             change: quote.change ?? 0,
             changePercent: quote.changePercent ?? 0,
             high: quote.high ?? quote.value,
             low: quote.low ?? quote.value,
-            currency: quote.currency ?? cfg.currency ?? 'USD',
-            timezone: quote.timezone ?? cfg.timezone ?? 'UTC',
             lastUpdated: quote.lastUpdated ? new Date(quote.lastUpdated) : new Date(),
             lastSource: quote.lastSource || 'provider',
             isStale: false,
           },
           create: {
             symbol: cfg.symbol,
-            name: quote.name ?? cfg.symbol,
-            country: quote.country ?? cfg.country ?? 'US',
-            exchange: quote.exchange ?? cfg.exchange ?? '',
+            // name: config display name wins; fall back to provider name
+            name: cfg.name ?? quote.name ?? cfg.symbol,
+            country: cfg.country,
+            exchange: cfg.exchange,
+            currency: cfg.currency,
+            timezone: cfg.timezone,
             value: quote.value,
             previousClose,
             change: quote.change ?? 0,
             changePercent: quote.changePercent ?? 0,
             high: quote.high ?? quote.value,
             low: quote.low ?? quote.value,
-            currency: quote.currency ?? cfg.currency ?? 'USD',
-            timezone: quote.timezone ?? cfg.timezone ?? 'UTC',
             lastUpdated: quote.lastUpdated ? new Date(quote.lastUpdated) : new Date(),
             lastSource: quote.lastSource || 'provider',
           },
