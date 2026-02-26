@@ -92,9 +92,7 @@ router.get('/country/:code', async (req: Request, res: Response) => {
   }
 });
 
-// the connectivity test route has been removed; it was only needed during
-development/troubleshooting and is no longer required.  
-// If necessary, the original implementation can be recovered from git history.
+// (connectivity test endpoint removed; available in git history if needed)
 
 // ── Provider Management ──────────────────────────────────────────────────────
 

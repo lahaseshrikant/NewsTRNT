@@ -28,8 +28,12 @@ export const useCategories = (options: UseCategoriesOptions = {}): UseCategories
 
       const params = new URLSearchParams();
       if (includeInactive) params.append('includeInactive', 'true');
-      if (includeStats) params.append('includeStats', 'true');
-      if (includeSubCategories) params.append('includeStats', 'true'); // subCategories are included when includeStats is true
+      // avoid sending includeStats twice; merge the flags
+      const statsFlag = includeStats || includeSubCategories;
+      if (statsFlag) params.append('includeStats', 'true');
+      if (includeSubCategories) {
+        params.append('includeSubCategories', 'true'); // explicit for clarity, backend currently ignores
+      }
 
       const response = await fetch(`/api/categories?${params.toString()}`, {
         method: 'GET',
@@ -43,7 +47,7 @@ export const useCategories = (options: UseCategoriesOptions = {}): UseCategories
       }
 
       const data = await response.json();
-      const categoriesList = data.categories || [];
+      const categoriesList = Array.isArray(data) ? data : data.categories || [];
       
       // Sort categories by sortOrder and then by name
       const sortedCategories = categoriesList.sort((a: Category, b: Category) => {
