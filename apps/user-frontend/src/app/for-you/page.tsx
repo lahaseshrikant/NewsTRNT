@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCategories } from '@/hooks/useCategories';
 import { getContentUrl } from '@/lib/contentUtils';
 import { Category } from '@/types/api';
+import { BreakingIcon } from '@/components/icons/EditorialIcons';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -89,7 +90,7 @@ const ForYouHero = ({ article, onRead }: { article: Article; onRead: (id: string
   >
     <div className="relative h-[420px] sm:h-[500px] overflow-hidden rounded-xl">
       <Image
-        src={article.imageUrl || '/api/placeholder/1200/600'}
+        src={article.imageUrl || '/images/placeholder-news.svg'}
         alt={article.title}
         fill
         className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -98,7 +99,7 @@ const ForYouHero = ({ article, onRead }: { article: Article; onRead: (id: string
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
       <div className="absolute top-4 left-4 flex items-center gap-2">
-        <span className="bg-primary text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
+        <span className="bg-vermillion text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
           Recommended
         </span>
         <span className="bg-black/50 backdrop-blur text-white text-[10px] font-medium px-3 py-1 rounded-full">
@@ -133,7 +134,7 @@ const ForYouCard = ({ article, onRead }: { article: Article; onRead: (id: string
     <article className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-300 h-full">
       <div className="relative h-48 overflow-hidden">
         <Image
-          src={article.imageUrl || '/api/placeholder/400/300'}
+          src={article.imageUrl || '/images/placeholder-news.svg'}
           alt={article.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -334,7 +335,7 @@ export default function ForYouPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-6xl mb-4">📰</div>
+            <div className="mb-4"><BreakingIcon size={48} /></div>
             <h2 className="font-serif text-2xl font-bold text-foreground mb-2">No stories found</h2>
             <p className="text-muted-foreground">Try selecting a different category or feed mode</p>
           </div>

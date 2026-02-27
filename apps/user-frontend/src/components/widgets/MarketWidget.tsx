@@ -8,6 +8,7 @@ import { useMarketData } from '@/hooks/useMarketData';
 import { MarketIndex, Commodity, Currency, CryptoCurrency } from '@/types/market';
 import { setManualLocation } from '@/lib/location-service';
 import { COUNTRY_INDICES_MAP } from '@/config/market-indices';
+import { GlobeIcon } from '@/components/icons/EditorialIcons';
 
 interface MarketWidgetProps {
   className?: string;
@@ -245,7 +246,7 @@ export default function MarketWidget({
               onClick={() => setShowLocationDropdown(!showLocationDropdown)}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-muted/40"
             >
-              <span className="text-base leading-none">{COUNTRY_LIST.find(c => c.code === location?.country)?.flag || '🌍'}</span>
+              <span className="text-base leading-none">{COUNTRY_LIST.find(c => c.code === location?.country)?.flag || <GlobeIcon size={16} />}</span>
               <span className="font-medium">{location?.countryName || 'Select'}</span>
               <svg className={`w-3 h-3 transition-transform ${showLocationDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

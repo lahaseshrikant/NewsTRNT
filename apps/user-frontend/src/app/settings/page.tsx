@@ -117,8 +117,8 @@ const SettingsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center">
-        <p className="font-mono text-xs tracking-wider uppercase text-stone">Loading settings...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="font-mono text-xs tracking-wider uppercase text-muted-foreground">Loading settings...</p>
       </div>
     );
   }
@@ -126,20 +126,20 @@ const SettingsPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-paper dark:bg-ink">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
+      <div className="bg-card border border-border border-b-2 border-vermillion">
   <div className="container mx-auto py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-serif text-3xl font-bold text-ivory">Settings</h1>
-              <p className="text-ivory/60 mt-2">
+              <h1 className="font-serif text-3xl font-bold text-white">Settings</h1>
+              <p className="text-white/60 mt-2">
                 Manage your account preferences and privacy settings
               </p>
             </div>
             <Link 
               href="/dashboard" 
-              className="font-mono text-xs tracking-wider uppercase text-ivory/60 hover:text-ivory flex items-center"
+              className="font-mono text-xs tracking-wider uppercase text-white/60 hover:text-white flex items-center"
             >
               &larr; Back to Dashboard
             </Link>
@@ -162,7 +162,7 @@ const SettingsPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <nav className="bg-ivory dark:bg-ash/10 p-4 border border-ash dark:border-ash/20">
+              <nav className="bg-muted/50 p-4 border border-border">
                 <div className="space-y-1">
                   {tabs.map((tab) => (
                     <button
@@ -170,8 +170,8 @@ const SettingsPage: React.FC = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`w-full flex items-center px-3 py-2 text-left font-mono text-xs tracking-wider uppercase transition-colors ${
                         activeTab === tab.id
-                          ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink border-l-2 border-vermillion'
-                          : 'text-stone hover:text-ink dark:hover:text-ivory hover:bg-ash/10'
+                          ? 'bg-primary text-primary-foreground border-l-2 border-vermillion'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-ash/10'
                       }`}
                     >
                       <span>{tab.name}</span>
@@ -183,11 +183,11 @@ const SettingsPage: React.FC = () => {
 
             {/* Main Content */}
             <div className="lg:col-span-3">
-              <div className="bg-ivory dark:bg-ash/10 border border-ash dark:border-ash/20">
+              <div className="bg-muted/50 border border-border">
                 {/* Account Settings */}
                 {activeTab === 'account' && (
                   <div className="p-6">
-                    <h2 className="font-serif text-xl font-bold text-ink dark:text-ivory mb-6">Account Information</h2>
+                    <h2 className="font-serif text-xl font-bold text-foreground mb-6">Account Information</h2>
                     
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -228,12 +228,12 @@ const SettingsPage: React.FC = () => {
                         />
                       </div>
                       
-                      <div className="pt-4 border-t border-ash dark:border-ash/20">
-                        <h3 className="font-serif text-lg font-semibold text-ink dark:text-ivory mb-4">Password</h3>
+                      <div className="pt-4 border-t border-border">
+                        <h3 className="font-serif text-lg font-semibold text-foreground mb-4">Password</h3>
                         {!showPasswordForm ? (
                           <button 
                             onClick={() => setShowPasswordForm(true)}
-                            className="bg-ink dark:bg-ivory text-ivory dark:text-ink px-4 py-2 font-mono text-xs tracking-wider uppercase hover:bg-ink/80 dark:hover:bg-ivory/80 transition-colors"
+                            className="bg-primary text-primary-foreground px-4 py-2 font-mono text-xs tracking-wider uppercase hover:bg-primary/80 transition-colors"
                           >
                             Change Password
                           </button>
@@ -276,7 +276,7 @@ const SettingsPage: React.FC = () => {
                               </button>
                               <button 
                                 onClick={() => { setShowPasswordForm(false); setPasswordForm({ current: '', new: '', confirm: '' }); }}
-                                className="border border-ash text-ink dark:text-ivory px-4 py-2 font-mono text-xs tracking-wider uppercase hover:bg-ash/10 transition-colors"
+                                className="border border-border text-foreground px-4 py-2 font-mono text-xs tracking-wider uppercase hover:bg-ash/10 transition-colors"
                               >
                                 Cancel
                               </button>
@@ -291,14 +291,14 @@ const SettingsPage: React.FC = () => {
                 {/* Notification Settings */}
                 {activeTab === 'notifications' && (
                   <div className="p-6">
-                    <h2 className="font-serif text-xl font-bold text-ink dark:text-ivory mb-6">Notification Preferences</h2>
+                    <h2 className="font-serif text-xl font-bold text-foreground mb-6">Notification Preferences</h2>
                     
                     <div className="space-y-6">
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h3 className="text-sm font-medium text-ink dark:text-ivory">Email Notifications</h3>
-                            <p className="text-sm text-stone">Receive news updates via email</p>
+                            <h3 className="text-sm font-medium text-foreground">Email Notifications</h3>
+                            <p className="text-sm text-muted-foreground">Receive news updates via email</p>
                           </div>
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -307,14 +307,14 @@ const SettingsPage: React.FC = () => {
                               onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ash after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
+                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
                           </label>
                         </div>
                         
                         <div className="flex items-center justify-between">
                           <div>
-                            <h3 className="text-sm font-medium text-ink dark:text-ivory">Push Notifications</h3>
-                            <p className="text-sm text-stone">Receive notifications on your device</p>
+                            <h3 className="text-sm font-medium text-foreground">Push Notifications</h3>
+                            <p className="text-sm text-muted-foreground">Receive notifications on your device</p>
                           </div>
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -323,14 +323,14 @@ const SettingsPage: React.FC = () => {
                               onChange={(e) => handleSettingChange('pushNotifications', e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ash after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
+                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
                           </label>
                         </div>
                         
                         <div className="flex items-center justify-between">
                           <div>
-                            <h3 className="text-sm font-medium text-ink dark:text-ivory">Breaking News Alerts</h3>
-                            <p className="text-sm text-stone">Get instant alerts for breaking news</p>
+                            <h3 className="text-sm font-medium text-foreground">Breaking News Alerts</h3>
+                            <p className="text-sm text-muted-foreground">Get instant alerts for breaking news</p>
                           </div>
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -339,14 +339,14 @@ const SettingsPage: React.FC = () => {
                               onChange={(e) => handleSettingChange('breakingNews', e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ash after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
+                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
                           </label>
                         </div>
                         
                         <div className="flex items-center justify-between">
                           <div>
-                            <h3 className="text-sm font-medium text-ink dark:text-ivory">Weekly Digest</h3>
-                            <p className="text-sm text-stone">Weekly summary of top stories</p>
+                            <h3 className="text-sm font-medium text-foreground">Weekly Digest</h3>
+                            <p className="text-sm text-muted-foreground">Weekly summary of top stories</p>
                           </div>
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -355,7 +355,7 @@ const SettingsPage: React.FC = () => {
                               onChange={(e) => handleSettingChange('weeklyDigest', e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ash after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
+                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
                           </label>
                         </div>
                       </div>
@@ -366,17 +366,17 @@ const SettingsPage: React.FC = () => {
                 {/* Display Settings */}
                 {activeTab === 'display' && (
                   <div className="p-6">
-                    <h2 className="font-serif text-xl font-bold text-ink dark:text-ivory mb-6">Display Preferences</h2>
+                    <h2 className="font-serif text-xl font-bold text-foreground mb-6">Display Preferences</h2>
                     
                     <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-ink dark:text-ivory mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Theme
                         </label>
                         <select
                           value={settings.theme}
                           onChange={(e) => handleSettingChange('theme', e.target.value)}
-                          className="w-full px-3 py-2 border border-ash dark:border-ash/20 focus:outline-none focus:ring-2 focus:ring-vermillion/30 bg-paper dark:bg-ink text-ink dark:text-ivory"
+                          className="w-full px-3 py-2 border border-border focus:outline-none focus:ring-2 focus:ring-vermillion/30 bg-background text-foreground"
                         >
                           <option value="light">Light</option>
                           <option value="dark">Dark</option>
@@ -385,13 +385,13 @@ const SettingsPage: React.FC = () => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-ink dark:text-ivory mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Language
                         </label>
                         <select
                           value={settings.language}
                           onChange={(e) => handleSettingChange('language', e.target.value)}
-                          className="w-full px-3 py-2 border border-ash dark:border-ash/20 focus:outline-none focus:ring-2 focus:ring-vermillion/30 bg-paper dark:bg-ink text-ink dark:text-ivory"
+                          className="w-full px-3 py-2 border border-border focus:outline-none focus:ring-2 focus:ring-vermillion/30 bg-background text-foreground"
                         >
                           <option value="en">English</option>
                           <option value="es">Spanish</option>
@@ -401,13 +401,13 @@ const SettingsPage: React.FC = () => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-ink dark:text-ivory mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Articles per page
                         </label>
                         <select
                           value={settings.articlesPerPage}
                           onChange={(e) => handleSettingChange('articlesPerPage', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-ash dark:border-ash/20 focus:outline-none focus:ring-2 focus:ring-vermillion/30 bg-paper dark:bg-ink text-ink dark:text-ivory"
+                          className="w-full px-3 py-2 border border-border focus:outline-none focus:ring-2 focus:ring-vermillion/30 bg-background text-foreground"
                         >
                           <option value="10">10</option>
                           <option value="20">20</option>
@@ -422,14 +422,14 @@ const SettingsPage: React.FC = () => {
                 {/* Privacy Settings */}
                 {activeTab === 'privacy' && (
                   <div className="p-6">
-                    <h2 className="font-serif text-xl font-bold text-ink dark:text-ivory mb-6">Privacy &amp; Data</h2>
+                    <h2 className="font-serif text-xl font-bold text-foreground mb-6">Privacy &amp; Data</h2>
                     
                     <div className="space-y-6">
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h3 className="text-sm font-medium text-ink dark:text-ivory">Allow Personalization</h3>
-                            <p className="text-sm text-stone">Use reading history to personalize content</p>
+                            <h3 className="text-sm font-medium text-foreground">Allow Personalization</h3>
+                            <p className="text-sm text-muted-foreground">Use reading history to personalize content</p>
                           </div>
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -438,14 +438,14 @@ const SettingsPage: React.FC = () => {
                               onChange={(e) => handleSettingChange('allowPersonalization', e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ash after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
+                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
                           </label>
                         </div>
                         
                         <div className="flex items-center justify-between">
                           <div>
-                            <h3 className="text-sm font-medium text-ink dark:text-ivory">Data Collection</h3>
-                            <p className="text-sm text-stone">Allow analytics to improve our service</p>
+                            <h3 className="text-sm font-medium text-foreground">Data Collection</h3>
+                            <p className="text-sm text-muted-foreground">Allow analytics to improve our service</p>
                           </div>
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -454,15 +454,15 @@ const SettingsPage: React.FC = () => {
                               onChange={(e) => handleSettingChange('dataCollection', e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ash after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
+                            <div className="w-11 h-6 bg-ash peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-vermillion/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vermillion"></div>
                           </label>
                         </div>
                       </div>
                       
-                      <div className="pt-4 border-t border-ash dark:border-ash/20">
-                        <h3 className="font-serif text-lg font-semibold text-ink dark:text-ivory mb-4">Data Management</h3>
+                      <div className="pt-4 border-t border-border">
+                        <h3 className="font-serif text-lg font-semibold text-foreground mb-4">Data Management</h3>
                         <div className="space-y-3">
-                          <button className="bg-ink dark:bg-ivory text-ivory dark:text-ink px-4 py-2 font-mono text-xs tracking-wider uppercase hover:bg-ink/80 dark:hover:bg-ivory/80 transition-colors">
+                          <button className="bg-primary text-primary-foreground px-4 py-2 font-mono text-xs tracking-wider uppercase hover:bg-primary/80 transition-colors">
                             Download My Data
                           </button>
                           <button className="bg-vermillion text-white px-4 py-2 font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors ml-3">
@@ -477,34 +477,34 @@ const SettingsPage: React.FC = () => {
                 {/* Subscription Settings */}
                 {activeTab === 'subscription' && (
                   <div className="p-6">
-                    <h2 className="font-serif text-xl font-bold text-ink dark:text-ivory mb-6">Subscription</h2>
+                    <h2 className="font-serif text-xl font-bold text-foreground mb-6">Subscription</h2>
                     
-                    <div className="bg-ivory dark:bg-ash/10 border border-ash dark:border-ash/20 p-6 mb-6">
+                    <div className="bg-muted/50 border border-border p-6 mb-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-serif text-lg font-semibold text-ink dark:text-ivory">Free Plan</h3>
-                          <p className="text-stone">Access to basic news and features</p>
+                          <h3 className="font-serif text-lg font-semibold text-foreground">Free Plan</h3>
+                          <p className="text-muted-foreground">Access to basic news and features</p>
                         </div>
-                        <span className="font-mono text-2xl font-bold text-ink dark:text-ivory">$0/month</span>
+                        <span className="font-mono text-2xl font-bold text-foreground">$0/month</span>
                       </div>
                     </div>
                     
-                    <div className="border border-ash dark:border-ash/20 p-6">
-                      <h3 className="font-serif text-lg font-semibold text-ink dark:text-ivory mb-4">Upgrade to Premium</h3>
+                    <div className="border border-border p-6">
+                      <h3 className="font-serif text-lg font-semibold text-foreground mb-4">Upgrade to Premium</h3>
                       <ul className="space-y-2 mb-6">
-                        <li className="flex items-center text-stone">
+                        <li className="flex items-center text-muted-foreground">
                           <span className="text-vermillion mr-2 font-mono">+</span>
                           Ad-free reading experience
                         </li>
-                        <li className="flex items-center text-stone">
+                        <li className="flex items-center text-muted-foreground">
                           <span className="text-vermillion mr-2 font-mono">+</span>
                           Premium articles and analysis
                         </li>
-                        <li className="flex items-center text-stone">
+                        <li className="flex items-center text-muted-foreground">
                           <span className="text-vermillion mr-2 font-mono">+</span>
                           Advanced personalization
                         </li>
-                        <li className="flex items-center text-stone">
+                        <li className="flex items-center text-muted-foreground">
                           <span className="text-vermillion mr-2 font-mono">+</span>
                           Priority customer support
                         </li>
@@ -517,9 +517,9 @@ const SettingsPage: React.FC = () => {
                 )}
 
                 {/* Save Button */}
-                <div className="px-6 py-4 bg-ivory dark:bg-ash/10 border-t border-ash dark:border-ash/20">
+                <div className="px-6 py-4 bg-muted/50 border-t border-border">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-stone">
+                    <p className="text-sm text-muted-foreground">
                       Changes are saved automatically
                     </p>
                     <button

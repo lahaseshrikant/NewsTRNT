@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import showToast from '@/lib/toast';
 import { useParams } from 'next/navigation';
 import { dbApi, Article } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
@@ -111,7 +112,7 @@ const OpinionDetailPage: React.FC = () => {
         break;
       case 'copy':
         navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
+        showToast('Link copied to clipboard!', 'success');
         break;
     }
     setShowShareMenu(false);
@@ -178,11 +179,11 @@ const OpinionDetailPage: React.FC = () => {
       </div>
 
       {/* Opinion Header Banner */}
-      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
+      <div className="hero-opinion border-b-2 border-vermillion">
         <div className="container mx-auto py-2">
           <div className="flex items-center gap-2 text-sm">
             <span className="bg-vermillion text-white px-2 py-0.5 font-mono text-xs tracking-wider uppercase font-bold">Opinion</span>
-            <span className="text-ivory/60">Perspectives and commentary from our columnists</span>
+            <span className="text-white/60">Perspectives and commentary from our columnists</span>
           </div>
         </div>
       </div>
@@ -299,7 +300,7 @@ const OpinionDetailPage: React.FC = () => {
             <div className="mb-8">
               <div className="relative w-full h-96 md:h-[500px]">
                 <Image
-                  src={article.imageUrl || '/api/placeholder/800/500'}
+                  src={article.imageUrl || '/images/placeholder-news.svg'}
                   alt={article.title || 'News image'}
                   fill
                   className="object-cover rounded-lg"

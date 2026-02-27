@@ -65,7 +65,7 @@ const HeroCard = ({ article }: { article: Article }) => (
   <Link href={getContentUrl(article)} className="block group">
     <div className="relative h-[520px] lg:h-[600px] overflow-hidden rounded-editorial">
       <Image
-        src={article.imageUrl || '/api/placeholder/1200/800'}
+        src={article.imageUrl || '/images/placeholder-news.svg'}
         alt={article.title}
         fill
         className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -100,7 +100,7 @@ const SideFeatureCard = ({ article }: { article: Article }) => (
   <Link href={getContentUrl(article)} className="block group">
     <div className="relative h-[288px] overflow-hidden rounded-editorial">
       <Image
-        src={article.imageUrl || '/api/placeholder/600/400'}
+        src={article.imageUrl || '/images/placeholder-news.svg'}
         alt={article.title}
         fill
         className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -128,7 +128,7 @@ const EditorialCard = ({ article }: { article: Article }) => (
     <article className="editorial-card">
       <div className="relative h-48 overflow-hidden">
         <Image
-          src={article.imageUrl || '/api/placeholder/400/300'}
+          src={article.imageUrl || '/images/placeholder-news.svg'}
           alt={article.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -171,7 +171,7 @@ const CompactStory = ({ article, index }: { article: Article; index?: number }) 
       )}
       <div className="relative w-16 h-16 flex-shrink-0 rounded-editorial overflow-hidden">
         <Image
-          src={article.imageUrl || '/api/placeholder/64/64'}
+          src={article.imageUrl || '/images/placeholder-news.svg'}
           alt={article.title}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -198,6 +198,11 @@ const HomePage: React.FC = () => {
   const [webStories, setWebStories] = useState<WebStory[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Derived headline state — computed from fetched data
+  const [heroArticle, setHeroArticle] = useState<Article | null>(null);
+  const [sideArticles, setSideArticles] = useState<Article[]>([]);
+  const [trendingGrid, setTrendingGrid] = useState<Article[]>([]);
+  
   const { categories } = useCategories({ includeStats: false });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
@@ -222,11 +227,60 @@ const HomePage: React.FC = () => {
           dbApi.getWebStories({ limit: 6 })
         ]);
         
-        if (Array.isArray(breaking)) setBreakingNews(breaking);
-        if (Array.isArray(news)) setLatestNews(news);
-        if (Array.isArray(featured)) setFeaturedArticles(featured);
-        if (Array.isArray(trending)) setTrendingNews(trending);
+        const safeBreaking = Array.isArray(breaking) ? breaking : [];
+        const safeNews = Array.isArray(news) ? news : [];
+        const safeFeatured = Array.isArray(featured) ? featured : [];
+        const safeTrending = Array.isArray(trending) ? trending : [];
+        
+        setBreakingNews(safeBreaking);
+        setLatestNews(safeNews);
+        setFeaturedArticles(safeFeatured);
+        setTrendingNews(safeTrending);
         if (Array.isArray(stories)) setWebStories(stories);
+
+        // ── Smart headline selection ─────────────────────────────────
+        // Priority: breaking → featured → trending → latest
+        const usedIds = new Set<string>();
+        
+        const pickHero = (): Article | null => {
+          // 1. Breaking news with an image is highest priority
+          const breakingHero = safeBreaking.find(a => a.imageUrl);
+          if (breakingHero) { usedIds.add(breakingHero.id); return breakingHero; }
+          // 2. Featured articles (editor's pick)
+          const featuredHero = safeFeatured.find(a => a.imageUrl);
+          if (featuredHero) { usedIds.add(featuredHero.id); return featuredHero; }
+          // 3. Trending
+          const trendingHero = safeTrending[0];
+          if (trendingHero) { usedIds.add(trendingHero.id); return trendingHero; }
+          // 4. Latest as last fallback
+          const latestHero = safeNews[0];
+          if (latestHero) { usedIds.add(latestHero.id); return latestHero; }
+          return null;
+        };
+
+        const pickSides = (): Article[] => {
+          // Pull from trending first, then featured, then latest — skip used IDs
+          const pool = [...safeTrending, ...safeFeatured, ...safeNews];
+          const sides: Article[] = [];
+          for (const a of pool) {
+            if (sides.length >= 2) break;
+            if (!usedIds.has(a.id) && a.imageUrl) {
+              usedIds.add(a.id);
+              sides.push(a);
+            }
+          }
+          return sides;
+        };
+
+        const hero = pickHero();
+        const sides = pickSides();
+        
+        // Trending grid — remaining trending articles not already shown
+        const trendGrid = safeTrending.filter(a => !usedIds.has(a.id)).slice(0, 4);
+        
+        setHeroArticle(hero);
+        setSideArticles(sides);
+        setTrendingGrid(trendGrid);
       } catch (error) {
         console.error('Error loading homepage data:', error);
       } finally {
@@ -316,8 +370,8 @@ const HomePage: React.FC = () => {
             <div className="lg:col-span-8">
               {loading ? (
                 <div className="skeleton-warm h-[520px] lg:h-[600px] rounded-editorial" />
-              ) : trendingNews[0] ? (
-                <HeroCard article={trendingNews[0]} />
+              ) : heroArticle ? (
+                <HeroCard article={heroArticle} />
               ) : null}
             </div>
             
@@ -330,8 +384,8 @@ const HomePage: React.FC = () => {
                 </>
               ) : (
                 <>
-                  {trendingNews[1] && <SideFeatureCard article={trendingNews[1]} />}
-                  {trendingNews[2] && <SideFeatureCard article={trendingNews[2]} />}
+                  {sideArticles[0] && <SideFeatureCard article={sideArticles[0]} />}
+                  {sideArticles[1] && <SideFeatureCard article={sideArticles[1]} />}
                 </>
               )}
             </div>
@@ -359,7 +413,7 @@ const HomePage: React.FC = () => {
                     <div key={i} className="skeleton-warm h-80 rounded-editorial" />
                   ))
                 ) : (
-                  trendingNews.slice(3, 7).map((article) => (
+                  trendingGrid.map((article) => (
                     <EditorialCard key={article.id} article={article} />
                   ))
                 )}
@@ -401,7 +455,7 @@ const HomePage: React.FC = () => {
                         <Link href={getContentUrl(featuredArticles[0])} className="block group">
                           <div className="relative h-full min-h-[400px] overflow-hidden rounded-editorial">
                             <Image
-                              src={featuredArticles[0].imageUrl || '/api/placeholder/600/800'}
+                              src={featuredArticles[0].imageUrl || '/images/placeholder-news.svg'}
                               alt={featuredArticles[0].title}
                               fill
                               className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -440,7 +494,7 @@ const HomePage: React.FC = () => {
                     <Link key={story.id} href={`/stories/${story.slug}`} className="block group">
                       <div className="relative h-52 rounded-editorial overflow-hidden border border-border group-hover:border-primary/30 transition-colors">
                         <Image
-                          src={story.coverImage || '/api/placeholder/200/300'}
+                          src={story.coverImage || '/images/placeholder-news.svg'}
                           alt={story.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -562,7 +616,7 @@ const HomePage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {!isLoggedIn ? (
               <>
-                <Link href="/auth/signin" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 font-semibold transition-colors rounded-editorial inline-flex items-center gap-2">
+                <Link href="/auth/signin" className="bg-vermillion hover:bg-vermillion-dark text-white px-8 py-3 font-semibold transition-colors rounded-editorial inline-flex items-center gap-2">
                   Start Reading
                   <ArrowRightIcon size={16} />
                 </Link>
@@ -572,7 +626,7 @@ const HomePage: React.FC = () => {
               </>
             ) : (
               <>
-                <Link href="/dashboard" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 font-semibold transition-colors rounded-editorial inline-flex items-center gap-2">
+                <Link href="/dashboard" className="bg-vermillion hover:bg-vermillion-dark text-white px-8 py-3 font-semibold transition-colors rounded-editorial inline-flex items-center gap-2">
                   Dashboard
                   <ArrowRightIcon size={16} />
                 </Link>

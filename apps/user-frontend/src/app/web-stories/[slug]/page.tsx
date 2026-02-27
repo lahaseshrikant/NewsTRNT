@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { dbApi, WebStory, WebStorySlide } from '@/lib/api-client';
+import { StoriesIcon } from '@/components/icons/EditorialIcons';
 
 const WebStoryViewer: React.FC = () => {
   const params = useParams();
@@ -61,8 +62,6 @@ const WebStoryViewer: React.FC = () => {
     ? slides[currentSlideIndex] 
     : null;
 
-  console.log('Component state:', { currentSlideIndex, totalSlides, hasCurrentSlide: !!currentSlide });
-
   // Helper function to get slide duration with fallback
   const getSlideDuration = (slide: WebStorySlide | null): number => {
     return slide?.duration || DEFAULT_SLIDE_DURATION;
@@ -70,10 +69,7 @@ const WebStoryViewer: React.FC = () => {
 
   // Auto-advance slides with automatic progression
   useEffect(() => {
-    console.log('Progress Effect:', { isPaused, currentSlideIndex, progress, slideId: currentSlide?.id });
-    
     if (isPaused || !currentSlide || isLoading) {
-      console.log('Skipping progress - paused or loading');
       return;
     }
 
@@ -86,7 +82,6 @@ const WebStoryViewer: React.FC = () => {
     startTimeRef.current = startTime;
     
     const slideDuration = getSlideDuration(currentSlide);
-    console.log('Starting interval for slide index:', currentSlideIndex, 'duration:', slideDuration);
     
     intervalRef.current = setInterval(() => {
       const elapsed = Date.now() - startTime;
@@ -95,8 +90,6 @@ const WebStoryViewer: React.FC = () => {
       setProgress(Math.min(progressPercent, 100));
       
       if (elapsed >= slideDuration) {
-        console.log('Slide completed, current index:', currentSlideIndex, 'total slides:', totalSlides);
-        
         // Clear interval immediately to prevent multiple executions
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -106,13 +99,11 @@ const WebStoryViewer: React.FC = () => {
         if (currentSlideIndex < totalSlides - 1) {
           // Auto advance to next slide
           const nextIndex = currentSlideIndex + 1;
-          console.log('Moving to slide index:', nextIndex);
           setCurrentSlideIndex(nextIndex);
           setProgress(0);
           pausedTimeRef.current = 0;
         } else {
-          // Story finished - redirect to stories page
-          console.log('Story completed, redirecting...');
+          // Story finished — redirect to stories page
           setProgress(100);
           setTimeout(() => {
             router.push('/web-stories');
@@ -131,11 +122,8 @@ const WebStoryViewer: React.FC = () => {
 
   // Auto-start the story when component mounts and loading is complete
   useEffect(() => {
-    console.log('Mount effect - isLoading:', isLoading, 'story:', !!story);
-    
     if (!isLoading && story && totalSlides > 0) {
       const timer = setTimeout(() => {
-        console.log('Auto-starting story...');
         setIsPaused(false);
         setProgress(0);
         pausedTimeRef.current = 0;
@@ -209,12 +197,12 @@ const WebStoryViewer: React.FC = () => {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center">
         <div className="text-white text-center max-w-md px-4">
-          <div className="text-6xl mb-4">📱</div>
+          <div className="mb-4"><StoriesIcon size={48} /></div>
           <h2 className="text-xl font-bold mb-2">Story Not Found</h2>
-          <p className="text-stone mb-6">{loadError || 'This story may have been removed or is not available.'}</p>
+          <p className="text-muted-foreground mb-6">{loadError || 'This story may have been removed or is not available.'}</p>
           <Link
             href="/web-stories"
-            className="inline-block bg-paper text-ink px-6 py-3 rounded-full font-medium hover:bg-ivory transition-colors"
+            className="inline-block bg-background text-ink px-6 py-3 rounded-full font-medium hover:bg-muted transition-colors"
           >
             Browse All Stories
           </Link>

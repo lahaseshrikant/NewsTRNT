@@ -55,6 +55,21 @@ pip install -r requirements.txt
 python main.py
 ```
 
+> **Tip:** you can also start every project with a single command via the helper scripts added to the repo root. On Windows run:
+>
+> ```powershell
+> .\dev.ps1
+> ```
+>
+> and on macOS/Linux/WSL:
+>
+> ```bash
+> bash dev.sh
+> ```
+>
+> Each service opens in its own terminal window (PowerShell) or background process (bash) so you can watch logs separately.
+
+
 Copy and fill `.env`/`.env.local` from the provided examples in each service directory.
 
 For database work, run migrations from any Node service that includes Prisma: `npx prisma migrate dev`.

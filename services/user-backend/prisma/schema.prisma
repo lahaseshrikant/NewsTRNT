@@ -694,4 +694,23 @@ model TopicFollow {
 }
 
 // =============================================================================
+// CONTACT MESSAGES - User-submitted contact form messages
+// =============================================================================
 
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("unread") // "unread", "read", "replied", "archived"
+  repliedAt DateTime? @map("replied_at")
+  repliedBy String?  @map("replied_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@schema("public")
+  @@index([status])
+  @@index([createdAt])
+  @@map("contact_messages")
+}

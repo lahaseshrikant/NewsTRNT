@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import { useCategories } from '@/hooks/useCategories';
 import { getCategoryBadgeStyle } from '@/lib/categoryUtils';
 import { dbApi, Article } from '@/lib/api-client';
@@ -71,20 +70,35 @@ const ArticlesPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
-        <div className="container mx-auto py-8">
-          <Breadcrumb items={[{ label: 'Articles' }]} className="mb-4" />
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">In-Depth</p>
-            <h1 className="font-serif text-4xl font-bold text-ivory mb-4">
+      <section className="hero-articles border-b-2 border-vermillion">
+        <div className="relative z-10 container mx-auto py-10">
+          <div className="max-w-4xl">
+            <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-70 mb-3 block">In-Depth</span>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">
               Long Reads
             </h1>
-            <p className="text-xl text-ivory/60">
+            <p className="opacity-60 text-lg">
               In-depth articles and deep dives into the stories that matter
             </p>
           </div>
+          {/* Category Filters */}
+          <div className="flex flex-wrap gap-2 mt-6 max-w-4xl">
+            {categories.map(category => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors backdrop-blur-sm ${
+                  selectedCategory === category.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border border-current/20 opacity-70 hover:opacity-100'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       <div className="container mx-auto py-8">
         {/* Featured Article Hero */}
@@ -93,7 +107,7 @@ const ArticlesPage: React.FC = () => {
             href={getContentUrl(featuredArticle)}
             className="hover-hero-card block mb-8 group"
           >
-            <div className="relative h-96 overflow-hidden bg-card border border-border">
+            <div className="relative h-96 overflow-hidden rounded-editorial bg-card border border-border">
               {featuredArticle.imageUrl ? (
                 <Image
                   src={featuredArticle.imageUrl}
@@ -103,7 +117,7 @@ const ArticlesPage: React.FC = () => {
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-ink via-vermillion/20 to-ink flex items-center justify-center">
-                  <svg className="w-16 h-16 text-ivory/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+                  <svg className="w-16 h-16 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
@@ -141,23 +155,6 @@ const ArticlesPage: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
-            {/* Category Filters */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
-                    selectedCategory === category.id
-                      ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
-                      : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
-                  }`}
-                >
-                  {category.label}
-                </button>
-              ))}
-            </div>
-
             {/* Articles Grid */}
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -179,7 +176,7 @@ const ArticlesPage: React.FC = () => {
                     <Link 
                       key={article.id} 
                       href={getContentUrl(article)}
-                      className="hover-lift group bg-card border border-border overflow-hidden transition-all"
+                      className="hover-lift group bg-card border border-border rounded-editorial overflow-hidden transition-all"
                     >
                       {/* Image */}
                       <div className="hover-img-zoom relative h-48 bg-muted overflow-hidden">
@@ -188,7 +185,7 @@ const ArticlesPage: React.FC = () => {
                             src={article.imageUrl}
                             alt={article.title}
                             fill
-                            className="object-cover"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-ivory to-ash dark:from-ink dark:to-ink/50">
@@ -234,7 +231,7 @@ const ArticlesPage: React.FC = () => {
                   <div className="text-center mt-8">
                     <button
                       onClick={() => setPage(prev => prev + 1)}
-                      className="hover-magnetic px-6 py-3 bg-vermillion text-white font-mono text-xs tracking-wider uppercase"
+                      className="hover-magnetic px-6 py-3 bg-primary text-primary-foreground font-mono text-xs tracking-wider uppercase"
                     >
                       Load More Articles
                     </button>
@@ -296,9 +293,9 @@ const ArticlesPage: React.FC = () => {
             </div>
 
             {/* Reading Tip */}
-            <div className="bg-ink dark:bg-ivory/5 border border-ash dark:border-ash/20 p-4">
-              <h3 className="font-serif font-bold text-ivory mb-2">Reading Tip</h3>
-              <p className="text-sm text-ivory/60">
+            <div className="bg-card border border-border p-4">
+              <h3 className="font-serif font-bold text-foreground mb-2">Reading Tip</h3>
+              <p className="text-sm text-muted-foreground">
                 Long-form articles are best enjoyed with your morning coffee. Take your time to absorb the details.
               </p>
             </div>

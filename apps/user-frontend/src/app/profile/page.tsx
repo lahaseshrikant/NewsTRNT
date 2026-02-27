@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { getEmailString } from '@/lib/utils';
+import { ChartIcon, BookmarkIcon, GearIcon } from '@/components/icons/EditorialIcons';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -58,11 +59,11 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse space-y-4 text-center">
           <div className="w-20 h-20 bg-muted rounded-full mx-auto" />
           <div className="h-4 w-32 bg-muted rounded mx-auto" />
-          <p className="font-mono text-xs tracking-wider uppercase text-stone">Loading profile...</p>
+          <p className="font-mono text-xs tracking-wider uppercase text-muted-foreground">Loading profile...</p>
         </div>
       </div>
     );
@@ -71,9 +72,9 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-paper dark:bg-ink">
+    <div className="min-h-screen bg-background">
       {/* Header Banner */}
-      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
+      <div className="bg-ink border-b-2 border-vermillion">
         <div className="container mx-auto py-8 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -83,14 +84,14 @@ export default function ProfilePage() {
                 </span>
               </div>
               <div>
-                <h1 className="font-serif text-3xl font-bold text-ivory">{user.fullName}</h1>
-                <p className="text-ivory/60 text-sm">@{user.username || 'user'}</p>
+                <h1 className="font-serif text-3xl font-bold text-white">{user.fullName}</h1>
+                <p className="text-white/60 text-sm">@{user.username || 'user'}</p>
               </div>
             </div>
             <div className="flex space-x-3">
               <Link
                 href="/settings"
-                className="px-4 py-2 border border-ivory/30 text-ivory text-sm rounded hover:bg-ivory/10 transition-colors"
+                className="px-4 py-2 border border-white/30 text-white text-sm rounded hover:bg-white/10 transition-colors"
               >
                 Settings
               </Link>
@@ -120,47 +121,47 @@ export default function ProfilePage() {
         )}
 
         {/* Profile Info Card */}
-        <div className="bg-ivory dark:bg-ash/10 border border-ash dark:border-ash/20 rounded-lg overflow-hidden">
-          <div className="p-6 border-b border-ash dark:border-ash/20">
-            <h2 className="font-serif text-xl font-semibold text-ink dark:text-ivory">Profile Information</h2>
+        <div className="bg-muted/50 border border-border rounded-lg overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <h2 className="font-serif text-xl font-semibold text-foreground">Profile Information</h2>
           </div>
 
           <div className="p-6 space-y-6">
             {/* Full Name */}
             <div>
-              <label className="font-mono text-xs tracking-wider uppercase text-stone block mb-1">Full Name</label>
+              <label className="font-mono text-xs tracking-wider uppercase text-muted-foreground block mb-1">Full Name</label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editForm.fullName}
                   onChange={(e) => setEditForm(prev => ({ ...prev, fullName: e.target.value }))}
-                  className="w-full px-3 py-2 border border-ash dark:border-ash/30 rounded bg-paper dark:bg-ink text-ink dark:text-ivory focus:outline-none focus:border-vermillion"
+                  className="w-full px-3 py-2 border border-border rounded bg-background text-foreground focus:outline-none focus:border-vermillion"
                 />
               ) : (
-                <p className="font-serif text-lg font-medium text-ink dark:text-ivory">{user.fullName || 'Not set'}</p>
+                <p className="font-serif text-lg font-medium text-foreground">{user.fullName || 'Not set'}</p>
               )}
             </div>
 
             {/* Username */}
-            <div className="border-t border-ash dark:border-ash/20 pt-6">
-              <label className="font-mono text-xs tracking-wider uppercase text-stone block mb-1">Username</label>
+            <div className="border-t border-border pt-6">
+              <label className="font-mono text-xs tracking-wider uppercase text-muted-foreground block mb-1">Username</label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editForm.username}
                   onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
-                  className="w-full px-3 py-2 border border-ash dark:border-ash/30 rounded bg-paper dark:bg-ink text-ink dark:text-ivory focus:outline-none focus:border-vermillion"
+                  className="w-full px-3 py-2 border border-border rounded bg-background text-foreground focus:outline-none focus:border-vermillion"
                 />
               ) : (
-                <p className="font-serif text-lg font-medium text-ink dark:text-ivory">@{user.username || 'Not set'}</p>
+                <p className="font-serif text-lg font-medium text-foreground">@{user.username || 'Not set'}</p>
               )}
             </div>
 
             {/* Email (read-only) */}
-            <div className="border-t border-ash dark:border-ash/20 pt-6">
-              <label className="font-mono text-xs tracking-wider uppercase text-stone block mb-1">Email</label>
-              <p className="font-serif text-lg font-medium text-ink dark:text-ivory">{getEmailString(user.email)}</p>
-              <p className="text-xs text-stone mt-1">
+            <div className="border-t border-border pt-6">
+              <label className="font-mono text-xs tracking-wider uppercase text-muted-foreground block mb-1">Email</label>
+              <p className="font-serif text-lg font-medium text-foreground">{getEmailString(user.email)}</p>
+              <p className="text-xs text-muted-foreground mt-1">
                 {user.isVerified ? (
                   <span className="text-green-600 dark:text-green-400">✓ Verified</span>
                 ) : (
@@ -170,9 +171,9 @@ export default function ProfilePage() {
             </div>
 
             {/* Member Since */}
-            <div className="border-t border-ash dark:border-ash/20 pt-6">
-              <label className="font-mono text-xs tracking-wider uppercase text-stone block mb-1">Member Since</label>
-              <p className="font-serif text-lg font-medium text-ink dark:text-ivory">
+            <div className="border-t border-border pt-6">
+              <label className="font-mono text-xs tracking-wider uppercase text-muted-foreground block mb-1">Member Since</label>
+              <p className="font-serif text-lg font-medium text-foreground">
                 {new Date(user.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
@@ -183,8 +184,8 @@ export default function ProfilePage() {
 
             {/* Interests */}
             {user.interests && user.interests.length > 0 && (
-              <div className="border-t border-ash dark:border-ash/20 pt-6">
-                <label className="font-mono text-xs tracking-wider uppercase text-stone block mb-2">Interests</label>
+              <div className="border-t border-border pt-6">
+                <label className="font-mono text-xs tracking-wider uppercase text-muted-foreground block mb-2">Interests</label>
                 <div className="flex flex-wrap gap-2">
                   {user.interests.map((interest: string) => (
                     <span
@@ -201,14 +202,14 @@ export default function ProfilePage() {
 
           {/* Edit Actions */}
           {isEditing && (
-            <div className="p-6 border-t border-ash dark:border-ash/20 flex justify-end space-x-3">
+            <div className="p-6 border-t border-border flex justify-end space-x-3">
               <button
                 onClick={() => {
                   setIsEditing(false);
                   setEditForm({ fullName: user.fullName || '', username: user.username || '' });
                   setMessage(null);
                 }}
-                className="px-4 py-2 border border-ash dark:border-ash/30 text-ink dark:text-ivory text-sm rounded hover:bg-ash/10 transition-colors"
+                className="px-4 py-2 border border-border text-foreground text-sm rounded hover:bg-ash/10 transition-colors"
                 disabled={isSaving}
               >
                 Cancel
@@ -228,24 +229,24 @@ export default function ProfilePage() {
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link
             href="/dashboard"
-            className="p-4 bg-ivory dark:bg-ash/10 border border-ash dark:border-ash/20 rounded-lg hover:border-vermillion/50 transition-colors text-center"
+            className="p-4 bg-muted/50 border border-border rounded-lg hover:border-vermillion/50 transition-colors text-center"
           >
-            <span className="text-2xl mb-2 block">📊</span>
-            <span className="text-sm font-medium text-ink dark:text-ivory">Dashboard</span>
+            <span className="mb-2 block"><ChartIcon size={24} /></span>
+            <span className="text-sm font-medium text-foreground">Dashboard</span>
           </Link>
           <Link
             href="/saved"
-            className="p-4 bg-ivory dark:bg-ash/10 border border-ash dark:border-ash/20 rounded-lg hover:border-vermillion/50 transition-colors text-center"
+            className="p-4 bg-muted/50 border border-border rounded-lg hover:border-vermillion/50 transition-colors text-center"
           >
-            <span className="text-2xl mb-2 block">🔖</span>
-            <span className="text-sm font-medium text-ink dark:text-ivory">Saved Articles</span>
+            <span className="mb-2 block"><BookmarkIcon size={24} /></span>
+            <span className="text-sm font-medium text-foreground">Saved Articles</span>
           </Link>
           <Link
             href="/settings"
-            className="p-4 bg-ivory dark:bg-ash/10 border border-ash dark:border-ash/20 rounded-lg hover:border-vermillion/50 transition-colors text-center"
+            className="p-4 bg-muted/50 border border-border rounded-lg hover:border-vermillion/50 transition-colors text-center"
           >
-            <span className="text-2xl mb-2 block">⚙️</span>
-            <span className="text-sm font-medium text-ink dark:text-ivory">Settings</span>
+            <span className="mb-2 block"><GearIcon size={24} /></span>
+            <span className="text-sm font-medium text-foreground">Settings</span>
           </Link>
         </div>
       </div>

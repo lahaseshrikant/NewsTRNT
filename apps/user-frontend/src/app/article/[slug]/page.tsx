@@ -125,7 +125,7 @@ const ArticleDetailPage: React.FC = () => {
   // Loading — editorial skeleton
   if (loading) {
     return (
-      <div className="min-h-screen bg-paper">
+      <div className="min-h-screen bg-background">
         {/* Progress bar placeholder */}
         <div className="fixed top-0 left-0 w-full h-0.5 bg-ash/30 z-50" />
         <div className="container mx-auto px-4 py-12">
@@ -157,11 +157,11 @@ const ArticleDetailPage: React.FC = () => {
   // Error state
   if (error || !article) {
     return (
-      <div className="min-h-screen bg-paper flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center py-12 max-w-md px-4">
           <div className="editorial-rule mx-auto mb-6" />
           <h3 className="font-serif text-2xl text-ink mb-3">Story Not Found</h3>
-          <p className="text-stone text-sm mb-6">{error || 'This article may have been removed or is no longer available.'}</p>
+          <p className="text-muted-foreground text-sm mb-6">{error || 'This article may have been removed or is no longer available.'}</p>
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-vermillion hover:text-vermillion-dark text-sm font-medium transition-colors"
@@ -181,7 +181,7 @@ const ArticleDetailPage: React.FC = () => {
   const publishedAt = article.published_at || new Date();
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-background">
       {/* Reading Progress Bar */}
       <ReadingProgressBar />
 
@@ -211,7 +211,7 @@ const ArticleDetailPage: React.FC = () => {
 
             {/* Deck / Summary */}
             {(article.summary || article.excerpt) && (
-              <p className="text-lg text-stone leading-relaxed mb-6 max-w-[38rem]">
+              <p className="text-lg text-muted-foreground leading-relaxed mb-6 max-w-[38rem]">
                 {article.summary || article.excerpt}
               </p>
             )}
@@ -250,7 +250,7 @@ const ArticleDetailPage: React.FC = () => {
                   className={`p-2 border transition-colors ${
                     isBookmarked
                       ? 'border-vermillion/30 text-vermillion bg-vermillion/5'
-                      : 'border-ash/50 text-stone hover:text-ink hover:border-ink/30'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
                   }`}
                   title={isBookmarked ? 'Saved' : 'Save for later'}
                 >
@@ -260,14 +260,14 @@ const ArticleDetailPage: React.FC = () => {
                 <div className="relative">
                   <button
                     onClick={() => setShowShareMenu(!showShareMenu)}
-                    className="p-2 border border-ash/50 text-stone hover:text-ink hover:border-ink/30 transition-colors"
+                    className="p-2 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                     title="Share"
                   >
                     <ShareIcon size={16} />
                   </button>
 
                   {showShareMenu && (
-                    <div className="absolute right-0 mt-2 w-44 bg-paper border border-ash shadow-editorial z-10">
+                    <div className="absolute right-0 mt-2 w-44 bg-background border border-border shadow-editorial z-10">
                       {[
                         { label: 'Twitter / X', key: 'twitter' },
                         { label: 'Facebook', key: 'facebook' },
@@ -277,7 +277,7 @@ const ArticleDetailPage: React.FC = () => {
                         <button
                           key={item.key}
                           onClick={() => shareArticle(item.key)}
-                          className="w-full text-left px-4 py-2.5 text-sm text-ink/70 hover:bg-ivory hover:text-ink transition-colors"
+                          className="w-full text-left px-4 py-2.5 text-sm text-foreground/70 hover:bg-muted hover:text-foreground transition-colors"
                         >
                           {item.label}
                         </button>
@@ -324,13 +324,13 @@ const ArticleDetailPage: React.FC = () => {
 
             {/* Tags */}
             {articleTags.length > 0 && (
-              <div className="mt-10 pt-8 border-t border-ash/40">
+              <div className="mt-10 pt-8 border-t border-border">
                 <div className="flex flex-wrap gap-2">
                   {articleTags.map((tag) => (
                     <Link
                       key={tag}
                       href={`/search?q=${encodeURIComponent(tag)}`}
-                      className="font-mono text-xs text-stone border border-ash/50 px-3 py-1.5 hover:border-ink/30 hover:text-ink transition-colors"
+                      className="font-mono text-xs text-muted-foreground border border-border px-3 py-1.5 hover:border-foreground/30 hover:text-foreground transition-colors"
                     >
                       {tag}
                     </Link>
@@ -340,7 +340,7 @@ const ArticleDetailPage: React.FC = () => {
             )}
 
             {/* Author Bio */}
-            <div className="mt-10 pt-8 border-t border-ash/40">
+            <div className="mt-10 pt-8 border-t border-border">
               <div className="flex items-start gap-4">
                 <div className="w-14 h-14 bg-ink/5 rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="font-serif text-lg text-ink font-semibold">
@@ -348,9 +348,9 @@ const ArticleDetailPage: React.FC = () => {
                   </span>
                 </div>
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-widest text-stone mb-1">About the Author</p>
+                  <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">About the Author</p>
                   <h3 className="font-serif text-lg text-ink mb-1">{authorName}</h3>
-                  <p className="text-stone text-sm leading-relaxed">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
                     NewsTRNT contributor covering stories at the intersection of news and deeper understanding.
                   </p>
                 </div>
@@ -363,7 +363,7 @@ const ArticleDetailPage: React.FC = () => {
             </div>
 
             {/* Comments */}
-            <div className="mt-10 pt-8 border-t border-ash/40">
+            <div className="mt-10 pt-8 border-t border-border">
               <CommentSection articleId={article.id || ''} />
             </div>
           </div>
@@ -372,7 +372,7 @@ const ArticleDetailPage: React.FC = () => {
 
       {/* Related Stories */}
       {relatedArticles.length > 0 && (
-        <aside className="bg-ivory border-t border-ash/40">
+        <aside className="bg-muted border-t border-border">
           <div className="container mx-auto px-4 py-12">
             <div className="max-w-4xl mx-auto">
               <h2 className="font-serif text-xl text-ink mb-6">More from {categoryName}</h2>
@@ -393,7 +393,7 @@ const ArticleDetailPage: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    <p className="kicker text-stone text-[10px] mb-1">
+                    <p className="kicker text-muted-foreground text-[10px] mb-1">
                       {relatedArticle.category?.name || 'News'}
                     </p>
                     <h4 className="font-serif text-ink text-base leading-snug group-hover:text-vermillion transition-colors line-clamp-2">

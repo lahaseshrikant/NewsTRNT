@@ -4,7 +4,6 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import { useCategories } from '@/hooks/useCategories';
 import { dbApi, WebStory } from '@/lib/api-client';
 
@@ -74,15 +73,15 @@ const WebStoriesContent: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
-          <div className="container mx-auto py-8">
-            <div className="max-w-4xl mx-auto text-center">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">Visual</p>
-              <h1 className="font-serif text-4xl font-bold text-ivory mb-4">Web Stories</h1>
-              <p className="text-xl text-ivory/60">Loading stories...</p>
+        <section className="hero-webstories border-b-2 border-vermillion">
+          <div className="relative z-10 container mx-auto py-10">
+            <div className="max-w-4xl">
+              <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-70 mb-3 block">Visual</span>
+              <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">Web Stories</h1>
+              <p className="opacity-60 text-lg">Loading stories...</p>
             </div>
           </div>
-        </div>
+        </section>
         <div className="container mx-auto py-8">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -116,7 +115,7 @@ const WebStoriesContent: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Category notification */}
       {categoryParam && categoryParam !== 'all' && (
-        <div className="bg-gold/10 border-b border-ash/20">
+        <div className="bg-gold/10 border-b border-border">
           <div className="container mx-auto py-2">
             <div className="text-center">
               <span className="text-sm text-vermillion dark:text-gold font-mono text-xs uppercase tracking-wider">
@@ -128,38 +127,37 @@ const WebStoriesContent: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
-        <div className="container mx-auto py-8">
-          <Breadcrumb items={[{ label: 'Web Stories' }]} className="mb-4" />
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">Visual</p>
-            <h1 className="font-serif text-4xl font-bold text-ivory mb-4">
+      <section className="hero-webstories border-b-2 border-vermillion">
+        <div className="relative z-10 container mx-auto py-10">
+          <div className="max-w-4xl">
+            <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-70 mb-3 block">Visual</span>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">
               Web Stories
             </h1>
-            <p className="text-xl text-ivory/60">
+            <p className="opacity-60 text-lg">
               Immersive visual storytelling
             </p>
           </div>
+          {/* Category Filters */}
+          <div className="flex flex-wrap gap-2 mt-6 max-w-4xl">
+            {categories.map(category => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors backdrop-blur-sm ${
+                  selectedCategory === category.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border border-current/20 opacity-70 hover:opacity-100'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       <div className="container mx-auto py-8">
-        {/* Category Filters */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {categories.map(category => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
-              className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
-                selectedCategory === category.id
-                  ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
-                  : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
-              }`}
-            >
-              {category.label}
-            </button>
-          ))}
-        </div>
 
         {/* Web Stories Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
@@ -201,7 +199,7 @@ const WebStoriesContent: React.FC = () => {
               {/* Content */}
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 <div className="mb-2">
-                  <span className="bg-ink text-ivory px-2 py-1 font-mono text-[9px] uppercase tracking-wider">
+                  <span className="bg-ink text-white px-2 py-1 font-mono text-[9px] uppercase tracking-wider">
                     {story.category}
                   </span>
                 </div>
@@ -244,7 +242,7 @@ const WebStoriesContent: React.FC = () => {
         {/* Load More */}
         {filteredStories.length > 0 && (
           <div className="text-center mt-8">
-            <button className="hover-magnetic bg-vermillion text-white px-6 py-3 font-mono text-xs tracking-wider uppercase">
+            <button className="hover-magnetic bg-primary text-primary-foreground px-6 py-3 font-mono text-xs tracking-wider uppercase">
               Load More Stories
             </button>
           </div>
@@ -259,7 +257,7 @@ const WebStoriesPage: React.FC = () => {
     <Suspense fallback={
       <div className="min-h-screen bg-background py-12">
         <div className="container mx-auto px-4 text-center">
-          <div className="animate-pulse font-mono text-sm text-stone">Loading web stories...</div>
+          <div className="animate-pulse font-mono text-sm text-muted-foreground">Loading web stories...</div>
         </div>
       </div>
     }>

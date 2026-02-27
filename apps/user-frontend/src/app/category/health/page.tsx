@@ -10,6 +10,7 @@ import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 import { getCategoryTheme } from '@/config/categoryThemes';
 import { useCategories } from '@/hooks/useCategories';
 import AdSlot from '@/components/ui/AdSlot';
+import { ClockIcon, TrendingIcon, EditorPickIcon, AlertIcon, MicroscopeIcon, BrainIcon, NutritionIcon, HospitalIcon, PillIcon, BreakingIcon, FlaskIcon, CheckCircleIcon, LightbulbIcon, HeartIcon } from '@/components/icons/EditorialIcons';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -69,25 +70,25 @@ const HealthCategoryPage: React.FC = () => {
     { value: 'opinion', label: 'Opinion' }
   ];
 
-  const sortOptions = [
-    { value: 'latest', label: 'Latest', icon: '🕐' },
-    { value: 'trending', label: 'Trending', icon: '🔥' },
-    { value: 'popular', label: 'Popular', icon: '⭐' },
-    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+  const sortOptions: { value: string; label: string; icon: React.ReactNode }[] = [
+    { value: 'latest', label: 'Latest', icon: <ClockIcon size={14} /> },
+    { value: 'trending', label: 'Trending', icon: <TrendingIcon size={14} /> },
+    { value: 'popular', label: 'Popular', icon: <EditorPickIcon size={14} /> },
+    { value: 'breaking', label: 'Breaking', icon: <AlertIcon size={14} /> }
   ];
 
-  const healthTopics = [
-    { name: 'Medical Research', icon: '🔬', articles: 45, color: 'from-emerald-500/20 to-green-500/20' },
-    { name: 'Mental Health', icon: '🧠', articles: 32, color: 'from-violet-500/20 to-purple-500/20' },
-    { name: 'Nutrition', icon: '🥦', articles: 28, color: 'from-lime-500/20 to-green-500/20' },
-    { name: 'Public Health', icon: '🏥', articles: 24, color: 'from-blue-500/20 to-cyan-500/20' },
-    { name: 'Medical Tech', icon: '💊', articles: 19, color: 'from-teal-500/20 to-emerald-500/20' }
+  const healthTopics: { name: string; icon: React.ReactNode; articles: number; color: string }[] = [
+    { name: 'Medical Research', icon: <MicroscopeIcon size={20} />, articles: 45, color: 'from-emerald-500/20 to-green-500/20' },
+    { name: 'Mental Health', icon: <BrainIcon size={20} />, articles: 32, color: 'from-violet-500/20 to-purple-500/20' },
+    { name: 'Nutrition', icon: <NutritionIcon size={20} />, articles: 28, color: 'from-lime-500/20 to-green-500/20' },
+    { name: 'Public Health', icon: <HospitalIcon size={20} />, articles: 24, color: 'from-blue-500/20 to-cyan-500/20' },
+    { name: 'Medical Tech', icon: <PillIcon size={20} />, articles: 19, color: 'from-teal-500/20 to-emerald-500/20' }
   ];
 
-  const wellnessMetrics = [
-    { label: 'Articles Today', value: '12', icon: '📰' },
-    { label: 'Clinical Trials', value: '847', icon: '🧪' },
-    { label: 'Expert Reviews', value: '23', icon: '✅' },
+  const wellnessMetrics: { label: string; value: string; icon: React.ReactNode }[] = [
+    { label: 'Articles Today', value: '12', icon: <BreakingIcon size={18} /> },
+    { label: 'Clinical Trials', value: '847', icon: <FlaskIcon size={18} /> },
+    { label: 'Expert Reviews', value: '23', icon: <CheckCircleIcon size={18} /> },
   ];
 
   const subCategoryFilters = useSubCategoryFilters(allArticles, category?.subCategories, 'ALL');
@@ -104,9 +105,9 @@ const HealthCategoryPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="font-mono text-xs tracking-wider uppercase text-stone">Loading section...</p>
+          <p className="font-mono text-xs tracking-wider uppercase text-muted-foreground">Loading section...</p>
         </div>
       </div>
     );
@@ -114,11 +115,11 @@ const HealthCategoryPage: React.FC = () => {
 
   if (!category || !category.isActive) {
     return (
-      <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="font-serif text-3xl font-bold text-ink dark:text-ivory mb-4">Section Not Found</h1>
-          <p className="text-stone mb-8">The section you&apos;re looking for doesn&apos;t exist.</p>
-          <Link href="/" className="bg-ink text-ivory px-6 py-3 hover:bg-ink/80 transition-colors font-mono text-xs tracking-wider uppercase">
+          <h1 className="font-serif text-3xl font-bold text-foreground mb-4">Section Not Found</h1>
+          <p className="text-muted-foreground mb-8">The section you&apos;re looking for doesn&apos;t exist.</p>
+          <Link href="/" className="bg-ink text-white px-6 py-3 hover:bg-ink/80 transition-colors font-mono text-xs tracking-wider uppercase">
             Back to Front Page
           </Link>
         </div>
@@ -282,7 +283,7 @@ const HealthCategoryPage: React.FC = () => {
                           className="group health-card bg-card rounded-xl overflow-hidden border border-border desk-card-hover">
                       <div className="relative h-52">
                         <Image
-                          src={article.imageUrl || '/api/placeholder/600/400'}
+                          src={article.imageUrl || '/images/placeholder-news.svg'}
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -346,7 +347,7 @@ const HealthCategoryPage: React.FC = () => {
                         <div className="md:w-1/3">
                           <div className="relative h-48 md:h-36 rounded-lg overflow-hidden">
                             <Image
-                              src={article.imageUrl || '/api/placeholder/400/300'}
+                              src={article.imageUrl || '/images/placeholder-news.svg'}
                               alt={article.title}
                               fill
                               className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -418,7 +419,7 @@ const HealthCategoryPage: React.FC = () => {
               <div className="bg-card p-5">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xl">💡</span>
+                    <LightbulbIcon size={20} />
                   </div>
                   <div>
                     <p className="text-sm text-foreground font-medium mb-1">Stay Hydrated</p>
@@ -442,7 +443,7 @@ const HealthCategoryPage: React.FC = () => {
             <div className="rounded-xl overflow-hidden" style={{ background: theme.gradient }}>
               <div className="p-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
-                  <span className="text-2xl">💚</span>
+                  <HeartIcon size={24} />
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Health Weekly</h3>
                 <p className="text-white/50 text-sm mb-4">

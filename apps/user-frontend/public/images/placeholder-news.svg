@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <rect width="1200" height="800" fill="#F5F0EB"/>
+  <g transform="translate(600,380)" text-anchor="middle">
+    <rect x="-40" y="-60" width="80" height="60" rx="4" fill="none" stroke="#C4B5A3" stroke-width="2"/>
+    <circle cx="0" cy="-40" r="8" fill="none" stroke="#C4B5A3" stroke-width="1.5"/>
+    <polygon points="-30,-10 -10,-35 5,-18 15,-28 30,-10" fill="none" stroke="#C4B5A3" stroke-width="1.5"/>
+    <text y="30" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#A89F91" letter-spacing="0.1em">NEWSTRNT</text>
+  </g>
+</svg>

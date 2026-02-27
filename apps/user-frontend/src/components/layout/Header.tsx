@@ -540,7 +540,7 @@ const Header = () => {
                   <h1 className="font-serif text-lg xl:text-xl text-ink leading-tight whitespace-nowrap tracking-tight">
                     NewsTRNT
                   </h1>
-                  <p className="text-[9px] xl:text-[10px] text-stone font-mono leading-tight whitespace-nowrap tracking-wide">
+                  <p className="text-[9px] xl:text-[10px] text-muted-foreground font-mono leading-tight whitespace-nowrap tracking-wide">
                     The Road Not Taken
                   </p>
                 </div>
@@ -606,7 +606,7 @@ const Header = () => {
                   ) : (
                     <Link
                       href={item.href}
-                      className="text-ink/70 hover:text-ink px-1.5 lg:px-2 py-2 text-sm font-medium transition-all duration-300 ease-in-out transform whitespace-nowrap relative"
+                      className="text-foreground/70 hover:text-foreground px-1.5 lg:px-2 py-2 text-sm font-medium transition-all duration-300 ease-in-out transform whitespace-nowrap relative"
                     >
                       {item.name === 'Stories' && (
                         <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-vermillion rounded-full"></span>
@@ -695,7 +695,7 @@ const Header = () => {
                     setIsProfileOpen(false);
                     setIsNotificationsOpen(false);
                   }}
-                  className="p-1.5 sm:p-2 text-stone hover:text-ink transition-colors"
+                  className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <MagnifyingGlassIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
@@ -708,7 +708,7 @@ const Header = () => {
                         placeholder="Search stories..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-lg border border-ash focus:border-vermillion/50 focus:outline-none focus:ring-2 focus:ring-vermillion/10 bg-ivory text-ink placeholder-stone font-mono text-sm transition-all"
+                        className="w-full px-4 py-2.5 rounded-lg border border-border focus:border-vermillion/50 focus:outline-none focus:ring-2 focus:ring-vermillion/10 bg-muted text-foreground placeholder-stone font-mono text-sm transition-all"
                         autoFocus
                       />
                     </form>
@@ -732,7 +732,6 @@ const Header = () => {
                   className="p-1.5 sm:p-2 text-muted-foreground hover:text-primary transition-colors relative"
                 >
                   <BellIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-2 w-2 sm:h-2.5 sm:w-2.5 bg-vermillion rounded-full"></span>
                 </button>
                 
                 {isNotificationsOpen && (
@@ -742,44 +741,40 @@ const Header = () => {
                     </div>
                     
                     <div className="max-h-96 overflow-y-auto">
-                      <div className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-sm text-foreground">Breaking: Major tech announcement from Silicon Valley</p>
-                            <p className="text-xs text-muted-foreground mt-1">2 minutes ago</p>
-                          </div>
+                      {!isAuthenticated && (
+                        <div className="px-4 py-3 bg-vermillion/5 border-b border-border">
+                          <p className="text-xs text-foreground font-medium mb-1">Get personalized alerts</p>
+                          <p className="text-[11px] text-muted-foreground mb-2">Sign in to receive breaking news tailored to your interests.</p>
+                          <Link
+                            href="/auth/signin"
+                            onClick={() => setIsNotificationsOpen(false)}
+                            className="inline-block bg-vermillion !text-black dark:!text-white px-3 py-1 font-mono text-[10px] tracking-wider uppercase hover:bg-vermillion/90 transition-colors"
+                          >
+                            Sign In
+                          </Link>
                         </div>
-                      </div>
-                      
-                      <div className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-sm text-foreground">Your daily news digest is ready</p>
-                            <p className="text-xs text-muted-foreground mt-1">1 hour ago</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="px-4 py-3 hover:bg-primary/10 transition-colors cursor-pointer">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-sm text-foreground">Climate summit reaches historic agreement</p>
-                            <p className="text-xs text-muted-foreground mt-1">3 hours ago</p>
-                          </div>
-                        </div>
+                      )}
+                      <div className="px-4 py-4 text-center">
+                        <BellIcon className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">No new notifications</p>
+                        <p className="text-[11px] text-muted-foreground mt-1">We&apos;ll notify you when something important happens.</p>
                       </div>
                     </div>
                     
-                    <div className="px-4 py-3 border-t border-border">
+                    <div className="px-4 py-3 border-t border-border flex items-center justify-between">
                       <Link
-                        href="/notifications"
-                        className="text-sm text-primary hover:underline font-medium"
+                        href="/news"
+                        className="text-xs text-primary hover:underline font-medium"
                         onClick={() => setIsNotificationsOpen(false)}
                       >
-                        View all notifications
+                        Browse latest news
+                      </Link>
+                      <Link
+                        href="/settings"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        onClick={() => setIsNotificationsOpen(false)}
+                      >
+                        Settings
                       </Link>
                     </div>
                   </div>
@@ -883,7 +878,7 @@ const Header = () => {
                         <div className="py-1">
                           <Link
                             href="/auth/signin"
-                            className="dropdown-item !text-ink font-medium"
+                            className="dropdown-item font-medium"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             Sign In
@@ -933,7 +928,7 @@ const Header = () => {
             <nav className="flex flex-col space-y-1 py-4">
               {/* Mobile Header Bar - Date & Theme */}
               <div className="flex items-center justify-between px-3 py-2 mb-2 bg-secondary/50 rounded-xl mx-2">
-                <div className="flex items-center gap-2 text-stone">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <span className="text-xs font-mono">
                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                   </span>
@@ -1051,7 +1046,7 @@ const Header = () => {
                       {/* Not logged in - show sign in options */}
                       <Link
                         href="/auth/signin"
-                        className="block px-3 py-2.5 text-ink hover:bg-ink/5 transition-colors text-sm font-medium"
+                        className="block px-3 py-2.5 text-foreground hover:bg-primary/5 transition-colors text-sm font-medium"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Sign In

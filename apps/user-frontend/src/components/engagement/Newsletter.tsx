@@ -59,7 +59,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ variant = 'default', className 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
-            className="flex-1 px-4 py-2 border border-ash dark:border-ash/20 bg-paper dark:bg-ink text-ink dark:text-ivory placeholder-stone focus:ring-2 focus:ring-vermillion/30 focus:border-vermillion"
+            className="flex-1 px-4 py-2 border border-border bg-background text-foreground placeholder-stone focus:ring-2 focus:ring-vermillion/30 focus:border-vermillion"
             required
           />
           <button
@@ -75,17 +75,17 @@ const Newsletter: React.FC<NewsletterProps> = ({ variant = 'default', className 
   }
 
   return (
-    <div className={`bg-ivory dark:bg-ash/10 border border-ash dark:border-ash/20 p-8 ${className}`}>
+    <div className={`bg-muted/50 border border-border p-8 ${className}`}>
       <div className="text-center">
         <div className="flex justify-center mb-4">
-          <div className="p-3 bg-ink dark:bg-ivory">
-            <EnvelopeIcon className="w-8 h-8 text-ivory dark:text-ink" />
+          <div className="p-3 bg-ink dark:bg-muted">
+            <EnvelopeIcon className="w-8 h-8 text-white dark:text-ink" />
           </div>
         </div>
         <h3 className="font-serif text-2xl font-bold text-foreground mb-2">
           Stay in the Loop
         </h3>
-        <p className="text-stone mb-6 max-w-md mx-auto">
+        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
           Subscribe to our newsletter and never miss breaking news, exclusive stories, and insider insights.
         </p>
         <form onSubmit={handleSubmit} className="max-w-md mx-auto">
@@ -95,7 +95,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ variant = 'default', className 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email address"
-              className="flex-1 px-4 py-3 border border-ash dark:border-ash/20 bg-paper dark:bg-ink text-ink dark:text-ivory placeholder-stone focus:ring-2 focus:ring-vermillion/30 focus:border-vermillion"
+              className="flex-1 px-4 py-3 border border-border bg-background text-foreground placeholder-stone focus:ring-2 focus:ring-vermillion/30 focus:border-vermillion"
               required
             />
             <button

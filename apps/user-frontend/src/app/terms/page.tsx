@@ -7,17 +7,17 @@ const TermsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-card shadow-sm border-b border-border">
-  <div className="container mx-auto py-8">
+      <section className="hero-legal border-b-2 border-vermillion">
+  <div className="relative z-10 container mx-auto py-12">
           <div className="max-w-4xl mx-auto">
-            <Link href="/" className="text-primary hover:text-primary/80 mb-4 inline-block">
+            <Link href="/" className="opacity-60 hover:opacity-100 mb-4 inline-block">
               ← Back to Home
             </Link>
-            <h1 className="text-4xl font-bold text-foreground">Terms of Service</h1>
-            <p className="text-muted-foreground mt-2">Last updated: August 2, 2025</p>
+            <h1 className="text-4xl font-bold">Terms of Service</h1>
+            <p className="opacity-60 mt-2">Last updated: August 2, 2025</p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
   <div className="container mx-auto py-8">
@@ -171,10 +171,6 @@ const TermsPage: React.FC = () => {
                 <div className="bg-muted/50 p-6 rounded-lg border border-border">
                   <div className="space-y-2">
                     <p className="text-foreground"><strong>Email:</strong> legal@newstrnt.com</p>
-                    <p className="text-foreground"><strong>Address:</strong> NewsTRNT Legal Department<br />
-                    123 News Street<br />
-                    Media City, MC 12345</p>
-                    <p className="text-foreground"><strong>Phone:</strong> +1 (555) 123-4567</p>
                   </div>
                 </div>
               </section>

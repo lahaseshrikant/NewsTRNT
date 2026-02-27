@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import { dbApi, Article } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
+import { TrendingIcon, PopularIcon, ChartIcon, SparkleIcon, BreakingIcon, CommentIcon } from '@/components/icons/EditorialIcons';
 
 interface TrendingStory {
   id: string;
@@ -49,7 +49,7 @@ const TrendingPage: React.FC = () => {
           slug: article.slug,
           title: article.title,
           summary: article.summary || article.excerpt || '',
-          imageUrl: article.imageUrl || '/api/placeholder/600/400',
+          imageUrl: article.imageUrl || '/images/placeholder-news.svg',
           category: article.category?.name || 'Uncategorized',
           categorySlug: article.category?.slug || 'news',
           publishedAt: formatRelativeTime(article.published_at),
@@ -70,10 +70,10 @@ const TrendingPage: React.FC = () => {
     loadTrending();
   }, [timeRange]);
 
-  const timeRanges = [
-    { id: 'today', label: 'Today', icon: '🔥' },
-    { id: 'week', label: 'This Week', icon: '📈' },
-    { id: 'month', label: 'This Month', icon: '📊' },
+  const timeRanges: { id: string; label: string; icon: React.ReactNode }[] = [
+    { id: 'today', label: 'Today', icon: <TrendingIcon size={14} /> },
+    { id: 'week', label: 'This Week', icon: <PopularIcon size={14} /> },
+    { id: 'month', label: 'This Month', icon: <ChartIcon size={14} /> },
   ];
 
   // Category stats for sidebar
@@ -89,18 +89,17 @@ const TrendingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Page Header */}
-      <div className="bg-gradient-to-b from-primary/8 via-primary/3 to-background border-b border-border">
-        <div className="container mx-auto py-8 sm:py-10">
-          <Breadcrumb items={[{ label: 'Trending' }]} className="mb-4" />
+      <section className="hero-trending border-b-2 border-vermillion">
+        <div className="relative z-10 container mx-auto py-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-3xl">🔥</span>
-                <h1 className="font-serif text-3xl sm:text-4xl font-bold text-foreground">
-                  Trending Now
-                </h1>
-              </div>
-              <p className="text-muted-foreground text-lg">
+            <div className="max-w-4xl">
+              <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-70 mb-3 block flex items-center gap-2">
+                <TrendingIcon size={14} /> What&apos;s Hot
+              </span>
+              <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">
+                Trending Now
+              </h1>
+              <p className="opacity-60 text-lg">
                 The most talked-about stories right now
               </p>
             </div>
@@ -115,14 +114,14 @@ const TrendingPage: React.FC = () => {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <span>{range.icon}</span>
+                  {range.icon}
                   {range.label}
                 </button>
               ))}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <div className="container mx-auto py-8">
         {loading ? (
@@ -156,8 +155,8 @@ const TrendingPage: React.FC = () => {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                       <div className="absolute top-4 left-4 flex items-center gap-2">
-                        <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                          🥇 #1 Trending
+                        <span className="bg-vermillion text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                          #1 Trending
                         </span>
                         <span className="bg-black/50 backdrop-blur text-white text-xs px-2.5 py-1 rounded-full">
                           {topThree[0].category}
@@ -192,7 +191,7 @@ const TrendingPage: React.FC = () => {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
                         <span className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                          🥈 #2
+                          #2
                         </span>
                         <div className="absolute bottom-0 left-0 right-0 p-4">
                           <span className="text-white/60 text-[10px] uppercase tracking-widest font-semibold">{topThree[1].category}</span>
@@ -218,7 +217,7 @@ const TrendingPage: React.FC = () => {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
                         <span className="absolute top-3 left-3 bg-amber-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                          🥉 #3
+                          #3
                         </span>
                         <div className="absolute bottom-0 left-0 right-0 p-4">
                           <span className="text-white/60 text-[10px] uppercase tracking-widest font-semibold">{topThree[2].category}</span>
@@ -285,7 +284,7 @@ const TrendingPage: React.FC = () => {
 
               {rest.length > 0 && (
                 <div className="text-center mt-10">
-                  <button className="px-8 py-3 bg-primary text-white rounded-full font-semibold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                  <button className="px-8 py-3 bg-primary text-primary-foreground rounded-full font-semibold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
                     Load More Trending Stories
                   </button>
                 </div>
@@ -297,7 +296,7 @@ const TrendingPage: React.FC = () => {
               {/* Trending Categories */}
               <div className="bg-card border border-border rounded-xl p-6">
                 <h3 className="font-serif text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <span>📊</span> Trending Categories
+                  <ChartIcon size={16} className="inline" /> Trending Categories
                 </h3>
                 <div className="space-y-2">
                   {topCategories.map(([name, count], idx) => (
@@ -339,18 +338,18 @@ const TrendingPage: React.FC = () => {
               <div className="bg-card border border-border rounded-xl p-6">
                 <h3 className="font-serif text-lg font-bold text-foreground mb-4">Explore</h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { label: 'For You', href: '/for-you', icon: '✨' },
-                    { label: 'Latest', href: '/news', icon: '📰' },
-                    { label: 'Shorts', href: '/shorts', icon: '⚡' },
-                    { label: 'Opinion', href: '/opinion', icon: '💬' },
-                  ].map(link => (
+                  {([
+                    { label: 'For You', href: '/for-you', icon: <SparkleIcon size={14} /> },
+                    { label: 'Latest', href: '/news', icon: <BreakingIcon size={14} /> },
+                    { label: 'Shorts', href: '/shorts', icon: <BreakingIcon size={14} /> },
+                    { label: 'Opinion', href: '/opinion', icon: <CommentIcon size={14} /> },
+                  ] as { label: string; href: string; icon: React.ReactNode }[]).map(link => (
                     <Link
                       key={link.href}
                       href={link.href}
                       className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 hover:bg-muted text-sm font-medium text-foreground hover:text-primary transition-all"
                     >
-                      <span>{link.icon}</span>
+                      {link.icon}
                       {link.label}
                     </Link>
                   ))}

@@ -77,7 +77,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   };
 
   const getCategoryColor = (category: string) => {
-    return 'bg-ink/5 text-ink dark:bg-ivory/10 dark:text-ivory font-mono text-[10px] tracking-wider uppercase';
+    return 'bg-muted text-foreground font-mono text-[10px] tracking-wider uppercase';
   };
 
   if (variant === 'featured') {
@@ -112,11 +112,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             </h2>
           </Link>
           
-          <p className="text-stone mb-4 line-clamp-3">
+          <p className="text-muted-foreground mb-4 line-clamp-3">
             {article.summary}
           </p>
           
-          <div className="flex items-center justify-between text-sm text-stone mb-4">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
             <div className="flex items-center space-x-4">
               {article.author && <span>By {article.author}</span>}
               <div className="flex items-center space-x-1">
@@ -128,18 +128,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           </div>
           
           {showActions && (
-            <div className="flex items-center justify-between pt-4 border-t border-ash dark:border-ash/20">
+            <div className="flex items-center justify-between pt-4 border-t border-border">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-1">
                   <button 
                     onClick={handleLike}
-                    className="flex items-center space-x-1 text-stone hover:text-vermillion transition-colors"
+                    className="flex items-center space-x-1 text-muted-foreground hover:text-vermillion transition-colors"
                   >
                     {isLiked ? <HeartSolidIcon className="w-4 h-4 text-vermillion" /> : <HeartIcon className="w-4 h-4" />}
                     <span>{likesCount}</span>
                   </button>
                 </div>
-                <div className="flex items-center space-x-1 text-stone">
+                <div className="flex items-center space-x-1 text-muted-foreground">
                   <ChatBubbleLeftIcon className="w-4 h-4" />
                   <span>{article.comments || 0}</span>
                 </div>
@@ -148,14 +148,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handleBookmark}
-                  className="p-2 text-stone hover:text-vermillion hover:bg-ivory dark:hover:bg-ash/10 transition-all"
+                  className="p-2 text-muted-foreground hover:text-vermillion hover:bg-muted transition-all"
                   title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
                 >
                   {isBookmarked ? <BookmarkSolidIcon className="w-5 h-5 text-vermillion" /> : <BookmarkIcon className="w-5 h-5" />}
                 </button>
                 <button
                   onClick={handleShare}
-                  className="p-2 text-stone hover:text-vermillion hover:bg-ivory dark:hover:bg-ash/10 transition-all"
+                  className="p-2 text-muted-foreground hover:text-vermillion hover:bg-muted transition-all"
                   title="Share article"
                 >
                   <ShareIcon className="w-5 h-5" />
@@ -193,7 +193,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <h3 className="text-sm font-semibold text-foreground hover:text-primary transition-colors">
               {article.title}
             </h3>
-            <div className="flex items-center text-xs text-stone">
+            <div className="flex items-center text-xs text-muted-foreground">
               <ClockIcon className="w-3 h-3 mr-1" />
               <span>{article.readingTime} min</span>
               <span className="mx-1">&bull;</span>
@@ -223,10 +223,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <h3 className="text-lg font-semibold text-foreground mb-2 hover:text-primary transition-colors">
               {article.title}
             </h3>
-            <p className="text-stone text-sm mb-3 line-clamp-2">
+            <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
               {article.summary}
             </p>
-            <div className="flex items-center text-sm text-stone space-x-4">
+            <div className="flex items-center text-sm text-muted-foreground space-x-4">
               {article.author && <span>By {article.author}</span>}
               <div className="flex items-center space-x-1">
                 <ClockIcon className="w-4 h-4" />
@@ -246,8 +246,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         
         {showActions && (
           <div className="px-4 pb-4">
-            <div className="flex items-center justify-between pt-3 border-t border-ash dark:border-ash/20">
-              <div className="flex items-center space-x-4 text-sm text-stone">
+            <div className="flex items-center justify-between pt-3 border-t border-border">
+              <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                 <button 
                   onClick={handleLike}
                   className="flex items-center space-x-1 hover:text-vermillion transition-colors"
@@ -264,14 +264,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               <div className="flex items-center space-x-1">
                 <button
                   onClick={handleBookmark}
-                  className="p-1 text-stone hover:text-vermillion transition-colors"
+                  className="p-1 text-muted-foreground hover:text-vermillion transition-colors"
                   title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
                 >
                   {isBookmarked ? <BookmarkSolidIcon className="w-4 h-4 text-vermillion" /> : <BookmarkIcon className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={handleShare}
-                  className="p-1 text-stone hover:text-vermillion transition-colors"
+                  className="p-1 text-muted-foreground hover:text-vermillion transition-colors"
                   title="Share article"
                 >
                   <ShareIcon className="w-4 h-4" />
@@ -316,11 +316,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           </h3>
         </Link>
         
-        <p className="text-stone text-sm mb-3 line-clamp-2">
+        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
           {article.summary}
         </p>
         
-        <div className="flex items-center justify-between text-xs text-stone mb-3">
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
           <div className="flex items-center space-x-2">
             {article.author && <span>By {article.author}</span>}
             <div className="flex items-center space-x-1">
@@ -332,8 +332,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         </div>
         
         {showActions && (
-          <div className="flex items-center justify-between pt-3 border-t border-ash dark:border-ash/20">
-            <div className="flex items-center space-x-3 text-sm text-stone">
+          <div className="flex items-center justify-between pt-3 border-t border-border">
+            <div className="flex items-center space-x-3 text-sm text-muted-foreground">
               <button 
                 onClick={handleLike}
                 className="flex items-center space-x-1 hover:text-vermillion transition-colors"
@@ -346,14 +346,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <div className="flex items-center space-x-1">
               <button
                 onClick={handleBookmark}
-                className="p-1 text-stone hover:text-vermillion transition-colors"
+                className="p-1 text-muted-foreground hover:text-vermillion transition-colors"
                 title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
               >
                 {isBookmarked ? <BookmarkSolidIcon className="w-4 h-4 text-vermillion" /> : <BookmarkIcon className="w-4 h-4" />}
               </button>
               <button
                 onClick={handleShare}
-                className="p-1 text-stone hover:text-vermillion transition-colors"
+                className="p-1 text-muted-foreground hover:text-vermillion transition-colors"
                 title="Share article"
               >
                 <ShareIcon className="w-4 h-4" />

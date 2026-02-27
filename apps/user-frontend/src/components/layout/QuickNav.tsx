@@ -2,31 +2,32 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { ToolsIcon, LaptopIcon, BriefcaseIcon, BreakingIcon } from '@/components/icons/EditorialIcons';
 
 const QuickNav: React.FC = () => {
   const quickLinks = [
     {
       name: 'Services',
       href: '/services',
-      icon: '🛠️',
+      icon: <ToolsIcon size={24} />,
       description: 'Smart news solutions'
     },
     {
       name: 'API',
       href: '/developers',
-      icon: '💻',
+      icon: <LaptopIcon size={24} />,
       description: 'Developer resources'
     },
     {
       name: 'Careers',
       href: '/careers',
-      icon: '💼',
+      icon: <BriefcaseIcon size={24} />,
       description: 'Join our team'
     },
     {
       name: 'Press',
       href: '/press',
-      icon: '📰',
+      icon: <BreakingIcon size={24} />,
       description: 'Media resources'
     }
   ];

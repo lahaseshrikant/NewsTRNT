@@ -9,6 +9,7 @@ import { getContentUrl } from '@/lib/contentUtils';
 import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 import { getCategoryTheme } from '@/config/categoryThemes';
 import AdSlot from '@/components/ui/AdSlot';
+import { ClockIcon, TrendingIcon, EditorPickIcon, AlertIcon, GlobeIcon, MapIcon, BreakingIcon } from '@/components/icons/EditorialIcons';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -56,19 +57,19 @@ const WorldCategoryPage: React.FC = () => {
     { value: 'opinion', label: 'Commentary' }
   ];
 
-  const sortOptions = [
-    { value: 'latest', label: 'Latest', icon: '🕐' },
-    { value: 'trending', label: 'Trending', icon: '🔥' },
-    { value: 'popular', label: 'Popular', icon: '⭐' },
-    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+  const sortOptions: { value: string; label: string; icon: React.ReactNode }[] = [
+    { value: 'latest', label: 'Latest', icon: <ClockIcon size={14} /> },
+    { value: 'trending', label: 'Trending', icon: <TrendingIcon size={14} /> },
+    { value: 'popular', label: 'Popular', icon: <EditorPickIcon size={14} /> },
+    { value: 'breaking', label: 'Breaking', icon: <AlertIcon size={14} /> }
   ];
 
-  const regions = [
-    { id: 'europe', name: 'Europe', flag: '🇪🇺', description: 'EU, UK, Eastern Europe', color: '#3B82F6' },
-    { id: 'asia-pacific', name: 'Asia-Pacific', flag: '🌏', description: 'China, Japan, India, ASEAN', color: '#F59E0B' },
-    { id: 'americas', name: 'Americas', flag: '🌎', description: 'US, Canada, Latin America', color: '#10B981' },
-    { id: 'middle-east', name: 'Middle East', flag: '🕌', description: 'Gulf states, Levant, Iran', color: '#EF4444' },
-    { id: 'africa', name: 'Africa', flag: '🌍', description: 'Sub-Saharan, North Africa', color: '#8B5CF6' }
+  const regions: { id: string; name: string; flag: React.ReactNode; description: string; color: string }[] = [
+    { id: 'europe', name: 'Europe', flag: <GlobeIcon size={20} />, description: 'EU, UK, Eastern Europe', color: '#3B82F6' },
+    { id: 'asia-pacific', name: 'Asia-Pacific', flag: <GlobeIcon size={20} />, description: 'China, Japan, India, ASEAN', color: '#F59E0B' },
+    { id: 'americas', name: 'Americas', flag: <GlobeIcon size={20} />, description: 'US, Canada, Latin America', color: '#10B981' },
+    { id: 'middle-east', name: 'Middle East', flag: <GlobeIcon size={20} />, description: 'Gulf states, Levant, Iran', color: '#EF4444' },
+    { id: 'africa', name: 'Africa', flag: <GlobeIcon size={20} />, description: 'Sub-Saharan, North Africa', color: '#8B5CF6' }
   ];
 
   const liveUpdates = [
@@ -159,7 +160,7 @@ const WorldCategoryPage: React.FC = () => {
               <div className="world-globe-ring absolute" style={{ width: 160, height: 160, opacity: 0.5 }}></div>
               <div className="world-globe-ring absolute" style={{ width: 120, height: 120, opacity: 0.4, animationDirection: 'reverse', animationDuration: '20s' }}></div>
               <div className="world-globe-ring absolute" style={{ width: 80, height: 80, opacity: 0.3 }}></div>
-              <div className="text-5xl relative z-10">🌐</div>
+              <div className="text-5xl relative z-10"><GlobeIcon size={40} /></div>
               {regions.map((r, i) => (
                 <div
                   key={r.id}
@@ -250,7 +251,7 @@ const WorldCategoryPage: React.FC = () => {
                   <article className="relative rounded-2xl overflow-hidden bg-card border border-border hover:shadow-xl transition-all desk-card-hover">
                     <div className="relative h-72 lg:h-96">
                       <Image
-                        src={heroArticle.imageUrl || '/api/placeholder/1200/600'}
+                        src={heroArticle.imageUrl || '/images/placeholder-news.svg'}
                         alt={heroArticle.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-700"
@@ -297,7 +298,7 @@ const WorldCategoryPage: React.FC = () => {
                         <div className="sm:w-1/3 relative">
                           <div className="relative h-48 sm:h-full min-h-[140px] rounded-lg overflow-hidden">
                             <Image
-                              src={article.imageUrl || '/api/placeholder/400/300'}
+                              src={article.imageUrl || '/images/placeholder-news.svg'}
                               alt={article.title}
                               fill
                               className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -346,7 +347,7 @@ const WorldCategoryPage: React.FC = () => {
               <div className="rounded-xl border border-border overflow-hidden">
                 <div className="px-5 py-4" style={{ background: theme.gradient }}>
                   <h3 className="text-sm font-bold text-white tracking-wider uppercase flex items-center gap-2">
-                    <span>🗺️</span> Region Navigator
+                    <MapIcon size={14} /> Region Navigator
                   </h3>
                 </div>
                 <div className="bg-card p-3 space-y-1">
@@ -405,7 +406,7 @@ const WorldCategoryPage: React.FC = () => {
               <div className="rounded-xl overflow-hidden" style={{ background: theme.gradient }}>
                 <div className="p-6 text-center">
                   <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">📰</span>
+                    <BreakingIcon size={24} />
                   </div>
                   <h3 className="text-lg font-bold text-white mb-2" style={{ fontFamily: 'var(--font-serif), serif' }}>
                     The World Brief

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useCategories } from '@/hooks/useCategories';
+import { RocketIcon, TargetIcon, BreakingIcon, GearIcon, WrenchIcon, SearchIcon, CommentIcon } from '@/components/icons/EditorialIcons';
 
 const HelpPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,7 +13,7 @@ const HelpPage: React.FC = () => {
     {
       id: 'getting-started',
       title: 'Getting Started',
-      icon: '🚀',
+      icon: <RocketIcon size={24} />,
       faqs: [
         {
           id: 'what-is-NewsTRNT',
@@ -34,7 +35,7 @@ const HelpPage: React.FC = () => {
     {
       id: 'personalization',
       title: 'Personalization & Smart Features',
-      icon: '🎯',
+      icon: <TargetIcon size={24} />,
       faqs: [
         {
           id: 'how-ai-works',
@@ -56,7 +57,7 @@ const HelpPage: React.FC = () => {
     {
       id: 'features',
       title: 'Features & Navigation',
-      icon: '⚡',
+      icon: <BreakingIcon size={24} />,
       faqs: [
         {
           id: 'save-articles',
@@ -78,7 +79,7 @@ const HelpPage: React.FC = () => {
     {
       id: 'account',
       title: 'Account & Settings',
-      icon: '⚙️',
+      icon: <GearIcon size={24} />,
       faqs: [
         {
           id: 'change-password',
@@ -100,7 +101,7 @@ const HelpPage: React.FC = () => {
     {
       id: 'technical',
       title: 'Technical Support',
-      icon: '🔧',
+      icon: <WrenchIcon size={24} />,
       faqs: [
         {
           id: 'browser-support',
@@ -209,7 +210,7 @@ const HelpPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <div className="text-4xl mb-4">🔍</div>
+                  <div className="mb-4"><SearchIcon size={40} /></div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">No results found</h3>
                   <p className="text-muted-foreground">Try different keywords or browse categories below</p>
                 </div>
@@ -267,7 +268,7 @@ const HelpPage: React.FC = () => {
           {/* Contact Support */}
           <div className="mt-12 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-8 border border-primary/20">
             <div className="text-center">
-              <div className="text-4xl mb-4">💬</div>
+              <div className="mb-4"><CommentIcon size={40} /></div>
               <h3 className="text-xl font-bold text-foreground mb-2">Still need help?</h3>
               <p className="text-muted-foreground mb-6">
                 Can't find what you're looking for? Our support team is here to help.
@@ -275,7 +276,7 @@ const HelpPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/contact"
-                  className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
+                  className="bg-vermillion text-white px-6 py-3 rounded-lg hover:bg-vermillion-dark transition-colors font-medium"
                 >
                   Contact Support
                 </Link>

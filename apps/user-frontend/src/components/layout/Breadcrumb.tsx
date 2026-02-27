@@ -21,7 +21,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' }) => {
         <li className="inline-flex items-center">
           <Link
             href="/"
-            className="inline-flex items-center text-sm font-medium text-ink/70 hover:text-vermillion dark:text-ivory/70 dark:hover:text-vermillion transition-colors"
+            className="inline-flex items-center text-sm font-medium text-foreground/70 hover:text-vermillion dark:text-white/70 dark:hover:text-vermillion transition-colors"
           >
             <HomeIcon className="w-4 h-4 mr-2" />
             Home
@@ -32,16 +32,16 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' }) => {
         {items?.map((item, index) => (
           <li key={index}>
             <div className="flex items-center">
-              <ChevronRightIcon className="w-4 h-4 text-stone mx-1" />
+              <ChevronRightIcon className="w-4 h-4 text-muted-foreground mx-1" />
               {item.href && index < items.length - 1 ? (
                 <Link
                   href={item.href}
-                  className="ml-1 text-sm font-medium text-ink/70 hover:text-vermillion dark:text-ivory/70 dark:hover:text-vermillion transition-colors md:ml-2"
+                  className="ml-1 text-sm font-medium text-foreground/70 hover:text-vermillion dark:text-white/70 dark:hover:text-vermillion transition-colors md:ml-2"
                 >
                   {item.label}
                 </Link>
               ) : (
-                <span className="ml-1 text-sm font-medium text-stone dark:text-stone md:ml-2">
+                <span className="ml-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground md:ml-2">
                   {item.label}
                 </span>
               )}

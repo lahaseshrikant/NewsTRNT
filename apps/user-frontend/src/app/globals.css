@@ -2564,3 +2564,362 @@ html {
 .hover-hero-card img {
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CONTENT PAGE HERO SECTIONS — Polished editorial gradients
+   Light theme: elegant warm gradients   /   Dark theme: deep rich gradients
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Shared hero base ─── */
+.hero-news,
+.hero-trending,
+.hero-shorts,
+.hero-webstories,
+.hero-articles,
+.hero-opinion,
+.hero-contact,
+.hero-services,
+.hero-careers,
+.hero-press,
+.hero-advertise,
+.hero-sitemap,
+.hero-legal,
+.hero-analysis {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ─── NEWS — "The Newsroom" ─── */
+.hero-news {
+  background: linear-gradient(135deg, #fdf2f2 0%, #fce8e6 40%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-news {
+  background: linear-gradient(135deg, #1a0506 0%, #3d0a0a 40%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-news::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(198,40,40,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(184,134,11,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+.dark .hero-news::before {
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(198,40,40,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(184,134,11,0.04) 0%, transparent 40%);
+}
+.hero-news::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 120px,
+    rgba(198,40,40,0.02) 120px,
+    rgba(198,40,40,0.02) 121px
+  );
+  pointer-events: none;
+}
+
+/* ─── TRENDING — "The Pulse" ─── */
+.hero-trending {
+  background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 40%, #fef3c7 80%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-trending {
+  background: linear-gradient(135deg, #1a0d00 0%, #7C2D12 40%, #451a03 80%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-trending::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(251,146,60,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+.dark .hero-trending::before {
+  background: radial-gradient(ellipse at 70% 50%, rgba(251,146,60,0.1) 0%, transparent 60%);
+}
+
+/* ─── SHORTS — "Quick Reads" ─── */
+.hero-shorts {
+  background: linear-gradient(135deg, #fefce8 0%, #fef08a 40%, #fde68a 80%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-shorts {
+  background: linear-gradient(135deg, #1a1400 0%, #78350F 40%, #451a03 80%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-shorts::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 70%, rgba(184,134,11,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+.dark .hero-shorts::before {
+  background: radial-gradient(ellipse at 30% 70%, rgba(184,134,11,0.08) 0%, transparent 50%);
+}
+
+/* ─── WEB STORIES — "The Visual Stage" ─── */
+.hero-webstories {
+  background: linear-gradient(135deg, #faf5ff 0%, #e9d5ff 40%, #f3e8ff 80%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-webstories {
+  background: linear-gradient(135deg, #1a0024 0%, #581C87 40%, #3B0764 80%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-webstories::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(168,85,247,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(244,114,182,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+.dark .hero-webstories::before {
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(168,85,247,0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(244,114,182,0.06) 0%, transparent 40%);
+}
+.hero-webstories::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: 0;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(168,85,247,0.03), transparent);
+  animation: spotlight-sweep 10s ease-in-out infinite;
+  pointer-events: none;
+}
+.dark .hero-webstories::after {
+  background: linear-gradient(90deg, transparent, rgba(168,85,247,0.04), transparent);
+}
+
+/* ─── ARTICLES — "The Reading Room" ─── */
+.hero-articles {
+  background: linear-gradient(135deg, #faf5f0 0%, #f5ebe0 40%, #edede9 60%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-articles {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1C1917 40%, #292524 60%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-articles::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 60% 40%, rgba(184,134,11,0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+.dark .hero-articles::before {
+  background: radial-gradient(ellipse at 60% 40%, rgba(184,134,11,0.06) 0%, transparent 50%);
+}
+
+/* ─── OPINION — "The Editorial Board" ─── */
+.hero-opinion {
+  background: linear-gradient(135deg, #eef2ff 0%, #c7d2fe 40%, #e0e7ff 80%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-opinion {
+  background: linear-gradient(135deg, #0D0219 0%, #312E81 40%, #1E1B4B 80%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-opinion::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(99,102,241,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+.dark .hero-opinion::before {
+  background: radial-gradient(ellipse at 50% 50%, rgba(99,102,241,0.06) 0%, transparent 50%);
+}
+
+/* ─── ANALYSIS — "Deep Dives" ─── */
+.hero-analysis {
+  background: linear-gradient(135deg, #faf5f0 0%, #e8e4df 30%, #f0ebe5 60%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-analysis {
+  background: linear-gradient(135deg, #0D0D0D 0%, #0d1013 40%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-analysis::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(198,40,40,0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgba(184,134,11,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+.dark .hero-analysis::before {
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(198,40,40,0.05) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgba(184,134,11,0.05) 0%, transparent 40%);
+}
+
+/* ─── CONTACT — "Get in Touch" ─── */
+.hero-contact {
+  background: linear-gradient(135deg, #faf5f0 0%, #f0ebe5 50%, #e8e4df 100%);
+  color: #0D0D0D;
+}
+.dark .hero-contact {
+  background: linear-gradient(135deg, #0D0D0D 0%, #1a1a18 50%, #2a2926 100%);
+  color: #F5F0EB;
+}
+.hero-contact::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 80% 50%, rgba(198,40,40,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+.dark .hero-contact::before {
+  background: radial-gradient(ellipse at 80% 50%, rgba(198,40,40,0.06) 0%, transparent 50%);
+}
+
+/* ─── SERVICES — "What We Offer" ─── */
+.hero-services {
+  background: linear-gradient(135deg, #eff6ff 0%, #bfdbfe 40%, #dbeafe 80%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-services {
+  background: linear-gradient(135deg, #0D0D0D 0%, #1B3A5C 40%, #0F2440 80%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-services::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 70% 60%, rgba(27,58,92,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 30%, rgba(184,134,11,0.03) 0%, transparent 40%);
+  pointer-events: none;
+}
+.dark .hero-services::before {
+  background:
+    radial-gradient(ellipse at 70% 60%, rgba(27,58,92,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 30%, rgba(184,134,11,0.04) 0%, transparent 40%);
+}
+
+/* ─── CAREERS — "Join the Team" ─── */
+.hero-careers {
+  background: linear-gradient(135deg, #ecfdf5 0%, #a7f3d0 40%, #d1fae5 80%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-careers {
+  background: linear-gradient(135deg, #0a1f14 0%, #14532D 40%, #0D3B20 80%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-careers::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 60% 40%, rgba(52,211,153,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+.dark .hero-careers::before {
+  background: radial-gradient(ellipse at 60% 40%, rgba(52,211,153,0.08) 0%, transparent 50%);
+}
+
+/* ─── PRESS — "The Press Room" ─── */
+.hero-press {
+  background: linear-gradient(135deg, #faf5f0 0%, #e8e4df 30%, #d6d3ce 60%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-press {
+  background: linear-gradient(135deg, #0D0D0D 0%, #1C1917 30%, #44403C 60%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-press::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(198,40,40,0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgba(184,134,11,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+.dark .hero-press::before {
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(198,40,40,0.06) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgba(184,134,11,0.06) 0%, transparent 40%);
+}
+
+/* ─── ADVERTISE — "Partner With Us" ─── */
+.hero-advertise {
+  background: linear-gradient(135deg, #f0f9ff 0%, #bae6fd 40%, #e0f2fe 80%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-advertise {
+  background: linear-gradient(135deg, #0D0D0D 0%, #0A2540 40%, #051A2D 80%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-advertise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 70%, rgba(198,40,40,0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 70% 30%, rgba(0,212,170,0.03) 0%, transparent 40%);
+  pointer-events: none;
+}
+.dark .hero-advertise::before {
+  background:
+    radial-gradient(ellipse at 30% 70%, rgba(198,40,40,0.06) 0%, transparent 40%),
+    radial-gradient(ellipse at 70% 30%, rgba(0,212,170,0.04) 0%, transparent 40%);
+}
+
+/* ─── SITEMAP — "Navigate" ─── */
+.hero-sitemap {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+  color: #0D0D0D;
+}
+.dark .hero-sitemap {
+  background: linear-gradient(135deg, #0D0D0D 0%, #1E293B 50%, #0F172A 100%);
+  color: #F5F0EB;
+}
+.hero-sitemap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 2px 2px, rgba(198,40,40,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+.dark .hero-sitemap::before {
+  background-image:
+    radial-gradient(circle at 2px 2px, rgba(198,40,40,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ─── PRIVACY / TERMS / COOKIES — "Legal" shared ─── */
+.hero-legal {
+  background: linear-gradient(135deg, #faf5f0 0%, #e8e4df 50%, #faf5f0 100%);
+  color: #0D0D0D;
+}
+.dark .hero-legal {
+  background: linear-gradient(135deg, #0D0D0D 0%, #1C1917 50%, #0D0D0D 100%);
+  color: #F5F0EB;
+}
+.hero-legal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(184,134,11,0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+.dark .hero-legal::before {
+  background: radial-gradient(ellipse at 50% 50%, rgba(184,134,11,0.04) 0%, transparent 50%);
+}

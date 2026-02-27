@@ -7,8 +7,21 @@ interface ApiConfig {
   retries: number;
 }
 
+function resolveBaseURL(): string {
+  const url = process.env.NEXT_PUBLIC_API_URL;
+  if (url) return url;
+  // In production, a missing API URL should fail loudly rather than
+  // silently routing all requests to localhost.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      '[API_CONFIG] NEXT_PUBLIC_API_URL is not set. Cannot start in production without an API URL.'
+    );
+  }
+  return 'http://localhost:5000/api';
+}
+
 export const API_CONFIG: ApiConfig = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+  baseURL: resolveBaseURL(),
   timeout: 30000, // 30 seconds
   retries: 3
 };

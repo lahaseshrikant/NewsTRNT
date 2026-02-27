@@ -2,13 +2,13 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Breadcrumb from '@/components/layout/Breadcrumb';
+import { HomeIcon, BreakingIcon, ToolsIcon, BuildingIcon, UserIcon, ScaleIcon } from '@/components/icons/EditorialIcons';
 
 const SitemapPage: React.FC = () => {
   const siteStructure = [
     {
       title: 'Main Pages',
-      icon: '🏠',
+      icon: <HomeIcon size={24} />,
       links: [
         { name: 'Home', href: '/', description: 'Latest news and personalized feed' },
         { name: 'About Us', href: '/about', description: 'Learn about NewsTRNT mission and team' },
@@ -18,7 +18,7 @@ const SitemapPage: React.FC = () => {
     },
     {
       title: 'News Categories',
-      icon: '📰',
+      icon: <BreakingIcon size={24} />,
       links: [
         { name: 'World News', href: '/category/world', description: 'International news and global events' },
         { name: 'Politics', href: '/category/politics', description: 'Political news and analysis' },
@@ -32,7 +32,7 @@ const SitemapPage: React.FC = () => {
     },
     {
       title: 'Services & Products',
-      icon: '🛠️',
+      icon: <ToolsIcon size={24} />,
       links: [
         { name: 'All Services', href: '/services', description: 'Complete suite of smart news services' },
         { name: 'API & Developers', href: '/developers', description: 'API documentation and developer resources' },
@@ -44,7 +44,7 @@ const SitemapPage: React.FC = () => {
     },
     {
       title: 'Company',
-      icon: '🏢',
+      icon: <BuildingIcon size={24} />,
       links: [
         { name: 'Careers', href: '/careers', description: 'Join our team and build the future of news' },
         { name: 'Press & Media', href: '/press', description: 'Press releases and media resources' },
@@ -54,7 +54,7 @@ const SitemapPage: React.FC = () => {
     },
     {
       title: 'User Account',
-      icon: '👤',
+      icon: <UserIcon size={24} />,
       links: [
         { name: 'Sign In', href: '/auth/signin', description: 'Access your personalized news feed' },
         { name: 'Sign Up', href: '/auth/signup', description: 'Create a new NewsTRNT account' },
@@ -64,7 +64,7 @@ const SitemapPage: React.FC = () => {
     },
     {
       title: 'Support & Legal',
-      icon: '⚖️',
+      icon: <ScaleIcon size={24} />,
       links: [
         { name: 'Help Center', href: '/help', description: 'Get help and support' },
         { name: 'Privacy Policy', href: '/privacy', description: 'How we protect your privacy' },
@@ -78,19 +78,18 @@ const SitemapPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b border-border">
-  <div className="container mx-auto py-8">
-          <Breadcrumb items={[{ label: 'Sitemap' }]} className="mb-4" />
+      <section className="hero-sitemap border-b-2 border-vermillion">
+  <div className="relative z-10 container mx-auto py-12">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
+            <h1 className="text-4xl font-bold mb-4">
               Site Map
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl opacity-60">
               Navigate all pages and sections of NewsTRNT
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
   <div className="container mx-auto py-12">

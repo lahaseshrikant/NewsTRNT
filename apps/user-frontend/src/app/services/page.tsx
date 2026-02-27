@@ -94,61 +94,37 @@ const ServicesPage: React.FC = () => {
     }
   ];
 
-  const testimonials = [
-    {
-      name: 'Sarah Johnson',
-      company: 'TechCorp Media',
-      role: 'Chief Digital Officer',
-      quote: 'NewsTRNT\'s API has transformed how we deliver news to our customers. The smart curation is incredibly accurate.',
-      initials: 'SJ'
-    },
-    {
-      name: 'Michael Zhang',
-      company: 'Global News Network',
-      role: 'Head of Technology',
-      quote: 'The white-label solution allowed us to launch our news platform in just 6 weeks. Exceptional service.',
-      initials: 'MZ'
-    },
-    {
-      name: 'Dr. Emily Rodriguez',
-      company: 'Research Institute',
-      role: 'Data Scientist',
-      quote: 'The analytics platform provides insights we never had before. Essential for our media research projects.',
-      initials: 'ER'
-    }
-  ];
-
   const selectedServiceData = services.find(s => s.id === selectedService);
 
   return (
-    <div className="min-h-screen bg-paper dark:bg-ink">
+    <div className="min-h-screen bg-background">
       {/* Hero */}
-      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
-        <div className="container mx-auto py-16">
+      <section className="hero-services border-b-2 border-vermillion">
+        <div className="relative z-10 container mx-auto py-16">
           <div className="max-w-4xl mx-auto text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">What We Offer</p>
-            <h1 className="font-serif text-5xl font-bold text-ivory mb-6">Our Services</h1>
-            <p className="text-xl text-ivory/60 mb-8">
+            <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-70 mb-3 block">What We Offer</span>
+            <h1 className="font-serif text-5xl font-bold mb-6">Our Services</h1>
+            <p className="text-xl opacity-60 mb-8">
               Powerful smart news solutions for individuals, businesses, and developers
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/contact" className="hover-magnetic bg-vermillion text-white px-8 py-3 font-mono text-xs tracking-wider uppercase">
+              <Link href="/contact" className="hover-magnetic bg-primary text-primary-foreground px-8 py-3 font-mono text-xs tracking-wider uppercase">
                 Get Started
               </Link>
-              <Link href="/developers" className="border border-ivory/20 text-ivory px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-ivory/10 transition-colors">
+              <Link href="/developers" className="border border-current/20 px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-current/10 transition-colors">
                 View API Docs
               </Link>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Services Grid */}
       <div className="container mx-auto py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Solutions</p>
-            <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">Choose Your Service</h2>
+            <h2 className="font-serif text-3xl font-bold text-foreground">Choose Your Service</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -157,8 +133,8 @@ const ServicesPage: React.FC = () => {
                 key={service.id}
                 className={`hover-lift border p-6 cursor-pointer transition-all ${
                   selectedService === service.id
-                    ? 'border-vermillion bg-vermillion/5'
-                    : 'border-ash dark:border-ash/20 hover:border-ink dark:hover:border-ivory/40'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-foreground/40'
                 } ${service.popular ? 'relative' : ''}`}
                 onClick={() => setSelectedService(service.id)}
               >
@@ -171,9 +147,9 @@ const ServicesPage: React.FC = () => {
                 )}
                 
                 <div>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-stone">0{index + 1}</span>
-                  <h3 className="font-serif text-xl font-bold text-ink dark:text-ivory mt-2 mb-2">{service.title}</h3>
-                  <p className="text-stone text-sm mb-4">{service.description}</p>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">0{index + 1}</span>
+                  <h3 className="font-serif text-xl font-bold text-foreground mt-2 mb-2">{service.title}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{service.description}</p>
                   
                   <div className="space-y-2 mb-6">
                     {service.features.map((feature, idx) => (
@@ -181,14 +157,14 @@ const ServicesPage: React.FC = () => {
                         <svg className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                         </svg>
-                        <span className="text-ink dark:text-ivory/80">{feature}</span>
+                        <span className="text-foreground">{feature}</span>
                       </div>
                     ))}
                   </div>
                   
-                  <div className="border-t border-ash dark:border-ash/20 pt-4">
+                  <div className="border-t border-border pt-4">
                     <div className="flex items-center justify-between">
-                      <span className="font-serif text-lg font-bold text-ink dark:text-ivory">{service.pricing}</span>
+                      <span className="font-serif text-lg font-bold text-foreground">{service.pricing}</span>
                       <span className="font-mono text-xs text-vermillion hover:text-vermillion/80 cursor-pointer">Learn More &rarr;</span>
                     </div>
                   </div>
@@ -201,51 +177,51 @@ const ServicesPage: React.FC = () => {
 
       {/* Featured Service Detail */}
       {selectedServiceData && (
-        <div className="bg-ivory dark:bg-ash/5 border-y border-ash dark:border-ash/20 py-16">
+        <div className="bg-muted/50 border-y border-border py-16">
           <div className="container mx-auto">
             <div className="max-w-6xl mx-auto">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">Featured</p>
-                  <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory mb-4">{selectedServiceData.title}</h2>
-                  <p className="text-stone text-lg mb-6">{selectedServiceData.description}</p>
+                  <h2 className="font-serif text-3xl font-bold text-foreground mb-4">{selectedServiceData.title}</h2>
+                  <p className="text-muted-foreground text-lg mb-6">{selectedServiceData.description}</p>
                   
                   <div className="space-y-4 mb-8">
-                    <h3 className="font-mono text-xs uppercase tracking-wider text-ink dark:text-ivory">Key Features</h3>
+                    <h3 className="font-mono text-xs uppercase tracking-wider text-foreground">Key Features</h3>
                     <ul className="space-y-3">
                       {selectedServiceData.features.map((feature, index) => (
                         <li key={index} className="flex items-start gap-3">
                           <svg className="w-5 h-5 text-gold mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                           </svg>
-                          <span className="text-ink dark:text-ivory/80">{feature}</span>
+                          <span className="text-foreground">{feature}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                   
                   <div className="flex gap-4">
-                    <Link href="/contact" className="hover-magnetic bg-vermillion text-white px-6 py-3 font-mono text-xs tracking-wider uppercase">
+                    <Link href="/contact" className="hover-magnetic bg-primary text-primary-foreground px-6 py-3 font-mono text-xs tracking-wider uppercase">
                       Get Quote
                     </Link>
-                    <button className="border border-ash dark:border-ash/20 text-ink dark:text-ivory px-6 py-3 font-mono text-xs tracking-wider uppercase hover:bg-paper dark:hover:bg-ash/10 transition-colors">
+                    <button className="border border-border text-foreground px-6 py-3 font-mono text-xs tracking-wider uppercase hover:bg-muted/50 transition-colors">
                       Schedule Demo
                     </button>
                   </div>
                 </div>
                 
-                <div className="bg-ink dark:bg-ivory/5 border border-ash dark:border-ash/20 p-8">
+                <div className="bg-card border border-border p-8">
                   <div className="text-center">
                     <DivergenceMark size={48} className="mx-auto mb-4" color="var(--color-vermillion, #C62828)" />
-                    <h3 className="font-serif text-xl font-bold text-ivory mb-2">Ready to Get Started?</h3>
-                    <p className="text-ivory/60 mb-6">
+                    <h3 className="font-serif text-xl font-bold text-foreground mb-2">Ready to Get Started?</h3>
+                    <p className="text-muted-foreground mb-6">
                       Contact our team to learn more about how {selectedServiceData.title.toLowerCase()} can benefit your organization.
                     </p>
                     <div className="space-y-3">
-                      <Link href="/contact" className="block w-full bg-vermillion text-white py-3 font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors">
+                      <Link href="/contact" className="block w-full bg-primary text-primary-foreground py-3 font-mono text-xs tracking-wider uppercase hover:bg-primary/90 transition-colors">
                         Contact Sales
                       </Link>
-                      <a href="mailto:sales@NewsTRNT.com" className="block w-full text-ivory/60 hover:text-ivory font-mono text-xs transition-colors">
+                      <a href="mailto:sales@NewsTRNT.com" className="block w-full text-muted-foreground hover:text-foreground font-mono text-xs transition-colors">
                         sales@NewsTRNT.com
                       </a>
                     </div>
@@ -257,59 +233,45 @@ const ServicesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Testimonials */}
+      {/* Early Access Note */}
       <div className="container mx-auto py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Testimonials</p>
-            <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">What Our Clients Say</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="border border-ash dark:border-ash/20 p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-ink dark:bg-ivory/10 flex items-center justify-center mr-4">
-                    <span className="font-serif text-sm font-bold text-ivory">{testimonial.initials}</span>
-                  </div>
-                  <div>
-                    <h4 className="font-serif font-semibold text-ink dark:text-ivory">{testimonial.name}</h4>
-                    <p className="text-sm text-stone">{testimonial.role}</p>
-                    <p className="text-sm text-vermillion">{testimonial.company}</p>
-                  </div>
-                </div>
-                <p className="text-stone text-sm italic leading-relaxed">&ldquo;{testimonial.quote}&rdquo;</p>
-                <div className="flex text-gold mt-4 font-mono text-xs tracking-wider">
-                  &#9733; &#9733; &#9733; &#9733; &#9733;
-                </div>
-              </div>
-            ))}
+        <div className="max-w-4xl mx-auto">
+          <div className="border border-border p-8 text-center">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3 block">Early Access</span>
+            <h2 className="font-serif text-2xl font-bold text-foreground mb-4">We&apos;re Still Building</h2>
+            <p className="text-muted-foreground leading-relaxed max-w-xl mx-auto mb-6">
+              Some of these services are in active development. We&apos;re working hard to bring you 
+              the best tools and solutions. Interested in early access or partnership?
+            </p>
+            <Link href="/contact" className="inline-block bg-primary text-primary-foreground px-6 py-3 font-mono text-xs tracking-wider uppercase hover:bg-primary/90 transition-colors">
+              Get in Touch
+            </Link>
           </div>
         </div>
       </div>
 
       {/* CTA */}
-      <div className="bg-ink dark:bg-ivory/5 border-t-2 border-vermillion py-16">
-        <div className="container mx-auto">
+      <section className="hero-services border-t-2 border-vermillion py-16">
+        <div className="relative z-10 container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <DivergenceMark size={32} className="mx-auto mb-6" color="var(--color-vermillion, #C62828)" />
-            <h2 className="font-serif text-3xl font-bold text-ivory mb-4">
+            <h2 className="font-serif text-3xl font-bold mb-4">
               Ready to Transform Your News Experience?
             </h2>
-            <p className="text-xl mb-8 text-ivory/60">
-              Join thousands of satisfied customers who trust NewsTRNT for their news and data needs.
+            <p className="text-xl mb-8 opacity-60">
+              Explore our growing suite of tools for readers, businesses, and developers.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/subscription" className="hover-magnetic bg-vermillion text-white px-8 py-3 font-mono text-xs tracking-wider uppercase">
+              <Link href="/subscription" className="hover-magnetic bg-primary text-primary-foreground px-8 py-3 font-mono text-xs tracking-wider uppercase">
                 Start Free Trial
               </Link>
-              <Link href="/contact" className="border border-ivory/20 text-ivory px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-ivory/10 transition-colors">
+              <Link href="/contact" className="border border-current/20 px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-current/10 transition-colors">
                 Contact Sales
               </Link>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

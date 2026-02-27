@@ -7,17 +7,17 @@ const PrivacyPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-card shadow-sm border-b border-border">
-  <div className="container mx-auto py-8">
+      <section className="hero-legal border-b-2 border-vermillion">
+  <div className="relative z-10 container mx-auto py-12">
           <div className="max-w-4xl mx-auto">
-            <Link href="/" className="text-primary hover:text-primary/80 mb-4 inline-block">
+            <Link href="/" className="opacity-60 hover:opacity-100 mb-4 inline-block">
               ← Back to Home
             </Link>
-            <h1 className="text-4xl font-bold text-foreground">Privacy Policy</h1>
-            <p className="text-muted-foreground mt-2">Last updated: August 2, 2025</p>
+            <h1 className="text-4xl font-bold">Privacy Policy</h1>
+            <p className="opacity-60 mt-2">Last updated: August 2, 2025</p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
   <div className="container mx-auto py-8">
@@ -241,9 +241,6 @@ const PrivacyPage: React.FC = () => {
                   <div className="space-y-2">
                     <p className="text-foreground"><strong>Email:</strong> privacy@NewsTRNT.com</p>
                     <p className="text-foreground"><strong>Data Protection Officer:</strong> dpo@NewsTRNT.com</p>
-                    <p className="text-foreground"><strong>Address:</strong> NewsTRNT Privacy Team<br />
-                    123 News Street<br />
-                    Media City, MC 12345</p>
                   </div>
                 </div>
               </section>

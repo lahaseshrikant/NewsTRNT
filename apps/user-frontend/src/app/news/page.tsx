@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import { useCategories } from '@/hooks/useCategories';
 import { getCategoryBadgeStyle } from '@/lib/categoryUtils';
 import { dbApi, Article } from '@/lib/api-client';
@@ -64,42 +63,41 @@ const NewsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
-        <div className="container mx-auto py-8">
-          <Breadcrumb items={[{ label: 'News' }]} className="mb-4" />
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">24/7 Coverage</p>
-            <h1 className="font-serif text-4xl font-bold text-ivory mb-4">
+      {/* Hero */}
+      <section className="hero-news border-b-2 border-vermillion">
+        <div className="relative z-10 container mx-auto py-10 px-4">
+          <div className="max-w-4xl">
+            <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-70 mb-3 block">24/7 Coverage</span>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">
               Latest News
             </h1>
-            <p className="text-xl text-ivory/60">
-              Breaking news and current events
+            <p className="opacity-60 text-lg max-w-2xl">
+              Breaking news and current events from around the world
             </p>
           </div>
+          {/* Category Filters */}
+          <div className="flex flex-wrap gap-2 mt-6 max-w-4xl">
+            {categories.map(category => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors backdrop-blur-sm ${
+                  selectedCategory === category.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border border-current/20 opacity-70 hover:opacity-100'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       <div className="container mx-auto py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
-            {/* Category Filters */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
-                    selectedCategory === category.id
-                      ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
-                      : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
-                  }`}
-                >
-                  {category.label}
-                </button>
-              ))}
-            </div>
 
             {/* News Articles Grid */}
             {loading ? (
@@ -122,7 +120,7 @@ const NewsPage: React.FC = () => {
                     <Link 
                       key={article.id} 
                       href={`/news/${article.slug}`}
-                      className="hover-lift group bg-card border border-border overflow-hidden transition-all"
+                      className="hover-lift group bg-card border border-border rounded-editorial overflow-hidden transition-all"
                     >
                       {/* Image */}
                       <div className="hover-img-zoom relative h-48 bg-muted overflow-hidden">
@@ -131,7 +129,7 @@ const NewsPage: React.FC = () => {
                             src={article.imageUrl}
                             alt={article.title}
                             fill
-                            className="object-cover"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-ivory to-ash dark:from-ink dark:to-ink/50">
@@ -174,7 +172,7 @@ const NewsPage: React.FC = () => {
                   <div className="text-center mt-8">
                     <button
                       onClick={() => setPage(prev => prev + 1)}
-                      className="hover-magnetic px-6 py-3 bg-vermillion text-white font-mono text-xs tracking-wider uppercase"
+                      className="hover-magnetic px-6 py-3 bg-primary text-primary-foreground font-mono text-xs tracking-wider uppercase"
                     >
                       Load More News
                     </button>
@@ -232,14 +230,14 @@ const NewsPage: React.FC = () => {
             </div>
 
             {/* Newsletter CTA */}
-            <div className="bg-ink dark:bg-ivory/5 border border-ash dark:border-ash/20 p-4">
-              <h3 className="font-serif font-bold text-ivory mb-2">Newsletter</h3>
-              <p className="text-sm text-ivory/60 mb-4">
+            <div className="bg-card border border-border p-4">
+              <h3 className="font-serif font-bold text-foreground mb-2">Newsletter</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 Get the top news delivered to your inbox daily.
               </p>
               <Link 
                 href="/subscription" 
-                className="block w-full text-center py-2 bg-vermillion text-white font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors"
+                className="block w-full text-center py-2 bg-primary text-primary-foreground font-mono text-xs tracking-wider uppercase hover:opacity-90 transition-colors"
               >
                 Subscribe Now
               </Link>

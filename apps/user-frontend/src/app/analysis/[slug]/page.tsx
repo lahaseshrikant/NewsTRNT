@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import showToast from '@/lib/toast';
 import { useParams } from 'next/navigation';
 import { dbApi, Article } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
 import CommentSection from '@/components/articles/CommentSection';
+import { SearchIcon, ChartIcon, BookmarkIcon, ShareIcon, PinIcon } from '@/components/icons/EditorialIcons';
 
 interface ArticleData extends Partial<Omit<Article, 'tags'>> {
   content?: string;
@@ -106,7 +108,7 @@ const AnalysisDetailPage: React.FC = () => {
         break;
       case 'copy':
         navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
+        showToast('Link copied to clipboard!', 'success');
         break;
     }
     setShowShareMenu(false);
@@ -140,7 +142,7 @@ const AnalysisDetailPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">🔍</div>
+          <div className="mb-4"><SearchIcon size={48} /></div>
           <h3 className="text-lg font-semibold text-foreground mb-2">Analysis Not Found</h3>
           <p className="text-muted-foreground mb-4">{error || 'This analysis may have been removed or is not available.'}</p>
           <Link
@@ -202,10 +204,10 @@ const AnalysisDetailPage: React.FC = () => {
             {/* Article Meta */}
             <div className="mb-6">
               <div className="flex items-center space-x-4 mb-4">
-                <span className="bg-vermillion text-white px-3 py-1 rounded-lg text-sm font-semibold">
-                  🔍 DEEP DIVE
+                <span className="bg-vermillion text-white px-3 py-1 rounded-lg text-sm font-semibold inline-flex items-center gap-1">
+                  <SearchIcon size={14} /> DEEP DIVE
                 </span>
-                <span className="bg-ivory text-vermillion dark:bg-vermillion/10 dark:text-gold px-3 py-1 rounded-lg text-sm font-semibold">
+                <span className="bg-muted text-vermillion dark:bg-vermillion/10 dark:text-gold px-3 py-1 rounded-lg text-sm font-semibold">
                   {categoryName}
                 </span>
                 <span className="text-muted-foreground text-sm">
@@ -224,7 +226,7 @@ const AnalysisDetailPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-vermillion/10 rounded-full flex items-center justify-center">
-                    <span className="text-xl">📊</span>
+                    <ChartIcon size={20} />
                   </div>
                   <div>
                     <div className="font-semibold text-foreground">{authorName}</div>
@@ -241,7 +243,7 @@ const AnalysisDetailPage: React.FC = () => {
                       isBookmarked ? 'bg-vermillion/10 text-vermillion' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
-                    🔖
+                    <BookmarkIcon size={18} />
                   </button>
                   
                   <div className="relative">
@@ -249,7 +251,7 @@ const AnalysisDetailPage: React.FC = () => {
                       onClick={() => setShowShareMenu(!showShareMenu)}
                       className="p-2 bg-muted text-muted-foreground hover:bg-muted/80 rounded-full transition-colors"
                     >
-                      📤
+                      <ShareIcon size={18} />
                     </button>
                     
                     {showShareMenu && (
@@ -303,7 +305,7 @@ const AnalysisDetailPage: React.FC = () => {
                 {/* Key Takeaways Box */}
                 <div className="bg-ivory dark:bg-vermillion/5 border border-ash dark:border-vermillion/20 rounded-lg p-6 mb-8">
                   <h3 className="font-bold text-vermillion dark:text-gold mb-3 flex items-center gap-2">
-                    <span>📌</span> Key Takeaways
+                    <PinIcon size={18} /> Key Takeaways
                   </h3>
                   <ul className="space-y-2 text-ink dark:text-gold text-sm">
                     <li className="flex items-start gap-2">
@@ -361,7 +363,7 @@ const AnalysisDetailPage: React.FC = () => {
                   <div className="bg-vermillion/5 rounded-lg p-6 border border-vermillion/10">
                     <div className="flex items-start space-x-4">
                       <div className="w-20 h-20 bg-vermillion/10 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-3xl">📊</span>
+                        <ChartIcon size={30} />
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-foreground mb-2">

@@ -8,49 +8,40 @@ export const siteConfig = {
   
   // Contact Information
   contact: {
-    // General Contact
     general: {
       email: "contact@newstrnt.com",
-      phone: "+1 (555) 0123",
-      address: {
-        street: "123 News Street",
-        city: "San Francisco",
-        state: "CA",
-        zip: "94102",
-        country: "USA"
-      }
+      phone: "+91-000-000-0000" // optional general line
     },
     
-    // Department-specific Contacts
     departments: {
       advertising: {
         email: "advertising@newstrnt.com",
-        phone: "+1 (555) 0124",
+        phone: "+91-000-000-0001",
         name: "Advertising Team"
       },
       support: {
         email: "support@newstrnt.com",
-        phone: "+1 (555) 0125",
+        phone: "+91-000-000-0002",
         name: "Customer Support"
       },
       editorial: {
         email: "editorial@newstrnt.com",
-        phone: "+1 (555) 0126",
+        phone: "+91-000-000-0003",
         name: "Editorial Team"
       },
       press: {
         email: "press@newstrnt.com",
-        phone: "+1 (555) 0127",
+        phone: "+91-000-000-0004",
         name: "Press Relations"
       },
       careers: {
         email: "careers@newstrnt.com",
-        phone: "+1 (555) 0128",
+        phone: "+91-000-000-0005",
         name: "Human Resources"
       },
       legal: {
         email: "legal@newstrnt.com",
-        phone: "+1 (555) 0129",
+        phone: "+91-000-000-0006",
         name: "Legal Department"
       }
     }
@@ -69,17 +60,16 @@ export const siteConfig = {
   // Business Information
   business: {
     founded: "2024",
-    employees: "50-100",
-    headquarters: "San Francisco, CA",
-    timezone: "PST",
-    businessHours: {
-      weekdays: "9:00 AM - 6:00 PM PST",
-      weekends: "10:00 AM - 4:00 PM PST"
-    },
+    headquarters: "India",
+    timezone: "IST",
     responseTime: {
       support: "24 hours",
       advertising: "2-3 business days",
       general: "48 hours"
+    },
+    businessHours: {
+      weekdays: "9 AM – 6 PM IST",
+      weekends: "Closed"
     }
   },
 
@@ -97,12 +87,7 @@ export const siteConfig = {
 
   // Analytics & Metrics (for advertising page)
   metrics: {
-    monthlyVisitors: "2.5M+",
-    pageViews: "8M+",
-    emailSubscribers: "500K+",
-    socialFollowers: "1M+",
     averageSessionTime: "5+ minutes",
-    bounceRate: "35%",
     returningUsers: "65%"
   },
 
@@ -131,12 +116,11 @@ export const getContactByDepartment = (department: keyof typeof siteConfig.conta
 };
 
 export const getFormattedAddress = () => {
-  const addr = siteConfig.contact.general.address;
-  return `${addr.street}, ${addr.city}, ${addr.state} ${addr.zip}, ${addr.country}`;
+  return 'India';
 };
 
 export const getBusinessHours = () => {
-  return `${siteConfig.business.businessHours.weekdays} (Weekdays), ${siteConfig.business.businessHours.weekends} (Weekends)`;
+  return 'Available via email';
 };
 
 // Export individual sections for easier imports

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import { useCategories } from '@/hooks/useCategories';
 import { getCategoryBadgeStyle } from '@/lib/categoryUtils';
 import { dbApi, Article } from '@/lib/api-client';
@@ -65,51 +64,43 @@ const OpinionPage: React.FC = () => {
     ? opinionPieces 
     : opinionPieces.filter(article => article.category?.slug === selectedCategory);
 
-  // Featured columnists
-  const featuredColumnists = [
-    { name: "Sarah Chen", role: "Tech Analyst", initials: "SC" },
-    { name: "Michael Torres", role: "Political Correspondent", initials: "MT" },
-    { name: "Priya Sharma", role: "Economics Editor", initials: "PS" },
-    { name: "James Wilson", role: "Foreign Affairs", initials: "JW" }
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
-        <div className="container mx-auto py-8">
-          <Breadcrumb items={[{ label: 'Opinion' }]} className="mb-4" />
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="font-serif text-4xl font-bold text-ivory mb-4">
+      <section className="hero-opinion border-b-2 border-vermillion">
+        <div className="relative z-10 container mx-auto py-10">
+          <div className="max-w-4xl">
+            <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-70 mb-3 block">Perspectives</span>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">
               Opinion &amp; Commentary
             </h1>
-            <p className="text-xl text-ivory/60">
+            <p className="opacity-60 text-lg">
               Expert perspectives and thought-provoking commentary
             </p>
           </div>
+          {/* Category Filters */}
+          <div className="flex flex-wrap gap-2 mt-6 max-w-4xl">
+            {categories.map(category => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors backdrop-blur-sm ${
+                  selectedCategory === category.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border border-current/20 opacity-70 hover:opacity-100'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       <div className="container mx-auto py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
-            {/* Category Filters */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
-                    selectedCategory === category.id
-                      ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
-                      : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
-                  }`}
-                >
-                  {category.label}
-                </button>
-              ))}
-            </div>
 
             {/* Opinion Pieces */}
             {loading ? (
@@ -139,8 +130,8 @@ const OpinionPage: React.FC = () => {
                       <div className="flex items-start gap-4">
                         {/* Author Avatar */}
                         <div className="flex-shrink-0">
-                          <div className="w-16 h-16 bg-ink dark:bg-ivory flex items-center justify-center">
-                            <span className="font-serif text-xl font-bold text-ivory dark:text-ink">
+                          <div className="w-16 h-16 bg-primary flex items-center justify-center">
+                            <span className="font-serif text-xl font-bold text-primary-foreground">
                               {(article.author || 'N')[0]}
                             </span>
                           </div>
@@ -199,7 +190,7 @@ const OpinionPage: React.FC = () => {
                   <div className="text-center mt-8">
                     <button
                       onClick={() => setPage(prev => prev + 1)}
-                      className="px-6 py-3 bg-vermillion text-white font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors"
+                      className="px-6 py-3 bg-primary text-primary-foreground font-mono text-xs tracking-wider uppercase hover:bg-primary/90 transition-colors"
                     >
                       Load More Opinion Pieces
                     </button>
@@ -208,7 +199,7 @@ const OpinionPage: React.FC = () => {
               </>
             ) : (
               <div className="text-center py-16">
-                <div className="text-6xl mb-4"><span className="font-serif text-stone">...</span></div>
+                <div className="text-6xl mb-4"><span className="font-serif text-muted-foreground">...</span></div>
                 <h3 className="text-xl font-bold text-foreground mb-2">No Opinion Pieces Found</h3>
                 <p className="text-muted-foreground">
                   {selectedCategory === 'all' 
@@ -221,22 +212,18 @@ const OpinionPage: React.FC = () => {
 
           {/* Sidebar */}
           <div className="w-full lg:w-80 space-y-6">
-            {/* Featured Columnists */}
+            {/* Our Columnists */}
             <div className="bg-card border border-border rounded-lg p-4">
               <h3 className="font-serif font-bold text-foreground mb-4">Our Columnists</h3>
-              <div className="space-y-3">
-                {featuredColumnists.map((columnist, index) => (
-                  <div key={index} className="hover-row flex items-center gap-3 p-2 transition-colors cursor-pointer">
-                    <div className="w-10 h-10 bg-ink dark:bg-ivory flex items-center justify-center">
-                      <span className="font-serif text-sm font-bold text-ivory dark:text-ink">{columnist.initials}</span>
-                    </div>
-                    <div>
-                      <div className="font-medium text-foreground text-sm">{columnist.name}</div>
-                      <div className="text-xs text-muted-foreground">{columnist.role}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                We&apos;re building a roster of independent voices and expert contributors.
+              </p>
+              <Link
+                href="/contact"
+                className="block w-full text-center py-2 border border-border text-foreground font-mono text-xs tracking-wider uppercase hover:bg-primary/5 transition-colors"
+              >
+                Become a Contributor
+              </Link>
             </div>
 
             {/* More Content */}
@@ -259,14 +246,14 @@ const OpinionPage: React.FC = () => {
             </div>
 
             {/* Submit Opinion CTA */}
-            <div className="bg-ink dark:bg-ivory/5 border border-ash dark:border-ash/20 p-4">
-              <h3 className="font-serif font-bold text-ivory mb-2">Have an Opinion?</h3>
-              <p className="text-sm text-ivory/60 mb-4">
+            <div className="bg-card border border-border p-4">
+              <h3 className="font-serif font-bold text-foreground mb-2">Have an Opinion?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 We welcome guest contributions from experts and thought leaders.
               </p>
               <Link 
                 href="/contact" 
-                className="block w-full text-center py-2 bg-vermillion text-white font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors"
+                className="block w-full text-center py-2 bg-primary text-primary-foreground font-mono text-xs tracking-wider uppercase hover:bg-primary/90 transition-colors"
               >
                 Submit Your Piece
               </Link>

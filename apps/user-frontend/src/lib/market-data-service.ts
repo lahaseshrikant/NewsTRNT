@@ -35,14 +35,12 @@ class MarketDataService {
     // Check cache
     const cached = this.getCachedData(cacheKey);
     if (cached) {
-      console.log('[MarketDataService] Returning cached data for:', countryCode, 'indices:', cached.data.indices?.length);
       return cached.data;
     }
 
     try {
       // Fetch from API
       const url = `${this.API_BASE_URL}/country/${countryCode}`;
-      console.log('[MarketDataService] Fetching from:', url);
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -71,13 +69,6 @@ class MarketDataService {
       // { success: true, data: { indices, commodities, currencies, cryptos } }
       const data = this.normalizeMarketResponse(raw, countryCode);
 
-      console.log('[MarketDataService] Received data:', {
-        indicesCount: data.indices?.length,
-        commoditiesCount: data.commodities?.length,
-        currenciesCount: data.currencies?.length,
-        cryptoCount: data.cryptocurrencies?.length,
-      });
-      
       // Cache the result
       this.cacheData(cacheKey, data);
       

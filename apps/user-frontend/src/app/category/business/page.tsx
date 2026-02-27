@@ -13,6 +13,7 @@ import { useMarketData } from '@/hooks/useMarketData';
 import QuickCurrencyConverter from '@/components/widgets/QuickCurrencyConverter';
 import MarketMovers from '@/components/widgets/MarketMovers';
 import AdSlot from '@/components/ui/AdSlot';
+import { ChartIcon, PopularIcon, CalendarIcon, BuildingIcon, SearchIcon } from '@/components/icons/EditorialIcons';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -309,7 +310,7 @@ const BusinessPage: React.FC = () => {
                           className="group bg-card border border-border rounded-xl overflow-hidden hover:shadow-xl transition-all desk-card-hover">
                       <div className="relative h-52">
                         <Image
-                          src={article.imageUrl || '/api/placeholder/600/400'}
+                          src={article.imageUrl || '/images/placeholder-news.svg'}
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -372,7 +373,7 @@ const BusinessPage: React.FC = () => {
                         <div className="md:w-1/3">
                           <div className="relative h-48 md:h-36 rounded-lg overflow-hidden">
                             <Image
-                              src={article.imageUrl || '/api/placeholder/400/300'}
+                              src={article.imageUrl || '/images/placeholder-news.svg'}
                               alt={article.title}
                               fill
                               className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -447,7 +448,7 @@ const BusinessPage: React.FC = () => {
             <div className="rounded-xl overflow-hidden" style={{ background: theme.gradient }}>
               <div className="p-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">📊</span>
+                  <ChartIcon size={24} />
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2" style={{ fontFamily: 'var(--font-serif), serif' }}>
                   Business Daily
@@ -473,10 +474,10 @@ const BusinessPage: React.FC = () => {
               <h3 className="text-sm font-bold text-foreground mb-4 tracking-wider uppercase">Business Tools</h3>
               <div className="space-y-2">
                 {[
-                  { name: 'Stock Screener', href: '/tools/stocks', icon: '📈' },
-                  { name: 'Economic Calendar', href: '/tools/calendar', icon: '📅' },
-                  { name: 'Company Profiles', href: '/companies', icon: '🏢' },
-                  { name: 'Market Analysis', href: '/analysis', icon: '🔍' }
+                  { name: 'Stock Screener', href: '/tools/stocks', icon: <PopularIcon size={14} /> },
+                  { name: 'Economic Calendar', href: '/tools/calendar', icon: <CalendarIcon size={14} /> },
+                  { name: 'Company Profiles', href: '/companies', icon: <BuildingIcon size={14} /> },
+                  { name: 'Market Analysis', href: '/analysis', icon: <SearchIcon size={14} /> }
                 ].map(link => (
                   <Link key={link.name} href={link.href}
                         className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors text-sm text-foreground">

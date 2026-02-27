@@ -417,7 +417,7 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res): Promi
       imageUrl,
       tags = [],
       isPublished = false,
-      publishedAt = null,
+      publishedAt,
       isFeatured = false,
       isTrending = false,
       isBreaking = false,

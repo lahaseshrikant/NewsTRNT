@@ -62,7 +62,7 @@ const SearchContent: React.FC = () => {
           id: article.id,
           title: article.title,
           summary: article.summary || article.excerpt || '',
-          imageUrl: article.imageUrl || '/api/placeholder/400/200',
+          imageUrl: article.imageUrl || '/images/placeholder-news.svg',
           category: article.category?.name || 'Uncategorized',
           slug: article.slug,
           publishedAt: formatRelativeTime(article.published_at),
@@ -91,16 +91,16 @@ const SearchContent: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-paper dark:bg-ink">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto py-8 px-4">
           <div className="animate-pulse">
-            <div className="h-8 bg-ivory dark:bg-ash/20 mb-4 w-1/3"></div>
+            <div className="h-8 bg-muted mb-4 w-1/3"></div>
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="border-b border-ash dark:border-ash/20 pb-6">
-                  <div className="h-4 bg-ivory dark:bg-ash/20 mb-2 w-3/4"></div>
-                  <div className="h-3 bg-ivory dark:bg-ash/20 mb-2 w-1/2"></div>
-                  <div className="h-3 bg-ivory dark:bg-ash/20 w-2/3"></div>
+                <div key={i} className="border-b border-border pb-6">
+                  <div className="h-4 bg-muted mb-2 w-3/4"></div>
+                  <div className="h-3 bg-muted mb-2 w-1/2"></div>
+                  <div className="h-3 bg-muted w-2/3"></div>
                 </div>
               ))}
             </div>
@@ -164,15 +164,15 @@ const SearchContent: React.FC = () => {
                           <span className="font-mono text-[10px] tracking-wider uppercase text-vermillion">
                             {result.category}
                           </span>
-                          <span className="font-mono text-[10px] text-stone">{result.publishedAt}</span>
+                          <span className="font-mono text-[10px] text-muted-foreground">{result.publishedAt}</span>
                         </div>
-                        <h2 className="font-serif text-lg font-bold text-ink dark:text-ivory mb-1 group-hover:text-vermillion transition-colors">
+                        <h2 className="font-serif text-lg font-bold text-foreground mb-1 group-hover:text-vermillion transition-colors">
                           {result.title}
                         </h2>
-                        <p className="text-stone text-sm mb-2 line-clamp-2">
+                        <p className="text-muted-foreground text-sm mb-2 line-clamp-2">
                           {result.summary}
                         </p>
-                        <span className="font-mono text-xs text-stone">
+                        <span className="font-mono text-xs text-muted-foreground">
                           {result.readingTime} min read
                         </span>
                       </div>
@@ -182,15 +182,15 @@ const SearchContent: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-16">
-                <DivergenceMark size={48} className="mx-auto mb-6 text-stone" />
-                <h2 className="font-serif text-2xl font-bold text-ink dark:text-ivory mb-4">No Results Found</h2>
-                <p className="text-stone mb-8 max-w-md mx-auto">
+                <DivergenceMark size={48} className="mx-auto mb-6 text-muted-foreground" />
+                <h2 className="font-serif text-2xl font-bold text-foreground mb-4">No Results Found</h2>
+                <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                   Even our best investigators couldn&apos;t find anything matching &ldquo;{query}&rdquo;. Try different keywords.
                 </p>
                 <div className="space-x-4">
                   <Link
                     href="/"
-                    className="bg-ink text-ivory px-6 py-3 hover:bg-ink/80 transition-colors font-mono text-xs tracking-wider uppercase"
+                    className="bg-ink text-white px-6 py-3 hover:bg-ink/80 transition-colors font-mono text-xs tracking-wider uppercase"
                   >
                     Front Page
                   </Link>
@@ -202,14 +202,14 @@ const SearchContent: React.FC = () => {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             {/* Search Suggestions */}
-            <div className="border border-ash dark:border-ash/20 p-6 mb-6">
-              <h3 className="font-mono text-xs tracking-wider uppercase text-stone mb-4">Related Searches</h3>
+            <div className="border border-border p-6 mb-6">
+              <h3 className="font-mono text-xs tracking-wider uppercase text-muted-foreground mb-4">Related Searches</h3>
               <div className="space-y-2">
                 {['AI technology', 'Machine learning news', 'Tech innovation', 'Artificial intelligence'].map((suggestion) => (
                   <Link
                     key={suggestion}
                     href={`/search?q=${encodeURIComponent(suggestion)}`}
-                    className="block text-ink dark:text-ivory hover:text-vermillion text-sm transition-colors"
+                    className="block text-foreground hover:text-vermillion text-sm transition-colors"
                   >
                     {suggestion}
                   </Link>
@@ -218,8 +218,8 @@ const SearchContent: React.FC = () => {
             </div>
 
             {/* Popular Categories */}
-            <div className="border border-ash dark:border-ash/20 p-6">
-              <h3 className="font-mono text-xs tracking-wider uppercase text-stone mb-4">Sections</h3>
+            <div className="border border-border p-6">
+              <h3 className="font-mono text-xs tracking-wider uppercase text-muted-foreground mb-4">Sections</h3>
               <div className="space-y-3">
                 {dynamicCategories.slice(0, 4).map((category) => (
                   <Link
@@ -227,8 +227,8 @@ const SearchContent: React.FC = () => {
                     href={`/category/${category.slug}`}
                     className="flex items-center justify-between py-2 border-b border-ash/50 dark:border-ash/10 last:border-0 hover:text-vermillion transition-colors"
                   >
-                    <span className="text-sm text-ink dark:text-ivory">{category.name}</span>
-                    <span className="font-mono text-xs text-stone">{category.articleCount || 0}</span>
+                    <span className="text-sm text-foreground">{category.name}</span>
+                    <span className="font-mono text-xs text-muted-foreground">{category.articleCount || 0}</span>
                   </Link>
                 ))}
               </div>
@@ -243,10 +243,10 @@ const SearchContent: React.FC = () => {
 const SearchPage: React.FC = () => {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-paper dark:bg-ink py-12">
+      <div className="min-h-screen bg-background py-12">
         <div className="container mx-auto px-4 text-center">
           <DivergenceMark size={40} animated className="mx-auto mb-4" />
-          <p className="font-mono text-xs tracking-wider uppercase text-stone">Searching the archives...</p>
+          <p className="font-mono text-xs tracking-wider uppercase text-muted-foreground">Searching the archives...</p>
         </div>
       </div>
     }>

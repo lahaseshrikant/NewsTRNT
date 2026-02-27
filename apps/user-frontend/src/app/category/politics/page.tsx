@@ -9,6 +9,7 @@ import { getContentUrl } from '@/lib/contentUtils';
 import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 import { getCategoryTheme } from '@/config/categoryThemes';
 import AdSlot from '@/components/ui/AdSlot';
+import { ClockIcon, TrendingIcon, EditorPickIcon, AlertIcon, GovernmentIcon, BallotIcon, ClipboardIcon, CalendarIcon } from '@/components/icons/EditorialIcons';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -55,11 +56,11 @@ const PoliticsPage: React.FC = () => {
     { value: 'opinion', label: 'Opinion' }
   ];
 
-  const sortOptions = [
-    { value: 'latest', label: 'Latest', icon: '🕐' },
-    { value: 'trending', label: 'Trending', icon: '🔥' },
-    { value: 'popular', label: 'Popular', icon: '⭐' },
-    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+  const sortOptions: { value: string; label: string; icon: React.ReactNode }[] = [
+    { value: 'latest', label: 'Latest', icon: <ClockIcon size={14} /> },
+    { value: 'trending', label: 'Trending', icon: <TrendingIcon size={14} /> },
+    { value: 'popular', label: 'Popular', icon: <EditorPickIcon size={14} /> },
+    { value: 'breaking', label: 'Breaking', icon: <AlertIcon size={14} /> }
   ];
 
   const powerWatchItems = [
@@ -241,7 +242,7 @@ const PoliticsPage: React.FC = () => {
                           className="group bg-card border border-border rounded-xl overflow-hidden hover:shadow-xl transition-all politics-card-featured">
                       <div className="relative h-52">
                         <Image
-                          src={article.imageUrl || '/api/placeholder/600/400'}
+                          src={article.imageUrl || '/images/placeholder-news.svg'}
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -306,7 +307,7 @@ const PoliticsPage: React.FC = () => {
                         <div className="md:w-1/3">
                           <div className="relative h-48 md:h-36 rounded-lg overflow-hidden">
                             <Image
-                              src={article.imageUrl || '/api/placeholder/400/300'}
+                              src={article.imageUrl || '/images/placeholder-news.svg'}
                               alt={article.title}
                               fill
                               className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -374,7 +375,7 @@ const PoliticsPage: React.FC = () => {
             <div className="rounded-xl overflow-hidden bg-gradient-to-br from-red-950 to-gray-950">
               <div className="p-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-red-800/30 flex items-center justify-center mx-auto mb-4 border border-red-700/30">
-                  <span className="text-2xl">🏛️</span>
+                  <GovernmentIcon size={24} />
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2" style={{ fontFamily: 'var(--font-serif), serif' }}>
                   Political Briefing
@@ -400,10 +401,10 @@ const PoliticsPage: React.FC = () => {
               <h3 className="text-sm font-bold text-foreground mb-4 tracking-wider uppercase">Quick Links</h3>
               <div className="space-y-2">
                 {[
-                  { name: 'Election Results', href: '/elections', icon: '🗳️' },
-                  { name: 'Congressional Directory', href: '/congress', icon: '🏛️' },
-                  { name: 'Policy Tracker', href: '/policy', icon: '📋' },
-                  { name: 'Political Calendar', href: '/calendar', icon: '📅' }
+                  { name: 'Election Results', href: '/elections', icon: <BallotIcon size={14} /> },
+                  { name: 'Congressional Directory', href: '/congress', icon: <GovernmentIcon size={14} /> },
+                  { name: 'Policy Tracker', href: '/policy', icon: <ClipboardIcon size={14} /> },
+                  { name: 'Political Calendar', href: '/calendar', icon: <CalendarIcon size={14} /> }
                 ].map(link => (
                   <Link key={link.name} href={link.href}
                         className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors text-sm text-foreground">

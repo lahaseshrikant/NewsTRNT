@@ -17,18 +17,18 @@ const NAVIGATION_STORAGE_KEY = 'newstrnt-navigation-data';
 
 // Default header placeholders (show immediately to avoid layout shift). These are UI-only — server data is authoritative.
 const defaultNavigation: NavigationItem[] = [
-  { id: 'home', name: 'home', label: 'Home', href: '/', icon: '🏠', isActive: true, sortOrder: 1, isSystem: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'underreported', name: 'underreported', label: 'Underreported', href: '/underreported', icon: '🕵️‍♀️', isActive: true, sortOrder: 2, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'world', name: 'world', label: 'World', href: '/world', icon: '🌍', isActive: true, sortOrder: 3, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'shorts', name: 'shorts', label: 'Shorts', href: '/shorts', icon: '⚡', isActive: true, sortOrder: 4, isSystem: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'stories', name: 'stories', label: 'Stories', href: '/web-stories', icon: '📖', isActive: true, sortOrder: 5, isSystem: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'trending', name: 'trending', label: 'Trending', href: '/trending', icon: '🔥', isActive: true, sortOrder: 6, isSystem: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'politics', name: 'politics', label: 'Politics', href: '/category/politics', icon: '🏛️', isActive: true, sortOrder: 7, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'sports', name: 'sports', label: 'Sports', href: '/category/sports', icon: '🏅', isActive: true, sortOrder: 8, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'business', name: 'business', label: 'Business', href: '/category/business', icon: '💼', isActive: true, sortOrder: 9, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'entertainment', name: 'entertainment', label: 'Entertainment', href: '/category/entertainment', icon: '🎬', isActive: true, sortOrder: 10, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'science', name: 'science', label: 'Science', href: '/category/science', icon: '🔬', isActive: true, sortOrder: 11, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'technology', name: 'technology', label: 'Technology', href: '/category/technology', icon: '💻', isActive: true, sortOrder: 12, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'home', name: 'home', label: 'Home', href: '/', icon: 'home', isActive: true, sortOrder: 1, isSystem: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'underreported', name: 'underreported', label: 'Underreported', href: '/underreported', icon: 'investigate', isActive: true, sortOrder: 2, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'world', name: 'world', label: 'World', href: '/world', icon: 'globe', isActive: true, sortOrder: 3, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'shorts', name: 'shorts', label: 'Shorts', href: '/shorts', icon: 'bolt', isActive: true, sortOrder: 4, isSystem: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'stories', name: 'stories', label: 'Stories', href: '/web-stories', icon: 'book', isActive: true, sortOrder: 5, isSystem: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'trending', name: 'trending', label: 'Trending', href: '/trending', icon: 'trending', isActive: true, sortOrder: 6, isSystem: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'politics', name: 'politics', label: 'Politics', href: '/category/politics', icon: 'government', isActive: true, sortOrder: 7, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sports', name: 'sports', label: 'Sports', href: '/category/sports', icon: 'medal', isActive: true, sortOrder: 8, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'business', name: 'business', label: 'Business', href: '/category/business', icon: 'briefcase', isActive: true, sortOrder: 9, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'entertainment', name: 'entertainment', label: 'Entertainment', href: '/category/entertainment', icon: 'clapper', isActive: true, sortOrder: 10, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'science', name: 'science', label: 'Science', href: '/category/science', icon: 'microscope', isActive: true, sortOrder: 11, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'technology', name: 'technology', label: 'Technology', href: '/category/technology', icon: 'laptop', isActive: true, sortOrder: 12, isSystem: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 
 export const useNavigation = () => {

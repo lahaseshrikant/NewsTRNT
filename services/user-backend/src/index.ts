@@ -16,6 +16,7 @@ import statsRoutes from './routes/stats';
 import commentsRoutes from './routes/comments';
 import userPreferencesRoutes from './routes/user-preferences';
 import marketRoutes from './routes/market';
+import contactRoutes from './routes/contact';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -82,6 +83,7 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/user', userPreferencesRoutes);
 app.use('/api/market', marketRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Error handling
 app.use(errorHandler);

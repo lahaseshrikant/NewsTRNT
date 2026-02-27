@@ -3,9 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Breadcrumb from '@/components/layout/Breadcrumb';
 import { useCategories } from '@/hooks/useCategories';
-import { Category } from '@/types/api';
 import { getCategoryBadgeStyle, findCategoryByName } from '@/lib/categoryUtils';
 import { dbApi, Article } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
@@ -63,41 +61,40 @@ const ShortsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-gold">
-        <div className="container mx-auto py-8">
-          <Breadcrumb items={[{ label: 'News Shorts' }]} className="mb-4" />
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gold mb-3">Quick Reads</p>
-            <h1 className="font-serif text-4xl font-bold text-ivory mb-4">
+      <section className="hero-shorts border-b-2 border-gold">
+        <div className="relative z-10 container mx-auto py-10">
+          <div className="max-w-4xl">
+            <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-70 mb-3 block">Quick Reads</span>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">
               News Shorts
             </h1>
-            <p className="text-xl text-ivory/60">
+            <p className="opacity-60 text-lg">
               Stay informed in minutes
             </p>
           </div>
+          {/* Category Filters */}
+          <div className="flex flex-wrap gap-2 mt-6 max-w-4xl">
+            {categories.map(category => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors backdrop-blur-sm ${
+                  selectedCategory === category.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border border-current/20 opacity-70 hover:opacity-100'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       <div className="container mx-auto py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
-            {/* Category Filters */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
-                    selectedCategory === category.id
-                      ? 'bg-ink dark:bg-ivory text-ivory dark:text-ink'
-                      : 'border border-ash dark:border-ash/20 text-stone hover:text-ink dark:hover:text-ivory'
-                  }`}
-                >
-                  {category.label}
-                </button>
-              ))}
-            </div>
 
             {/* News Shorts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -124,7 +121,7 @@ const ShortsPage: React.FC = () => {
                   {/* Image */}
                   <div className="hover-img-zoom relative h-48 overflow-hidden">
                     <Image
-                      src={short.imageUrl || '/api/placeholder/400/300'}
+                      src={short.imageUrl || '/images/placeholder-news.svg'}
                       alt={short.title}
                       fill
                       className="object-cover"
@@ -140,7 +137,7 @@ const ShortsPage: React.FC = () => {
                       </span>
                     </div>
                     <div className="absolute top-3 right-3">
-                      <span className="bg-ink text-ivory px-2 py-1 font-mono text-[10px] uppercase tracking-wider">
+                      <span className="bg-ink text-white px-2 py-1 font-mono text-[10px] uppercase tracking-wider">
                         {short.category?.name || 'News'}
                       </span>
                     </div>
@@ -175,7 +172,7 @@ const ShortsPage: React.FC = () => {
 
             {/* Load More */}
             <div className="text-center mt-8">
-              <button className="hover-magnetic bg-vermillion text-white px-6 py-3 font-mono text-xs tracking-wider uppercase">
+              <button className="hover-magnetic bg-primary text-primary-foreground px-6 py-3 font-mono text-xs tracking-wider uppercase">
                 Load More Shorts
               </button>
             </div>
@@ -204,18 +201,18 @@ const ShortsPage: React.FC = () => {
             </div>
 
             {/* Newsletter */}
-            <div className="bg-ink dark:bg-ivory/5 border border-ash dark:border-ash/20 p-6">
-              <h3 className="font-serif text-lg font-bold text-ivory mb-2">Daily Shorts Digest</h3>
-              <p className="text-ivory/60 text-sm mb-4">
+            <div className="bg-card border border-border p-6">
+              <h3 className="font-serif text-lg font-bold text-foreground mb-2">Daily Shorts Digest</h3>
+              <p className="text-muted-foreground text-sm mb-4">
                 Get the top 5 news shorts delivered to your inbox every morning.
               </p>
               <div className="space-y-3">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="auth-field w-full px-3 py-2 bg-ink/50 text-ivory placeholder-ivory/30 text-sm focus:outline-none"
+                  className="auth-field w-full px-3 py-2 bg-muted text-foreground placeholder-muted-foreground text-sm focus:outline-none border border-border"
                 />
-                <button className="w-full bg-vermillion text-white py-2 font-mono text-xs tracking-wider uppercase hover:bg-vermillion/90 transition-colors">
+                <button className="w-full bg-primary text-primary-foreground py-2 font-mono text-xs tracking-wider uppercase hover:bg-primary/90 transition-colors">
                   Subscribe
                 </button>
               </div>

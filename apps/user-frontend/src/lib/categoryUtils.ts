@@ -9,7 +9,7 @@ interface PartialCategory {
 
 // Generate category badge styles based on category name or color
 export const getCategoryBadgeStyle = (category: Category | PartialCategory | string | null | undefined): string => {
-  if (!category) return 'bg-ash/50 text-ink dark:bg-ink dark:text-ivory';
+  if (!category) return 'bg-ash/50 text-ink dark:bg-ink dark:text-white';
   
   // If category is a Category object with a color, use it
   if (typeof category === 'object' && category.color) {
@@ -17,15 +17,15 @@ export const getCategoryBadgeStyle = (category: Category | PartialCategory | str
     const hexToTailwind = (hex: string): string => {
       const colorMap: Record<string, string> = {
         '#3182CE': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
-        '#059669': 'bg-ink/10 text-ink dark:bg-ivory/10 dark:text-ivory',
+        '#059669': 'bg-ink/10 text-ink dark:bg-white/10 dark:text-white',
         '#DC2626': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
         '#EA580C': 'bg-gold/15 text-gold dark:bg-gold/20 dark:text-gold/80',
-        '#7C3AED': 'bg-ink/10 text-ink dark:bg-ivory/10 dark:text-ivory',
+        '#7C3AED': 'bg-ink/10 text-ink dark:bg-white/10 dark:text-white',
         '#F59E0B': 'bg-gold/15 text-gold dark:bg-gold/20 dark:text-gold/80',
         '#DB2777': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
       };
       
-      return colorMap[hex] || 'bg-ash/50 text-ink dark:bg-ink dark:text-ivory';
+      return colorMap[hex] || 'bg-ash/50 text-ink dark:bg-ink dark:text-white';
     };
     
     return hexToTailwind(category.color);
@@ -33,21 +33,21 @@ export const getCategoryBadgeStyle = (category: Category | PartialCategory | str
 
   // Fallback: generate style based on category name
   const categoryName = typeof category === 'string' ? category : (category.name || '');
-  if (!categoryName) return 'bg-ash/50 text-ink dark:bg-ink dark:text-ivory';
+  if (!categoryName) return 'bg-ash/50 text-ink dark:bg-ink dark:text-white';
   
   const categoryStyles: Record<string, string> = {
     'Technology': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
-    'Business': 'bg-ink/10 text-ink dark:bg-ivory/10 dark:text-ivory',
+    'Business': 'bg-ink/10 text-ink dark:bg-white/10 dark:text-white',
     'Politics': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
     'Sports': 'bg-gold/15 text-gold dark:bg-gold/20 dark:text-gold/80',
     'Health': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
-    'Science': 'bg-ink/10 text-ink dark:bg-ivory/10 dark:text-ivory',
+    'Science': 'bg-ink/10 text-ink dark:bg-white/10 dark:text-white',
     'Entertainment': 'bg-gold/15 text-gold dark:bg-gold/20 dark:text-gold/80',
     'World': 'bg-vermillion/10 text-vermillion dark:bg-vermillion/20 dark:text-vermillion/80',
-    'Environment': 'bg-ink/10 text-ink dark:bg-ivory/10 dark:text-ivory'
+    'Environment': 'bg-ink/10 text-ink dark:bg-white/10 dark:text-white'
   };
 
-  return categoryStyles[categoryName] || 'bg-ash/50 text-ink dark:bg-ink dark:text-ivory';
+  return categoryStyles[categoryName] || 'bg-ash/50 text-ink dark:bg-ink dark:text-white';
 };
 
 // Get category by name or slug

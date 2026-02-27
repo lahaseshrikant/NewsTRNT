@@ -9,6 +9,7 @@ import { getContentUrl } from '@/lib/contentUtils';
 import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 import { getCategoryTheme } from '@/config/categoryThemes';
 import AdSlot from '@/components/ui/AdSlot';
+import { ClockIcon, TrendingIcon, EditorPickIcon, AlertIcon, BreakingIcon, TrophyIcon, CalendarIcon, ChartIcon, MedalIcon, GamepadIcon } from '@/components/icons/EditorialIcons';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -55,11 +56,11 @@ const SportsPage: React.FC = () => {
     { value: 'opinion', label: 'Opinion' },
   ];
 
-  const sortOptions = [
-    { value: 'latest', label: 'Latest', icon: '🕐' },
-    { value: 'trending', label: 'Trending', icon: '🔥' },
-    { value: 'popular', label: 'Popular', icon: '⭐' },
-    { value: 'breaking', label: 'Breaking', icon: '🚨' },
+  const sortOptions: { value: string; label: string; icon: React.ReactNode }[] = [
+    { value: 'latest', label: 'Latest', icon: <ClockIcon size={14} /> },
+    { value: 'trending', label: 'Trending', icon: <TrendingIcon size={14} /> },
+    { value: 'popular', label: 'Popular', icon: <EditorPickIcon size={14} /> },
+    { value: 'breaking', label: 'Breaking', icon: <AlertIcon size={14} /> },
   ];
 
   const liveScores = [
@@ -113,7 +114,7 @@ const SportsPage: React.FC = () => {
           <div className="flex items-start justify-between gap-8">
             <div className="flex-1">
               <div className="desk-kicker text-orange-400/80 mb-2 flex items-center gap-2">
-                <span className="text-sm">⚡</span>
+                <BreakingIcon size={14} />
                 THE ARENA
               </div>
               <h1 className="text-4xl lg:text-6xl font-black mb-3 tracking-tighter uppercase" style={{ fontFamily: 'var(--font-serif), serif' }}>
@@ -249,14 +250,14 @@ const SportsPage: React.FC = () => {
                           className="group sports-card bg-card rounded-xl overflow-hidden border border-border desk-card-hover">
                       <div className="relative h-52">
                         <Image
-                          src={article.imageUrl || '/api/placeholder/600/400'}
+                          src={article.imageUrl || '/images/placeholder-news.svg'}
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                         <div className="absolute top-4 left-4 flex gap-2">
-                          <span className="desk-badge bg-orange-600 text-white font-black uppercase">⚡ Featured</span>
+                          <span className="desk-badge bg-orange-600 text-white font-black uppercase inline-flex items-center gap-1"><BreakingIcon size={12} /> Featured</span>
                         </div>
                         <div className="absolute bottom-4 left-4 right-4">
                           <h3 className="text-lg font-black text-white group-hover:text-orange-200 transition-colors line-clamp-2">
@@ -307,7 +308,7 @@ const SportsPage: React.FC = () => {
                         <div className="md:w-1/3">
                           <div className="relative h-48 md:h-36 rounded-lg overflow-hidden">
                             <Image
-                              src={article.imageUrl || '/api/placeholder/400/300'}
+                              src={article.imageUrl || '/images/placeholder-news.svg'}
                               alt={article.title}
                               fill
                               className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -423,7 +424,7 @@ const SportsPage: React.FC = () => {
             <div className="rounded-xl overflow-hidden" style={{ background: theme.gradient }}>
               <div className="p-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center mx-auto mb-4 border border-orange-500/30">
-                  <span className="text-2xl">🏆</span>
+                  <TrophyIcon size={24} />
                 </div>
                 <h3 className="text-lg font-black text-white mb-2 uppercase">Sports Digest</h3>
                 <p className="text-white/50 text-sm mb-4">
@@ -449,10 +450,10 @@ const SportsPage: React.FC = () => {
               </div>
               <div className="bg-card p-4 space-y-2">
                 {[
-                  { name: 'Schedule & Scores', icon: '📅' },
-                  { name: 'Player Stats', icon: '📊' },
-                  { name: 'Team Rankings', icon: '🏅' },
-                  { name: 'Fantasy Sports', icon: '🎮' }
+                  { name: 'Schedule & Scores', icon: <CalendarIcon size={14} /> },
+                  { name: 'Player Stats', icon: <ChartIcon size={14} /> },
+                  { name: 'Team Rankings', icon: <MedalIcon size={14} /> },
+                  { name: 'Fantasy Sports', icon: <GamepadIcon size={14} /> }
                 ].map(link => (
                   <Link key={link.name} href={`/sports/${link.name.toLowerCase().replace(/\s+/g, '-')}`}
                         className="flex items-center gap-3 p-2 rounded-lg text-sm text-foreground hover:bg-muted/30 transition-colors">

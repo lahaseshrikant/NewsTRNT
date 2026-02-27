@@ -395,6 +395,236 @@ export const dbApi = {
   },
 };
 
+// =============================================================================
+// USER PREFERENCES API (Saved Articles, Category Follows, Topic Follows, Feed)
+// =============================================================================
+
+export interface SavedArticleResponse {
+  id: string;
+  title: string;
+  slug: string;
+  summary?: string;
+  excerpt?: string;
+  imageUrl?: string;
+  readingTime?: number;
+  sourceName?: string;
+  contentType?: string;
+  publishedAt?: string;
+  published_at?: string;
+  category?: { id: string; name: string; slug: string; color: string };
+  savedAt: string;
+}
+
+export interface FollowedCategory {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+  icon?: string;
+  followedAt: string;
+}
+
+export interface FollowedTopic {
+  id: string;
+  name: string;
+  slug: string;
+  parentCategory?: string;
+  followedAt: string;
+}
+
+export const userPreferencesApi = {
+  // ===================== SAVED ARTICLES =====================
+
+  /** Get user's saved articles with pagination */
+  async getSavedArticles(userId: string, page: number = 1, limit: number = 20): Promise<{
+    articles: SavedArticleResponse[];
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }> {
+    try {
+      return await apiClient.get(`/user/saved/${userId}?page=${page}&limit=${limit}`);
+    } catch (error) {
+      console.error('Error fetching saved articles:', error);
+      return { articles: [], pagination: { page: 1, limit, total: 0, totalPages: 0 } };
+    }
+  },
+
+  /** Save an article */
+  async saveArticle(userId: string, articleId: string): Promise<{ success: boolean; savedAt?: string }> {
+    try {
+      return await apiClient.post('/user/saved', { userId, articleId });
+    } catch (error: any) {
+      if (error?.message?.includes('409')) {
+        return { success: true }; // Already saved
+      }
+      console.error('Error saving article:', error);
+      return { success: false };
+    }
+  },
+
+  /** Remove a saved article */
+  async removeSavedArticle(userId: string, articleId: string): Promise<{ success: boolean }> {
+    try {
+      return await apiClient.delete(`/user/saved/${userId}/${articleId}`);
+    } catch (error) {
+      console.error('Error removing saved article:', error);
+      return { success: false };
+    }
+  },
+
+  /** Check if an article is saved */
+  async isArticleSaved(userId: string, articleId: string): Promise<boolean> {
+    try {
+      const res = await apiClient.get<{ isSaved: boolean }>(`/user/saved/${userId}/${articleId}/check`);
+      return res.isSaved;
+    } catch {
+      return false;
+    }
+  },
+
+  // ===================== CATEGORY FOLLOWS =====================
+
+  /** Get user's followed categories */
+  async getFollowedCategories(userId: string): Promise<FollowedCategory[]> {
+    try {
+      const res = await apiClient.get<{ categories: FollowedCategory[] }>(`/user/categories/${userId}`);
+      return res.categories || [];
+    } catch (error) {
+      console.error('Error fetching followed categories:', error);
+      return [];
+    }
+  },
+
+  /** Follow a category */
+  async followCategory(userId: string, categoryId: string): Promise<{ success: boolean }> {
+    try {
+      return await apiClient.post('/user/categories', { userId, categoryId });
+    } catch (error: any) {
+      if (error?.message?.includes('409')) return { success: true };
+      console.error('Error following category:', error);
+      return { success: false };
+    }
+  },
+
+  /** Unfollow a category */
+  async unfollowCategory(userId: string, categoryId: string): Promise<{ success: boolean }> {
+    try {
+      return await apiClient.delete(`/user/categories/${userId}/${categoryId}`);
+    } catch (error) {
+      console.error('Error unfollowing category:', error);
+      return { success: false };
+    }
+  },
+
+  /** Check if following a category */
+  async isCategoryFollowed(userId: string, categoryId: string): Promise<boolean> {
+    try {
+      const res = await apiClient.get<{ isFollowing: boolean }>(`/user/categories/${userId}/${categoryId}/check`);
+      return res.isFollowing;
+    } catch {
+      return false;
+    }
+  },
+
+  // ===================== TOPIC FOLLOWS =====================
+
+  /** Get user's followed topics */
+  async getFollowedTopics(userId: string): Promise<FollowedTopic[]> {
+    try {
+      const res = await apiClient.get<{ topics: FollowedTopic[] }>(`/user/topics/${userId}`);
+      return res.topics || [];
+    } catch (error) {
+      console.error('Error fetching followed topics:', error);
+      return [];
+    }
+  },
+
+  /** Follow a topic */
+  async followTopic(userId: string, topicName: string, topicSlug: string, parentCategory?: string): Promise<{ success: boolean }> {
+    try {
+      return await apiClient.post('/user/topics', { userId, topicName, topicSlug, parentCategory });
+    } catch (error: any) {
+      if (error?.message?.includes('409')) return { success: true };
+      console.error('Error following topic:', error);
+      return { success: false };
+    }
+  },
+
+  /** Unfollow a topic */
+  async unfollowTopic(userId: string, topicSlug: string): Promise<{ success: boolean }> {
+    try {
+      return await apiClient.delete(`/user/topics/${userId}/${topicSlug}`);
+    } catch (error) {
+      console.error('Error unfollowing topic:', error);
+      return { success: false };
+    }
+  },
+
+  /** Check if following a topic */
+  async isTopicFollowed(userId: string, topicSlug: string): Promise<boolean> {
+    try {
+      const res = await apiClient.get<{ isFollowing: boolean }>(`/user/topics/${userId}/${topicSlug}/check`);
+      return res.isFollowing;
+    } catch {
+      return false;
+    }
+  },
+
+  // ===================== PERSONALIZED FEED =====================
+
+  /** Get personalized feed based on followed categories/topics */
+  async getPersonalizedFeed(userId: string, page: number = 1, limit: number = 20): Promise<{
+    articles: Article[];
+    isPersonalized: boolean;
+    followingCount?: { categories: number; topics: number };
+  }> {
+    try {
+      const res = await apiClient.get<any>(`/user/feed/${userId}?page=${page}&limit=${limit}`);
+      const articles = (res.articles || []).map((a: any) => ({
+        ...a,
+        published_at: a.publishedAt || a.published_at,
+        views: a.views || a.viewCount || 0,
+        likes: a.likes || a.likeCount || 0
+      })) as Article[];
+      return { articles, isPersonalized: res.isPersonalized || false, followingCount: res.followingCount };
+    } catch (error) {
+      console.error('Error fetching personalized feed:', error);
+      return { articles: [], isPersonalized: false };
+    }
+  },
+
+  // ===================== BULK OPERATIONS =====================
+
+  /** Save multiple topics at once (for interests page) */
+  async saveInterests(userId: string, topics: Array<{ name: string; slug: string; parentCategory?: string }>): Promise<{ success: boolean; saved: number; errors: number }> {
+    let saved = 0;
+    let errors = 0;
+
+    // Get currently followed topics to compute diff
+    const currentTopics = await this.getFollowedTopics(userId);
+    const currentSlugs = new Set(currentTopics.map(t => t.slug));
+    const desiredSlugs = new Set(topics.map(t => t.slug));
+
+    // Unfollow topics no longer selected
+    for (const topic of currentTopics) {
+      if (!desiredSlugs.has(topic.slug)) {
+        const res = await this.unfollowTopic(userId, topic.slug);
+        if (!res.success) errors++;
+      }
+    }
+
+    // Follow newly selected topics
+    for (const topic of topics) {
+      if (!currentSlugs.has(topic.slug)) {
+        const res = await this.followTopic(userId, topic.name, topic.slug, topic.parentCategory);
+        if (res.success) saved++;
+        else errors++;
+      }
+    }
+
+    return { success: errors === 0, saved, errors };
+  },
+};
+
 // Web Story type definition
 export interface WebStory {
   id: string;

@@ -9,6 +9,7 @@ import { getContentUrl } from '@/lib/contentUtils';
 import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 import { getCategoryTheme } from '@/config/categoryThemes';
 import AdSlot from '@/components/ui/AdSlot';
+import { ClockIcon, TrendingIcon, EditorPickIcon, AlertIcon, AtomIcon, DnaIcon, FlaskIcon, RocketIcon, GlobeIcon, TrophyIcon, GraduationCapIcon, MicroscopeIcon, GovernmentIcon, TelescopeIcon } from '@/components/icons/EditorialIcons';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -55,19 +56,19 @@ const ScienceCategoryPage: React.FC = () => {
     { value: 'opinion', label: 'Opinion' }
   ];
 
-  const sortOptions = [
-    { value: 'latest', label: 'Latest', icon: '🕐' },
-    { value: 'trending', label: 'Trending', icon: '🔥' },
-    { value: 'popular', label: 'Popular', icon: '⭐' },
-    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+  const sortOptions: { value: string; label: string; icon: React.ReactNode }[] = [
+    { value: 'latest', label: 'Latest', icon: <ClockIcon size={14} /> },
+    { value: 'trending', label: 'Trending', icon: <TrendingIcon size={14} /> },
+    { value: 'popular', label: 'Popular', icon: <EditorPickIcon size={14} /> },
+    { value: 'breaking', label: 'Breaking', icon: <AlertIcon size={14} /> }
   ];
 
-  const scienceFields = [
-    { name: 'Physics', icon: '⚛️', articles: 89, color: 'from-blue-500/20 to-cyan-500/20' },
-    { name: 'Biology', icon: '🧬', articles: 67, color: 'from-green-500/20 to-emerald-500/20' },
-    { name: 'Chemistry', icon: '🧪', articles: 54, color: 'from-purple-500/20 to-violet-500/20' },
-    { name: 'Space Science', icon: '🚀', articles: 43, color: 'from-indigo-500/20 to-blue-500/20' },
-    { name: 'Earth Science', icon: '🌍', articles: 38, color: 'from-amber-500/20 to-orange-500/20' },
+  const scienceFields: { name: string; icon: React.ReactNode; articles: number; color: string }[] = [
+    { name: 'Physics', icon: <AtomIcon size={20} />, articles: 89, color: 'from-blue-500/20 to-cyan-500/20' },
+    { name: 'Biology', icon: <DnaIcon size={20} />, articles: 67, color: 'from-green-500/20 to-emerald-500/20' },
+    { name: 'Chemistry', icon: <FlaskIcon size={20} />, articles: 54, color: 'from-purple-500/20 to-violet-500/20' },
+    { name: 'Space Science', icon: <RocketIcon size={20} />, articles: 43, color: 'from-indigo-500/20 to-blue-500/20' },
+    { name: 'Earth Science', icon: <GlobeIcon size={20} />, articles: 38, color: 'from-amber-500/20 to-orange-500/20' },
   ];
 
   const recentDiscoveries = [
@@ -76,12 +77,12 @@ const ScienceCategoryPage: React.FC = () => {
     { title: 'Quantum Error Correction', desc: 'Room temperature quantum computing moves closer', time: '1d ago', severity: 'notable' },
   ];
 
-  const institutions = [
-    { name: 'MIT', badge: '🏆', papers: 45 },
-    { name: 'CERN', badge: '⚛️', papers: 38 },
-    { name: 'NASA', badge: '🚀', papers: 34 },
-    { name: 'Harvard', badge: '🎓', papers: 29 },
-    { name: 'Stanford', badge: '🔬', papers: 26 },
+  const institutions: { name: string; badge: React.ReactNode; papers: number }[] = [
+    { name: 'MIT', badge: <TrophyIcon size={18} />, papers: 45 },
+    { name: 'CERN', badge: <AtomIcon size={18} />, papers: 38 },
+    { name: 'NASA', badge: <RocketIcon size={18} />, papers: 34 },
+    { name: 'Harvard', badge: <GraduationCapIcon size={18} />, papers: 29 },
+    { name: 'Stanford', badge: <MicroscopeIcon size={18} />, papers: 26 },
   ];
 
   const subCategoryFilters = useSubCategoryFilters(allArticles, category?.subCategories || [], 'ALL');
@@ -275,7 +276,7 @@ const ScienceCategoryPage: React.FC = () => {
                           className="group bg-card rounded-xl overflow-hidden border border-border desk-card-hover relative">
                       <div className="relative h-52">
                         <Image
-                          src={article.imageUrl || '/api/placeholder/600/400'}
+                          src={article.imageUrl || '/images/placeholder-news.svg'}
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -295,7 +296,7 @@ const ScienceCategoryPage: React.FC = () => {
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <div className="flex items-center gap-2">
                             {article.sourceName && (
-                              <span className="science-field-badge">🏛️ {article.sourceName}</span>
+                              <span className="science-field-badge"><GovernmentIcon size={14} className="inline" /> {article.sourceName}</span>
                             )}
                             <span>{article.author || 'Research Desk'}</span>
                           </div>
@@ -339,7 +340,7 @@ const ScienceCategoryPage: React.FC = () => {
                         <div className="md:w-1/3">
                           <div className="relative h-48 md:h-36 rounded-lg overflow-hidden">
                             <Image
-                              src={article.imageUrl || '/api/placeholder/400/300'}
+                              src={article.imageUrl || '/images/placeholder-news.svg'}
                               alt={article.title}
                               fill
                               className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -442,7 +443,7 @@ const ScienceCategoryPage: React.FC = () => {
             <div className="rounded-xl overflow-hidden" style={{ background: theme.gradient }}>
               <div className="p-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center mx-auto mb-4 border border-cyan-500/30">
-                  <span className="text-2xl">🔭</span>
+                  <TelescopeIcon size={24} />
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Science Weekly</h3>
                 <p className="text-white/50 text-sm mb-4">

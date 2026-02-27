@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import showToast from '@/lib/toast';
 
 interface SaveButtonProps {
   articleId: string;
@@ -48,7 +49,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({
   const handleToggleSave = async () => {
     if (!userId) {
       // Prompt login for non-authenticated users
-      alert('Please sign in to save articles');
+      showToast('Please sign in to save articles', 'warning');
       return;
     }
 

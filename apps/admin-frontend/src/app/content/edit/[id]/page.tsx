@@ -183,14 +183,16 @@ const EditArticle: React.FC = () => {
       const updateData = {
         title: formData.title,
         content: formData.content,
-        summary: formData.excerpt, // Map excerpt to summary
-        categoryId: formData.categoryId, // Keep as string
+        summary: formData.excerpt,
+        categoryId: formData.categoryId,
         tags: tagsArray,
         isPublished: newStatus === 'published',
         ...(newStatus === 'scheduled' && formData.scheduledAt && {
           publishedAt: new Date(formData.scheduledAt).toISOString()
         }),
-        ...(newStatus === 'published' && { publishedAt: new Date().toISOString() }),
+        ...(newStatus === 'published' && {
+          publishedAt: article?.publishedAt || new Date().toISOString()
+        }),
         imageUrl: formData.featuredImage
       };
 

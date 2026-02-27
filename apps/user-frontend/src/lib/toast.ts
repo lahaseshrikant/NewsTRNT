@@ -1,4 +1,19 @@
-// Toast notification utility
+/**
+ * Imperative toast notification utility.
+ *
+ * Creates a temporary DOM-based notification that slides in from the right
+ * and auto-dismisses after 5 seconds. Only one toast is visible at a time.
+ *
+ * @param message - Text to display in the toast
+ * @param type    - Visual style variant (default: 'info')
+ *
+ * @example
+ * ```ts
+ * import showToast from '@/lib/toast';
+ * showToast('Saved successfully', 'success');
+ * showToast('Something went wrong', 'error');
+ * ```
+ */
 export const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
   if (typeof window === 'undefined') return;
   

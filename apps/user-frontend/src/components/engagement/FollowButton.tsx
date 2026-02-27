@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import showToast from '@/lib/toast';
 
 interface FollowButtonProps {
   type: 'category' | 'topic';
@@ -55,7 +56,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
 
   const handleToggleFollow = async () => {
     if (!userId) {
-      alert('Please sign in to follow');
+      showToast('Please sign in to follow', 'warning');
       return;
     }
 

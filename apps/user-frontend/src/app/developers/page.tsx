@@ -32,7 +32,7 @@ const DevelopersPage: React.FC = () => {
         "content": "Article content...",
         "category": "technology",
         "publishedAt": "2024-01-15T10:30:00Z",
-        "author": "John Doe",
+        "author": "NewsTRNT Staff",
         "url": "https://NewsTRNT.com/articles/12345",
         "summary": "AI breakthrough announcement...",
         "sentiment": "positive",
@@ -219,21 +219,21 @@ print(articles)`
   const currentEndpoint = apiEndpoints.find(e => e.id === selectedEndpoint);
 
   return (
-    <div className="min-h-screen bg-paper dark:bg-ink">
+    <div className="min-h-screen bg-background">
       {/* Hero */}
-      <div className="bg-ink dark:bg-ivory/5 border-b-2 border-vermillion">
+      <div className="bg-ink border-b-2 border-vermillion">
         <div className="container mx-auto py-16">
           <div className="max-w-4xl mx-auto text-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-3">For Developers</p>
-            <h1 className="font-serif text-5xl font-bold text-ivory mb-6">NewsTRNT API</h1>
-            <p className="text-xl text-ivory/60 mb-8">
+            <h1 className="font-serif text-5xl font-bold text-white mb-6">NewsTRNT API</h1>
+            <p className="text-xl text-white/60 mb-8">
               Powerful REST API for news data, intelligent search, and real-time analytics
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/api/register" className="hover-magnetic bg-vermillion text-white px-8 py-3 font-mono text-xs tracking-wider uppercase">
                 Get API Key
               </Link>
-              <a href="#documentation" className="border border-ivory/20 text-ivory px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-ivory/10 transition-colors">
+              <a href="#documentation" className="border border-white/20 text-white px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-white/10 transition-colors">
                 View Documentation
               </a>
             </div>
@@ -242,7 +242,7 @@ print(articles)`
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-ash dark:border-ash/20 bg-ivory dark:bg-ash/5">
+      <div className="border-b border-border bg-muted/50">
         <div className="container mx-auto">
           <nav className="flex space-x-8">
             {[
@@ -257,7 +257,7 @@ print(articles)`
                 className={`py-4 px-2 border-b-2 font-mono text-xs tracking-wider uppercase transition-colors ${
                   activeTab === tab.id
                     ? 'border-vermillion text-vermillion'
-                    : 'border-transparent text-stone hover:text-ink dark:hover:text-ivory hover:border-ash'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
               >
                 {tab.label}
@@ -275,25 +275,25 @@ print(articles)`
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
               {overviewFeatures.map((feature, index) => (
-                <div key={index} className="border border-ash dark:border-ash/20 p-6">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-stone">0{index + 1}</span>
-                  <h3 className="font-serif text-xl font-bold text-ink dark:text-ivory mt-2 mb-2">{feature.title}</h3>
-                  <p className="text-stone">{feature.description}</p>
+                <div key={index} className="border border-border p-6">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">0{index + 1}</span>
+                  <h3 className="font-serif text-xl font-bold text-foreground mt-2 mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground">{feature.description}</p>
                 </div>
               ))}
             </div>
 
-            <div className="bg-ink dark:bg-ivory/5 border border-ash dark:border-ash/20 p-8">
-              <h2 className="font-serif text-2xl font-bold text-ivory mb-4">Quick Start</h2>
+            <div className="bg-card border border-border border border-border p-8">
+              <h2 className="font-serif text-2xl font-bold text-white mb-4">Quick Start</h2>
               <div className="font-mono text-sm space-y-1">
-                <div className="text-ivory/40"># Get your API key</div>
-                <div className="text-ivory/80">curl -X POST &quot;https://api.NewsTRNT.com/v1/auth/register&quot; \</div>
-                <div className="text-ivory/80 ml-4">-H &quot;Content-Type: application/json&quot; \</div>
-                <div className="text-ivory/80 ml-4">-d {`'{"email": "your@email.com"}'`}</div>
+                <div className="text-white/40"># Get your API key</div>
+                <div className="text-white/80">curl -X POST &quot;https://api.NewsTRNT.com/v1/auth/register&quot; \</div>
+                <div className="text-white/80 ml-4">-H &quot;Content-Type: application/json&quot; \</div>
+                <div className="text-white/80 ml-4">-d {`'{"email": "your@email.com"}'`}</div>
                 
-                <div className="text-ivory/40 mt-4"># Make your first request</div>
-                <div className="text-ivory/80">curl -X GET &quot;https://api.NewsTRNT.com/v1/articles&quot; \</div>
-                <div className="text-ivory/80 ml-4">-H &quot;Authorization: Bearer YOUR_API_KEY&quot;</div>
+                <div className="text-white/40 mt-4"># Make your first request</div>
+                <div className="text-white/80">curl -X GET &quot;https://api.NewsTRNT.com/v1/articles&quot; \</div>
+                <div className="text-white/80 ml-4">-H &quot;Authorization: Bearer YOUR_API_KEY&quot;</div>
               </div>
             </div>
           </div>
@@ -304,8 +304,8 @@ print(articles)`
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Endpoint List */}
-              <div className="border border-ash dark:border-ash/20 p-6">
-                <h3 className="font-mono text-xs uppercase tracking-wider text-stone mb-4">Endpoints</h3>
+              <div className="border border-border p-6">
+                <h3 className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-4">Endpoints</h3>
                 <div className="space-y-1">
                   {apiEndpoints.map((endpoint) => (
                     <button
@@ -314,11 +314,11 @@ print(articles)`
                       className={`w-full text-left p-3 transition-colors ${
                         selectedEndpoint === endpoint.id
                           ? 'bg-vermillion/5 border-l-2 border-vermillion'
-                          : 'hover:bg-ivory dark:hover:bg-ash/10 border-l-2 border-transparent'
+                          : 'hover:bg-muted/50 border-l-2 border-transparent'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-serif font-semibold text-ink dark:text-ivory text-sm">{endpoint.name}</span>
+                        <span className="font-serif font-semibold text-foreground text-sm">{endpoint.name}</span>
                         <span className={`px-2 py-0.5 font-mono text-[10px] tracking-wider ${
                           endpoint.method === 'GET' 
                             ? 'bg-gold/10 text-gold'
@@ -327,7 +327,7 @@ print(articles)`
                           {endpoint.method}
                         </span>
                       </div>
-                      <div className="text-xs text-stone mt-1 font-mono">{endpoint.endpoint}</div>
+                      <div className="text-xs text-muted-foreground mt-1 font-mono">{endpoint.endpoint}</div>
                     </button>
                   ))}
                 </div>
@@ -336,7 +336,7 @@ print(articles)`
               {/* Endpoint Details */}
               <div className="lg:col-span-2">
                 {currentEndpoint && (
-                  <div className="border border-ash dark:border-ash/20 p-6">
+                  <div className="border border-border p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <span className={`px-3 py-1 font-mono text-xs tracking-wider ${
                         currentEndpoint.method === 'GET' 
@@ -345,46 +345,46 @@ print(articles)`
                       }`}>
                         {currentEndpoint.method}
                       </span>
-                      <code className="text-ink dark:text-ivory font-mono text-sm">{currentEndpoint.endpoint}</code>
+                      <code className="text-foreground font-mono text-sm">{currentEndpoint.endpoint}</code>
                     </div>
                     
-                    <p className="text-stone mb-6">{currentEndpoint.description}</p>
+                    <p className="text-muted-foreground mb-6">{currentEndpoint.description}</p>
                     
-                    <h4 className="font-mono text-xs uppercase tracking-wider text-stone mb-3">Parameters</h4>
+                    <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-3">Parameters</h4>
                     <div className="overflow-x-auto mb-6">
-                      <table className="w-full border border-ash dark:border-ash/20">
+                      <table className="w-full border border-border">
                         <thead>
-                          <tr className="border-b border-ash dark:border-ash/20 bg-ivory dark:bg-ash/5">
-                            <th className="text-left p-3 font-mono text-[10px] uppercase tracking-wider text-stone">Name</th>
-                            <th className="text-left p-3 font-mono text-[10px] uppercase tracking-wider text-stone">Type</th>
-                            <th className="text-left p-3 font-mono text-[10px] uppercase tracking-wider text-stone">Required</th>
-                            <th className="text-left p-3 font-mono text-[10px] uppercase tracking-wider text-stone">Description</th>
+                          <tr className="border-b border-border bg-muted/50">
+                            <th className="text-left p-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Name</th>
+                            <th className="text-left p-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Type</th>
+                            <th className="text-left p-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Required</th>
+                            <th className="text-left p-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Description</th>
                           </tr>
                         </thead>
                         <tbody>
                           {currentEndpoint.parameters.map((param, index) => (
-                            <tr key={index} className="border-b border-ash dark:border-ash/20 last:border-b-0">
-                              <td className="p-3 font-mono text-sm text-ink dark:text-ivory">{param.name}</td>
-                              <td className="p-3 text-sm text-stone font-mono">{param.type}</td>
+                            <tr key={index} className="border-b border-border last:border-b-0">
+                              <td className="p-3 font-mono text-sm text-foreground">{param.name}</td>
+                              <td className="p-3 text-sm text-muted-foreground font-mono">{param.type}</td>
                               <td className="p-3 text-sm">
                                 <span className={`px-2 py-0.5 font-mono text-[10px] tracking-wider ${
                                   param.required 
                                     ? 'bg-vermillion/10 text-vermillion'
-                                    : 'bg-ash/30 text-stone'
+                                    : 'bg-ash/30 text-muted-foreground'
                                 }`}>
                                   {param.required ? 'Required' : 'Optional'}
                                 </span>
                               </td>
-                              <td className="p-3 text-sm text-stone">{param.description}</td>
+                              <td className="p-3 text-sm text-muted-foreground">{param.description}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                     
-                    <h4 className="font-mono text-xs uppercase tracking-wider text-stone mb-3">Example Response</h4>
-                    <div className="bg-ink dark:bg-ivory/5 p-4 overflow-x-auto">
-                      <pre className="text-sm text-ivory/80 font-mono whitespace-pre-wrap">
+                    <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-3">Example Response</h4>
+                    <div className="bg-card border border-border p-4 overflow-x-auto">
+                      <pre className="text-sm text-white/80 font-mono whitespace-pre-wrap">
                         {currentEndpoint.example}
                       </pre>
                     </div>
@@ -400,21 +400,21 @@ print(articles)`
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Integration</p>
-              <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">SDKs &amp; Code Examples</h2>
+              <h2 className="font-serif text-3xl font-bold text-foreground">SDKs &amp; Code Examples</h2>
             </div>
 
             <div className="space-y-6">
               {sdks.map((sdk, index) => (
-                <div key={index} className="border border-ash dark:border-ash/20 p-6">
+                <div key={index} className="border border-border p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-                    <h3 className="font-serif text-xl font-bold text-ink dark:text-ivory">{sdk.name}</h3>
-                    <code className="bg-ink dark:bg-ivory/10 text-ivory dark:text-ivory/80 px-3 py-1 font-mono text-xs">
+                    <h3 className="font-serif text-xl font-bold text-foreground">{sdk.name}</h3>
+                    <code className="bg-primary text-white dark:text-white/80 px-3 py-1 font-mono text-xs">
                       {sdk.installation}
                     </code>
                   </div>
                   
-                  <div className="bg-ink dark:bg-ivory/5 p-4 overflow-x-auto">
-                    <pre className="text-sm text-ivory/80 font-mono whitespace-pre-wrap">
+                  <div className="bg-card border border-border p-4 overflow-x-auto">
+                    <pre className="text-sm text-white/80 font-mono whitespace-pre-wrap">
                       {sdk.example}
                     </pre>
                   </div>
@@ -429,7 +429,7 @@ print(articles)`
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-vermillion mb-2">Plans</p>
-              <h2 className="font-serif text-3xl font-bold text-ink dark:text-ivory">API Pricing</h2>
+              <h2 className="font-serif text-3xl font-bold text-foreground">API Pricing</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -439,7 +439,7 @@ print(articles)`
                   className={`border p-8 text-center relative ${
                     plan.popular 
                       ? 'border-vermillion bg-vermillion/5' 
-                      : 'border-ash dark:border-ash/20'
+                      : 'border-border'
                   }`}
                 >
                   {plan.popular && (
@@ -450,9 +450,9 @@ print(articles)`
                     </div>
                   )}
                   
-                  <h3 className="font-mono text-xs uppercase tracking-wider text-stone mb-2">{plan.name}</h3>
-                  <div className="font-serif text-4xl font-bold text-ink dark:text-ivory mb-2">{plan.price}</div>
-                  <p className="text-stone text-sm mb-6">{plan.requests}</p>
+                  <h3 className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-2">{plan.name}</h3>
+                  <div className="font-serif text-4xl font-bold text-foreground mb-2">{plan.price}</div>
+                  <p className="text-muted-foreground text-sm mb-6">{plan.requests}</p>
                   
                   <ul className="space-y-3 mb-8 text-left">
                     {plan.features.map((feature, featureIndex) => (
@@ -460,7 +460,7 @@ print(articles)`
                         <svg className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                         </svg>
-                        <span className="text-ink dark:text-ivory/80 text-sm">{feature}</span>
+                        <span className="text-foreground text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -470,7 +470,7 @@ print(articles)`
                     className={`block w-full py-3 font-mono text-xs tracking-wider uppercase transition-colors ${
                       plan.popular
                         ? 'hover-magnetic bg-vermillion text-white'
-                        : 'border border-ash dark:border-ash/20 text-ink dark:text-ivory hover:bg-ivory dark:hover:bg-ash/10'
+                        : 'border border-border text-foreground hover:bg-muted/50'
                     }`}
                   >
                     {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
@@ -483,21 +483,21 @@ print(articles)`
       </div>
 
       {/* CTA */}
-      <div className="bg-ink dark:bg-ivory/5 border-t-2 border-vermillion py-16">
+      <div className="bg-ink border-t-2 border-vermillion py-16">
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <DivergenceMark size={32} className="mx-auto mb-6" color="var(--color-vermillion, #C62828)" />
-            <h2 className="font-serif text-3xl font-bold text-ivory mb-4">
+            <h2 className="font-serif text-3xl font-bold text-white mb-4">
               Ready to Build with NewsTRNT API?
             </h2>
-            <p className="text-xl mb-8 text-ivory/60">
-              Join thousands of developers building amazing news applications
+            <p className="text-xl mb-8 text-white/60">
+              Start building news applications with our open API
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/api/register" className="hover-magnetic bg-vermillion text-white px-8 py-3 font-mono text-xs tracking-wider uppercase">
                 Get Free API Key
               </Link>
-              <a href="mailto:developers@NewsTRNT.com" className="border border-ivory/20 text-ivory px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-ivory/10 transition-colors">
+              <a href="mailto:developers@NewsTRNT.com" className="border border-white/20 text-white px-8 py-3 font-mono text-xs tracking-wider uppercase hover:bg-white/10 transition-colors">
                 Contact Support
               </a>
             </div>

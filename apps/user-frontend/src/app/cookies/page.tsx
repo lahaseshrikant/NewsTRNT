@@ -2,25 +2,24 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Breadcrumb from '@/components/layout/Breadcrumb';
+import { CookieIcon, WrenchIcon, ChartIcon, TargetIcon, MegaphoneIcon } from '@/components/icons/EditorialIcons';
 
 const CookiePolicyPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b border-border">
-  <div className="container mx-auto py-8">
-          <Breadcrumb items={[{ label: 'Cookie Policy' }]} className="mb-4" />
+      <section className="hero-legal border-b-2 border-vermillion">
+  <div className="relative z-10 container mx-auto py-12">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
+            <h1 className="text-4xl font-bold mb-4">
               Cookie Policy
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl opacity-60">
               How NewsTRNT uses cookies to enhance your experience
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
   <div className="container mx-auto py-12">
@@ -30,7 +29,7 @@ const CookiePolicyPage: React.FC = () => {
           <div className="bg-card border border-border rounded-lg p-6 mb-8">
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0">
-                <span className="text-2xl">🍪</span>
+                <CookieIcon size={24} />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">Cookie Preferences</h3>
@@ -59,8 +58,8 @@ const CookiePolicyPage: React.FC = () => {
               
               <div className="space-y-6">
                 <div className="border border-border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-3">
-                    🔧 Essential Cookies
+                  <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <WrenchIcon size={20} /> Essential Cookies
                   </h3>
                   <p className="text-muted-foreground mb-3">
                     These cookies are necessary for the website to function properly and cannot be disabled.
@@ -73,8 +72,8 @@ const CookiePolicyPage: React.FC = () => {
                 </div>
 
                 <div className="border border-border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-3">
-                    📊 Analytics Cookies
+                  <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <ChartIcon size={20} /> Analytics Cookies
                   </h3>
                   <p className="text-muted-foreground mb-3">
                     Help us understand how visitors interact with our website by collecting anonymous information.
@@ -87,8 +86,8 @@ const CookiePolicyPage: React.FC = () => {
                 </div>
 
                 <div className="border border-border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-3">
-                    🎯 Personalization Cookies
+                  <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <TargetIcon size={20} /> Personalization Cookies
                   </h3>
                   <p className="text-muted-foreground mb-3">
                     Allow us to personalize your experience and remember your preferences.
@@ -101,8 +100,8 @@ const CookiePolicyPage: React.FC = () => {
                 </div>
 
                 <div className="border border-border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-3">
-                    📢 Marketing Cookies
+                  <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <MegaphoneIcon size={20} /> Marketing Cookies
                   </h3>
                   <p className="text-muted-foreground mb-3">
                     Used to deliver relevant advertisements and track campaign performance.

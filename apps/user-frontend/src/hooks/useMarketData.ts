@@ -1,5 +1,12 @@
-// Market Data Hook
-// React hook for accessing market data based on user location
+/**
+ * Market Data Hook
+ *
+ * Fetches and auto-refreshes market data (indices, commodities, currencies, crypto)
+ * based on the user's detected geolocation. Uses MarketDataService for caching
+ * and the backend proxy for all API calls.
+ *
+ * @module hooks/useMarketData
+ */
 
 'use client';
 
@@ -55,12 +62,6 @@ export function useMarketData(options: UseMarketDataOptions = {}): UseMarketData
       
       // Fetch market data for user's country
       const marketData = await getMarketDataByCountry(userLocation.country);
-      console.log('[useMarketData] Market data received:', {
-        country: userLocation.country,
-        indicesCount: marketData?.indices?.length ?? 0,
-        indices: (marketData?.indices || []).map(i => i.symbol),
-        currencies: marketData?.currencies?.map(c => ({ pair:c.pair, rate:c.rate, quote:c.quoteCurrency })),
-      });
 
       setIndices(marketData?.indices || []);
       setCommodities(marketData?.commodities || []);

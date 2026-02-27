@@ -9,6 +9,7 @@ import { getContentUrl } from '@/lib/contentUtils';
 import { useSubCategoryFilters } from '@/hooks/useSubCategoryFilters';
 import { getCategoryTheme } from '@/config/categoryThemes';
 import AdSlot from '@/components/ui/AdSlot';
+import { ClockIcon, TrendingIcon, EditorPickIcon, AlertIcon, ClapperIcon, MusicNoteIcon, TvIcon, GamepadIcon, PopularIcon, TrendDownIcon, ArrowRightIcon, TheaterIcon } from '@/components/icons/EditorialIcons';
 
 const formatPublishedTime = (publishedAt: string | Date) => {
   const now = new Date();
@@ -55,19 +56,19 @@ const EntertainmentCategoryPage: React.FC = () => {
     { value: 'opinion', label: 'Opinion' }
   ];
 
-  const sortOptions = [
-    { value: 'latest', label: 'Latest', icon: '🕐' },
-    { value: 'trending', label: 'Trending', icon: '🔥' },
-    { value: 'popular', label: 'Popular', icon: '⭐' },
-    { value: 'breaking', label: 'Breaking', icon: '🚨' }
+  const sortOptions: { value: string; label: string; icon: React.ReactNode }[] = [
+    { value: 'latest', label: 'Latest', icon: <ClockIcon size={14} /> },
+    { value: 'trending', label: 'Trending', icon: <TrendingIcon size={14} /> },
+    { value: 'popular', label: 'Popular', icon: <EditorPickIcon size={14} /> },
+    { value: 'breaking', label: 'Breaking', icon: <AlertIcon size={14} /> }
   ];
 
-  const entertainmentCategories = [
-    { name: 'Movies', icon: '🎬', count: 67, color: 'from-red-500/20 to-pink-500/20' },
-    { name: 'Music', icon: '🎵', count: 54, color: 'from-blue-500/20 to-violet-500/20' },
-    { name: 'TV Shows', icon: '📺', count: 43, color: 'from-green-500/20 to-emerald-500/20' },
-    { name: 'Celebrity', icon: '⭐', count: 38, color: 'from-yellow-500/20 to-amber-500/20' },
-    { name: 'Gaming', icon: '🎮', count: 29, color: 'from-purple-500/20 to-fuchsia-500/20' }
+  const entertainmentCategories: { name: string; icon: React.ReactNode; count: number; color: string }[] = [
+    { name: 'Movies', icon: <ClapperIcon size={20} />, count: 67, color: 'from-red-500/20 to-pink-500/20' },
+    { name: 'Music', icon: <MusicNoteIcon size={20} />, count: 54, color: 'from-blue-500/20 to-violet-500/20' },
+    { name: 'TV Shows', icon: <TvIcon size={20} />, count: 43, color: 'from-green-500/20 to-emerald-500/20' },
+    { name: 'Celebrity', icon: <EditorPickIcon size={20} />, count: 38, color: 'from-yellow-500/20 to-amber-500/20' },
+    { name: 'Gaming', icon: <GamepadIcon size={20} />, count: 29, color: 'from-purple-500/20 to-fuchsia-500/20' }
   ];
 
   const trendingHashtags = [
@@ -247,7 +248,7 @@ const EntertainmentCategoryPage: React.FC = () => {
                           className="group entertainment-card bg-card rounded-xl overflow-hidden border border-border">
                       <div className="relative h-56">
                         <Image
-                          src={article.imageUrl || '/api/placeholder/600/400'}
+                          src={article.imageUrl || '/images/placeholder-news.svg'}
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-700"
@@ -305,7 +306,7 @@ const EntertainmentCategoryPage: React.FC = () => {
                         <div className="md:w-1/3">
                           <div className="relative h-48 md:h-36 rounded-lg overflow-hidden">
                             <Image
-                              src={article.imageUrl || '/api/placeholder/400/300'}
+                              src={article.imageUrl || '/images/placeholder-news.svg'}
                               alt={article.title}
                               fill
                               className="object-cover group-hover:scale-110 transition-transform duration-700"
@@ -383,7 +384,7 @@ const EntertainmentCategoryPage: React.FC = () => {
                       <span className="text-xs text-muted-foreground ml-2">{item.posts}</span>
                     </div>
                     <span className="text-xs">
-                      {item.trending === 'up' ? '📈' : item.trending === 'down' ? '📉' : '➡️'}
+                      {item.trending === 'up' ? <PopularIcon size={14} /> : item.trending === 'down' ? <TrendDownIcon size={14} /> : <ArrowRightIcon size={14} />}
                     </span>
                   </div>
                 ))}
@@ -421,7 +422,7 @@ const EntertainmentCategoryPage: React.FC = () => {
             <div className="rounded-xl overflow-hidden" style={{ background: theme.gradient }}>
               <div className="p-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-pink-500/20 flex items-center justify-center mx-auto mb-4 border border-pink-500/30">
-                  <span className="text-2xl">🎭</span>
+                  <TheaterIcon size={24} />
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">The Marquee</h3>
                 <p className="text-white/50 text-sm mb-4">

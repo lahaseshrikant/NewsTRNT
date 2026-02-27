@@ -400,7 +400,11 @@ const NewArticle: React.FC = () => {
         imageUrl: formData.imageUrl || undefined,
         tags: formData.tags,
         isPublished: status === 'published',
-        publishedAt: status === 'scheduled' ? formData.publishDate : undefined,
+        publishedAt: status === 'published'
+          ? new Date().toISOString()
+          : status === 'scheduled'
+            ? formData.publishDate
+            : undefined,
         isFeatured: formData.featured,
         isTrending: false,
         isBreaking: false
