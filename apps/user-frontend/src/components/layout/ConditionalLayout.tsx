@@ -46,7 +46,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
       <PerformanceMonitor />
       <Header />
-      <main className="flex-1 pt-16">
+      <main className="flex-1 pt-14">
         {children}
       </main>
       <Footer />

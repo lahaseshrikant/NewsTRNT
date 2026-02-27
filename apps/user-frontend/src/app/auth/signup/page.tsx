@@ -87,11 +87,11 @@ const SignUpPage: React.FC = () => {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel — Brand Story */}
-      <div className="hidden lg:flex lg:w-[50%] relative overflow-hidden bg-[#111111]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#111111] via-[#161616] to-[#0D0D0D]" />
-        <div className="absolute top-1/4 left-0 w-[450px] h-[450px] bg-gold/5 rounded-full filter blur-[140px]" />
-        <div className="absolute bottom-0 right-0 w-[350px] h-[350px] bg-vermillion/8 rounded-full filter blur-[120px]" />
-        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+      <div className="hidden lg:flex lg:w-[50%] relative overflow-hidden bg-[#F5EDE3] dark:bg-[#1A1510]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FBF7F1] via-[#F0E4D4] to-[#DED0BC] dark:from-[#1A1510] dark:via-[#201810] dark:to-[#0D0B08]" />
+        <div className="absolute top-1/4 left-0 w-[450px] h-[450px] bg-gold/10 dark:bg-gold/5 rounded-full filter blur-[140px]" />
+        <div className="absolute bottom-0 right-0 w-[350px] h-[350px] bg-vermillion/5 dark:bg-vermillion/8 rounded-full filter blur-[120px]" />
+        <div className="absolute inset-0 opacity-0 dark:opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 w-full">
           {/* Logo */}
@@ -100,15 +100,15 @@ const SignUpPage: React.FC = () => {
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             </div>
             <div>
-              <h1 className="font-serif text-xl text-white tracking-tight">NewsTRNT</h1>
-              <p className="text-[10px] text-white/50 font-mono tracking-widest">THE ROAD NOT TAKEN</p>
+              <h1 className="font-serif text-xl text-foreground tracking-tight">NewsTRNT</h1>
+              <p className="text-[10px] text-foreground/50 font-mono tracking-widest">THE ROAD NOT TAKEN</p>
             </div>
           </Link>
 
           {/* Value Props */}
           <div className="max-w-md space-y-8">
             <div className="w-12 h-0.5 bg-gold mb-8" />
-            <h2 className="font-serif text-3xl xl:text-4xl text-white leading-tight">
+            <h2 className="font-serif text-3xl xl:text-4xl text-foreground leading-tight">
               Join the revolution in independent journalism
             </h2>
             <div className="space-y-5">
@@ -119,10 +119,10 @@ const SignUpPage: React.FC = () => {
                 { icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>, title: 'Deep Dive Analysis', desc: 'Fact-checked, long-form investigative pieces' },
               ].map((item) => (
                 <div key={item.title} className="flex items-start gap-4 group">
-                  <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gold flex-shrink-0 group-hover:bg-white/10 transition-colors">{item.icon}</div>
+                  <div className="w-9 h-9 rounded-lg bg-foreground/5 border border-foreground/10 flex items-center justify-center text-gold flex-shrink-0 group-hover:bg-foreground/10 transition-colors">{item.icon}</div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white">{item.title}</h4>
-                    <p className="text-xs text-white/60">{item.desc}</p>
+                    <h4 className="text-sm font-semibold text-foreground">{item.title}</h4>
+                    <p className="text-xs text-foreground/60">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -130,17 +130,21 @@ const SignUpPage: React.FC = () => {
           </div>
 
           {/* Mission quote */}
-          <div className="pt-6 border-t border-white/10">
-            <p className="text-white/70 text-sm italic leading-relaxed mb-3">
-              &ldquo;I shall be telling this with a sigh / Somewhere ages and ages hence / Two roads diverged in a wood, and I&mdash; / I took the one less traveled by, / And that has made all the difference.&rdquo;
+          <div className="pt-6 border-t border-foreground/10">
+            <p className="text-foreground/70 text-sm italic leading-relaxed mb-3">
+              &ldquo;I shall be telling this with a sigh<br />
+              Somewhere ages and ages hence<br />
+              Two roads diverged in a wood, and I&mdash;<br />
+              I took the one less traveled by,<br />
+              And that has made all the difference.&rdquo;
             </p>
-            <p className="text-[10px] text-white/50 font-mono uppercase tracking-wider">Robert Frost &mdash; The Road Not Taken</p>
+            <p className="text-[10px] text-foreground/50 font-mono uppercase tracking-wider">Robert Frost &mdash; The Road Not Taken</p>
           </div>
         </div>
       </div>
 
       {/* Right Panel — Form */}
-      <div className="flex-1 flex items-center justify-center bg-background px-6 py-10 relative overflow-hidden">
+      <div className="flex-1 flex items-start justify-center bg-background px-6 py-6 relative overflow-y-auto">
         <div className="absolute top-10 right-10 w-48 h-48 bg-vermillion/5 dark:bg-vermillion/3 rounded-full filter blur-[60px]" />
 
         <div className="w-full max-w-[460px] relative z-10">

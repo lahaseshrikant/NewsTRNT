@@ -31,6 +31,7 @@ interface NavigationItem {
 // Dynamic navigation will be created in component using categories hook
 
 const moreMenuItems = [
+  { name: 'The Divergence', href: '/the-divergence' },
   { name: 'About Us', href: '/about' },
   { name: 'Contact', href: '/contact' },
   { name: 'Services', href: '/services' },
@@ -748,7 +749,7 @@ const Header = () => {
                           <Link
                             href="/auth/signin"
                             onClick={() => setIsNotificationsOpen(false)}
-                            className="inline-block bg-vermillion !text-black dark:!text-white px-3 py-1 font-mono text-[10px] tracking-wider uppercase hover:bg-vermillion/90 transition-colors"
+                            className="inline-block bg-vermillion px-3 py-1 font-mono text-[10px] tracking-wider uppercase hover:bg-vermillion/90 transition-colors"
                           >
                             Sign In
                           </Link>

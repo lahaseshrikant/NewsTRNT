@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+/* Override Tailwind v4 dark mode: use .dark class, NOT prefers-color-scheme media query */
+/* stylelint-disable-next-line at-rule-no-unknown */
+@variant dark (&:where(.dark, .dark *));
+
+/* Ensure brand colors resolve in Tailwind v4 CSS-first mode */
+@theme {
+  --color-ink: #0D0D0D;
+  --color-paper: #FAFAF9;
+  --color-ivory: #F5F0EB;
+  --color-ash: #E8E4DF;
+  --color-stone: #9C9890;
+  --color-vermillion: #C62828;
+  --color-vermillion-light: #EF5350;
+  --color-vermillion-dark: #8E0000;
+  --color-gold: #B8860B;
+  --color-gold-light: #DAA520;
+  --color-gold-dark: #8B6914;
+}
+
 /* Ensure container has consistent padding on all mobile devices */
 .container {
   padding-left: 1rem;

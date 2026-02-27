@@ -283,7 +283,7 @@ print(articles)`
               ))}
             </div>
 
-            <div className="bg-card border border-border border border-border p-8">
+            <div className="bg-ink border border-border p-8">
               <h2 className="font-serif text-2xl font-bold text-white mb-4">Quick Start</h2>
               <div className="font-mono text-sm space-y-1">
                 <div className="text-white/40"># Get your API key</div>
@@ -383,7 +383,7 @@ print(articles)`
                     </div>
                     
                     <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-3">Example Response</h4>
-                    <div className="bg-card border border-border p-4 overflow-x-auto">
+                    <div className="bg-ink border border-border p-4 overflow-x-auto">
                       <pre className="text-sm text-white/80 font-mono whitespace-pre-wrap">
                         {currentEndpoint.example}
                       </pre>
@@ -413,7 +413,7 @@ print(articles)`
                     </code>
                   </div>
                   
-                  <div className="bg-card border border-border p-4 overflow-x-auto">
+                  <div className="bg-ink border border-border p-4 overflow-x-auto">
                     <pre className="text-sm text-white/80 font-mono whitespace-pre-wrap">
                       {sdk.example}
                     </pre>

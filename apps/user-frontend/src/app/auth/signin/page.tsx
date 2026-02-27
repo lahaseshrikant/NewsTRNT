@@ -46,14 +46,14 @@ const SignInPage: React.FC = () => {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel — Immersive Brand Story */}
-      <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden bg-[#111111]">
+      <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden bg-[#F5EDE3] dark:bg-[#1A1510]">
         {/* Layered gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#111111] via-[#161616] to-[#0D0D0D]" />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-vermillion/8 rounded-full filter blur-[150px]" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gold/5 rounded-full filter blur-[120px]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FBF7F1] via-[#F0E4D4] to-[#DED0BC] dark:from-[#1A1510] dark:via-[#201810] dark:to-[#0D0B08]" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-vermillion/5 dark:bg-vermillion/8 rounded-full filter blur-[150px]" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gold/10 dark:bg-gold/5 rounded-full filter blur-[120px]" />
         
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+        <div className="absolute inset-0 opacity-0 dark:opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 w-full">
@@ -64,8 +64,8 @@ const SignInPage: React.FC = () => {
                 <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
               </div>
               <div>
-                <h1 className="font-serif text-xl text-white tracking-tight">NewsTRNT</h1>
-                <p className="text-[10px] text-white/50 font-mono tracking-widest">THE ROAD NOT TAKEN</p>
+                <h1 className="font-serif text-xl text-foreground tracking-tight">NewsTRNT</h1>
+                <p className="text-[10px] text-foreground/50 font-mono tracking-widest">THE ROAD NOT TAKEN</p>
               </div>
             </Link>
           </div>
@@ -73,10 +73,10 @@ const SignInPage: React.FC = () => {
           {/* Hero Quote */}
           <div className="max-w-lg">
             <div className="w-12 h-0.5 bg-vermillion mb-8" />
-            <blockquote className="font-serif text-4xl xl:text-5xl text-white leading-[1.15] mb-6">
+            <blockquote className="font-serif text-4xl xl:text-5xl text-foreground leading-[1.15] mb-6">
               Two roads diverged in a wood, and I&mdash;I took the one less traveled by.
             </blockquote>
-            <p className="text-white/60 text-sm leading-relaxed max-w-sm">
+            <p className="text-foreground/60 text-sm leading-relaxed max-w-sm">
               Welcome back to independent journalism. Where diverse perspectives shape a more informed worldview.
             </p>
           </div>
@@ -84,25 +84,25 @@ const SignInPage: React.FC = () => {
           {/* Values strip */}
           <div className="flex items-center gap-8">
             <div>
-              <p className="text-sm font-semibold text-white/90">Independent</p>
-              <p className="text-[10px] text-white/50 font-mono uppercase tracking-wider">No corporate bias</p>
+              <p className="text-sm font-semibold text-foreground/90">Independent</p>
+              <p className="text-[10px] text-foreground/50 font-mono uppercase tracking-wider">No corporate bias</p>
             </div>
-            <div className="w-px h-10 bg-white/15" />
+            <div className="w-px h-10 bg-foreground/15" />
             <div>
-              <p className="text-sm font-semibold text-white/90">Transparent</p>
-              <p className="text-[10px] text-white/50 font-mono uppercase tracking-wider">Open sourced truth</p>
+              <p className="text-sm font-semibold text-foreground/90">Transparent</p>
+              <p className="text-[10px] text-foreground/50 font-mono uppercase tracking-wider">Open sourced truth</p>
             </div>
-            <div className="w-px h-10 bg-white/15" />
+            <div className="w-px h-10 bg-foreground/15" />
             <div>
               <p className="text-sm font-semibold text-vermillion">Growing</p>
-              <p className="text-[10px] text-white/50 font-mono uppercase tracking-wider">Built in India</p>
+              <p className="text-[10px] text-foreground/50 font-mono uppercase tracking-wider">Built in India</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Right Panel — Auth Form */}
-      <div className="flex-1 flex items-center justify-center bg-background px-6 py-12 relative overflow-hidden">
+      <div className="flex-1 flex items-center justify-center bg-background px-6 py-8 relative overflow-y-auto">
         {/* Subtle background texture */}
         <div className="absolute top-20 right-20 w-64 h-64 bg-vermillion/5 dark:bg-vermillion/3 rounded-full filter blur-[80px]" />
         <div className="absolute bottom-20 left-20 w-48 h-48 bg-gold/5 dark:bg-gold/3 rounded-full filter blur-[60px]" />

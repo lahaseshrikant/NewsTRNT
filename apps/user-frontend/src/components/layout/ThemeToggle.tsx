@@ -23,7 +23,7 @@ export default function ThemeToggle() {
               flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200
               ${theme === value
                 ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-white hover:text-white hover:bg-white/20'
+                : 'text-foreground/60 hover:text-foreground hover:bg-foreground/10 dark:text-white dark:hover:text-white dark:hover:bg-white/20'
               }
             `}
             title={label}

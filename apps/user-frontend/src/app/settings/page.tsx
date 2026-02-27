@@ -132,14 +132,14 @@ const SettingsPage: React.FC = () => {
   <div className="container mx-auto py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-serif text-3xl font-bold text-white">Settings</h1>
-              <p className="text-white/60 mt-2">
+              <h1 className="font-serif text-3xl font-bold text-foreground">Settings</h1>
+              <p className="text-muted-foreground mt-2">
                 Manage your account preferences and privacy settings
               </p>
             </div>
             <Link 
               href="/dashboard" 
-              className="font-mono text-xs tracking-wider uppercase text-white/60 hover:text-white flex items-center"
+              className="font-mono text-xs tracking-wider uppercase text-muted-foreground hover:text-foreground flex items-center"
             >
               &larr; Back to Dashboard
             </Link>

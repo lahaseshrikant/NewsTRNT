@@ -29,6 +29,7 @@ const Footer: React.FC = () => {
   ];
 
   const companyLinks = [
+    { name: 'The Divergence', href: '/the-divergence' },
     { name: 'About', href: '/about' },
     { name: 'Careers', href: '/careers' },
     { name: 'Press', href: '/press' },

@@ -183,7 +183,7 @@ const OpinionDetailPage: React.FC = () => {
         <div className="container mx-auto py-2">
           <div className="flex items-center gap-2 text-sm">
             <span className="bg-vermillion text-white px-2 py-0.5 font-mono text-xs tracking-wider uppercase font-bold">Opinion</span>
-            <span className="text-white/60">Perspectives and commentary from our columnists</span>
+            <span className="text-foreground/60">Perspectives and commentary from our columnists</span>
           </div>
         </div>
       </div>

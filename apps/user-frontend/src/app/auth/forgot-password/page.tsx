@@ -42,11 +42,11 @@ const ForgotPasswordPage: React.FC = () => {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel — Brand */}
-      <div className="hidden lg:flex lg:w-[50%] relative overflow-hidden bg-[#111111]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#111111] via-[#161616] to-[#0D0D0D]" />
-        <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-gold/5 rounded-full filter blur-[130px]" />
-        <div className="absolute bottom-1/4 left-0 w-[300px] h-[300px] bg-vermillion/6 rounded-full filter blur-[100px]" />
-        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+      <div className="hidden lg:flex lg:w-[50%] relative overflow-hidden bg-[#F5EDE3] dark:bg-[#1A1510]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FBF7F1] via-[#F0E4D4] to-[#DED0BC] dark:from-[#1A1510] dark:via-[#201810] dark:to-[#0D0B08]" />
+        <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-gold/10 dark:bg-gold/5 rounded-full filter blur-[130px]" />
+        <div className="absolute bottom-1/4 left-0 w-[300px] h-[300px] bg-vermillion/4 dark:bg-vermillion/6 rounded-full filter blur-[100px]" />
+        <div className="absolute inset-0 opacity-0 dark:opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 w-full">
           <Link href="/" className="inline-flex items-center gap-3">
@@ -54,8 +54,8 @@ const ForgotPasswordPage: React.FC = () => {
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             </div>
             <div>
-              <h1 className="font-serif text-xl text-white tracking-tight">NewsTRNT</h1>
-              <p className="text-[10px] text-white/50 font-mono tracking-widest">THE ROAD NOT TAKEN</p>
+              <h1 className="font-serif text-xl text-foreground tracking-tight">NewsTRNT</h1>
+              <p className="text-[10px] text-foreground/50 font-mono tracking-widest">THE ROAD NOT TAKEN</p>
             </div>
           </Link>
 
@@ -64,28 +64,28 @@ const ForgotPasswordPage: React.FC = () => {
 
             {/* Lock icon decorative */}
             <div className="mb-8">
-              <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6">
+              <div className="w-20 h-20 rounded-2xl bg-foreground/5 border border-foreground/10 flex items-center justify-center mb-6">
                 <svg className="w-10 h-10 text-gold/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                 </svg>
               </div>
             </div>
 
-            <h2 className="font-serif text-3xl xl:text-4xl text-white leading-tight mb-4">
+            <h2 className="font-serif text-3xl xl:text-4xl text-foreground leading-tight mb-4">
               We all forget sometimes. That&apos;s okay.
             </h2>
-            <p className="text-white/60 text-sm leading-relaxed max-w-sm">
+            <p className="text-foreground/60 text-sm leading-relaxed max-w-sm">
               Your account is safe. We&apos;ll send you a secure link to reset your password and get back to the stories that matter.
             </p>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-white/50">
+            <div className="flex items-center gap-2 text-foreground/50">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/></svg>
               <span className="text-[10px] font-mono uppercase tracking-wider">256-bit encrypted</span>
             </div>
-            <div className="w-px h-4 bg-white/15" />
-            <div className="flex items-center gap-2 text-white/50">
+            <div className="w-px h-4 bg-foreground/15" />
+            <div className="flex items-center gap-2 text-foreground/50">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.58.926.834 2.19.166 3.4-1.092 1.98-3.15 3.542-5.572 4.49a.75.75 0 01-.428.019c-2.397-.889-4.44-2.357-5.578-4.295A3.8 3.8 0 016 6a3.8 3.8 0 01.166-1.001z" clipRule="evenodd"/></svg>
               <span className="text-[10px] font-mono uppercase tracking-wider">GDPR compliant</span>
             </div>

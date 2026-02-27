@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { dbApi, Article } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
+import { useAuth } from '@/contexts/AuthContext';
 import CommentSection from '@/components/articles/CommentSection';
 import ReadingProgressBar from '@/components/ui/ReadingProgressBar';
-import { BookmarkIcon, ShareIcon, ClockIcon, ArrowRightIcon } from '@/components/icons/EditorialIcons';
+import { DivergenceMark } from '@/components/ui/DivergenceMark';
 import AdSlot from '@/components/ui/AdSlot';
 
 interface ArticleData extends Omit<Partial<Article>, 'tags'> {
@@ -32,9 +33,10 @@ interface ArticleData extends Omit<Partial<Article>, 'tags'> {
 const ArticleDetailPage: React.FC = () => {
   const params = useParams();
   const slug = params.slug as string;
+  const { user, isAuthenticated } = useAuth();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
-  const [readingProgress, setReadingProgress] = useState(0);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [article, setArticle] = useState<ArticleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +51,8 @@ const ArticleDetailPage: React.FC = () => {
         if (loadedArticle) {
           setArticle(loadedArticle as unknown as ArticleData);
           if (loadedArticle.category?.slug) {
-            const related = await dbApi.getArticlesByCategory(loadedArticle.category.slug, 3);
-            setRelatedArticles(related.filter(a => a.slug !== slug));
+            const related = await dbApi.getArticlesByCategory(loadedArticle.category.slug, 4);
+            setRelatedArticles(related.filter(a => a.slug !== slug).slice(0, 3));
           }
         } else {
           setError('Article not found');
@@ -66,22 +68,7 @@ const ArticleDetailPage: React.FC = () => {
     loadArticle();
   }, [slug]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const articleElement = document.getElementById('article-content');
-      if (articleElement) {
-        const scrollTop = window.scrollY;
-        const docHeight = articleElement.offsetHeight;
-        const winHeight = window.innerHeight;
-        const scrollPercent = scrollTop / (docHeight - winHeight);
-        const progress = Math.min(100, Math.max(0, scrollPercent * 100));
-        setReadingProgress(progress);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  /* ---------- Helpers ---------- */
 
   const formatDate = (dateString: string | Date) => {
     const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
@@ -92,15 +79,9 @@ const ArticleDetailPage: React.FC = () => {
     });
   };
 
-  const formatTime = (dateString: string | Date) => {
-    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  /* ---------- Share handler ---------- */
 
-  const shareArticle = (platform: string) => {
+  const shareArticle = useCallback((platform: string) => {
     if (!article) return;
     const url = window.location.href;
     const title = article.title || '';
@@ -117,36 +98,39 @@ const ArticleDetailPage: React.FC = () => {
         break;
       case 'copy':
         navigator.clipboard.writeText(url);
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 2000);
         break;
     }
     setShowShareMenu(false);
-  };
+  }, [article]);
 
-  // Loading — editorial skeleton
+  /* ---------- Loading skeleton ---------- */
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Progress bar placeholder */}
-        <div className="fixed top-0 left-0 w-full h-0.5 bg-ash/30 z-50" />
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-reading mx-auto">
-            <div className="skeleton-warm h-4 w-20 mb-6" />
-            <div className="skeleton-warm h-10 w-4/5 mb-3" />
-            <div className="skeleton-warm h-10 w-3/5 mb-6" />
-            <div className="skeleton-warm h-5 w-2/3 mb-8" />
-            <div className="flex items-center gap-4 mb-10">
-              <div className="skeleton-warm w-10 h-10 rounded-full" />
-              <div>
-                <div className="skeleton-warm h-3 w-28 mb-2" />
-                <div className="skeleton-warm h-3 w-40" />
+        <ReadingProgressBar />
+        <div className="max-w-3xl mx-auto px-6 pt-16 pb-24">
+          <div className="animate-pulse space-y-6">
+            <div className="h-3 bg-muted rounded w-40" />
+            <div className="space-y-3 mt-6">
+              <div className="h-9 bg-muted rounded w-full" />
+              <div className="h-9 bg-muted rounded w-4/5" />
+            </div>
+            <div className="h-5 bg-muted rounded w-3/5 mt-3" />
+            <div className="flex items-center gap-4 mt-8 pt-6 border-t border-border">
+              <div className="w-11 h-11 bg-muted rounded-full" />
+              <div className="space-y-2">
+                <div className="h-3.5 bg-muted rounded w-28" />
+                <div className="h-3 bg-muted rounded w-44" />
               </div>
             </div>
-            <div className="skeleton-warm w-full h-[400px] mb-10" />
-            <div className="space-y-4">
-              <div className="skeleton-warm h-4 w-full" />
-              <div className="skeleton-warm h-4 w-full" />
-              <div className="skeleton-warm h-4 w-5/6" />
-              <div className="skeleton-warm h-4 w-4/6" />
+            <div className="h-[420px] bg-muted rounded-sm mt-8" />
+            <div className="space-y-4 mt-10">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="h-4 bg-muted rounded" style={{ width: `${85 + Math.random() * 15}%` }} />
+              ))}
             </div>
           </div>
         </div>
@@ -154,170 +138,218 @@ const ArticleDetailPage: React.FC = () => {
     );
   }
 
-  // Error state
+  /* ---------- Error / Not found ---------- */
+
   if (error || !article) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center py-12 max-w-md px-4">
-          <div className="editorial-rule mx-auto mb-6" />
-          <h3 className="font-serif text-2xl text-ink mb-3">Story Not Found</h3>
-          <p className="text-muted-foreground text-sm mb-6">{error || 'This article may have been removed or is no longer available.'}</p>
+        <div className="text-center max-w-md px-6">
+          <DivergenceMark size={40} className="text-vermillion mx-auto mb-6" />
+          <h2 className="font-serif text-headline-3 text-foreground mb-3">Article Not Found</h2>
+          <p className="text-body-sm text-muted-foreground mb-8">
+            {error || 'This article may have been removed or is temporarily unavailable.'}
+          </p>
           <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-vermillion hover:text-vermillion-dark text-sm font-medium transition-colors"
+            href="/articles"
+            className="inline-block bg-vermillion text-white px-6 py-3 text-sm font-semibold tracking-wide hover:bg-vermillion-dark transition-colors"
           >
-            <ArrowRightIcon size={14} className="rotate-180" />
-            Back to Headlines
+            Browse Articles
           </Link>
         </div>
       </div>
     );
   }
 
+  /* ---------- Derived data ---------- */
+
   const categoryName = article.category?.name || 'News';
   const categorySlug = article.category?.slug || 'news';
-  const authorName = article.author || 'NewsTRNT Staff';
+  const hasAuthor = article.author && article.author !== 'NewsTRNT Staff' && article.author !== 'Unknown';
+  const authorDisplay = hasAuthor ? article.author! : null;
   const articleTags: string[] = (article.tags || []).map((t) => typeof t === 'string' ? t : t.name);
   const publishedAt = article.published_at || new Date();
 
+  /* ---------- Render ---------- */
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Reading Progress Bar */}
       <ReadingProgressBar />
 
-      <article>
-        {/* Article Header */}
-        <header className="container mx-auto px-4 pt-8 pb-6">
-          <div className="max-w-reading mx-auto">
-            {/* Kicker / Category */}
-            <div className="flex items-center gap-3 mb-5">
-              <Link
-                href={`/category/${categorySlug}`}
-                className="kicker text-vermillion hover:text-vermillion-dark transition-colors"
-              >
-                {categoryName}
-              </Link>
-              {article.isBreaking && (
-                <span className="text-xs font-mono uppercase tracking-widest text-vermillion bg-vermillion/8 px-2 py-0.5 border border-vermillion/20">
-                  Breaking
-                </span>
-              )}
-            </div>
+      {/* ========== Article Header ========== */}
+      <header className="bg-background">
+        <div className="max-w-3xl mx-auto px-6 pt-10 pb-0">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-micro uppercase tracking-wider text-muted-foreground mb-8">
+            <Link href="/" className="hover:text-vermillion transition-colors">Home</Link>
+            <span className="text-border">/</span>
+            <Link href="/articles" className="hover:text-vermillion transition-colors">Articles</Link>
+            <span className="text-border">/</span>
+            <Link href={`/category/${categorySlug}`} className="hover:text-vermillion transition-colors">
+              {categoryName}
+            </Link>
+          </nav>
 
-            {/* Headline */}
-            <h1 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] text-ink leading-[1.15] mb-4 tracking-tight">
-              {article.title}
-            </h1>
-
-            {/* Deck / Summary */}
-            {(article.summary || article.excerpt) && (
-              <p className="text-lg text-muted-foreground leading-relaxed mb-6 max-w-[38rem]">
-                {article.summary || article.excerpt}
-              </p>
+          {/* Category & breaking badge */}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            {article.isBreaking && (
+              <span className="inline-flex items-center gap-1.5 bg-vermillion text-white px-2.5 py-0.5 text-overline uppercase tracking-wider font-bold">
+                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                Breaking
+              </span>
             )}
+            <Link
+              href={`/category/${categorySlug}`}
+              className="text-overline uppercase tracking-wider text-vermillion font-bold hover:text-vermillion-dark transition-colors"
+            >
+              {categoryName}
+            </Link>
+          </div>
 
-            {/* Editorial Rule */}
-            <div className="editorial-rule mb-6" />
+          {/* Headline */}
+          <h1 className="font-serif text-[1.75rem] sm:text-[2rem] md:text-[2.5rem] lg:text-[2.75rem] leading-[1.12] tracking-tight text-foreground mb-4 max-w-2xl">
+            {article.title}
+          </h1>
 
-            {/* Byline & Actions */}
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-ink/5 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="font-serif text-sm text-ink font-semibold">
-                    {authorName.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                  </span>
+          {/* Summary / deck */}
+          {(article.summary || article.excerpt) && (
+            <p className="font-sans text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed mb-6">
+              {article.summary || article.excerpt}
+            </p>
+          )}
+
+          {/* Byline & actions */}
+          <div className="flex items-center justify-between flex-wrap gap-4 py-5 border-y border-border">
+            <div className="flex items-center gap-3.5">
+              {authorDisplay ? (
+                <div className="w-11 h-11 bg-muted rounded-full flex items-center justify-center text-base font-serif text-foreground font-semibold ring-2 ring-border">
+                  {authorDisplay.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <div className="byline">
-                    By <span className="byline-author">{authorName}</span>
-                  </div>
-                  <div className="dateline flex items-center gap-2">
-                    <span>{formatDate(publishedAt)}</span>
-                    <span className="text-ash">|</span>
-                    <span>{formatTime(publishedAt)}</span>
-                    <span className="text-ash">|</span>
-                    <span className="inline-flex items-center gap-1">
-                      <ClockIcon size={11} />
-                      {article.readingTime || 5} min read
-                    </span>
-                  </div>
+              ) : (
+                <div className="w-11 h-11 bg-muted/50 rounded-full flex items-center justify-center ring-2 ring-border">
+                  <DivergenceMark size={16} className="text-vermillion" />
+                </div>
+              )}
+
+              <div className="min-w-0">
+                {authorDisplay ? (
+                  <p className="text-sm font-semibold text-foreground leading-tight">{authorDisplay}</p>
+                ) : (
+                  <p className="text-sm font-semibold text-foreground leading-tight">NewsTRNT</p>
+                )}
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                  <time dateTime={new Date(publishedAt).toISOString()}>
+                    {formatDate(publishedAt)}
+                  </time>
+                  <span className="text-border">&middot;</span>
+                  <span>{article.readingTime || 5} min read</span>
                 </div>
               </div>
+            </div>
 
-              <div className="flex items-center gap-2">
+            {/* Action buttons */}
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setIsBookmarked(!isBookmarked)}
+                className={`p-2.5 rounded-full transition-all ${
+                  isBookmarked
+                    ? 'bg-vermillion/10 text-vermillion'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                }`}
+                aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}
+              >
+                <svg className="w-[18px] h-[18px]" fill={isBookmarked ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+
+              <div className="relative">
                 <button
-                  onClick={() => setIsBookmarked(!isBookmarked)}
-                  className={`p-2 border transition-colors ${
-                    isBookmarked
-                      ? 'border-vermillion/30 text-vermillion bg-vermillion/5'
-                      : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
-                  }`}
-                  title={isBookmarked ? 'Saved' : 'Save for later'}
+                  onClick={() => setShowShareMenu(!showShareMenu)}
+                  className="p-2.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+                  aria-label="Share article"
                 >
-                  <BookmarkIcon size={16} />
+                  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
                 </button>
 
-                <div className="relative">
-                  <button
-                    onClick={() => setShowShareMenu(!showShareMenu)}
-                    className="p-2 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-                    title="Share"
-                  >
-                    <ShareIcon size={16} />
-                  </button>
-
-                  {showShareMenu && (
-                    <div className="absolute right-0 mt-2 w-44 bg-background border border-border shadow-editorial z-10">
-                      {[
-                        { label: 'Twitter / X', key: 'twitter' },
-                        { label: 'Facebook', key: 'facebook' },
-                        { label: 'LinkedIn', key: 'linkedin' },
-                        { label: 'Copy Link', key: 'copy' },
-                      ].map((item) => (
-                        <button
-                          key={item.key}
-                          onClick={() => shareArticle(item.key)}
-                          className="w-full text-left px-4 py-2.5 text-sm text-foreground/70 hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {showShareMenu && (
+                  <div className="absolute right-0 mt-2 w-52 bg-card rounded-lg shadow-editorial-lg border border-border z-20 py-1 animate-fade-in">
+                    {[
+                      { key: 'twitter', label: 'Share on X', icon: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z' },
+                      { key: 'facebook', label: 'Share on Facebook', icon: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z' },
+                      { key: 'linkedin', label: 'Share on LinkedIn', icon: 'M20.447 20.452h-3.554v-5.569c0-1.328-.028-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z' },
+                    ].map(({ key, label, icon }) => (
+                      <button
+                        key={key}
+                        onClick={() => shareArticle(key)}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted/60 transition-colors"
+                      >
+                        <svg className="w-4 h-4 text-muted-foreground" fill="currentColor" viewBox="0 0 24 24"><path d={icon} /></svg>
+                        {label}
+                      </button>
+                    ))}
+                    <div className="border-t border-border my-1" />
+                    <button
+                      onClick={() => shareArticle('copy')}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted/60 transition-colors"
+                    >
+                      <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.439a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364L4.34 8.798" />
+                      </svg>
+                      {linkCopied ? 'Link copied!' : 'Copy link'}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Featured Image — full-bleed */}
-        {article.imageUrl && (
-          <figure className="container mx-auto px-4 mb-10">
-            <div className="max-w-4xl mx-auto">
-              <div className="relative w-full aspect-[16/9]">
-                <Image
-                  src={article.imageUrl}
-                  alt={article.title || 'Article image'}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
+      {/* ========== Hero Image ========== */}
+      {article.imageUrl && (
+        <figure className="mt-8 mb-0">
+          <div className="max-w-4xl mx-auto px-6">
+            <div className="relative w-full aspect-[16/9] overflow-hidden rounded-sm bg-muted">
+              <Image
+                src={article.imageUrl}
+                alt={article.title || 'Article image'}
+                fill
+                className="object-cover"
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 1024px"
+              />
             </div>
-          </figure>
-        )}
+          </div>
+        </figure>
+      )}
 
-        {/* Article Body */}
-        <div className="container mx-auto px-4 pb-12">
-          <div className="max-w-reading mx-auto">
-            {/* Content */}
+      {/* ========== Article Body + Sidebar ========== */}
+      <div className="max-w-4xl mx-auto px-6 pt-10 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+          {/* Main content column */}
+          <article className="lg:col-span-8">
             <div
               id="article-content"
-              className="prose-editorial"
+              className="
+                prose prose-lg max-w-none
+                prose-headings:font-serif prose-headings:text-foreground prose-headings:font-bold
+                prose-h2:text-[1.375rem] prose-h2:mt-10 prose-h2:mb-4 prose-h2:leading-snug
+                prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-3
+                prose-p:text-foreground/85 prose-p:leading-[1.85] prose-p:mb-5 prose-p:text-[1.0625rem] prose-p:font-normal
+                prose-strong:text-foreground prose-strong:font-semibold
+                prose-a:text-vermillion prose-a:no-underline hover:prose-a:underline prose-a:font-medium
+                prose-ul:text-foreground/85 prose-ol:text-foreground/85 prose-li:mb-2 prose-li:leading-relaxed prose-li:text-[1.0625rem]
+                prose-blockquote:border-l-vermillion prose-blockquote:border-l-[3px] prose-blockquote:bg-muted/30 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r prose-blockquote:not-italic prose-blockquote:text-foreground/80 prose-blockquote:font-serif prose-blockquote:text-lg
+                prose-img:rounded-sm prose-img:shadow-editorial
+                prose-figure:my-8
+                dark:prose-invert
+              "
               dangerouslySetInnerHTML={{ __html: article.content || '' }}
             />
 
-            {/* Article Ad */}
+            {/* Inline Ad */}
             <div className="my-10">
               <AdSlot size="inline" label="Sponsored" />
             </div>
@@ -325,12 +357,13 @@ const ArticleDetailPage: React.FC = () => {
             {/* Tags */}
             {articleTags.length > 0 && (
               <div className="mt-10 pt-8 border-t border-border">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-micro uppercase tracking-wider text-muted-foreground mr-2">Tags</span>
                   {articleTags.map((tag) => (
                     <Link
                       key={tag}
                       href={`/search?q=${encodeURIComponent(tag)}`}
-                      className="font-mono text-xs text-muted-foreground border border-border px-3 py-1.5 hover:border-foreground/30 hover:text-foreground transition-colors"
+                      className="text-xs font-mono bg-muted/70 text-muted-foreground px-3 py-1.5 rounded-sm hover:bg-vermillion/10 hover:text-vermillion transition-colors"
                     >
                       {tag}
                     </Link>
@@ -339,74 +372,120 @@ const ArticleDetailPage: React.FC = () => {
               </div>
             )}
 
-            {/* Author Bio */}
-            <div className="mt-10 pt-8 border-t border-border">
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 bg-ink/5 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="font-serif text-lg text-ink font-semibold">
-                    {authorName.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">About the Author</p>
-                  <h3 className="font-serif text-lg text-ink mb-1">{authorName}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    NewsTRNT contributor covering stories at the intersection of news and deeper understanding.
-                  </p>
+            {/* Author bio — only when a real author is provided */}
+            {authorDisplay && (
+              <div className="mt-8 pt-8 border-t border-border">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center text-lg font-serif text-foreground flex-shrink-0 ring-2 ring-border">
+                    {authorDisplay.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground mb-1">Written by</p>
+                    <h3 className="font-serif text-base text-foreground mb-1 font-semibold">{authorDisplay}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      NewsTRNT contributor covering {categoryName.toLowerCase()} and delivering quality journalism.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Pre-Comments Ad */}
-            <div className="my-8">
-              <AdSlot size="rectangle" />
-            </div>
+            )}
 
             {/* Comments */}
             <div className="mt-10 pt-8 border-t border-border">
-              <CommentSection articleId={article.id || ''} />
+              <CommentSection
+                articleId={article.id || ''}
+                userId={isAuthenticated ? user?.id : undefined}
+                userDisplayName={isAuthenticated ? (user?.fullName || user?.username) : undefined}
+              />
             </div>
-          </div>
-        </div>
-      </article>
+          </article>
 
-      {/* Related Stories */}
-      {relatedArticles.length > 0 && (
-        <aside className="bg-muted border-t border-border">
-          <div className="container mx-auto px-4 py-12">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="font-serif text-xl text-ink mb-6">More from {categoryName}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {relatedArticles.map((relatedArticle) => (
-                  <Link key={relatedArticle.id} href={getContentUrl(relatedArticle)} className="group">
-                    <div className="relative w-full aspect-[3/2] mb-3 bg-ash/20 overflow-hidden">
-                      {relatedArticle.imageUrl ? (
-                        <Image
-                          src={relatedArticle.imageUrl}
-                          alt={relatedArticle.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="font-serif text-stone/30 text-2xl">NT</span>
+          {/* Sidebar */}
+          <aside className="lg:col-span-4">
+            <div className="sticky top-24 space-y-8">
+              {/* Ad placement */}
+              <div>
+                <AdSlot size="rectangle" />
+              </div>
+
+              {/* Related articles */}
+              <div>
+                <div className="flex items-center gap-2 mb-5 pb-3 border-b border-border">
+                  <div className="w-1 h-4 bg-vermillion rounded-full" />
+                  <h3 className="font-mono text-micro uppercase tracking-wider text-muted-foreground">
+                    Related Stories
+                  </h3>
+                </div>
+                <div className="space-y-5">
+                  {relatedArticles.length > 0 ? (
+                    relatedArticles.map((relatedArticle, idx) => (
+                      <Link key={relatedArticle.id} href={getContentUrl(relatedArticle)} className="group block">
+                        <div className="flex gap-3.5">
+                          <div className="relative w-[72px] h-[72px] flex-shrink-0 bg-muted rounded-sm overflow-hidden">
+                            {relatedArticle.imageUrl ? (
+                              <Image
+                                src={relatedArticle.imageUrl}
+                                alt={relatedArticle.title}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <DivergenceMark size={12} className="text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1 py-0.5">
+                            <h4 className="font-serif text-[13px] font-semibold text-foreground group-hover:text-vermillion transition-colors line-clamp-2 leading-snug mb-1.5">
+                              {relatedArticle.title}
+                            </h4>
+                            <p className="text-[11px] text-muted-foreground font-mono">
+                              {relatedArticle.readingTime || 3} min read
+                            </p>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    <p className="kicker text-muted-foreground text-[10px] mb-1">
-                      {relatedArticle.category?.name || 'News'}
-                    </p>
-                    <h4 className="font-serif text-ink text-base leading-snug group-hover:text-vermillion transition-colors line-clamp-2">
-                      {relatedArticle.title}
-                    </h4>
-                    <p className="dateline mt-1">{relatedArticle.readingTime || 5} min read</p>
-                  </Link>
-                ))}
+                        {idx < relatedArticles.length - 1 && (
+                          <div className="border-b border-border/50 mt-5" />
+                        )}
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">No related stories found.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* More from category */}
+              <div className="pt-2">
+                <Link
+                  href={`/category/${categorySlug}`}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 border border-border text-xs font-mono uppercase tracking-wider text-foreground hover:border-vermillion hover:text-vermillion transition-colors"
+                >
+                  More {categoryName}
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+              </div>
+
+              {/* Newsletter CTA */}
+              <div className="bg-muted/40 border border-border p-5">
+                <DivergenceMark size={14} className="text-vermillion mb-3" />
+                <h4 className="font-serif text-sm font-semibold text-foreground mb-1.5">Stay Informed</h4>
+                <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+                  Get the day&apos;s top stories delivered to your inbox every morning.
+                </p>
+                <Link
+                  href="/auth/signup"
+                  className="block w-full text-center bg-vermillion text-white py-2.5 text-[10px] font-mono uppercase tracking-wider hover:bg-vermillion-dark transition-colors"
+                >
+                  Sign Up Free
+                </Link>
               </div>
             </div>
-          </div>
-        </aside>
-      )}
+          </aside>
+        </div>
+      </div>
     </div>
   );
 };

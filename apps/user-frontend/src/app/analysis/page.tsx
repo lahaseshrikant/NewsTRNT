@@ -294,8 +294,8 @@ const AnalysisPage: React.FC = () => {
 
             {/* Methodology */}
             <div className="bg-card border border-border border border-border p-4">
-              <h3 className="font-serif font-bold text-white mb-2">Our Methodology</h3>
-              <p className="text-sm text-white/60">
+              <h3 className="font-serif font-bold text-foreground mb-2">Our Methodology</h3>
+              <p className="text-sm text-muted-foreground">
                 All analysis pieces are fact-checked and backed by data from verified sources. We prioritize accuracy and depth.
               </p>
             </div>
