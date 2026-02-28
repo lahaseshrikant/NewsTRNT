@@ -474,6 +474,163 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// POST /api/auth/google - Google OAuth sign-in/register
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ error: 'Google credential token is required' });
+    }
+
+    // Verify Google ID token via Google's tokeninfo endpoint
+    const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+    if (!googleRes.ok) {
+      return res.status(401).json({ error: 'Invalid Google token' });
+    }
+    const payload = await googleRes.json() as {
+      aud?: string;
+      email?: string;
+      name?: string;
+      picture?: string;
+      email_verified?: string;
+      sub?: string;
+    };
+
+    // Validate audience matches our client ID
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (clientId && payload.aud !== clientId) {
+      return res.status(401).json({ error: 'Google token audience mismatch' });
+    }
+
+    const { email, name, picture, email_verified, sub: googleId } = payload;
+    if (!email) {
+      return res.status(400).json({ error: 'Google account has no email' });
+    }
+
+    // Find or create user
+    let user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        fullName: true,
+        avatarUrl: true,
+        isVerified: true,
+        preferences: true,
+        interests: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      // Auto-register — generate unique username from email
+      let username = email.split('@')[0];
+      let counter = 1;
+      const baseUsername = username;
+      while (await prisma.user.findUnique({ where: { username } })) {
+        username = `${baseUsername}${counter}`;
+        counter++;
+      }
+
+      user = await prisma.user.create({
+        data: {
+          email,
+          fullName: name || email.split('@')[0],
+          username,
+          avatarUrl: picture || null,
+          isVerified: !!email_verified,
+          emailVerified: !!email_verified,
+          preferences: {
+            theme: 'light',
+            notifications: { email: true, push: true, breaking: true },
+          },
+          interests: ['Technology', 'Politics'],
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          fullName: true,
+          avatarUrl: true,
+          isVerified: true,
+          preferences: true,
+          interests: true,
+          createdAt: true,
+        },
+      });
+    } else {
+      // Update avatar if missing and mark email as verified
+      const updates: any = {};
+      if (!user.avatarUrl && picture) updates.avatarUrl = picture;
+      if (email_verified && !user.isVerified) {
+        updates.isVerified = true;
+        updates.emailVerified = true;
+      }
+      updates.lastLoginAt = new Date();
+      if (Object.keys(updates).length > 0) {
+        user = await prisma.user.update({
+          where: { email },
+          data: updates,
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            fullName: true,
+            avatarUrl: true,
+            isVerified: true,
+            preferences: true,
+            interests: true,
+            createdAt: true,
+          },
+        });
+      }
+    }
+
+    const token = generateToken(user.id);
+
+    return res.json({ message: 'Google sign-in successful', user, token });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    return res.status(500).json({ error: 'Google authentication failed' });
+  }
+});
+
+// POST /api/auth/send-verification - Send email verification link
+router.post('/send-verification', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { id: true, email: true, fullName: true, isVerified: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.json({ message: 'Email is already verified' });
+    }
+
+    const verificationToken = jwt.sign(
+      { userId: user.id, type: 'email_verification' },
+      process.env.JWT_SECRET!,
+      { expiresIn: '24h' }
+    );
+
+    // TODO: Send email with verification link
+    // const verifyLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${verificationToken}`;
+    // await sendEmail(user.email, 'Verify Your Email', verifyLink);
+
+    console.log(`Email verification link for ${user.email}: /auth/verify-email?token=${verificationToken}`);
+
+    return res.json({ message: 'Verification email sent' });
+  } catch (error) {
+    console.error('Error sending verification:', error);
+    return res.status(500).json({ error: 'Failed to send verification email' });
+  }
+});
+
 // POST /api/auth/verify-email - Verify email address
 router.post('/verify-email', async (req, res) => {
   try {

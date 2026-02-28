@@ -538,7 +538,7 @@ const Header = () => {
               <Link href="/" className="flex items-center gap-2.5 py-2 group">
                 <DivergenceMark size={22} className="text-vermillion flex-shrink-0" />
                 <div className="hidden sm:flex flex-col justify-center min-w-0">
-                  <h1 className="font-serif text-lg xl:text-xl text-ink leading-tight whitespace-nowrap tracking-tight">
+                  <h1 className="font-serif text-lg xl:text-xl text-foreground leading-tight whitespace-nowrap tracking-tight">
                     NewsTRNT
                   </h1>
                   <p className="text-[9px] xl:text-[10px] text-muted-foreground font-mono leading-tight whitespace-nowrap tracking-wide">

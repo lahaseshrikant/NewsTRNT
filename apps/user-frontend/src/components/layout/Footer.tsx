@@ -26,6 +26,9 @@ const Footer: React.FC = () => {
     { name: 'Latest', href: '/news' },
     { name: 'Web Stories', href: '/web-stories' },
     { name: 'Opinion', href: '/opinion' },
+    { name: 'Analysis', href: '/analysis' },
+    { name: 'For You', href: '/for-you' },
+    { name: 'Shorts', href: '/shorts' },
   ];
 
   const companyLinks = [
@@ -36,6 +39,7 @@ const Footer: React.FC = () => {
     { name: 'Advertise', href: '/advertise' },
     { name: 'Support Us', href: '/support' },
     { name: 'Contact', href: '/contact' },
+    { name: 'Developers', href: '/developers' },
   ];
 
   const legalLinks = [
@@ -43,22 +47,21 @@ const Footer: React.FC = () => {
     { name: 'Terms of Service', href: '/terms' },
     { name: 'Cookie Policy', href: '/cookies' },
     { name: 'Sitemap', href: '/sitemap' },
+    { name: 'Help Center', href: '/help' },
+    { name: 'Subscription', href: '/subscription' },
   ];
 
   return (
-    <footer className="bg-ink text-ivory/80">
-      {/* Editorial Rule */}
-      <div className="border-t-2 border-vermillion" />
-
-      {/* Newsletter Band */}
-      <div className="border-b border-ivory/10">
+    <>
+      {/* Newsletter Band — theme-aware, sits above footer */}
+      <section className="bg-background border-y border-border">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="max-w-2xl mx-auto text-center">
             <p className="kicker text-vermillion mb-3">The Evening Edition</p>
-            <h3 className="font-serif text-2xl md:text-3xl text-ivory mb-3">
+            <h3 className="font-serif text-2xl md:text-3xl text-foreground mb-3">
               Stories that didn&apos;t make the front page
             </h3>
-            <p className="text-ivory/50 text-sm mb-8 max-w-md mx-auto">
+            <p className="text-muted-foreground text-sm mb-8 max-w-md mx-auto">
               A curated selection of underreported stories, delivered every evening.
               The road less traveled, in your inbox.
             </p>
@@ -69,25 +72,30 @@ const Footer: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="flex-1 px-4 py-3 bg-ivory/5 border border-ivory/15 rounded-lg text-ivory placeholder-ivory/30 focus:outline-none focus:border-vermillion/50 focus:ring-2 focus:ring-vermillion/10 transition-all font-mono text-sm"
+                className="flex-1 px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-vermillion/50 focus:ring-2 focus:ring-vermillion/10 transition-all font-mono text-sm"
                 required
               />
               <button
                 type="submit"
-                className="px-6 py-3 bg-vermillion hover:bg-vermillion-dark rounded-lg text-ivory font-sans text-sm font-semibold tracking-wide uppercase transition-all hover:shadow-lg hover:shadow-vermillion/20"
+                className="px-6 py-3 bg-vermillion hover:bg-vermillion-dark rounded-lg text-white font-sans text-sm font-semibold tracking-wide uppercase transition-all hover:shadow-lg hover:shadow-vermillion/20"
               >
                 {isSubscribed ? 'Subscribed' : 'Subscribe'}
               </button>
             </form>
-            <p className="text-ivory/30 text-xs mt-4 font-mono">
+            <p className="text-muted-foreground/50 text-xs mt-4 font-mono">
               No spam. Unsubscribe anytime.{' '}
-              <Link href="/privacy" className="text-ivory/40 hover:text-ivory/60 underline underline-offset-2 transition-colors">
+              <Link href="/privacy" className="text-muted-foreground/60 hover:text-muted-foreground underline underline-offset-2 transition-colors">
                 Privacy Policy
               </Link>
             </p>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Footer — always dark */}
+      <footer className="bg-ink text-ivory/80 border-t border-border">
+        {/* Editorial Rule */}
+        <div className="border-t-2 border-vermillion" />
 
       {/* Main Footer Grid */}
       <div className="container mx-auto px-4 py-12 md:py-16">
@@ -255,7 +263,8 @@ const Footer: React.FC = () => {
           </div>
         </div>
       </div>
-    </footer>
+      </footer>
+    </>
   );
 };
 

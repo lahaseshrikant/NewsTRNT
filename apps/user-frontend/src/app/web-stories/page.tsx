@@ -83,9 +83,9 @@ const WebStoriesContent: React.FC = () => {
           </div>
         </section>
         <div className="container mx-auto py-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="aspect-[9/19.5] bg-muted rounded-2xl animate-pulse" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="aspect-[9/16] bg-muted rounded-2xl animate-pulse" />
             ))}
           </div>
         </div>
@@ -160,12 +160,12 @@ const WebStoriesContent: React.FC = () => {
       <div className="container mx-auto py-8">
 
         {/* Web Stories Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
           {filteredStories.map((story) => (
             <Link
               key={story.id}
               href={`/web-stories/${story.slug}`}
-              className="group relative aspect-[9/19.5] bg-gradient-to-br from-ivory to-ash dark:from-ink dark:to-[#1a1917] rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.03]"
+              className="group relative aspect-[9/16] bg-gradient-to-br from-ivory to-ash dark:from-ink dark:to-[#1a1917] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]  ring-1 ring-border/30"
             >
               <Image
                 src={story.coverImage}

@@ -26,13 +26,32 @@ interface SearchResult {
 
 const SearchContent: React.FC = () => {
   const searchParams = useSearchParams();
-  const query = searchParams.get('q') || '';
+  const initialQuery = searchParams.get('q') || '';
+  const [query, setQuery] = useState(initialQuery);
+  const [inputValue, setInputValue] = useState(initialQuery);
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!initialQuery);
   const [selectedFilter, setSelectedFilter] = useState('all');
   
   // Use dynamic categories for search suggestions
   const { categories: dynamicCategories } = useCategories();
+
+  // Sync query from URL
+  useEffect(() => {
+    const q = searchParams.get('q') || '';
+    setQuery(q);
+    setInputValue(q);
+  }, [searchParams]);
+
+  // Handle search form submit
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputValue.trim()) {
+      const newUrl = `/search?q=${encodeURIComponent(inputValue.trim())}`;
+      window.history.pushState({}, '', newUrl);
+      setQuery(inputValue.trim());
+    }
+  };
 
   // Format relative time
   const formatRelativeTime = (dateString: string | Date) => {
@@ -113,11 +132,32 @@ const SearchContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
   <div className="container mx-auto py-8">
-        {/* Search Header */}
+        {/* Search Header with Input */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            Search Results for "{query}"
+          <h1 className="text-2xl font-bold text-foreground mb-4">
+            {query ? `Search Results for "${query}"` : 'Search'}
           </h1>
+          <form onSubmit={handleSearch} className="flex gap-3 max-w-xl">
+            <div className="relative flex-1">
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Search articles, topics, authors..."
+                className="w-full pl-10 pr-4 py-3 border border-border rounded-lg bg-muted text-foreground placeholder-muted-foreground focus:outline-none focus:border-vermillion/50 focus:ring-2 focus:ring-vermillion/10 font-mono text-sm transition-all"
+                autoFocus={!query}
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-6 py-3 bg-vermillion text-white font-mono text-xs tracking-wider uppercase hover:bg-vermillion-dark transition-colors rounded-lg"
+            >
+              Search
+            </button>
+          </form>
         </div>
 
         {/* Search Filters */}
@@ -183,18 +223,25 @@ const SearchContent: React.FC = () => {
             ) : (
               <div className="text-center py-16">
                 <DivergenceMark size={48} className="mx-auto mb-6 text-muted-foreground" />
-                <h2 className="font-serif text-2xl font-bold text-foreground mb-4">No Results Found</h2>
+                <h2 className="font-serif text-2xl font-bold text-foreground mb-4">
+                  {query ? 'No Results Found' : 'Start Searching'}
+                </h2>
                 <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                  Even our best investigators couldn&apos;t find anything matching &ldquo;{query}&rdquo;. Try different keywords.
+                  {query
+                    ? <>Even our best investigators couldn&apos;t find anything matching &ldquo;{query}&rdquo;. Try different keywords.</>
+                    : 'Enter a query above to search through articles, topics, and more.'
+                  }
                 </p>
-                <div className="space-x-4">
-                  <Link
-                    href="/"
-                    className="bg-ink text-white px-6 py-3 hover:bg-ink/80 transition-colors font-mono text-xs tracking-wider uppercase"
-                  >
-                    Front Page
-                  </Link>
-                </div>
+                {query && (
+                  <div className="space-x-4">
+                    <Link
+                      href="/"
+                      className="bg-ink dark:bg-ivory dark:text-ink text-white px-6 py-3 hover:opacity-80 transition-colors font-mono text-xs tracking-wider uppercase"
+                    >
+                      Front Page
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
           </div>

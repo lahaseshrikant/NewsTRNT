@@ -404,6 +404,60 @@ class AuthService {
           'Content-Type': 'application/json',
         };
   }
+
+  // Google OAuth login
+  async googleLogin(credential: string): Promise<AuthResponse> {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.user && data.token) {
+        this.storeAuthData(data.token, data.user);
+        return {
+          success: true,
+          user: data.user,
+          token: data.token,
+          message: data.message || 'Google sign-in successful',
+        };
+      } else {
+        return { success: false, error: data.error || 'Google sign-in failed' };
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      return { success: false, error: 'Network error. Please try again.' };
+    }
+  }
+
+  // Send email verification
+  async sendVerificationEmail(): Promise<AuthResponse> {
+    try {
+      const token = this.getToken();
+      if (!token) return { success: false, error: 'Not authenticated' };
+
+      const response = await fetch(`${API_URL}/api/auth/send-verification`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      return {
+        success: response.ok,
+        message: data.message || 'Verification email sent',
+        error: response.ok ? undefined : data.error,
+      };
+    } catch (error) {
+      console.error('Send verification error:', error);
+      return { success: false, error: 'Network error. Please try again.' };
+    }
+  }
 }
 
 // Export singleton instance
