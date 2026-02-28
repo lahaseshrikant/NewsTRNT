@@ -1,0 +1,27 @@
+{
+  "name": "NewsTRNT - The Road Not Taken",
+  "short_name": "NewsTRNT",
+  "description": "Independent journalism bringing diverse perspectives and underreported stories. Breaking news, in-depth analysis, and editorial opinion.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF9",
+  "theme_color": "#0D0D0D",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["news", "magazine"],
+  "lang": "en-IN",
+  "dir": "ltr"
+}

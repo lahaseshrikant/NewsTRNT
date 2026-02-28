@@ -36,27 +36,58 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NewsTRNT - The Road Not Taken",
-  description: "Discover stories that matter, from perspectives that challenge the mainstream. Alternative journalism powered by AI.",
-  keywords: ["news", "alternative journalism", "independent news", "AI news", "diverse perspectives", "NewsTRNT"],
-  authors: [{ name: "NewsTRNT Team" }],
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://newstrnt.com'),
+  title: {
+    default: "NewsTRNT - The Road Not Taken",
+    template: "%s | NewsTRNT",
+  },
+  description: "Discover stories that matter, from perspectives that challenge the mainstream. Independent journalism powered by AI, bringing you diverse viewpoints and underreported stories.",
+  keywords: ["news", "alternative journalism", "independent news", "AI news", "diverse perspectives", "NewsTRNT", "Indian news", "breaking news", "analysis", "opinion"],
+  authors: [{ name: "NewsTRNT Team", url: "https://newstrnt.com" }],
   creator: "NewsTRNT",
   publisher: "NewsTRNT",
+  formatDetection: {
+    email: false,
+    telephone: false,
+    address: false,
+  },
   icons: {
     icon: '/logo.png',
+    apple: '/logo.png',
   },
+  manifest: '/manifest.json',
   openGraph: {
     type: "website",
-    locale: "en_US",
-    url: "https://NewsTRNT.com",
+    locale: "en_IN",
+    url: "https://newstrnt.com",
     title: "NewsTRNT - The Road Not Taken",
-    description: "Independent journalism bringing you diverse perspectives and underreported stories. The complete picture with breaking news and in-depth coverage.",
+    description: "Independent journalism bringing you diverse perspectives and underreported stories. Breaking news, in-depth analysis, and editorial opinion.",
     siteName: "NewsTRNT",
   },
   twitter: {
     card: "summary_large_image",
     title: "NewsTRNT - The Road Not Taken",
-    description: "Independent journalism bringing you diverse perspectives and underreported stories. The complete picture with breaking news and in-depth coverage.",
+    description: "Independent journalism bringing you diverse perspectives and underreported stories.",
+    creator: "@NewsTRNT",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: 'https://newstrnt.com',
+  },
+  verification: {
+    // Add when you have these:
+    // google: 'your-google-verification-code',
+    // yandex: 'your-yandex-verification-code',
   },
 };
 
@@ -68,6 +99,45 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Organization + WebSite JSON-LD for Google Knowledge Panel & Sitelinks */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "NewsTRNT",
+                url: "https://newstrnt.com",
+                logo: "https://newstrnt.com/logo.png",
+                sameAs: [
+                  "https://twitter.com/NewsTRNT",
+                  // Add other social profiles when available
+                ],
+                contactPoint: {
+                  "@type": "ContactPoint",
+                  contactType: "customer support",
+                  url: "https://newstrnt.com/support",
+                },
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "NewsTRNT",
+                url: "https://newstrnt.com",
+                potentialAction: {
+                  "@type": "SearchAction",
+                  target: {
+                    "@type": "EntryPoint",
+                    urlTemplate:
+                      "https://newstrnt.com/search?q={search_term_string}",
+                  },
+                  "query-input": "required name=search_term_string",
+                },
+              },
+            ]),
+          }}
+        />
         {/* Early theme apply to avoid always-dark flash and ensure correct contrast before hydration */}
         <script
           dangerouslySetInnerHTML={{

@@ -267,204 +267,178 @@ export interface NavItem {
 }
 
 export const ADMIN_NAVIGATION: NavItem[] = [
+  /* ── Core ──────────────────────────────────────────── */
   {
     id: 'dashboard',
     label: 'Dashboard',
     href: '/',
-    icon: '🏠',
+    icon: 'home',
     requiredPermissions: ['dashboard.view'],
-    description: 'Overview and quick stats'
+    description: 'Overview and quick stats',
   },
-  {
-    id: 'site-config',
-    label: 'Site Configuration',
-    href: '/config',
-    icon: '⚙️',
-    badge: 'Essential',
-    requiredPermissions: ['config.view'],
-    description: 'Configure site settings'
-  },
+
+  /* ── Content ───────────────────────────────────────── */
   {
     id: 'content',
-    label: 'Content Management',
+    label: 'Content',
     href: '/content',
-    icon: '📝',
+    icon: 'document',
     requiredPermissions: ['content.view'],
-    description: 'Manage articles and media',
+    description: 'Manage articles, stories, and media',
     children: [
-      { id: 'content-hub', label: 'Content Hub', href: '/content', icon: '🏠', requiredPermissions: ['content.view'] },
-      { id: 'articles', label: 'Articles', href: '/content/articles', icon: '📄', requiredPermissions: ['content.view'] },
-      { id: 'new-article', label: 'New Article', href: '/content/new', icon: '✨', requiredPermissions: ['content.create'] },
-      { id: 'web-stories', label: 'Web Stories', href: '/content/web-stories', icon: '📱', requiredPermissions: ['content.view'] },
-      { id: 'content-calendar', label: 'Content Calendar', href: '/content/calendar', icon: '📅', requiredPermissions: ['content.view'] },
-      { id: 'content-workflow', label: 'Workflow', href: '/content/workflow', icon: '📋', requiredPermissions: ['content.view'] },
-      { id: 'categories', label: 'Categories', href: '/content/categories', icon: '🏷️', requiredPermissions: ['categories.view'] },
-      { id: 'navigation', label: 'Navigation', href: '/content/navigation', icon: '🧭', requiredPermissions: ['categories.manage'] },
-      { id: 'tags', label: 'Tags', href: '/content/tags', icon: '🔖', requiredPermissions: ['tags.view'] },
-      { id: 'drafts', label: 'My Drafts', href: '/content/drafts', icon: '✏️', requiredPermissions: ['content.create'] },
-      { id: 'trash', label: 'Trash', href: '/content/trash', icon: '🗑️', requiredPermissions: ['content.restore'] }
-    ]
+      { id: 'content-hub',      label: 'Content Hub',      href: '/content',            icon: 'document',  requiredPermissions: ['content.view'] },
+      { id: 'articles',         label: 'Articles',         href: '/content/articles',   icon: 'document',  requiredPermissions: ['content.view'] },
+      { id: 'new-article',      label: 'New Article',      href: '/content/new',        icon: 'plus',      requiredPermissions: ['content.create'] },
+      { id: 'web-stories',      label: 'Web Stories',      href: '/content/web-stories',icon: 'sparkles',  requiredPermissions: ['content.view'] },
+      { id: 'content-calendar', label: 'Calendar',         href: '/content/calendar',   icon: 'clock',     requiredPermissions: ['content.view'] },
+      { id: 'content-workflow', label: 'Workflow',          href: '/content/workflow',   icon: 'bolt',      requiredPermissions: ['content.view'] },
+      { id: 'categories',       label: 'Categories',       href: '/content/categories', icon: 'document',  requiredPermissions: ['categories.view'] },
+      { id: 'navigation',       label: 'Navigation',       href: '/content/navigation', icon: 'globe',     requiredPermissions: ['categories.manage'] },
+      { id: 'tags',             label: 'Tags',             href: '/content/tags',       icon: 'document',  requiredPermissions: ['tags.view'] },
+      { id: 'drafts',           label: 'My Drafts',        href: '/content/drafts',     icon: 'document',  requiredPermissions: ['content.create'] },
+      { id: 'trash',            label: 'Trash',            href: '/content/trash',      icon: 'document',  requiredPermissions: ['content.restore'] },
+    ],
   },
+
+  /* ── Users & Community ─────────────────────────────── */
   {
     id: 'users',
-    label: 'User Management',
+    label: 'Users & Community',
     href: '/users',
-    icon: '👥',
-    minRoleLevel: 60, // Editor and above
+    icon: 'users',
+    minRoleLevel: 30, // Moderator+
     requiredPermissions: ['users.view'],
-    description: 'Manage end-user accounts',
+    description: 'Members, moderation, and community',
     children: [
-      { id: 'all-users', label: 'All Users', href: '/users', icon: '👤', requiredPermissions: ['users.view'] },
-      { id: 'subscribers', label: 'Subscribers', href: '/users/subscribers', icon: '📧', requiredPermissions: ['users.view'] },
-      { id: 'user-activity', label: 'User Activity', href: '/users/activity', icon: '📊', requiredPermissions: ['users.view'] },
-      { id: 'user-permissions', label: 'User Permissions', href: '/users/permissions', icon: '🔑', requiredRole: 'SUPER_ADMIN' },
-      { id: 'user-team', label: 'Team Members', href: '/users/team', icon: '👨‍💼', requiredRole: 'SUPER_ADMIN' }
-    ]
+      { id: 'all-users',       label: 'All Users',       href: '/users',              icon: 'users',    requiredPermissions: ['users.view'] },
+      { id: 'subscribers',     label: 'Subscribers',     href: '/users/subscribers',  icon: 'envelope',  requiredPermissions: ['users.view'] },
+      { id: 'user-activity',   label: 'Activity',        href: '/users/activity',     icon: 'chart',     requiredPermissions: ['users.view'] },
+      { id: 'user-team',       label: 'Team Members',    href: '/users/team',         icon: 'users',    requiredRole: 'SUPER_ADMIN' },
+      { id: 'comments',        label: 'Comments',        href: '/moderation',         icon: 'chat',      requiredPermissions: ['comments.view'] },
+      { id: 'reports',         label: 'Reports',         href: '/moderation/reports', icon: 'shield',    requiredPermissions: ['reports.view'] },
+      { id: 'spam',            label: 'Spam Filter',     href: '/moderation/spam',    icon: 'shield',    requiredPermissions: ['comments.moderate'] },
+    ],
   },
-  {
-    id: 'access',
-    label: 'Access Control',
-    href: '/access',
-    icon: '🔐',
-    requiredRole: 'SUPER_ADMIN',
-    description: 'Admin roles, permissions & team management',
-    children: [
-      { id: 'access-hub', label: 'Access Control Hub', href: '/access', icon: '🔐', requiredRole: 'SUPER_ADMIN' },
-      { id: 'access-team', label: 'Team Management', href: '/access/team', icon: '👥', requiredRole: 'SUPER_ADMIN' },
-      { id: 'access-roles', label: 'Roles & Permissions', href: '/access/roles', icon: '🎭', requiredRole: 'SUPER_ADMIN' },
-      { id: 'access-audit', label: 'Audit Logs', href: '/access/audit', icon: '📋', requiredRole: 'SUPER_ADMIN' },
-      { id: 'access-activity', label: 'Activity Monitor', href: '/access/activity', icon: '📊', requiredRole: 'SUPER_ADMIN' },
-      { id: 'access-security', label: 'Security Settings', href: '/access/security', icon: '🛡️', requiredRole: 'SUPER_ADMIN' }
-    ]
-  },
+
+  /* ── Analytics ─────────────────────────────────────── */
   {
     id: 'analytics',
-    label: 'Analytics & Reports',
+    label: 'Analytics',
     href: '/analytics',
-    icon: '📊',
+    icon: 'chart',
     requiredPermissions: ['analytics.view'],
-    description: 'View performance data',
+    description: 'Performance insights and reports',
     children: [
-      { id: 'analytics-overview', label: 'Overview', href: '/analytics', icon: '📈', requiredPermissions: ['analytics.view'] },
-      { id: 'realtime', label: 'Real-Time', href: '/analytics/realtime', icon: '⚡', requiredPermissions: ['analytics.view'] },
-      { id: 'traffic', label: 'Traffic', href: '/analytics/traffic', icon: '🌐', requiredPermissions: ['analytics.view'] },
-      { id: 'content-performance', label: 'Content Performance', href: '/analytics/content', icon: '📊', requiredPermissions: ['analytics.view'] },
-      { id: 'user-engagement', label: 'User Engagement', href: '/analytics/engagement', icon: '🎯', requiredPermissions: ['analytics.view'] },
-      { id: 'export', label: 'Export Reports', href: '/analytics/export', icon: '📥', requiredPermissions: ['analytics.export'] }
-    ]
+      { id: 'analytics-overview',  label: 'Overview',           href: '/analytics',            icon: 'chart',   requiredPermissions: ['analytics.view'] },
+      { id: 'realtime',            label: 'Real-Time',          href: '/analytics/realtime',   icon: 'bolt',    requiredPermissions: ['analytics.view'] },
+      { id: 'traffic',             label: 'Traffic',            href: '/analytics/traffic',    icon: 'globe',   requiredPermissions: ['analytics.view'] },
+      { id: 'content-performance', label: 'Content',            href: '/analytics/content',    icon: 'chart',   requiredPermissions: ['analytics.view'] },
+      { id: 'user-engagement',     label: 'Engagement',         href: '/analytics/engagement', icon: 'eye',     requiredPermissions: ['analytics.view'] },
+      { id: 'export',              label: 'Export Reports',     href: '/analytics/export',     icon: 'document',requiredPermissions: ['analytics.export'] },
+    ],
   },
+
+  /* ── Marketing ─────────────────────────────────────── */
   {
-    id: 'moderation',
-    label: 'Moderation',
-    href: '/moderation',
-    icon: '💬',
-    requiredPermissions: ['comments.view'],
-    description: 'Moderate content and comments',
-    children: [
-      { id: 'comments', label: 'Comments', href: '/moderation', icon: '💬', requiredPermissions: ['comments.view'] },
-      { id: 'reports', label: 'Reports', href: '/moderation/reports', icon: '⚠️', requiredPermissions: ['reports.view'] },
-      { id: 'spam', label: 'Spam Filter', href: '/moderation/spam', icon: '🚫', requiredPermissions: ['comments.moderate'] }
-    ]
-  },
-  {
-    id: 'advertising',
-    label: 'Advertising',
-    href: '/advertising',
-    icon: '💼',
-    minRoleLevel: 60,
-    requiredPermissions: ['advertising.view'],
-    description: 'Manage ad campaigns',
-    children: [
-      { id: 'campaigns', label: 'Campaigns', href: '/advertising', icon: '📢', requiredPermissions: ['advertising.view'] },
-      { id: 'ad-requests', label: 'Ad Requests', href: '/advertising/requests', icon: '📋', requiredPermissions: ['advertising.view'] },
-      { id: 'ad-performance', label: 'Performance', href: '/advertising/performance', icon: '📈', requiredPermissions: ['analytics.view'] }
-    ]
-  },
-  {
-    id: 'newsletter',
-    label: 'Newsletter',
+    id: 'marketing',
+    label: 'Marketing',
     href: '/newsletter',
-    icon: '📧',
+    icon: 'megaphone',
     minRoleLevel: 60,
     requiredPermissions: ['newsletter.view'],
-    description: 'Email campaigns',
+    description: 'Newsletters and advertising',
     children: [
-      { id: 'newsletter-campaigns', label: 'Campaigns', href: '/newsletter', icon: '📨', requiredPermissions: ['newsletter.view'] },
-      { id: 'templates', label: 'Templates', href: '/newsletter/templates', icon: '📄', requiredPermissions: ['newsletter.manage_templates'] },
-      { id: 'newsletter-subscribers', label: 'Subscribers', href: '/newsletter/subscribers', icon: '👥', requiredPermissions: ['users.view'] }
-    ]
+      { id: 'newsletter-campaigns',  label: 'Email Campaigns',   href: '/newsletter',               icon: 'envelope', requiredPermissions: ['newsletter.view'] },
+      { id: 'newsletter-templates',  label: 'Email Templates',   href: '/newsletter/templates',     icon: 'document', requiredPermissions: ['newsletter.manage_templates'] },
+      { id: 'newsletter-subscribers', label: 'Subscribers',      href: '/newsletter/subscribers',   icon: 'users',    requiredPermissions: ['users.view'] },
+      { id: 'ad-campaigns',          label: 'Ad Campaigns',      href: '/advertising',              icon: 'megaphone',requiredPermissions: ['advertising.view'] },
+      { id: 'ad-requests',           label: 'Ad Requests',       href: '/advertising/requests',     icon: 'document', requiredPermissions: ['advertising.view'] },
+      { id: 'ad-performance',        label: 'Ad Performance',    href: '/advertising/performance',  icon: 'chart',    requiredPermissions: ['analytics.view'] },
+    ],
   },
+
+  /* ── Market Data ───────────────────────────────────── */
+  {
+    id: 'market-data',
+    label: 'Market Data',
+    href: '/market-data',
+    icon: 'currency',
+    minRoleLevel: 60,
+    requiredPermissions: ['config.market_data'],
+    description: 'Financial markets and tickers',
+    children: [
+      { id: 'market-view',    label: 'Live Data',        href: '/market-data',                 icon: 'trendUp',  requiredPermissions: ['config.market_data'] },
+      { id: 'market-indices',  label: 'Indices',          href: '/market-config/indices',       icon: 'chart',    requiredPermissions: ['config.market_data'] },
+      { id: 'market-currencies', label: 'Currencies',     href: '/market-config/currencies',    icon: 'currency', requiredPermissions: ['config.market_data'] },
+      { id: 'market-crypto',   label: 'Crypto',           href: '/market-config/crypto',        icon: 'bolt',     requiredPermissions: ['config.market_data'] },
+      { id: 'market-commodities', label: 'Commodities',   href: '/market-config/commodities',   icon: 'currency', requiredPermissions: ['config.market_data'] },
+    ],
+  },
+
+  /* ── Media ─────────────────────────────────────────── */
   {
     id: 'media',
     label: 'Media Library',
     href: '/media',
-    icon: '🎬',
+    icon: 'photo',
     requiredPermissions: ['media.view'],
-    description: 'Images, videos, and files'
+    description: 'Images, videos, and files',
   },
-  {
-    id: 'configuration',
-    label: 'Configuration',
-    href: '/configuration',
-    icon: '⚙️',
-    minRoleLevel: 60,
-    requiredPermissions: ['config.view'],
-    description: 'System configuration',
-    children: [
-      { id: 'market-config', label: 'Market Data Config', href: '/market-config', icon: '📊', requiredPermissions: ['config.market_data'] },
-      { id: 'market-data', label: 'Market Data View', href: '/market-data', icon: '📈', requiredPermissions: ['config.market_data'] },
-      { id: 'logo-manager', label: 'Logo Manager', href: '/logo-manager', icon: '🎨', requiredPermissions: ['config.branding'] },
-      { id: 'logo-gallery', label: 'Logo Gallery', href: '/logo-gallery', icon: '🖼️', requiredPermissions: ['config.branding'] },
-      { id: 'logo-history', label: 'Logo History', href: '/logo-history', icon: '📜', requiredPermissions: ['config.branding'] },
-      { id: 'external-apis', label: 'External APIs', href: '/external-apis', icon: '🔌', requiredPermissions: ['config.edit'] }
-    ]
-  },
+
+  /* ── Content Engine (AI) ───────────────────────────── */
   {
     id: 'content-engine',
     label: 'Content Engine',
     href: '/content-engine',
-    icon: '🤖',
+    icon: 'cpu',
     requiredRole: 'SUPER_ADMIN',
-    description: 'AI content pipeline, scraping, scheduling',
+    description: 'AI pipeline, scraping, and scheduling',
     children: [
-      { id: 'engine-dashboard', label: 'Dashboard', href: '/content-engine', icon: '📊', requiredRole: 'SUPER_ADMIN' },
-      { id: 'engine-pipeline', label: 'Pipeline', href: '/content-engine/pipeline', icon: '🔄', requiredRole: 'SUPER_ADMIN' },
-      { id: 'engine-scheduler', label: 'Scheduler', href: '/content-engine/scheduler', icon: '⏰', requiredRole: 'SUPER_ADMIN' },
-      { id: 'engine-sources', label: 'Sources', href: '/content-engine/sources', icon: '📡', requiredRole: 'SUPER_ADMIN' },
-      { id: 'engine-ai', label: 'AI Processing', href: '/content-engine/ai', icon: '🧠', requiredRole: 'SUPER_ADMIN' },
-    ]
+      { id: 'engine-dashboard', label: 'Engine Overview', href: '/content-engine',           icon: 'cpu',      requiredRole: 'SUPER_ADMIN' },
+      { id: 'engine-pipeline',  label: 'Pipeline',        href: '/content-engine/pipeline',  icon: 'bolt',     requiredRole: 'SUPER_ADMIN' },
+      { id: 'engine-scheduler', label: 'Scheduler',       href: '/content-engine/scheduler', icon: 'clock',    requiredRole: 'SUPER_ADMIN' },
+      { id: 'engine-sources',   label: 'Sources',         href: '/content-engine/sources',   icon: 'globe',    requiredRole: 'SUPER_ADMIN' },
+      { id: 'engine-ai',        label: 'AI Processing',   href: '/content-engine/ai',        icon: 'sparkles', requiredRole: 'SUPER_ADMIN' },
+    ],
   },
+
+  /* ── Settings (consolidates config + system + access + branding) */
   {
-    id: 'system',
-    label: 'System Settings',
-    href: '/system',
-    icon: '🔒',
-    requiredRole: 'SUPER_ADMIN',
-    description: 'System administration',
+    id: 'settings',
+    label: 'Settings',
+    href: '/config',
+    icon: 'cog',
+    minRoleLevel: 60,
+    requiredPermissions: ['config.view'],
+    description: 'Site, security, team, and integrations',
     children: [
-      { id: 'system-general', label: 'General', href: '/system', icon: '⚙️', requiredRole: 'SUPER_ADMIN' },
-      { id: 'system-settings', label: 'Settings', href: '/system/settings', icon: '🔧', requiredRole: 'SUPER_ADMIN' },
-      { id: 'security', label: 'Security', href: '/system/security', icon: '🛡️', requiredRole: 'SUPER_ADMIN' },
-      { id: 'integrations', label: 'Integrations', href: '/system/integrations', icon: '🔗', requiredRole: 'SUPER_ADMIN' },
-      { id: 'backup', label: 'Backup & Restore', href: '/system/backup', icon: '💾', requiredRole: 'SUPER_ADMIN' },
-      { id: 'audit-logs', label: 'Audit Logs', href: '/system/audit-logs', icon: '📋', requiredRole: 'SUPER_ADMIN' },
-      { id: 'system-users', label: 'System Users', href: '/system/users', icon: '👥', requiredRole: 'SUPER_ADMIN' },
-      { id: 'system-roles', label: 'System Roles', href: '/system/roles', icon: '🎭', requiredRole: 'SUPER_ADMIN' }
-    ]
+      { id: 'site-config',       label: 'Site Config',       href: '/config',               icon: 'cog',    requiredPermissions: ['config.view'] },
+      { id: 'branding',          label: 'Branding & Logos',  href: '/logo-manager',         icon: 'photo',  requiredPermissions: ['config.branding'] },
+      { id: 'external-apis',     label: 'External APIs',     href: '/external-apis',        icon: 'code',   requiredPermissions: ['config.edit'] },
+      { id: 'access-hub',        label: 'Access Control',    href: '/access',               icon: 'shield', requiredRole: 'SUPER_ADMIN' },
+      { id: 'access-roles',      label: 'Roles',             href: '/access/roles',         icon: 'shield', requiredRole: 'SUPER_ADMIN' },
+      { id: 'access-team',       label: 'Admin Team',        href: '/access/team',          icon: 'users',  requiredRole: 'SUPER_ADMIN' },
+      { id: 'security',          label: 'Security',          href: '/system/security',      icon: 'shield', requiredRole: 'SUPER_ADMIN' },
+      { id: 'integrations',      label: 'Integrations',      href: '/system/integrations',  icon: 'code',   requiredRole: 'SUPER_ADMIN' },
+      { id: 'backup',            label: 'Backup & Restore',  href: '/system/backup',        icon: 'server', requiredRole: 'SUPER_ADMIN' },
+      { id: 'audit-logs',        label: 'Audit Logs',        href: '/system/audit-logs',    icon: 'document', requiredRole: 'SUPER_ADMIN' },
+    ],
   },
+
+  /* ── Developer Tools ───────────────────────────────── */
   {
     id: 'developer',
-    label: 'Developer Tools',
+    label: 'Developer',
     href: '/dev-tools/debug',
-    icon: '🛠️',
+    icon: 'code',
     requiredRole: 'SUPER_ADMIN',
-    description: 'Developer and debugging tools',
+    description: 'Debug, API testing, and docs',
     children: [
-      { id: 'debug', label: 'Debug Console', href: '/dev-tools/debug', icon: '🐛', requiredRole: 'SUPER_ADMIN' },
-      { id: 'api-tester', label: 'API Tester', href: '/dev-tools/api-tester', icon: '🧪', requiredRole: 'SUPER_ADMIN' },
-      { id: 'help', label: 'Help & Docs', href: '/help', icon: '❓', requiredPermissions: ['dashboard.view'] }
-    ]
-  }
+      { id: 'debug',      label: 'Debug Console', href: '/dev-tools/debug',      icon: 'code',     requiredRole: 'SUPER_ADMIN' },
+      { id: 'api-tester', label: 'API Tester',    href: '/dev-tools/api-tester', icon: 'bolt',     requiredRole: 'SUPER_ADMIN' },
+      { id: 'help',       label: 'Help & Docs',   href: '/help',                 icon: 'document', requiredPermissions: ['dashboard.view'] },
+    ],
+  },
 ];
 
 // Utility functions for permission checking

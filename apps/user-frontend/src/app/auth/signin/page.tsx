@@ -8,10 +8,27 @@
  */
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { authService } from '@/lib/auth';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void;
+          renderButton: (element: HTMLElement, config: any) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 const SignInPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -23,6 +40,50 @@ const SignInPage: React.FC = () => {
   const searchParams = useSearchParams();
   const { login } = useAuth();
 
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
+
+  const handleGoogleResponse = useCallback(async (response: any) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await authService.googleLogin(response.credential);
+      if (result.success && result.user && result.token) {
+        // Dispatch auth change so AuthContext picks it up
+        window.dispatchEvent(new CustomEvent('authStatusChanged'));
+        router.push(redirectTo);
+      } else {
+        setError(result.error || 'Google sign-in failed');
+      }
+    } catch {
+      setError('Google sign-in failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [router, redirectTo]);
+
+  // Load Google Identity Services
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      window.google?.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [handleGoogleResponse]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -31,8 +92,7 @@ const SignInPage: React.FC = () => {
     try {
       const result = await login({ email, password });
       if (result.success) {
-        const redirect = searchParams.get('redirect') || '/dashboard';
-        router.push(redirect);
+        router.push(redirectTo);
       } else {
         setError(result.error || 'Invalid credentials. Please try again.');
       }
@@ -136,7 +196,15 @@ const SignInPage: React.FC = () => {
           <div className="grid grid-cols-2 gap-3 mb-6">
             <button
               type="button"
-              className="hover-lift flex items-center justify-center gap-2.5 py-3 px-4 border border-border rounded-xl bg-card text-sm font-medium text-foreground"
+              onClick={() => {
+                if (GOOGLE_CLIENT_ID && window.google) {
+                  window.google.accounts.id.prompt();
+                } else {
+                  setError('Google sign-in is not configured. Please use email/password.');
+                }
+              }}
+              disabled={isLoading}
+              className="hover-lift flex items-center justify-center gap-2.5 py-3 px-4 border border-border rounded-xl bg-card text-sm font-medium text-foreground disabled:opacity-50"
             >
               <svg className="w-4.5 h-4.5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

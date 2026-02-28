@@ -243,13 +243,13 @@ const NewsDetailPage: React.FC = () => {
           </div>
 
           {/* Headline */}
-          <h1 className="font-serif text-[1.75rem] sm:text-[2rem] md:text-[2.5rem] lg:text-[2.75rem] leading-[1.12] tracking-tight text-foreground mb-4 max-w-2xl">
+          <h1 className="font-serif text-[1.75rem] sm:text-[2rem] md:text-[2.5rem] lg:text-[2.75rem] leading-[1.12] tracking-tight text-foreground mb-4">
             {article.title}
           </h1>
 
           {/* Summary / deck */}
           {(article.summary || article.excerpt) && (
-            <p className="font-sans text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed mb-6">
+            <p className="font-sans text-lg md:text-xl text-muted-foreground leading-relaxed mb-6">
               {article.summary || article.excerpt}
             </p>
           )}
