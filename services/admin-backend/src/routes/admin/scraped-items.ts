@@ -46,7 +46,7 @@ router.post('/scraped-items/:id/approve', authenticateToken, requireAdmin, async
       return res.json({ success: true, message: 'Already approved' });
     }
 
-    await promoteScrapedItem(scraped);
+    await promoteScrapedArticle(scraped);
 
     await prisma.adminLog.create({
       data: {
@@ -58,10 +58,10 @@ router.post('/scraped-items/:id/approve', authenticateToken, requireAdmin, async
       },
     });
 
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     console.error('[Admin Scraped] approve error', error);
-    res.status(500).json({ success: false, error: 'Failed to approve scraped item' });
+    return res.status(500).json({ success: false, error: 'Failed to approve scraped item' });
   }
 });
 

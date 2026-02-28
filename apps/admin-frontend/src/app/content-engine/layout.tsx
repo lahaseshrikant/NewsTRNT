@@ -6,13 +6,13 @@
  * regardless of the admin panel's light/dark theme setting.
  */
 export default function ContentEngineLayout({
-  children,
+ children,
 }: {
-  children: React.ReactNode;
+ children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-[#0f0f1a] text-white">
-      {children}
-    </div>
-  );
+ return (
+ <div className="min-h-screen bg-[#0f0f1a] text-white">
+ {children}
+ </div>
+ );
 }

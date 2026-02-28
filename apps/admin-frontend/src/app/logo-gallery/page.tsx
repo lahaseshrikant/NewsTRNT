@@ -1,14 +1,7 @@
-'use client';
-
-import LogoGallery from '@/components/logo/LogoGallery';
-import UnifiedAdminGuard from '@/components/auth/UnifiedAdminGuard';
+import LogoGallery from'@/components/logo/LogoGallery';
 
 export default function AdminLogoGalleryPage() {
-  return (
-    <UnifiedAdminGuard requireSuperAdmin={true}>
-      <LogoGallery />
-    </UnifiedAdminGuard>
-  );
+ return <LogoGallery />;
 }
 
 

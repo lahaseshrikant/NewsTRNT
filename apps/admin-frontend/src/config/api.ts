@@ -2,104 +2,104 @@
 // This ensures frontend NEVER touches database directly
 
 interface ApiConfig {
-  baseURL: string;
-  timeout: number;
-  retries: number;
+ baseURL: string;
+ timeout: number;
+ retries: number;
 }
 
 export const API_CONFIG: ApiConfig = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api',
-  timeout: 30000, // 30 seconds
-  retries: 3
+ baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api',
+ timeout: 30000, // 30 seconds
+ retries: 3
 };
 
 // API endpoints - centralized and type-safe
 export const API_ENDPOINTS = {
-  // Authentication
-  AUTH: {
-    LOGIN: '/auth/admin/login',
-    LOGOUT: '/auth/admin/logout',
-    REGISTER: '/auth/register',
-    ME: '/auth/admin/me',
-    VERIFY: '/auth/admin/verify',
-    REFRESH: '/auth/refresh',
-    CREATE_ADMIN: '/auth/admin/create',
-  },
-  
-  // Articles
-  ARTICLES: {
-    LIST: '/articles/admin',
-    CREATE: '/articles/admin',
-    UPDATE: (id: string) => `/articles/admin/${id}`,
-    DELETE: (id: string) => `/articles/admin/${id}`,
-    TRASH: '/articles/admin/trash',
-    RESTORE: (id: string) => `/articles/admin/${id}/restore`,
-    DRAFTS: '/articles/admin/drafts',
-    PUBLISHED: '/articles/admin/published'
-  },
-  
-  // Categories
-  CATEGORIES: {
-    LIST: '/categories',
-    CREATE: '/categories',
-    UPDATE: (id: string) => `/categories/${id}`,
-    DELETE: (id: string) => `/categories/${id}`,
-    TRASH: '/categories/trash',
-    RESTORE: (id: string) => `/categories/${id}/restore`
-  },
-  
-  // Web Stories
-  WEBSTORIES: {
-    LIST: '/webstories/admin',
-    CREATE: '/webstories/admin',
-    UPDATE: (id: string) => `/webstories/admin/${id}`,
-    DELETE: (id: string) => `/webstories/admin/${id}`,
-    TRASH: '/webstories/admin/trash',
-    RESTORE: (id: string) => `/webstories/admin/${id}/restore`
-  },
-  
-  // Admin
-  ADMIN: {
-    STATS: '/stats',
-    HEALTH: '/health'
-  },
+ // Authentication
+ AUTH: {
+ LOGIN: '/auth/admin/login',
+ LOGOUT: '/auth/admin/logout',
+ REGISTER: '/auth/register',
+ ME: '/auth/admin/me',
+ VERIFY: '/auth/admin/verify',
+ REFRESH: '/auth/refresh',
+ CREATE_ADMIN: '/auth/admin/create',
+ },
+ 
+ // Articles
+ ARTICLES: {
+ LIST: '/articles/admin',
+ CREATE: '/articles/admin',
+ UPDATE: (id: string) => `/articles/admin/${id}`,
+ DELETE: (id: string) => `/articles/admin/${id}`,
+ TRASH: '/articles/admin/trash',
+ RESTORE: (id: string) => `/articles/admin/${id}/restore`,
+ DRAFTS: '/articles/admin/drafts',
+ PUBLISHED: '/articles/admin/published'
+ },
+ 
+ // Categories
+ CATEGORIES: {
+ LIST: '/categories',
+ CREATE: '/categories',
+ UPDATE: (id: string) => `/categories/${id}`,
+ DELETE: (id: string) => `/categories/${id}`,
+ TRASH: '/categories/trash',
+ RESTORE: (id: string) => `/categories/${id}/restore`
+ },
+ 
+ // Web Stories
+ WEBSTORIES: {
+ LIST: '/webstories/admin',
+ CREATE: '/webstories/admin',
+ UPDATE: (id: string) => `/webstories/admin/${id}`,
+ DELETE: (id: string) => `/webstories/admin/${id}`,
+ TRASH: '/webstories/admin/trash',
+ RESTORE: (id: string) => `/webstories/admin/${id}/restore`
+ },
+ 
+ // Admin
+ ADMIN: {
+ STATS: '/stats',
+ HEALTH: '/health'
+ },
 
-  // Content Engine (proxied through admin-backend or direct)
-  CONTENT_ENGINE: {
-    HEALTH: '/content-engine/health',
-    PIPELINE_TRIGGER: '/content-engine/pipeline/trigger',
-    PIPELINE_HISTORY: '/content-engine/pipeline/history',
-    SCHEDULER_STATUS: '/content-engine/scheduler/status',
-    SCHEDULER_JOBS: '/content-engine/scheduler/jobs',
-    SCRAPING_SOURCES: '/content-engine/scraping/sources',
-    AI_STATUS: '/content-engine/ai/status',
-    CONFIG: '/content-engine/config',
-    INGEST_STATS: '/articles/ingest/stats',
-  }
+ // Content Engine (proxied through admin-backend or direct)
+ CONTENT_ENGINE: {
+ HEALTH: '/content-engine/health',
+ PIPELINE_TRIGGER: '/content-engine/pipeline/trigger',
+ PIPELINE_HISTORY: '/content-engine/pipeline/history',
+ SCHEDULER_STATUS: '/content-engine/scheduler/status',
+ SCHEDULER_JOBS: '/content-engine/scheduler/jobs',
+ SCRAPING_SOURCES: '/content-engine/scraping/sources',
+ AI_STATUS: '/content-engine/ai/status',
+ CONFIG: '/content-engine/config',
+ INGEST_STATS: '/articles/ingest/stats',
+ }
 } as const;
 
 // HTTP Status Codes
 export const HTTP_STATUS = {
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500
+ OK: 200,
+ CREATED: 201,
+ BAD_REQUEST: 400,
+ UNAUTHORIZED: 401,
+ FORBIDDEN: 403,
+ NOT_FOUND: 404,
+ INTERNAL_SERVER_ERROR: 500
 } as const;
 
 // Error types
 export interface ApiError {
-  message: string;
-  code?: string;
-  details?: any;
+ message: string;
+ code?: string;
+ details?: any;
 }
 
 export interface ApiResponse<T = any> {
-  data?: T;
-  error?: ApiError;
-  success: boolean;
-  timestamp: string;
+ data?: T;
+ error?: ApiError;
+ success: boolean;
+ timestamp: string;
 }
 

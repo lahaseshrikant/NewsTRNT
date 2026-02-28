@@ -1,499 +1,363 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Breadcrumb from '@/components/layout/Breadcrumb';
-import { showToast } from '@/lib/utils/toast';
-import UnifiedAdminGuard from '@/components/auth/UnifiedAdminGuard';
-import adminAuth from '@/lib/auth/admin-auth';
+import React, { useState, useEffect } from"react";
+import { showToast } from"@/lib/utils/toast";
+import adminAuth from"@/lib/auth/admin-auth";
+import {
+ CogIcon,
+ ShieldCheckIcon,
+ EnvelopeIcon,
+ BoltIcon,
+ CodeBracketIcon,
+ ServerIcon,
+ CircleStackIcon,
+ ChartBarIcon,
+} from"@/components/icons/AdminIcons";
 
+/* ── types ── */
 interface SystemSetting {
-  id: string;
-  category: string;
-  name: string;
-  description: string;
-  type: 'boolean' | 'string' | 'number' | 'select';
-  value: any;
-  options?: string[];
-  placeholder?: string;
+ id: string;
+ category: string;
+ name: string;
+ description: string;
+ type:"boolean" |"string" |"number" |"select";
+ value: any;
+ options?: string[];
+ placeholder?: string;
 }
 
-const SystemSettings: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState('general');
-  const [settings, setSettings] = useState<SystemSetting[]>([
-    // General Settings
-    {
-      id: 'site_maintenance',
-      category: 'general',
-      name: 'Maintenance Mode',
-      description: 'Enable maintenance mode to temporarily disable public access',
-      type: 'boolean',
-      value: false
-    },
-    {
-      id: 'site_registration',
-      category: 'general',
-      name: 'User Registration',
-      description: 'Allow new users to register accounts',
-      type: 'boolean',
-      value: true
-    },
-    {
-      id: 'articles_per_page',
-      category: 'general',
-      name: 'Articles Per Page',
-      description: 'Number of articles to display per page',
-      type: 'number',
-      value: 10
-    },
-    {
-      id: 'default_language',
-      category: 'general',
-      name: 'Default Language',
-      description: 'Default language for the website',
-      type: 'select',
-      value: 'en',
-      options: ['en', 'es', 'fr', 'de', 'it']
-    },
-
-    // Security Settings
-    {
-      id: 'password_min_length',
-      category: 'security',
-      name: 'Minimum Password Length',
-      description: 'Minimum number of characters required for passwords',
-      type: 'number',
-      value: 8
-    },
-    {
-      id: 'session_timeout',
-      category: 'security',
-      name: 'Session Timeout (minutes)',
-      description: 'Automatic logout after inactivity',
-      type: 'number',
-      value: 60
-    },
-    {
-      id: 'two_factor_auth',
-      category: 'security',
-      name: 'Two-Factor Authentication',
-      description: 'Require 2FA for admin accounts',
-      type: 'boolean',
-      value: false
-    },
-    {
-      id: 'rate_limiting',
-      category: 'security',
-      name: 'API Rate Limiting',
-      description: 'Enable rate limiting for API endpoints',
-      type: 'boolean',
-      value: true
-    },
-
-    // Email Settings
-    {
-      id: 'smtp_host',
-      category: 'email',
-      name: 'SMTP Host',
-      description: 'SMTP server hostname',
-      type: 'string',
-      value: 'smtp.newstrnt.com',
-      placeholder: 'smtp.example.com'
-    },
-    {
-      id: 'smtp_port',
-      category: 'email',
-      name: 'SMTP Port',
-      description: 'SMTP server port number',
-      type: 'number',
-      value: 587
-    },
-    {
-      id: 'email_notifications',
-      category: 'email',
-      name: 'Email Notifications',
-      description: 'Send email notifications for system events',
-      type: 'boolean',
-      value: true
-    },
-    {
-      id: 'newsletter_from_email',
-      category: 'email',
-      name: 'Newsletter From Email',
-      description: 'Email address used for newsletter campaigns',
-      type: 'string',
-      value: 'newsletter@newstrnt.com',
-      placeholder: 'newsletter@example.com'
-    },
-
-    // Performance Settings
-    {
-      id: 'cache_enabled',
-      category: 'performance',
-      name: 'Page Caching',
-      description: 'Enable page caching for better performance',
-      type: 'boolean',
-      value: true
-    },
-    {
-      id: 'cache_duration',
-      category: 'performance',
-      name: 'Cache Duration (minutes)',
-      description: 'How long to cache pages',
-      type: 'number',
-      value: 30
-    },
-    {
-      id: 'image_optimization',
-      category: 'performance',
-      name: 'Image Optimization',
-      description: 'Automatically optimize uploaded images',
-      type: 'boolean',
-      value: true
-    },
-    {
-      id: 'cdn_enabled',
-      category: 'performance',
-      name: 'CDN Integration',
-      description: 'Use CDN for static assets',
-      type: 'boolean',
-      value: false
-    },
-
-    // API Settings
-    {
-      id: 'api_enabled',
-      category: 'api',
-      name: 'Public API',
-      description: 'Enable public API endpoints',
-      type: 'boolean',
-      value: true
-    },
-    {
-      id: 'api_rate_limit',
-      category: 'api',
-      name: 'API Rate Limit (requests/hour)',
-      description: 'Maximum API requests per hour per user',
-      type: 'number',
-      value: 1000
-    },
-    {
-      id: 'webhook_enabled',
-      category: 'api',
-      name: 'Webhooks',
-      description: 'Enable webhook notifications',
-      type: 'boolean',
-      value: false
-    }
-  ]);
-
-  const [loadingMaintenance, setLoadingMaintenance] = useState(true);
-
-  // fetch current maintenance state on mount
-  useEffect(() => {
-    fetch('/api/market/auto-update', { headers: { ...adminAuth.getAuthHeaders() } })
-      .then(res => res.json())
-      .then(data => {
-        const enabled = !!data?.data?.enabled;
-        setSettings(prev => prev.map(s =>
-          s.id === 'site_maintenance' ? { ...s, value: enabled } : s
-        ));
-      })
-      .catch(err => console.error('fetch status', err))
-      .finally(() => setLoadingMaintenance(false));
-  }, []);
-
-  const categories = [
-    { id: 'general', name: 'General', icon: '⚙️' },
-    { id: 'security', name: 'Security', icon: '🔒' },
-    { id: 'email', name: 'Email', icon: '📧' },
-    { id: 'performance', name: 'Performance', icon: '⚡' },
-    { id: 'api', name: 'API & Integrations', icon: '🔌' }
-  ];
-
-  const updateSetting = async (settingId: string, value: any) => {
-    if (settingId === 'site_maintenance') {
-      try {
-        const res = await fetch('/api/market/auto-update', {
-          method: 'POST',
-          headers: { ...adminAuth.getAuthHeaders(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: value ? 'stop' : 'start' }),
-        });
-        if (!res.ok) {
-          const text = await res.text();
-          console.error('toggle maintenance bad status', res.status, text);
-          throw new Error(`status ${res.status}`);
-        }
-        setSettings(prev => prev.map(setting => 
-          setting.id === settingId ? { ...setting, value } : setting
-        ));
-        showToast('Maintenance mode updated', 'success');
-      } catch (err) {
-        console.error('toggle maintenance', err);
-        showToast('Failed to update maintenance mode', 'error');
-      }
-      return;
-    }
-    setSettings(prev => prev.map(setting => 
-      setting.id === settingId ? { ...setting, value } : setting
-    ));
-  };
-
-  const filteredSettings = settings.filter(setting => setting.category === activeCategory);
-
-  const renderSettingInput = (setting: SystemSetting) => {
-    switch (setting.type) {
-      case 'boolean':
-        return (
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={setting.value}
-              disabled={setting.id === 'site_maintenance' && loadingMaintenance}
-              onChange={(e) => updateSetting(setting.id, e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-blue-600"></div>
-          </label>
-        );
-      case 'select':
-        return (
-          <select
-            value={setting.value}
-            onChange={(e) => updateSetting(setting.id, e.target.value)}
-            className="bg-background border border-border rounded-lg px-3 py-2 text-foreground w-48"
-          >
-            {setting.options?.map(option => (
-              <option key={option} value={option}>
-                {option.toUpperCase()}
-              </option>
-            ))}
-          </select>
-        );
-      case 'number':
-        return (
-          <input
-            type="number"
-            value={setting.value}
-            onChange={(e) => updateSetting(setting.id, parseInt(e.target.value) || 0)}
-            className="bg-background border border-border rounded-lg px-3 py-2 text-foreground w-32"
-          />
-        );
-      case 'string':
-        return (
-          <input
-            type="text"
-            value={setting.value}
-            onChange={(e) => updateSetting(setting.id, e.target.value)}
-            placeholder={setting.placeholder}
-            className="bg-background border border-border rounded-lg px-3 py-2 text-foreground w-64"
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const handleSaveSettings = () => {
-    // Simulate saving settings
-    showToast('Settings saved successfully! Changes will take effect after server restart.', 'success');
-  };
-
-  const handleResetToDefaults = () => {
-    if (confirm('Are you sure you want to reset all settings to their default values?')) {
-      // Reset logic would go here
-      showToast('Settings reset to defaults.', 'info');
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-background">
-  <div className="container mx-auto py-8">
-        <Breadcrumb 
-          items={[
-            { label: 'Admin Dashboard', href: '/admin' },
-            { label: 'System Settings' }
-          ]} 
-          className="mb-6" 
-        />
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">System Settings</h1>
-            <p className="text-muted-foreground">Configure system preferences, security settings, and integrations</p>
-          </div>
-          <div className="flex space-x-3">
-            <button 
-              onClick={handleResetToDefaults}
-              className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
-            >
-              🔄 Reset to Defaults
-            </button>
-            <button 
-              onClick={handleSaveSettings}
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              💾 Save Settings
-            </button>
-          </div>
-        </div>
-
-        {/* Warning Banner */}
-        <div className="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4 mb-8">
-          <div className="flex items-center space-x-2">
-            <span className="text-yellow-800 dark:text-yellow-400">⚠️</span>
-            <span className="text-yellow-800 dark:text-yellow-400 font-medium">
-              Warning: Changes to system settings may require a server restart to take effect.
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-semibold text-foreground mb-4">Setting Categories</h3>
-              <nav className="space-y-2">
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setActiveCategory(category.id)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
-                      activeCategory === category.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted/50 text-foreground'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <span className="text-lg">{category.icon}</span>
-                      <span className="font-medium">{category.name}</span>
-                    </div>
-                  </button>
-                ))}
-              </nav>
-            </div>
-
-            {/* System Info */}
-            <div className="bg-card border border-border rounded-lg p-4 mt-6">
-              <h3 className="font-semibold text-foreground mb-4">System Information</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Version:</span>
-                  <span className="text-foreground">1.0.0</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Environment:</span>
-                  <span className="text-foreground">Production</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Database:</span>
-                  <span className="text-green-600">Connected</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Cache:</span>
-                  <span className="text-green-600">Active</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Last Backup:</span>
-                  <span className="text-foreground">2 hours ago</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <div className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-center mb-6">
-                <span className="text-2xl mr-3">
-                  {categories.find(cat => cat.id === activeCategory)?.icon}
-                </span>
-                <h2 className="text-xl font-semibold text-foreground">
-                  {categories.find(cat => cat.id === activeCategory)?.name} Settings
-                </h2>
-              </div>
-
-              <div className="space-y-6">
-                {filteredSettings.map((setting) => (
-                  <div key={setting.id} className="flex items-center justify-between p-4 bg-muted/20 rounded-lg">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-foreground">{setting.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{setting.description}</p>
-                    </div>
-                    <div className="ml-4">
-                      {renderSettingInput(setting)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Category-specific additional content */}
-              {activeCategory === 'security' && (
-                <div className="mt-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <h3 className="font-semibold text-red-800 dark:text-red-400 mb-2">Security Recommendations</h3>
-                  <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
-                    <li>• Enable two-factor authentication for all admin accounts</li>
-                    <li>• Use strong passwords with minimum 12 characters</li>
-                    <li>• Regularly update system dependencies</li>
-                    <li>• Monitor login attempts and failed authentications</li>
-                  </ul>
-                </div>
-              )}
-
-              {activeCategory === 'performance' && (
-                <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <h3 className="font-semibold text-blue-800 dark:text-blue-400 mb-2">Performance Tips</h3>
-                  <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                    <li>• Enable caching for better response times</li>
-                    <li>• Optimize images to reduce bandwidth usage</li>
-                    <li>• Use CDN for static assets in production</li>
-                    <li>• Monitor server resources and scale as needed</li>
-                  </ul>
-                </div>
-              )}
-
-              {activeCategory === 'email' && (
-                <div className="mt-8 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                  <h3 className="font-semibold text-green-800 dark:text-green-400 mb-2">Email Configuration</h3>
-                  <div className="space-y-2">
-                    <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors text-sm">
-                      📧 Test Email Configuration
-                    </button>
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-sm ml-2">
-                      📋 View Email Templates
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* System Actions */}
-        <div className="mt-8 bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">System Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-              🔄 Clear Cache
-            </button>
-            <button className="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors">
-              💾 Create Backup
-            </button>
-            <button className="bg-orange-600 text-white px-4 py-3 rounded-lg hover:bg-orange-700 transition-colors">
-              📊 Generate System Report
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+/* ── category icons map ── */
+const categoryMeta: Record<string, { icon: React.ReactNode; color: string }> = {
+ general: { icon: <CogIcon className="w-4 h-4" />, color:"text-[rgb(var(--foreground))]" },
+ security: { icon: <ShieldCheckIcon className="w-4 h-4" />, color:"text-amber-500" },
+ email: { icon: <EnvelopeIcon className="w-4 h-4" />, color:"text-blue-500" },
+ performance: { icon: <BoltIcon className="w-4 h-4" />, color:"text-emerald-500" },
+ api: { icon: <CodeBracketIcon className="w-4 h-4" />, color:"text-violet-500" },
 };
 
-export default function AdminSystemPage() {
-  return (
-    <UnifiedAdminGuard requireSuperAdmin={true}>
-      <SystemSettings />
-    </UnifiedAdminGuard>
-  );
+/* ── default settings seed ── */
+const defaultSettings: SystemSetting[] = [
+ { id:"site_maintenance", category:"general", name:"Maintenance Mode", description:"Temporarily disable public access for scheduled updates", type:"boolean", value: false },
+ { id:"site_registration", category:"general", name:"User Registration", description:"Allow new users to create accounts on the platform", type:"boolean", value: true },
+ { id:"articles_per_page", category:"general", name:"Articles Per Page", description:"Number of articles shown per page in the public feed", type:"number", value: 10 },
+ { id:"default_language", category:"general", name:"Default Language", description:"Primary language for the public site", type:"select", value:"en", options: ["en","es","fr","de","it"] },
+
+ { id:"password_min_length", category:"security", name:"Min Password Length", description:"Minimum characters required for user passwords", type:"number", value: 8 },
+ { id:"session_timeout", category:"security", name:"Session Timeout (min)", description:"Automatic logout after inactivity period", type:"number", value: 60 },
+ { id:"two_factor_auth", category:"security", name:"Two-Factor Auth", description:"Require 2FA for all admin-level accounts", type:"boolean", value: false },
+ { id:"rate_limiting", category:"security", name:"API Rate Limiting", description:"Protect endpoints from brute-force and abuse", type:"boolean", value: true },
+
+ { id:"smtp_host", category:"email", name:"SMTP Host", description:"Outbound mail server hostname", type:"string", value:"smtp.newstrnt.com", placeholder:"smtp.example.com" },
+ { id:"smtp_port", category:"email", name:"SMTP Port", description:"Mail server port (587 for TLS, 465 for SSL)", type:"number", value: 587 },
+ { id:"email_notifications", category:"email", name:"Event Notifications", description:"Send email alerts on critical system events", type:"boolean", value: true },
+ { id:"newsletter_from", category:"email", name:"Newsletter Sender", description:"From address for newsletter campaigns", type:"string", value:"newsletter@newstrnt.com", placeholder:"newsletter@example.com" },
+
+ { id:"cache_enabled", category:"performance", name:"Page Caching", description:"Cache rendered pages to reduce server load", type:"boolean", value: true },
+ { id:"cache_duration", category:"performance", name:"Cache TTL (min)", description:"Duration before cached pages are invalidated", type:"number", value: 30 },
+ { id:"image_optimization", category:"performance", name:"Image Optimization", description:"Automatically compress and resize uploaded images", type:"boolean", value: true },
+ { id:"cdn_enabled", category:"performance", name:"CDN Integration", description:"Serve static assets from a content delivery network", type:"boolean", value: false },
+
+ { id:"api_enabled", category:"api", name:"Public API", description:"Expose read-only endpoints for third-party consumers", type:"boolean", value: true },
+ { id:"api_rate_limit", category:"api", name:"Rate Limit (req/hr)", description:"Maximum API requests per hour per client", type:"number", value: 1000 },
+ { id:"webhook_enabled", category:"api", name:"Webhooks", description:"Push event payloads to registered webhook URLs", type:"boolean", value: false },
+];
+
+const categories = [
+ { id:"general", label:"General" },
+ { id:"security", label:"Security" },
+ { id:"email", label:"Email" },
+ { id:"performance", label:"Performance" },
+ { id:"api", label:"API & Integrations" },
+];
+
+/* ── components ── */
+
+function Toggle({ checked, disabled, onChange }: { checked: boolean; disabled?: boolean; onChange: (v: boolean) => void }) {
+ return (
+ <button
+ role="switch"
+ aria-checked={checked}
+ disabled={disabled}
+ onClick={() => onChange(!checked)}
+ className={`
+ relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
+ transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2
+ focus-visible:ring-[rgb(var(--primary))]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[rgb(var(--background))]
+ disabled:cursor-not-allowed disabled:opacity-50
+ ${checked ?"bg-[rgb(var(--primary))]" :"bg-[rgb(var(--muted))]"}
+ `}
+ >
+ <span
+ className={`
+ pointer-events-none inline-block h-5 w-5 rounded-full bg-[rgb(var(--card))] shadow-sm ring-0
+ transition-transform duration-200 ease-in-out
+ ${checked ?"translate-x-5" :"translate-x-0"}
+ `}
+ />
+ </button>
+ );
 }
 
+/* ── main page ── */
+export default function SystemSettingsPage() {
+ const [activeCategory, setActiveCategory] = useState("general");
+ const [settings, setSettings] = useState<SystemSetting[]>(defaultSettings);
+ const [loadingMaintenance, setLoadingMaintenance] = useState(true);
+ const [saving, setSaving] = useState(false);
+
+ /* fetch maintenance mode status */
+ useEffect(() => {
+ fetch("/api/market/auto-update", { headers: { ...adminAuth.getAuthHeaders() } })
+ .then((r) => r.json())
+ .then((data) => {
+ const enabled = !!data?.data?.enabled;
+ setSettings((prev) => prev.map((s) => (s.id ==="site_maintenance" ? { ...s, value: enabled } : s)));
+ })
+ .catch((err) => console.error("fetch maintenance status", err))
+ .finally(() => setLoadingMaintenance(false));
+ }, []);
+
+ const filtered = settings.filter((s) => s.category === activeCategory);
+ const meta = categoryMeta[activeCategory];
+
+ /* handlers */
+ const updateSetting = async (id: string, value: any) => {
+ if (id ==="site_maintenance") {
+ try {
+ const res = await fetch("/api/market/auto-update", {
+ method:"POST",
+ headers: { ...adminAuth.getAuthHeaders(),"Content-Type":"application/json" },
+ body: JSON.stringify({ action: value ?"stop" :"start" }),
+ });
+ if (!res.ok) throw new Error(`status ${res.status}`);
+ setSettings((prev) => prev.map((s) => (s.id === id ? { ...s, value } : s)));
+ showToast("Maintenance mode updated","success");
+ } catch {
+ showToast("Failed to update maintenance mode","error");
+ }
+ return;
+ }
+ setSettings((prev) => prev.map((s) => (s.id === id ? { ...s, value } : s)));
+ };
+
+ const handleSave = () => {
+ setSaving(true);
+ setTimeout(() => {
+ setSaving(false);
+ showToast("Settings saved — restart may be needed for some changes.","success");
+ }, 600);
+ };
+
+ const handleReset = () => {
+ if (!confirm("Reset all settings to their defaults?")) return;
+ setSettings(defaultSettings);
+ showToast("Settings reset to defaults.","info");
+ };
+
+ /* render input by type */
+ const renderInput = (s: SystemSetting) => {
+ switch (s.type) {
+ case"boolean":
+ return <Toggle checked={s.value} disabled={s.id ==="site_maintenance" && loadingMaintenance} onChange={(v) => updateSetting(s.id, v)} />;
+ case"select":
+ return (
+ <select
+ value={s.value}
+ onChange={(e) => updateSetting(s.id, e.target.value)}
+ className="h-9 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--background))] px-3 text-sm text-[rgb(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/30"
+ >
+ {s.options?.map((o) => (
+ <option key={o} value={o}>{o.toUpperCase()}</option>
+ ))}
+ </select>
+ );
+ case"number":
+ return (
+ <input
+ type="number"
+ value={s.value}
+ onChange={(e) => updateSetting(s.id, parseInt(e.target.value) || 0)}
+ className="h-9 w-28 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--background))] px-3 text-sm tabular-nums text-[rgb(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/30"
+ />
+ );
+ case"string":
+ return (
+ <input
+ type="text"
+ value={s.value}
+ placeholder={s.placeholder}
+ onChange={(e) => updateSetting(s.id, e.target.value)}
+ className="h-9 w-64 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--background))] px-3 text-sm text-[rgb(var(--foreground))] placeholder:text-[rgb(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/30"
+ />
+ );
+ default:
+ return null;
+ }
+ };
+
+ return (
+ <div className="space-y-6">
+ {/* header */}
+ <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+ <div>
+ <h1 className="text-2xl font-semibold tracking-tight text-[rgb(var(--foreground))]">System Settings</h1>
+ <p className="mt-1 text-sm text-[rgb(var(--muted-foreground))]">Configure platform behavior, security policies, and integrations</p>
+ </div>
+ <div className="flex gap-2">
+ <button
+ onClick={handleReset}
+ className="h-9 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-4 text-sm font-medium text-[rgb(var(--foreground))] transition-colors hover:bg-[rgb(var(--muted))]/20"
+ >
+ Reset Defaults
+ </button>
+ <button
+ onClick={handleSave}
+ disabled={saving}
+ className="h-9 rounded-lg bg-[rgb(var(--primary))] px-4 text-sm font-medium text-white transition-colors hover:bg-[rgb(var(--primary))]/90 disabled:opacity-50"
+ >
+ {saving ?"Saving…" :"Save Changes"}
+ </button>
+ </div>
+ </div>
+
+ {/* restart notice */}
+ <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800/40 dark:bg-amber-900/10">
+ <ShieldCheckIcon className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+ <p className="text-sm text-amber-700 dark:text-amber-300">
+ Some changes require a server restart to take effect. Save, then restart when convenient.
+ </p>
+ </div>
+
+ <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
+ {/* sidebar – category tabs */}
+ <div className="space-y-4">
+ <nav className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-2">
+ {categories.map((cat) => {
+ const active = cat.id === activeCategory;
+ const cm = categoryMeta[cat.id];
+ return (
+ <button
+ key={cat.id}
+ onClick={() => setActiveCategory(cat.id)}
+ className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+ active
+ ?"bg-[rgb(var(--primary))]/10 text-[rgb(var(--primary))]"
+ :"text-[rgb(var(--muted-foreground))] hover:bg-[rgb(var(--muted))]/10 hover:text-[rgb(var(--foreground))]"
+ }`}
+ >
+ <span className={active ?"text-[rgb(var(--primary))]" : cm?.color ??""}>{cm?.icon}</span>
+ {cat.label}
+ </button>
+ );
+ })}
+ </nav>
+
+ {/* system info card */}
+ <div className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-4">
+ <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[rgb(var(--muted-foreground))] mb-3">System Info</h3>
+ <dl className="space-y-2 text-sm">
+ {[
+ { label:"Version", value:"1.0.0" },
+ { label:"Environment", value:"Production" },
+ { label:"Database", value:"Connected", color:"text-emerald-500" },
+ { label:"Cache", value:"Active", color:"text-emerald-500" },
+ { label:"Last Backup", value:"2 h ago" },
+ ].map((row) => (
+ <div key={row.label} className="flex items-center justify-between">
+ <dt className="text-[rgb(var(--muted-foreground))]">{row.label}</dt>
+ <dd className={`font-medium ${row.color ??"text-[rgb(var(--foreground))]"}`}>{row.value}</dd>
+ </div>
+ ))}
+ </dl>
+ </div>
+ </div>
+
+ {/* main content */}
+ <div className="space-y-6">
+ {/* category header */}
+ <div className="flex items-center gap-2.5 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-5 py-3">
+ <span className={meta?.color ??""}>{meta?.icon}</span>
+ <h2 className="text-base font-semibold text-[rgb(var(--foreground))]">
+ {categories.find((c) => c.id === activeCategory)?.label} Settings
+ </h2>
+ <span className="ml-auto rounded-full bg-[rgb(var(--muted))]/10 px-2.5 py-0.5 text-xs font-medium tabular-nums text-[rgb(var(--muted-foreground))]">
+ {filtered.length} option{filtered.length !== 1 ?"s" :""}
+ </span>
+ </div>
+
+ {/* settings list */}
+ <div className="divide-y divide-[rgb(var(--border))] rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))]">
+ {filtered.map((s) => (
+ <div key={s.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+ <div className="min-w-0">
+ <p className="text-sm font-medium text-[rgb(var(--foreground))]">{s.name}</p>
+ <p className="mt-0.5 text-xs text-[rgb(var(--muted-foreground))]">{s.description}</p>
+ </div>
+ <div className="shrink-0">{renderInput(s)}</div>
+ </div>
+ ))}
+ </div>
+
+ {/* contextual tips */}
+ {activeCategory ==="security" && (
+ <div className="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800/30 dark:bg-red-900/10">
+ <h3 className="text-sm font-semibold text-red-700 dark:text-red-400 mb-2">Security Recommendations</h3>
+ <ul className="space-y-1 text-xs text-red-600 dark:text-red-300">
+ <li>Enable two-factor authentication for all admin accounts</li>
+ <li>Set minimum password length to 12+ characters</li>
+ <li>Regularly update system dependencies</li>
+ <li>Monitor login attempts in the audit log</li>
+ </ul>
+ </div>
+ )}
+ {activeCategory ==="performance" && (
+ <div className="rounded-xl border border-[rgb(var(--primary))]/20 bg-[rgb(var(--primary))]/5 p-4 /10">
+ <h3 className="text-sm font-semibold text-[rgb(var(--primary))] mb-2">Performance Tips</h3>
+ <ul className="space-y-1 text-xs text-[rgb(var(--primary))]">
+ <li>Enable page caching to reduce server load by up to 60 %</li>
+ <li>Optimize images to save bandwidth — especially for mobile readers</li>
+ <li>Use a CDN for static assets in production</li>
+ <li>Monitor response times under Analytics &gt; Performance</li>
+ </ul>
+ </div>
+ )}
+ {activeCategory ==="email" && (
+ <div className="flex gap-2">
+ <button className="h-9 rounded-lg border border-emerald-300 bg-emerald-50 px-4 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800/40 dark:bg-emerald-900/10 dark:text-emerald-400">
+ Test Email Config
+ </button>
+ <button className="h-9 rounded-lg border border-blue-300 bg-[rgb(var(--primary))]/5 px-4 text-sm font-medium text-[rgb(var(--primary))] transition-colors hover:bg-[rgb(var(--primary))]/10 /10">
+ View Templates
+ </button>
+ </div>
+ )}
+
+ {/* quick actions */}
+ <div className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-5">
+ <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[rgb(var(--muted-foreground))] mb-3">System Actions</h3>
+ <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+ {[
+ { label:"Clear Cache", icon: <CircleStackIcon className="w-4 h-4" />, accent:"blue" },
+ { label:"Create Backup", icon: <ServerIcon className="w-4 h-4" />, accent:"emerald" },
+ { label:"System Report", icon: <ChartBarIcon className="w-4 h-4" />, accent:"violet" },
+ ].map((a) => (
+ <button
+ key={a.label}
+ onClick={() => showToast(`${a.label} initiated`,"info")}
+ className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors
+ border-${a.accent}-200 bg-${a.accent}-50 text-${a.accent}-700
+ hover:bg-${a.accent}-100
+ dark:border-${a.accent}-800/40 dark:bg-${a.accent}-900/10 dark:text-${a.accent}-400
+ `}
+ >
+ {a.icon}
+ {a.label}
+ </button>
+ ))}
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ );
+}

@@ -46,7 +46,7 @@ const Footer: React.FC = () => {
     { name: 'Privacy Policy', href: '/privacy' },
     { name: 'Terms of Service', href: '/terms' },
     { name: 'Cookie Policy', href: '/cookies' },
-    { name: 'Sitemap', href: '/sitemap' },
+    { name: 'Sitemap', href: '/site-map' },
     { name: 'Help Center', href: '/help' },
     { name: 'Subscription', href: '/subscription' },
   ];

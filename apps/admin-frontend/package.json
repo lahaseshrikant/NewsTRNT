@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@supabase/supabase-js": "^2.98.0",
     "@tiptap/extension-bubble-menu": "^3.6.1",
     "@tiptap/extension-floating-menu": "^3.6.1",
     "@tiptap/extension-gapcursor": "^3.6.1",
@@ -27,6 +28,8 @@
     "@tiptap/react": "^3.4.2",
     "@tiptap/starter-kit": "^3.4.2",
     "bcryptjs": "^3.0.2",
+    "critters": "^0.0.23",
+    "html-to-image": "^1.11.13",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.536.0",
     "next": "15.4.5",

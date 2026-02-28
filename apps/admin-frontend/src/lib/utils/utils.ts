@@ -10,16 +10,16 @@
  * @returns The email as a string, or empty string if not found
  */
 export function getEmailString(email: unknown): string {
-  if (typeof email === 'string') {
-    return email;
-  }
-  if (email && typeof email === 'object' && 'email' in email) {
-    const nestedEmail = (email as { email: unknown }).email;
-    if (typeof nestedEmail === 'string') {
-      return nestedEmail;
-    }
-  }
-  return '';
+ if (typeof email === 'string') {
+ return email;
+ }
+ if (email && typeof email === 'object' && 'email' in email) {
+ const nestedEmail = (email as { email: unknown }).email;
+ if (typeof nestedEmail === 'string') {
+ return nestedEmail;
+ }
+ }
+ return '';
 }
 
 /**
@@ -30,24 +30,24 @@ export function getEmailString(email: unknown): string {
  * @returns The display name as a string
  */
 export function getDisplayName(user: unknown): string {
-  if (!user || typeof user !== 'object') {
-    return 'User';
-  }
-  const u = user as Record<string, unknown>;
-  if (typeof u.displayName === 'string' && u.displayName) {
-    return u.displayName;
-  }
-  if (typeof u.username === 'string' && u.username) {
-    return u.username;
-  }
-  if (typeof u.name === 'string' && u.name) {
-    return u.name;
-  }
-  const email = getEmailString(u.email);
-  if (email) {
-    return email.split('@')[0];
-  }
-  return 'User';
+ if (!user || typeof user !== 'object') {
+ return 'User';
+ }
+ const u = user as Record<string, unknown>;
+ if (typeof u.displayName === 'string' && u.displayName) {
+ return u.displayName;
+ }
+ if (typeof u.username === 'string' && u.username) {
+ return u.username;
+ }
+ if (typeof u.name === 'string' && u.name) {
+ return u.name;
+ }
+ const email = getEmailString(u.email);
+ if (email) {
+ return email.split('@')[0];
+ }
+ return 'User';
 }
 
 /**
@@ -58,12 +58,12 @@ export function getDisplayName(user: unknown): string {
  * @returns Base64 encoded string
  */
 export function safeBase64Encode(str: string): string {
-  try {
-    return btoa(unescape(encodeURIComponent(str)));
-  } catch {
-    // Fallback for edge cases
-    return btoa(str.replace(/[^\x00-\xff]/g, '?'));
-  }
+ try {
+ return btoa(unescape(encodeURIComponent(str)));
+ } catch {
+ // Fallback for edge cases
+ return btoa(str.replace(/[^\x00-\xff]/g, '?'));
+ }
 }
 
 /**
@@ -73,11 +73,11 @@ export function safeBase64Encode(str: string): string {
  * @returns Decoded string
  */
 export function safeBase64Decode(str: string): string {
-  try {
-    return decodeURIComponent(escape(atob(str)));
-  } catch {
-    // Fallback for edge cases
-    return atob(str);
-  }
+ try {
+ return decodeURIComponent(escape(atob(str)));
+ } catch {
+ // Fallback for edge cases
+ return atob(str);
+ }
 }
 

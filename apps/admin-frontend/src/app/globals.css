@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 /* ===========================================================
    NEWSTRNT ADMIN — Design System
@@ -29,6 +30,24 @@ body {
 }
 
 img { height: auto; max-width: 100%; }
+
+/* --- Focus-visible accessibility ring --- */
+:focus-visible {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Remove focus ring for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -142,6 +161,20 @@ input::placeholder, textarea::placeholder { color: rgb(var(--muted-foreground));
 
 .animate-fade-in { animation: fadeIn 0.3s ease-out; }
 .animate-slide-up { animation: slideUp 0.4s ease-out; }
+
+/* --- animate-in utilities (for modals, dropdowns, toasts) --- */
+@keyframes enter-from-top { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes enter-from-bottom { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes enter-zoom { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes enter-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.animate-in { animation-duration: 150ms; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); animation-fill-mode: both; }
+.animate-in.fade-in { animation-name: enter-fade; }
+.animate-in.slide-in-from-top-2 { animation-name: enter-from-top; }
+.animate-in.slide-in-from-top-4 { animation-name: enter-from-top; animation-duration: 200ms; }
+.animate-in.zoom-in-95 { animation-name: enter-zoom; }
+.duration-150 { animation-duration: 150ms; }
+.duration-200 { animation-duration: 200ms; }
 
 
 /* ===========================================================

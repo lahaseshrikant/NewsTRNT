@@ -1,10 +1,10 @@
 // Login page should not use the protected admin layout
 export default function LoginLayout({
-  children,
+ children,
 }: {
-  children: React.ReactNode;
+ children: React.ReactNode;
 }) {
-  return children;
+ return children;
 }
 
 

@@ -15,6 +15,7 @@ import marketConfigRoutes from './market-config';
 import rbacRoutes from './rbac';
 import notificationsRoutes from './notifications';
 import scrapedItemsRoutes from './scraped-items';
+import tagsRoutes from './tags';
 
 const router = Router();
 
@@ -33,5 +34,6 @@ router.use('/', marketConfigRoutes);  // /market-config, /market-config/indices|
 router.use('/', rbacRoutes);
 router.use('/', notificationsRoutes);          // /roles, /roles/:id, /permissions
 router.use('/', scrapedItemsRoutes);   // /scraped-items, /scraped-items/:id/approve
+router.use('/', tagsRoutes);           // /tags CRUD
 
 export default router;

@@ -64,7 +64,7 @@ function seedNotifications(userName: string): Notification[] {
       id: generateId(),
       type: 'system',
       title: 'Breaking News Alerts',
-      message: 'You'll receive alerts when breaking news happens in your selected topics.',
+      message: "You'll receive alerts when breaking news happens in your selected topics.",
       time: new Date(now.getTime() - 120000).toISOString(),
       read: false,
     },

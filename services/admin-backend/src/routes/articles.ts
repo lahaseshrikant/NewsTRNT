@@ -551,11 +551,11 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res): Promi
     console.error('Error updating article:', {
       message: error?.message ?? String(error),
       stack: error?.stack,
-      articleId: id,
+      articleId: req.params.id,
       bodyPreview: {
-        title: title?.slice?.(0, 120),
-        categoryId,
-        tags: Array.isArray(tags) ? tags.slice(0, 10) : tags
+        title: req.body?.title?.slice?.(0, 120),
+        categoryId: req.body?.categoryId,
+        tags: Array.isArray(req.body?.tags) ? req.body.tags.slice(0, 10) : req.body?.tags
       }
     });
 
@@ -1496,7 +1496,7 @@ router.post('/ingest', async (req: AuthRequest, res) => {
   await prisma.scraperRun.update({
     where: { id: run.id },
     data: {
-      status: failed === articles.length ? 'failed' : failed > 0 ? 'partial' : 'success',
+      status: failed === items.length ? 'failed' : failed > 0 ? 'partial' : 'success',
       completedAt: new Date(),
       itemsInserted: inserted + updated,
       itemsFailed: failed,
@@ -1511,7 +1511,7 @@ router.post('/ingest', async (req: AuthRequest, res) => {
     inserted,
     updated,
     failed,
-    total: articles.length,
+    total: items.length,
     scraperRunId: run.id,
     ...(errors.length > 0 ? { errors: errors.slice(0, 20) } : {}),
   });

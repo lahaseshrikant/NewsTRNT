@@ -1,0 +1,253 @@
+access\activity\page.tsx:149 | LOGIN: '🔑',
+access\activity\page.tsx:151 | CONTENT_CREATE: '📝',
+access\activity\page.tsx:152 | CONTENT_UPDATE: '✏️',
+access\activity\page.tsx:153 | CONTENT_DELETE: '🗑️',
+access\activity\page.tsx:154 | CONTENT_PUBLISH: '📢',
+access\activity\page.tsx:155 | USER_CREATE: '👤',
+access\activity\page.tsx:156 | USER_UPDATE: '✏️',
+access\activity\page.tsx:157 | USER_DELETE: '❌',
+access\activity\page.tsx:159 | CONFIG_CHANGE: '⚙️'
+access\activity\page.tsx:161 | return icons[action] || '📋';
+access\activity\page.tsx:230 | <span className="text-3xl">📈</span>
+access\activity\page.tsx:239 | <span className="text-3xl">👥</span>
+access\activity\page.tsx:270 | <span className="text-4xl mb-4 block">⚠️</span>
+access\activity\page.tsx:331 | <span className="text-4xl block mb-2">📋</span>
+access\activity\page.tsx:352 | {roleConfig?.icon || '👤'}
+access\activity\page.tsx:380 | <span className="text-4xl block mb-2">👥</span>
+access\activity\page.tsx:392 | {roleConfig?.icon || '👤'}
+access\activity\page.tsx:431 | {roleConfig?.icon || '👤'} {count}
+access\activity\page.tsx:448 | LOGIN: '🔑',
+access\activity\page.tsx:450 | CONTENT_CREATE: '📝',
+access\activity\page.tsx:451 | CONTENT_UPDATE: '✏️',
+access\activity\page.tsx:452 | CONTENT_DELETE: '🗑️',
+access\activity\page.tsx:453 | CONTENT_PUBLISH: '📢',
+access\activity\page.tsx:454 | USER_CREATE: '👤',
+access\activity\page.tsx:455 | USER_UPDATE: '✏️',
+access\activity\page.tsx:456 | USER_DELETE: '❌',
+access\activity\page.tsx:458 | CONFIG_CHANGE: '⚙️'
+access\activity\page.tsx:463 | actionCounts[activity.action] = { count: 0, icon: icons[activity.action] || '📋' };
+access\audit\page.tsx:148 | LOGIN_SUCCESS: '🔑',
+access\audit\page.tsx:151 | SESSION_EXPIRED: '⏰',
+access\audit\page.tsx:152 | PASSWORD_CHANGE: '🔐',
+access\audit\page.tsx:153 | MFA_ENABLED: '✅',
+access\audit\page.tsx:154 | MFA_DISABLED: '⚠️',
+access\audit\page.tsx:155 | USER_CREATE: '👤',
+access\audit\page.tsx:156 | USER_UPDATE: '✏️',
+access\audit\page.tsx:157 | USER_DELETE: '❌',
+access\audit\page.tsx:159 | USER_UNBAN: '✅',
+access\audit\page.tsx:162 | PERMISSION_GRANT: '🔐',
+access\audit\page.tsx:163 | PERMISSION_REVOKE: '🔐',
+access\audit\page.tsx:164 | ARTICLE_CREATE: '📝',
+access\audit\page.tsx:165 | ARTICLE_UPDATE: '✏️',
+access\audit\page.tsx:166 | ARTICLE_DELETE: '🗑️',
+access\audit\page.tsx:167 | ARTICLE_PUBLISH: '📢',
+access\audit\page.tsx:168 | ARTICLE_UNPUBLISH: '📥',
+access\audit\page.tsx:170 | CATEGORY_CREATE: '📁',
+access\audit\page.tsx:171 | CATEGORY_UPDATE: '📁',
+access\audit\page.tsx:172 | CATEGORY_DELETE: '🗑️',
+access\audit\page.tsx:173 | CONFIG_UPDATE: '⚙️',
+access\audit\page.tsx:174 | SYSTEM_BACKUP: '💾',
+access\audit\page.tsx:176 | API_ACCESS: '🔌',
+access\audit\page.tsx:180 | return icons[action] || '📋';
+access\audit\page.tsx:244 | <span>📥</span> Export CSV
+access\audit\page.tsx:282 | <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">🔍</span>
+access\page.tsx:100 | icon: '🔍',
+access\page.tsx:107 | icon: '📋',
+access\page.tsx:118 | icon: '👥',
+access\page.tsx:135 | icon: '🔐',
+access\page.tsx:152 | icon: '📋',
+access\page.tsx:160 | icon: '📊',
+access\page.tsx:168 | icon: '🛡️',
+access\page.tsx:210 | <span className="text-3xl">👥</span>
+access\page.tsx:236 | <span className="text-3xl">🔌</span>
+access\page.tsx:365 | <span className="text-xl">⚠️</span>
+access\page.tsx:379 | <span className="text-4xl mb-2 block">✅</span>
+access\page.tsx:435 | <span className="text-2xl">💡</span>
+access\roles\page.tsx:88 | icon: '📰',
+access\roles\page.tsx:93 | icon: '📁',
+access\roles\page.tsx:98 | icon: '👥',
+access\roles\page.tsx:103 | icon: '🖼️',
+access\roles\page.tsx:108 | icon: '💬',
+access\roles\page.tsx:113 | icon: '⚙️',
+access\roles\page.tsx:192 | <span>✏️</span> Edit Permissions
+access\roles\page.tsx:419 | <span className="text-2xl">💡</span>
+access\security\page.tsx:151 | { id: 'mfa', label: 'Multi-Factor Auth', icon: '🔐' },
+access\security\page.tsx:152 | { id: 'sessions', label: 'Sessions', icon: '🔌' },
+access\security\page.tsx:153 | { id: 'passwords', label: 'Password Policy', icon: '🔑' },
+access\security\page.tsx:154 | { id: 'access', label: 'Access Control', icon: '🌐' },
+access\security\page.tsx:224 | <span className="absolute inset-0 flex items-center justify-center text-2xl">🛡️</span>
+access\security\page.tsx:238 | <span className="text-yellow-600">⚠</span>
+access\security\page.tsx:242 | <span className="text-yellow-600">⚠</span>
+access\security\page.tsx:325 | {method === 'authenticator' && '📱'}
+access\security\page.tsx:326 | {method === 'sms' && '📨'}
+access\security\page.tsx:327 | {method === 'email' && '📧'}
+access\security\page.tsx:328 | {method === 'hardware_key' && '🔑'}
+access\team\page.tsx:391 | <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">🔍</span>
+advertising\page.tsx:160 | { id: 'campaigns', label: 'Active Campaigns', icon: '🎯' },
+advertising\page.tsx:161 | { id: 'proposals', label: 'Proposals', icon: '📋' },
+advertising\page.tsx:162 | { id: 'performance', label: 'Performance', icon: '📈' },
+advertising\page.tsx:163 | { id: 'networks', label: 'Ad Networks', icon: '🔌' }
+advertising\page.tsx:371 | <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-2xl">💰</div>
+advertising\page.tsx:403 | <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center text-2xl">📱</di
+advertising\page.tsx:456 | <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center text-2xl">⚡</d
+advertising\performance\page.tsx:63 | const icons: Record<string, string> = { banner: '🖼️', sidebar: '📐', sponsored: '📰', native: '📝', video: '🎬' };
+advertising\performance\page.tsx:64 | return icons[type] || '📊';
+advertising\performance\page.tsx:224 | <span className="text-3xl mb-2 block">📊</span>
+advertising\requests\page.tsx:67 | const icons = { banner: '🖼️', sidebar: '📐', sponsored: '📰', native: '📝', video: '🎬' };
+analytics\content\page.tsx:160 | case 'up': return '📈';
+analytics\content\page.tsx:161 | case 'down': return '📉';
+analytics\content\page.tsx:162 | case 'stable': return '📊';
+analytics\content\page.tsx:163 | default: return '📊';
+analytics\content\page.tsx:269 | <div className="text-3xl">🔄</div>
+analytics\content\page.tsx:460 | <div className="text-6xl mb-4">📊</div>
+analytics\engagement\page.tsx:243 | <div className="text-3xl">💬</div>
+analytics\engagement\page.tsx:253 | <div className="text-3xl">💭</div>
+analytics\engagement\page.tsx:423 | <span className="text-lg">💬</span>
+analytics\engagement\page.tsx:454 | <span className="text-lg">🔄</span>
+analytics\engagement\page.tsx:467 | <div className="text-6xl mb-4">💬</div>
+analytics\export\page.tsx:29 | { id: 'traffic', name: 'Traffic Report', description: 'Page views, unique visitors, bounce rate, and traffic sources', i
+analytics\export\page.tsx:30 | { id: 'content', name: 'Content Performance', description: 'Article views, engagement metrics, and trending content', ic
+analytics\export\page.tsx:31 | { id: 'users', name: 'User Analytics', description: 'User demographics, retention, and behavior patterns', icon: '👥', c
+analytics\export\page.tsx:32 | { id: 'engagement', name: 'Engagement Report', description: 'Comments, shares, likes, and social interactions', icon: '�
+analytics\export\page.tsx:33 | { id: 'revenue', name: 'Revenue Report', description: 'Ad revenue, subscriptions, and financial metrics', icon: '💰', ca
+analytics\export\page.tsx:34 | { id: 'newsletter', name: 'Newsletter Analytics', description: 'Open rates, click rates, and subscriber growth', icon: '
+analytics\export\page.tsx:35 | { id: 'seo', name: 'SEO Report', description: 'Search rankings, keywords, and organic traffic', icon: '🔍', category: 'S
+analytics\export\page.tsx:36 | { id: 'custom', name: 'Custom Report', description: 'Build a custom report with selected metrics', icon: '⚙️', category:
+analytics\export\page.tsx:157 | {report.format === 'PDF' ? '📄' : report.format === 'XLSX' ? '📊' : '📋'}
+analytics\export\page.tsx:187 | <span className="text-2xl">📈</span>
+analytics\export\page.tsx:192 | <span className="text-2xl">📊</span>
+analytics\export\page.tsx:197 | <span className="text-2xl">📉</span>
+analytics\export\page.tsx:202 | <span className="text-2xl">🎯</span>
+analytics\realtime\page.tsx:162 | const icons = { desktop: '🖥️', mobile: '📱', tablet: '📱' };
+analytics\realtime\page.tsx:197 | <span className="text-4xl mb-4 block">⚠️</span>
+analytics\traffic\page.tsx:190 | <span className="text-2xl">👥</span>
+analytics\traffic\page.tsx:199 | <span className="text-2xl">🔄</span>
+analytics\traffic\page.tsx:208 | <span className="text-2xl">📊</span>
+config\page.tsx:137 | icon: '📊',
+config\page.tsx:143 | icon: '📱',
+config\page.tsx:149 | icon: '⚙️',
+config\page.tsx:155 | icon: '🚀',
+config\page.tsx:161 | icon: '📋',
+config\page.tsx:688 | <span className="text-yellow-800 dark:text-yellow-400">⚠️</span>
+content\calendar\page.tsx:102 | const icons = { low: '○', medium: '◐', high: '●', urgent: '🔥' };
+content\drafts\page.tsx:412 | <div className="text-6xl mb-4">📝</div>
+content\edit\[id]\page.tsx:237 | <div className="text-6xl mb-4">⚠️</div>
+content\navigation\page.tsx:572 | icon: cat.icon || '📂',
+content\navigation\page.tsx:908 | {item.type === 'category' ? '📁' : (item.icon || item.label.charAt(0).toUpperCase())}
+content\tags\page.tsx:313 | <div className="text-6xl mb-4">🏷️</div>
+content\web-stories\page.tsx:149 | const priorityIcon: Record<string, string> = { high: '🔥', normal: '📊', low: '📝' };
+content\web-stories\page.tsx:175 | { label: 'Total Stories', value: totalStories, icon: '📱', color: 'from-blue-500/10 to-indigo-500/10 dark:from-blue-900/
+content\web-stories\page.tsx:176 | { label: 'Published', value: publishedCount, icon: '✅', color: 'from-green-500/10 to-emerald-500/10 dark:from-green-900/
+content\web-stories\page.tsx:177 | { label: 'Drafts', value: draftCount, icon: '✏️', color: 'from-amber-500/10 to-orange-500/10 dark:from-amber-900/20 dark
+content\web-stories\page.tsx:197 | <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">🔍</span>
+content\web-stories\page.tsx:403 | <span className="text-5xl block mb-4">📱</span>
+content\workflow\page.tsx:96 | const icons = { article: '📄', feature: '⭐', opinion: '💭', breaking: '🔴' };
+content-engine\ai\page.tsx:133 | { icon: '📝', name: 'Summarization', desc: 'Generate concise 60-100 word summaries from full articles', color: 'blue' },
+content-engine\ai\page.tsx:134 | { icon: '🏷️', name: 'Classification', desc: 'Auto-categorize into 12 news categories using keyword + AI', color: 'green
+content-engine\ai\page.tsx:136 | { icon: '🔍', name: 'SEO Optimization', desc: 'Generate slugs, meta descriptions, keywords, and schema markup', color: '
+content-engine\ai\page.tsx:137 | { icon: '📰', name: 'Headline Generation', desc: 'Create alternative engaging headlines for articles', color: 'pink' },
+content-engine\ai\page.tsx:138 | { icon: '💬', name: 'Key Quote Extraction', desc: 'Pull important quotes from article content', color: 'cyan' },
+content-engine\page.tsx:271 | icon="🖥️"
+content-engine\page.tsx:277 | icon="⏰"
+content-engine\page.tsx:284 | icon="🔄"
+content-engine\page.tsx:291 | icon="📰"
+content-engine\pipeline\page.tsx:116 | if (name.includes('dedup')) return '🔄';
+content-engine\pipeline\page.tsx:117 | if (name.includes('ai') || name.includes('enrich')) return '🧠';
+content-engine\pipeline\page.tsx:118 | if (name.includes('deliver')) return '🚀';
+content-engine\pipeline\page.tsx:119 | if (name.includes('market')) return '📈';
+content-engine\pipeline\page.tsx:120 | return '⚙️';
+content-engine\pipeline\page.tsx:210 | <p className="text-4xl mb-3">🔍</p>
+content-engine\scheduler\page.tsx:161 | {job.name?.includes('news') ? '📰' : job.name?.includes('market') ? '📈' : '⚙️'}
+content-engine\sources\page.tsx:51 | g.push({ type: 'newsapi', label: 'NewsAPI', icon: '📰', sources: Array.isArray(raw.newsapi) ? raw.newsapi : [raw.newsapi
+content-engine\sources\page.tsx:54 | g.push({ type: 'market', label: 'Market Data', icon: '📈', sources: [{ name: 'TradingView', type: 'market', enabled: tru
+dev-tools\api-tester\page.tsx:633 | {result.status === 'pending' && '⏳'}
+dev-tools\api-tester\page.tsx:634 | {result.status === 'success' && '✅'}
+dev-tools\api-tester\page.tsx:635 | {result.status === 'error' && '❌'}
+external-apis\page.tsx:20 | { id: 'newsapi', name: 'NewsAPI', description: 'Fetch headlines and breaking news from 80,000+ sources', category: 'news
+external-apis\page.tsx:21 | { id: 'gnews', name: 'GNews', description: 'Google News aggregation with multi-language support', category: 'news', icon
+external-apis\page.tsx:23 | { id: 'openai', name: 'OpenAI GPT', description: 'AI-powered article summarization, tagging, and content generation', ca
+external-apis\page.tsx:25 | { id: 'google-analytics', name: 'Google Analytics 4', description: 'Website traffic and user behavior analytics', catego
+external-apis\page.tsx:29 | { id: 'razorpay', name: 'Razorpay', description: 'Payment gateway for Indian market with UPI support', category: 'paymen
+external-apis\page.tsx:30 | { id: 'firebase-fcm', name: 'Firebase FCM', description: 'Push notification delivery to web and mobile', category: 'noti
+external-apis\page.tsx:32 | { id: 'cloudinary', name: 'Cloudinary', description: 'Image and video optimization, transformation, and CDN', category: 
+external-apis\page.tsx:33 | { id: 'aws-s3', name: 'AWS S3', description: 'Scalable object storage for media files and backups', category: 'storage',
+external-apis\page.tsx:34 | { id: 'tradingview', name: 'TradingView', description: 'Real-time stock and crypto market data widgets', category: 'mark
+external-apis\page.tsx:39 | { key: 'all', label: 'All', icon: '🔗' },
+external-apis\page.tsx:40 | { key: 'news', label: 'News Sources', icon: '📰' },
+external-apis\page.tsx:41 | { key: 'ai', label: 'AI Services', icon: '🤖' },
+external-apis\page.tsx:42 | { key: 'analytics', label: 'Analytics', icon: '📊' },
+external-apis\page.tsx:43 | { key: 'social', label: 'Social Media', icon: '📱' },
+external-apis\page.tsx:45 | { key: 'notification', label: 'Notifications', icon: '🔔' },
+external-apis\page.tsx:46 | { key: 'storage', label: 'Storage & CDN', icon: '☁️' },
+external-apis\page.tsx:47 | { key: 'market', label: 'Market Data', icon: '📈' },
+external-apis\page.tsx:168 | <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">🔍</span>
+external-apis\page.tsx:282 | <span className="text-4xl">🔌</span>
+help\page.tsx:56 | icon: '🚀',
+help\page.tsx:58 | { title: 'Dashboard Overview', description: 'Understand the admin dashboard stats, navigation, and quick actions', link:
+help\page.tsx:60 | { title: 'Managing Your Profile', description: 'Update your name, password, and account security settings', link: '/prof
+help\page.tsx:65 | icon: '📝',
+help\page.tsx:67 | { title: 'Working with Categories & Tags', description: 'Organize content with hierarchical categories and flexible tagg
+help\page.tsx:68 | { title: 'Creating Web Stories', description: 'Build mobile-first visual stories with slides, animations, and media', li
+help\page.tsx:70 | { title: 'Media Library Management', description: 'Upload, organize, and optimize images and files', link: '/media', ico
+help\page.tsx:75 | icon: '🔐',
+help\page.tsx:77 | { title: 'Roles & Permissions', description: 'Configure role-based access control for your team', link: '/access', icon:
+help\page.tsx:78 | { title: 'Team Management', description: 'Add, manage, and audit team member accounts', link: '/access/team', icon: '👥'
+help\page.tsx:79 | { title: 'Audit Logs', description: 'Track all admin actions, login history, and security events', link: '/access/audit'
+help\page.tsx:84 | icon: '📈',
+help\page.tsx:86 | { title: 'Reading Analytics', description: 'Understand traffic, engagement, and content performance metrics', link: '/an
+help\page.tsx:87 | { title: 'Real-time Monitoring', description: 'See who\'s reading what right now with live analytics', link: '/analytics
+help\page.tsx:93 | icon: '⚙️',
+help\page.tsx:95 | { title: 'Site Configuration', description: 'Customize site name, logo, SEO defaults, and feature toggles', link: '/conf
+help\page.tsx:96 | { title: 'External API Setup', description: 'Connect news feeds, AI services, and third-party integrations', link: '/ext
+help\page.tsx:97 | { title: 'System Backup & Recovery', description: 'Configure automated backups and restore from snapshots', link: '/syst
+help\page.tsx:104 | { id: 'all', label: 'All Topics', icon: '📚' },
+help\page.tsx:105 | { id: 'content', label: 'Content', icon: '📝' },
+help\page.tsx:106 | { id: 'users', label: 'Users & Access', icon: '👥' },
+help\page.tsx:107 | { id: 'analytics', label: 'Analytics', icon: '📊' },
+help\page.tsx:108 | { id: 'system', label: 'System', icon: '⚙️' },
+help\page.tsx:109 | { id: 'moderation', label: 'Moderation', icon: '🛡️' },
+help\page.tsx:110 | { id: 'advertising', label: 'Advertising', icon: '📢' },
+help\page.tsx:142 | <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">🔍</span>
+help\page.tsx:157 | { label: 'Analytics', href: '/analytics', icon: '📊' },
+help\page.tsx:158 | { label: 'Users', href: '/users', icon: '👥' },
+help\page.tsx:159 | { label: 'Settings', href: '/system/settings', icon: '⚙️' },
+help\page.tsx:257 | <span className="text-3xl block mb-2">🔍</span>
+market-data\page.tsx:585 | <span className="text-green-600 text-2xl">✅</span>
+market-data\page.tsx:587 | <span className="text-red-600 text-2xl">❌</span>
+market-data\page.tsx:775 | {loadingAutoUpdate ? '⏳' : autoUpdateStatus?.isRunning ? 'Stop Service' : 'Start Service'}
+market-data\page.tsx:1825 | <li>CoinGecko: No key needed ✅</li>
+market-data\page.tsx:1826 | <li>Exchange Rate: No key needed ✅</li>
+media\page.tsx:65 | image: '🖼️',
+media\page.tsx:68 | document: '📄'
+media\page.tsx:70 | return icons[type as keyof typeof icons] || '📄';
+moderation\page.tsx:252 | <span className="text-4xl mb-4 block">⚠️</span>
+moderation\page.tsx:296 | { id: 'pending', label: 'Pending', icon: '⏳', count: commentCounts.pending },
+moderation\page.tsx:297 | { id: 'approved', label: 'Approved', icon: '✅', count: commentCounts.approved },
+moderation\page.tsx:298 | { id: 'rejected', label: 'Rejected', icon: '❌', count: commentCounts.rejected },
+moderation\reports\page.tsx:86 | const icons = { article: '📄', comment: '💬', user: '👤' };
+newsletter\page.tsx:122 | <span className="text-4xl mb-4 block">⚠️</span>
+newsletter\page.tsx:191 | { id: 'newsletters', label: 'Newsletters', icon: '📧' },
+newsletter\page.tsx:192 | { id: 'subscribers', label: 'Subscribers', icon: '👥' },
+newsletter\page.tsx:193 | { id: 'create', label: 'Create Campaign', icon: '✏️' }
+newsletter\subscribers\page.tsx:92 | const icons = { website: '🌐', import: '📥', manual: '✏️', api: '🔗' };
+newsletter\templates\page.tsx:289 | <span className="text-2xl">📄</span>
+newsletter\templates\page.tsx:293 | <span className="text-2xl">📰</span>
+newsletter\templates\page.tsx:297 | <span className="text-2xl">🎨</span>
+system\backup\page.tsx:64 | const icons = { full: '💾', database: '🗄️', media: '🎬', config: '⚙️' };
+system\backup\page.tsx:229 | <span className="text-2xl">💾</span>
+system\backup\page.tsx:237 | <span className="text-2xl">🗄️</span>
+system\backup\page.tsx:245 | <span className="text-2xl">🎬</span>
+system\backup\page.tsx:253 | <span className="text-2xl">⚙️</span>
+system\integrations\page.tsx:72 | const icons = { connected: '✓', disconnected: '○', error: '⚠', pending: '⏳' };
+system\settings\page.tsx:236 | { id: 'security', label: 'Security', icon: '🔐' },
+system\settings\page.tsx:237 | { id: 'notifications', label: 'Notifications', icon: '🔔' },
+system\settings\page.tsx:238 | { id: 'content', label: 'Content', icon: '📝' }
+users\activity\page.tsx:115 | login: '🔑',
+users\activity\page.tsx:118 | comment: '💬',
+users\activity\page.tsx:119 | subscription: '📧',
+users\activity\page.tsx:121 | save: '📌',
+users\activity\page.tsx:122 | search: '🔍',
+users\activity\page.tsx:123 | download: '⬇️'
+users\activity\page.tsx:125 | return icons[action] || '📋';
+users\subscribers\page.tsx:465 | <div className="text-6xl mb-4">📧</div>
+Total: 252
