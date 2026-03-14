@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import showToast from '@/lib/toast';
 import { API_CONFIG } from '@/config/api';
+import { CommentItem } from './CommentItem';
 
 const API_URL = API_CONFIG.baseURL;
 
@@ -39,7 +40,8 @@ interface Comment {
   isAnonymous: boolean;
   likeCount: number;
   createdAt: string;
-  replies: Comment[];
+  replyCount: number;
+  replies?: Comment[];
 }
 
 interface CommentSectionProps {
@@ -75,6 +77,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const [page, setPage] = useState(1);
   const [totalComments, setTotalComments] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     if (articleId) loadComments();
@@ -111,9 +114,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!newComment.trim()) return;
+    const trimmedComment = newComment.trim();
+    if (!trimmedComment) return;
 
-    if (newComment.length < 2) {
+    if (trimmedComment.length < 2) {
       setError('Comment must be at least 2 characters.');
       return;
     }
@@ -132,7 +136,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           articleId,
-          content: newComment.trim(),
+          content: trimmedComment,
           userId: isAnonymous ? null : (userId || null),
           displayName: isAnonymous ? (anonymousName.trim() || 'Anonymous') : (userDisplayName || 'Reader'),
           isAnonymous,
@@ -146,7 +150,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
       const comment = await response.json();
       setComments(prev => [comment, ...prev]);
-      setTotalComments(prev => prev + 1);
+      setTotalComments(prev => comment.commentCount ?? prev + 1);
       setNewComment('');
       setAnonymousName('');
       setIsAnonymous(false);
@@ -157,6 +161,23 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const insertReply = (nodes: any[], parentId: string, reply: any): any[] => {
+    return nodes.map(node => {
+      if (node.id === parentId) {
+        return {
+          ...node,
+          replyCount: (node.replyCount ?? 0) + 1,
+          replies: [...(node.replies || []), reply]
+        };
+      }
+
+      return {
+        ...node,
+        replies: node.replies ? insertReply(node.replies, parentId, reply) : node.replies
+      };
+    });
   };
 
   const handleSubmitReply = async (parentId: string) => {
@@ -182,13 +203,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
       const reply = await response.json();
 
-      setComments(prev =>
-        prev.map(comment =>
-          comment.id === parentId
-            ? { ...comment, replies: [...comment.replies, reply] }
-            : comment
-        )
-      );
+      setComments(prev => insertReply(prev, parentId, reply));
+      setTotalComments(prev => reply.commentCount ?? prev + 1);
 
       setReplyContent('');
       setReplyingTo(null);
@@ -217,7 +233,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           }
           return {
             ...comment,
-            replies: comment.replies.map(reply =>
+            replies: (comment.replies || []).map(reply =>
               reply.id === commentId
                 ? { ...reply, likeCount: data.likeCount }
                 : reply
@@ -230,146 +246,31 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     }
   };
 
-  const handleFlagComment = async (commentId: string) => {
+  const handleFlagComment = async (
+    commentId: string,
+    opts?: { reason?: string; details?: string }
+  ) => {
     try {
       await fetch(`${API_URL}/comments/${commentId}/flag`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason: opts?.reason,
+          details: opts?.details
+        })
       });
       showToast('Comment reported. Thank you for helping keep our community safe.', 'info');
     } catch (err) {
       console.error('Error flagging comment:', err);
+      showToast('Failed to send report. Please try again.', 'error');
     }
   };
 
   /* ---------- Comment Item ---------- */
 
-  const CommentItem: React.FC<{ comment: Comment; isReply?: boolean }> = ({
-    comment,
-    isReply = false,
-  }) => (
-    <div className={isReply ? 'ml-10 mt-4' : ''}>
-      <div className="flex items-start gap-3">
-        {/* Avatar */}
-        <div
-          className={`${
-            isReply ? 'w-7 h-7 text-[11px]' : 'w-9 h-9 text-xs'
-          } rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0 font-medium text-muted-foreground`}
-        >
-          {comment.avatarUrl ? (
-            <img
-              src={comment.avatarUrl}
-              alt={comment.displayName}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            comment.displayName.charAt(0).toUpperCase()
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-semibold text-foreground">
-              {comment.displayName}
-            </span>
-            {comment.isAnonymous && (
-              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm">
-                Anon
-              </span>
-            )}
-            <span className="text-[11px] text-muted-foreground font-mono">
-              {formatRelativeTime(comment.createdAt)}
-            </span>
-          </div>
-
-          <p className="text-sm text-foreground/90 whitespace-pre-wrap break-words leading-relaxed">
-            {comment.content}
-          </p>
-
-          {/* Actions */}
-          <div className="flex items-center gap-4 mt-2.5">
-            <button
-              onClick={() => handleLikeComment(comment.id)}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-vermillion transition-colors group"
-            >
-              <svg
-                className="w-3.5 h-3.5 group-hover:scale-110 transition-transform"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-                />
-              </svg>
-              <span>{comment.likeCount > 0 ? comment.likeCount : ''}</span>
-            </button>
-
-            {!isReply && (
-              <button
-                onClick={() =>
-                  setReplyingTo(replyingTo === comment.id ? null : comment.id)
-                }
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
-              >
-                Reply
-              </button>
-            )}
-
-            <button
-              onClick={() => handleFlagComment(comment.id)}
-              className="text-xs text-muted-foreground hover:text-red-500 transition-colors"
-            >
-              Report
-            </button>
-          </div>
-
-          {/* Reply Form */}
-          {replyingTo === comment.id && (
-            <div className="mt-3">
-              <textarea
-                value={replyContent}
-                onChange={e => setReplyContent(e.target.value)}
-                placeholder="Write a reply..."
-                className="w-full p-3 border border-border rounded-sm bg-background text-foreground text-sm resize-none focus:outline-none focus:border-vermillion focus:ring-1 focus:ring-vermillion/20 transition-colors"
-                rows={2}
-              />
-              <div className="flex justify-end gap-2 mt-2">
-                <button
-                  onClick={() => {
-                    setReplyingTo(null);
-                    setReplyContent('');
-                  }}
-                  className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleSubmitReply(comment.id)}
-                  disabled={submitting || !replyContent.trim()}
-                  className="px-4 py-1.5 bg-vermillion text-white rounded-sm text-xs font-semibold hover:bg-vermillion-dark disabled:opacity-50 transition-colors"
-                >
-                  {submitting ? 'Posting...' : 'Reply'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Replies */}
-          {comment.replies && comment.replies.length > 0 && (
-            <div className="mt-4 space-y-4 border-l-2 border-border/50">
-              {comment.replies.map(reply => (
-                <CommentItem key={reply.id} comment={reply} isReply />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  // The CommentItem component is defined outside of CommentSection so it
+  // doesn't get re-created on every render. This prevents focus loss when
+  // typing inside the reply textarea.
 
   /* ---------- Render ---------- */
 
@@ -386,6 +287,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             ({totalComments})
           </span>
         )}
+
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="ml-auto px-3 py-1.5 text-xs font-medium rounded-sm bg-background border border-border text-foreground hover:bg-muted transition-colors"
+        >
+          View comments
+        </button>
       </div>
 
       {/* New Comment Form */}
@@ -459,45 +368,142 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       )}
 
       {/* Comments List */}
-      {loading && comments.length === 0 ? (
-        <div className="py-12 text-center">
-          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Loading comments...
-          </div>
-        </div>
-      ) : comments.length === 0 ? (
-        <div className="py-12 text-center border-t border-border">
-          <svg className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-          </svg>
-          <p className="text-sm text-muted-foreground">
-            No comments yet. Be the first to share your thoughts.
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="space-y-6">
-            {comments.map(comment => (
-              <div key={comment.id} className="pb-6 border-b border-border last:border-0">
-                <CommentItem comment={comment} />
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="relative w-full max-w-3xl max-h-[80vh] overflow-hidden rounded-xl bg-background shadow-2xl border border-border">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Discussion</h3>
+                <p className="text-xs text-muted-foreground">
+                  {totalComments} comments • scroll to browse
+                </p>
               </div>
-            ))}
-          </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex h-[calc(80vh-80px)] flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+                {loading && comments.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Loading comments...
+                    </div>
+                  </div>
+                ) : comments.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <svg className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                    </svg>
+                    <p className="text-sm text-muted-foreground">
+                      No comments yet. Be the first to share your thoughts.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {comments.map(comment => (
+                      <div key={comment.id} className="pb-6 border-b border-border last:border-0">
+                        <CommentItem
+                          comment={comment}
+                          replyingTo={replyingTo}
+                          replyContent={replyContent}
+                          submitting={submitting}
+                          onToggleReply={(id) => setReplyingTo(replyingTo === id ? null : id)}
+                          onChangeReply={setReplyContent}
+                          onSubmitReply={handleSubmitReply}
+                          onCancelReply={() => {
+                            setReplyingTo(null);
+                            setReplyContent('');
+                          }}
+                          onLike={handleLikeComment}
+                          onFlag={handleFlagComment}
+                        />
+                      </div>
+                    ))}
 
-          {hasMore && (
-            <button
-              onClick={() => setPage(p => p + 1)}
-              disabled={loading}
-              className="w-full mt-6 py-2.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-vermillion border border-border hover:border-vermillion disabled:opacity-50 transition-colors"
-            >
-              {loading ? 'Loading...' : 'Load more comments'}
-            </button>
-          )}
-        </>
+                    {hasMore && (
+                      <button
+                        onClick={() => setPage(p => p + 1)}
+                        disabled={loading}
+                        className="w-full mt-6 py-2.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-vermillion border border-border hover:border-vermillion disabled:opacity-50 transition-colors"
+                      >
+                        {loading ? 'Loading...' : 'Load more comments'}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="border-t border-border px-6 py-4">
+                <form onSubmit={handleSubmitComment} className="space-y-4">
+                  <textarea
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    placeholder={
+                      userId
+                        ? 'Share your thoughts...'
+                        : 'Share your thoughts as a guest...'
+                    }
+                    className="w-full p-4 border border-border rounded-sm bg-background text-foreground text-sm resize-none focus:outline-none focus:border-vermillion focus:ring-1 focus:ring-vermillion/20 transition-colors placeholder:text-muted-foreground"
+                    rows={3}
+                    maxLength={2000}
+                  />
+
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={isAnonymous}
+                          onChange={e => setIsAnonymous(e.target.checked)}
+                          className="w-3.5 h-3.5 rounded-sm border-border text-vermillion focus:ring-vermillion/30 accent-vermillion"
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          Post anonymously
+                        </span>
+                      </label>
+
+                      {isAnonymous && (
+                        <input
+                          type="text"
+                          value={anonymousName}
+                          onChange={e => setAnonymousName(e.target.value)}
+                          placeholder="Display name (optional)"
+                          className="px-2.5 py-1 text-xs border border-border rounded-sm bg-background text-foreground focus:outline-none focus:border-vermillion transition-colors"
+                          maxLength={30}
+                        />
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-mono text-muted-foreground">
+                        {newComment.length}/2000
+                      </span>
+                      <button
+                        type="submit"
+                        disabled={submitting || !newComment.trim()}
+                        className="px-5 py-2 bg-vermillion text-white rounded-sm text-xs font-semibold uppercase tracking-wider hover:bg-vermillion-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {submitting ? 'Posting...' : 'Post Comment'}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
