@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from"react";
 import { getEmailString } from"@/lib/utils/utils";
 import adminAuth from"@/lib/auth/admin-auth";
 import { API_CONFIG } from"@/config/api";
+import { FollowIcon } from '@/components/icons/EditorialIcons';
 
 const API_BASE_URL = API_CONFIG.baseURL;
 
@@ -16,7 +17,7 @@ const Icon = ({ d, cls }: { d: string; cls?: string }) => (
 const TargetIcon = ({ cls }: { cls?: string }) => <Icon cls={cls} d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />;
 const ClipboardIcon = ({ cls }: { cls?: string }) => <Icon cls={cls} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />;
 const ChartIcon = ({ cls }: { cls?: string }) => <Icon cls={cls} d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />;
-const PlugIcon = ({ cls }: { cls?: string }) => <Icon cls={cls} d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />;
+const PlugIcon = ({ cls }: { cls?: string }) => <FollowIcon className={cls} />;
 const CurrencyIcon = ({ cls }: { cls?: string }) => <Icon cls={cls} d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />;
 const EyeIcon = ({ cls }: { cls?: string }) => <Icon cls={cls} d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z M15 12a3 3 0 11-6 0 3 3 0 016 0z" />;
 const CursorIcon = ({ cls }: { cls?: string }) => <Icon cls={cls} d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" />;

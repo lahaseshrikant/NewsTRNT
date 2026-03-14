@@ -9,6 +9,7 @@ import {
  PlusIcon, DocumentTextIcon, EyeIcon, ClockIcon,
  ChartBarIcon, SparklesIcon,
 } from'@/components/icons/AdminIcons';
+import { FollowIcon } from '@/components/icons/EditorialIcons';
 
 /* ─── Types ─── */
 interface Article {
@@ -360,7 +361,7 @@ export default function ArticlesPage() {
  </button>
  <button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/article/${article.slug || article.id}`)}
  className="p-1.5 rounded-md text-[rgb(var(--muted-foreground))] hover:text-violet-600 hover:bg-violet-500/8 transition-colors" title="Copy link">
- <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m9.86-2.54a4.5 4.5 0 0 0-1.242-7.244l-4.5-4.5a4.5 4.5 0 0 0-6.364 6.364L4.34 8.627" /></svg>
+ <FollowIcon className="w-3.5 h-3.5" />
  </button>
  <button onClick={() => handleDeleteArticle(article.id)}
  className="p-1.5 rounded-md text-[rgb(var(--muted-foreground))] hover:text-red-600 hover:bg-red-500/8 transition-colors" title="Delete">

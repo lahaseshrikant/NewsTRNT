@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { FollowIcon } from '@/components/icons/EditorialIcons';
 
 interface ArticleActionsProps {
   articleId: string;
@@ -125,9 +126,7 @@ export default function ArticleActions({
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         ) : (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.686-5.754a4.5 4.5 0 00-6.364-6.364L4.5 8.257m6.364 6.364l4.5-4.5" />
-          </svg>
+          <FollowIcon size={16} className="text-current" />
         )}
       </button>
 
@@ -145,7 +144,7 @@ export default function ArticleActions({
             onClick={copyLink}
             className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.686-5.754a4.5 4.5 0 00-6.364-6.364L4.5 8.257m6.364 6.364l4.5-4.5" /></svg>
+            <FollowIcon size={16} className="text-current" />
             Copy Link
           </button>
         </div>
