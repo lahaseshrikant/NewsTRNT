@@ -230,7 +230,7 @@ const NewsDetailPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-6 pt-10 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
-          <div className="lg:col-span-8 min-w-0">
+          <div id="article-container" className="lg:col-span-8 min-w-0">
             {/* ========== Article Header ========== */}
             <header className="bg-background">
               {/* Breadcrumb */}
@@ -384,7 +384,7 @@ const NewsDetailPage: React.FC = () => {
               <article>
                 <div
                   id="article-content"
-                  className="
+                  className="article-preview-content
                 prose prose-lg max-w-none
                 prose-headings:font-serif prose-headings:text-foreground prose-headings:font-bold
                 prose-h2:text-[1.375rem] prose-h2:mt-10 prose-h2:mb-4 prose-h2:leading-snug

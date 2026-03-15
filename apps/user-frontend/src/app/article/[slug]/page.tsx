@@ -348,10 +348,10 @@ const ArticleDetailPage: React.FC = () => {
       <div className="max-w-3xl mx-auto px-6 pt-10 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
           {/* Main content column */}
-          <article className="lg:col-span-8">
+          <article id="article-container" className="lg:col-span-8">
             <div
               id="article-content"
-              className="
+              className="article-preview-content
                 prose prose-lg max-w-none
                 prose-headings:font-serif prose-headings:text-foreground prose-headings:font-bold
                 prose-h2:text-[1.375rem] prose-h2:mt-10 prose-h2:mb-4 prose-h2:leading-snug
