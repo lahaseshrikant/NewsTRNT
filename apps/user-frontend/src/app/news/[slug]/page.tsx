@@ -346,7 +346,7 @@ const NewsDetailPage: React.FC = () => {
       {/* ========== Hero Image ========== */}
       {article.imageUrl && (
         <figure className="mt-8 mb-0">
-          <div className="max-w-4xl mx-auto px-6">
+          <div className="max-w-3xl mx-auto px-6">
             <div className="relative w-full aspect-[16/9] overflow-hidden rounded-sm bg-muted">
               <Image
                 src={article.imageUrl}
@@ -362,7 +362,7 @@ const NewsDetailPage: React.FC = () => {
       )}
 
       {/* ========== Article Body + Sidebar ========== */}
-      <div className="max-w-4xl mx-auto px-6 pt-10 pb-16">
+      <div className="max-w-3xl mx-auto px-6 pt-10 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
           {/* Main content column */}
           <article className="lg:col-span-8">
