@@ -426,6 +426,8 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res): Promi
       author,
       shortContent
     } = req.body;
+    const hasPublishedAt = Object.prototype.hasOwnProperty.call(req.body, 'publishedAt');
+    const hasImageUrl = Object.prototype.hasOwnProperty.call(req.body, 'imageUrl');
 
     if (!title) {
       res.status(400).json({ error: 'Title is required' });
@@ -472,12 +474,12 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res): Promi
         content: content ? Security.sanitizeHTML(content) : content,
         summary,
         categoryId,
-        imageUrl,
         isPublished,
-        publishedAt: publishedAt ? new Date(publishedAt) : null,
         isFeatured,
         isTrending,
         isBreaking,
+        ...(hasImageUrl && { imageUrl: imageUrl?.trim?.() ? imageUrl.trim() : null }),
+        ...(hasPublishedAt && { publishedAt: publishedAt ? new Date(publishedAt) : null }),
         ...(contentType !== undefined && { contentType }),
         ...(authorType !== undefined && { authorType }),
         ...(author !== undefined && { author }),

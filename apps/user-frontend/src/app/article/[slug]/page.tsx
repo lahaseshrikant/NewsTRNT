@@ -80,6 +80,17 @@ const ArticleDetailPage: React.FC = () => {
     });
   };
 
+  const formatDateTime = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
   /* ---------- Share handler ---------- */
 
   const shareArticle = useCallback((platform: string) => {
@@ -168,7 +179,11 @@ const ArticleDetailPage: React.FC = () => {
   const hasAuthor = article.author && article.author !== 'NewsTRNT Staff' && article.author !== 'Unknown';
   const authorDisplay = hasAuthor ? article.author! : null;
   const articleTags: string[] = (article.tags || []).map((t) => typeof t === 'string' ? t : t.name);
-  const publishedAt = article.published_at || new Date();
+  const publishedAt = article.publishedAt || article.published_at || new Date();
+  const updatedAt = article.updatedAt || article.updated_at;
+  const showUpdatedAt = Boolean(
+    updatedAt && new Date(updatedAt).getTime() > new Date(publishedAt).getTime() + 60000
+  );
 
   /* ---------- Render ---------- */
 
@@ -244,6 +259,11 @@ const ArticleDetailPage: React.FC = () => {
                   <span className="text-border">&middot;</span>
                   <span>{article.readingTime || 5} min read</span>
                 </div>
+                {showUpdatedAt && (
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Updated {formatDateTime(updatedAt!)}
+                  </p>
+                )}
               </div>
             </div>
 

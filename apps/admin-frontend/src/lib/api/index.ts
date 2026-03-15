@@ -235,7 +235,7 @@ export class ArticleAPI {
  content: string;
  summary?: string;
  categoryId?: string;
- imageUrl?: string;
+ imageUrl?: string | null;
  tags?: string[];
  isPublished?: boolean;
  publishedAt?: string;
@@ -252,7 +252,7 @@ export class ArticleAPI {
  content?: string;
  summary?: string;
  categoryId?: string;
- imageUrl?: string;
+ imageUrl?: string | null;
  tags?: string[];
  isPublished?: boolean;
  publishedAt?: string;

@@ -393,19 +393,22 @@ const NewArticle: React.FC = () => {
  setError('');
 
  try {
+ const normalizedPublishDate = formData.publishDate
+ ? new Date(formData.publishDate).toISOString()
+ : undefined;
  const articleData = {
  title: formData.title,
  content: formData.content,
  summary: formData.summary,
  categoryId: formData.categoryId || undefined,
  subCategoryId: formData.subCategoryId || undefined,
- imageUrl: formData.imageUrl || undefined,
+ imageUrl: formData.imageUrl.trim() ? formData.imageUrl.trim() : null,
  tags: formData.tags,
  isPublished: status ==='published',
  publishedAt: status ==='published'
- ? new Date().toISOString()
+ ? (normalizedPublishDate || new Date().toISOString())
  : status ==='scheduled'
- ? formData.publishDate
+ ? normalizedPublishDate
  : undefined,
  isFeatured: formData.featured,
  isTrending: false,

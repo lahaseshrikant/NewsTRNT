@@ -192,7 +192,7 @@ const EditArticle: React.FC = () => {
  ...(newStatus ==='published' && {
  publishedAt: article?.publishedAt || new Date().toISOString()
  }),
- imageUrl: formData.featuredImage
+ imageUrl: formData.featuredImage.trim() ? formData.featuredImage.trim() : null
  };
 
  const result = await articleAPI.updateArticle(articleId, updateData);

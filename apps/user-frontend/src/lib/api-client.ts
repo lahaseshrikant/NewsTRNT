@@ -80,7 +80,10 @@ export interface Article {
   sourceName?: string;
   sourceUrl?: string;
   imageUrl?: string;
+  publishedAt?: string;
   published_at: Date;
+  updatedAt?: string;
+  updated_at?: string;
   isBreaking: boolean;
   isFeatured: boolean;
   isTrending: boolean;
@@ -287,6 +290,8 @@ export const dbApi = {
         return {
           ...response.article,
           published_at: response.article.publishedAt || response.article.published_at,
+          publishedAt: response.article.publishedAt || response.article.published_at,
+          updatedAt: response.article.updatedAt || response.article.updated_at,
           views: response.article.views || response.article.viewCount || 0,
           likes: response.article.likes || response.article.likeCount || 0
         } as Article;
