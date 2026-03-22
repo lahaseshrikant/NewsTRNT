@@ -16,6 +16,7 @@ import {
   HeartIcon as HeartSolidIcon
 } from '@heroicons/react/24/solid';
 import { getContentUrl } from '@/lib/contentUtils';
+import { buildPlacementMediaUrl } from '@/lib/mediaUrl';
 
 interface Article {
   id: number;
@@ -86,11 +87,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         <Link href={getContentUrl(article)}>
           <div className="relative">
             <Image
-              src={article.imageUrl}
+              src={buildPlacementMediaUrl(article.imageUrl, 'featured')}
               alt={article.title}
               width={800}
               height={400}
               className="w-full h-64 object-cover"
+              sizes="(max-width: 768px) 100vw, 800px"
             />
             {article.isBreaking && (
               <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
@@ -173,11 +175,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       <article className="card-hover bg-card border border-border rounded-lg overflow-hidden shadow-md">
         <Link href={getContentUrl(article)} className="flex">
           <Image
-            src={article.imageUrl}
+            src={buildPlacementMediaUrl(article.imageUrl, 'thumb')}
             alt={article.title}
             width={120}
             height={80}
             className="w-32 h-20 object-cover flex-shrink-0"
+            sizes="128px"
           />
           <div className="p-3 flex-1">
             <div className="flex items-center justify-between mb-2">
@@ -236,11 +239,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             </div>
           </div>
           <Image
-            src={article.imageUrl}
+            src={buildPlacementMediaUrl(article.imageUrl, 'list')}
             alt={article.title}
             width={160}
             height={120}
             className="w-40 h-28 object-cover rounded-lg flex-shrink-0"
+            sizes="160px"
           />
         </Link>
         
@@ -290,11 +294,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       <Link href={getContentUrl(article)}>
         <div className="relative">
           <Image
-            src={article.imageUrl}
+            src={buildPlacementMediaUrl(article.imageUrl, 'card')}
             alt={article.title}
             width={400}
             height={200}
             className="w-full h-48 object-cover"
+            sizes="(max-width: 768px) 100vw, 400px"
           />
           {article.isBreaking && (
             <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold animate-pulse">

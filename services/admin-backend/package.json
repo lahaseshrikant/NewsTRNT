@@ -19,6 +19,7 @@
     "market:update": "ts-node src/scripts/market-update.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1012.0",
     "@lexical/code": "^0.35.0",
     "@lexical/link": "^0.35.0",
     "@lexical/list": "^0.35.0",
@@ -38,6 +39,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
     "openai": "^4.28.4",
+    "sharp": "^0.34.5",
     "uuid": "^9.0.1",
     "validator": "^13.11.0",
     "zod": "^3.22.4"
@@ -64,7 +66,15 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.3"
   },
-  "keywords": ["news", "admin", "cms", "api", "typescript", "express", "prisma"],
+  "keywords": [
+    "news",
+    "admin",
+    "cms",
+    "api",
+    "typescript",
+    "express",
+    "prisma"
+  ],
   "author": "NewsTRNT Team",
   "license": "MIT"
 }

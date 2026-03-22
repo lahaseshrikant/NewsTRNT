@@ -78,6 +78,61 @@ Dockerfiles exist for all services if you prefer containerised development.
 
 ---
 
+## 🗂️ Cloudflare R2 Media Pipeline
+
+The admin backend now supports a full media pipeline for images and videos with Cloudflare R2 (or local fallback):
+
+- Upload path: `apps/admin-frontend` → `POST /api/admin/media/upload` → `services/admin-backend`
+- Storage: provider abstraction in `services/admin-backend/src/lib/storage.ts` (`local` or `r2`)
+- Processing: `services/admin-backend/src/lib/media.ts`
+  - SEO key format: `media/YYYY/MM/<slug>-<shortid>.<ext>`
+  - Image variants: prebuilt widths (`320/640/1024`) in `webp/avif`
+  - Video poster: generated thumbnail (`-poster.webp`)
+  - Optional on-demand fallback URLs: `?width=<w>&format=<fmt>`
+- Metadata persisted in `admin.media_files` (`url`, `thumbnail_url`, size/type, usage fields)
+
+### Required backend env (`services/admin-backend/.env`)
+
+```env
+STORAGE_PROVIDER=r2
+CLOUDFLARE_R2_ACCOUNT_ID=<YOUR_ACCOUNT_ID>
+CLOUDFLARE_R2_BUCKET=<YOUR_BUCKET_NAME>
+CLOUDFLARE_R2_ACCESS_KEY_ID=<YOUR_ACCESS_KEY_ID>
+CLOUDFLARE_R2_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
+CLOUDFLARE_R2_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+CDN_DOMAIN=https://cdn.newstrnt.com
+```
+
+### Optional media tuning env
+
+```env
+MEDIA_IMAGE_VARIANT_WIDTHS=320,640,1024
+MEDIA_IMAGE_VARIANT_FORMATS=webp,avif
+MEDIA_VIDEO_POSTER_WIDTH=640
+MEDIA_VIDEO_POSTER_HEIGHT=360
+MEDIA_ENABLE_RESIZE_FALLBACK=true
+MEDIA_COST_PER_GB_USD=0.015
+```
+
+### Frontend env for image allow-list
+
+Set these in both frontends (`apps/user-frontend` and `apps/admin-frontend`) so `next/image` can load R2/CDN media:
+
+```env
+NEXT_PUBLIC_CDN_DOMAIN=https://cdn.newstrnt.com
+NEXT_PUBLIC_CLOUDFLARE_R2_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+NEXT_PUBLIC_ENABLE_CF_IMAGE_RESIZE=true
+```
+
+### Admin Media UI capabilities
+
+- Total objects, total bytes, and estimated monthly storage cost
+- Per-file preview, size, URL, and variant count
+- Cleanup preview and delete flow for low-usage + old media (`/api/admin/media/cleanup`)
+
+
+---
+
 ## 📚 Documentation
 
 The `docs/` folder contains detailed architecture notes, API reference, feature guides, and other long‑form documentation. See `docs/SERVICE_ARCHITECTURE.md` for an overview of inter‑service communication.

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Article } from '@/lib/api-client';
 import { getContentUrl } from '@/lib/contentUtils';
+import { buildPlacementMediaUrl } from '@/lib/mediaUrl';
 
 interface NewsCardProps {
   article: Article;
@@ -91,7 +92,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, className = '' }) => {
             <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
               <div className="relative w-full h-full rounded-md overflow-hidden">
                 <Image
-                  src={article.imageUrl}
+                  src={buildPlacementMediaUrl(article.imageUrl, 'thumb')}
                   alt={article.title}
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-300"

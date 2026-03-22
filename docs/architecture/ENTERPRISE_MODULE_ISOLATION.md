@@ -303,7 +303,7 @@ news-platform/                              ← Git root (monorepo)
 │   │   ├── next-env.d.ts
 │   │   ├── Dockerfile
 │   │   ├── public/                         ← Static assets
-│   │   │   └── uploads/images/
+│   │   │   └── media/images/
 │   │   └── src/
 │   │       ├── app/                        ← Reader pages ONLY (no admin/)
 │   │       │   ├── layout.tsx              ← Always Header + Footer

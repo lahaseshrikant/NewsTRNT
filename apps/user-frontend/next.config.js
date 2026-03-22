@@ -1,5 +1,33 @@
 const path = require('path');
 
+const createRemotePatternsFromEnv = () => {
+  const patterns = [];
+  const candidates = [
+    process.env.NEXT_PUBLIC_CDN_DOMAIN,
+    process.env.CDN_DOMAIN,
+    process.env.NEXT_PUBLIC_CLOUDFLARE_R2_ENDPOINT,
+    process.env.CLOUDFLARE_R2_ENDPOINT,
+  ].filter(Boolean);
+
+  for (const rawUrl of candidates) {
+    try {
+      const parsed = new URL(rawUrl);
+      patterns.push({
+        protocol: parsed.protocol.replace(':', ''),
+        hostname: parsed.hostname,
+        port: parsed.port || '',
+        pathname: '/**',
+      });
+    } catch {
+      // ignore invalid URL values
+    }
+  }
+
+  return patterns;
+};
+
+const envRemotePatterns = createRemotePatternsFromEnv();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Performance optimizations
@@ -32,6 +60,7 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      ...envRemotePatterns,
     ],
   },
   

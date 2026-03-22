@@ -1,4 +1,19 @@
 // src/lib/config.ts - Environment-based configuration
+const parseNumber = (value: string | undefined, fallback: number): number => {
+  if (!value) return fallback;
+  const num = Number.parseInt(value, 10);
+  return Number.isFinite(num) ? num : fallback;
+};
+
+const parseCsv = (value: string | undefined, fallback: string[]): string[] => {
+  if (!value) return fallback;
+  const parsed = value
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  return parsed.length > 0 ? parsed : fallback;
+};
+
 export const config = {
   // Database configuration
   database: {
@@ -20,13 +35,51 @@ export const config = {
   // Storage configuration
   storage: {
     provider: process.env.STORAGE_PROVIDER || 'local',
+    // Base path inside storage buckets / local public directory.
+    // This is used in URLs like: https://cdn.example.com/media/2026/03/<file>
+    uploadBasePath: process.env.STORAGE_UPLOAD_BASE_PATH || 'media',
+    localBaseDir: process.env.LOCAL_STORAGE_DIR || 'public',
+    cdnDomain: process.env.CDN_DOMAIN,
+    r2: {
+      accountId: process.env.CLOUDFLARE_R2_ACCOUNT_ID,
+      bucket: process.env.CLOUDFLARE_R2_BUCKET,
+      accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID,
+      secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
+      endpoint: process.env.CLOUDFLARE_R2_ENDPOINT,
+    },
     cloudinary: {
       cloudName: process.env.CLOUDINARY_CLOUD_NAME,
       apiKey: process.env.CLOUDINARY_API_KEY,
       apiSecret: process.env.CLOUDINARY_API_SECRET
     },
-    maxFileSize: process.env.MAX_FILE_SIZE ? parseInt(process.env.MAX_FILE_SIZE) : 5242880, // 5MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
+    maxFileSize: parseNumber(process.env.MAX_FILE_SIZE, 26214400), // 25MB
+    allowedTypes: parseCsv(process.env.ALLOWED_MEDIA_MIME_TYPES, [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/avif',
+      'image/gif',
+      'image/svg+xml',
+      'video/mp4',
+      'video/webm',
+      'video/quicktime',
+      'video/x-matroska',
+    ])
+  },
+
+  media: {
+    imageVariantWidths: parseCsv(process.env.MEDIA_IMAGE_VARIANT_WIDTHS, ['320', '640', '1024'])
+      .map((width) => Number.parseInt(width, 10))
+      .filter((width) => Number.isFinite(width) && width > 0),
+    imageVariantFormats: parseCsv(process.env.MEDIA_IMAGE_VARIANT_FORMATS, ['webp', 'avif']) as Array<'webp' | 'avif'>,
+    placementCropRatios: parseCsv(process.env.MEDIA_PLACEMENT_CROP_RATIOS, ['16x9', '4x3', '1x1']),
+    placementCropWidths: parseCsv(process.env.MEDIA_PLACEMENT_CROP_WIDTHS, ['640', '1024'])
+      .map((width) => Number.parseInt(width, 10))
+      .filter((width) => Number.isFinite(width) && width > 0),
+    videoPosterWidth: parseNumber(process.env.MEDIA_VIDEO_POSTER_WIDTH, 640),
+    videoPosterHeight: parseNumber(process.env.MEDIA_VIDEO_POSTER_HEIGHT, 360),
+    cleanupCostPerGbUsd: Number.parseFloat(process.env.MEDIA_COST_PER_GB_USD || '0.015'),
+    enableResizeFallback: process.env.MEDIA_ENABLE_RESIZE_FALLBACK !== 'false',
   },
 
   // Feature flags for scaling

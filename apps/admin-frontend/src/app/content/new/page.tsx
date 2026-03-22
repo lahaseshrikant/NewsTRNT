@@ -36,6 +36,79 @@ interface Category {
  slug: string;
 }
 
+type PlacementRatio = '2x1' | '16x9' | '1x1' | '3x2' | '4x3' | '9x16' | '16x10' | '21x9' | '4x5' | '5x4' | '3x4';
+type CropMode = 'none' | 'auto' | 'manual';
+type PreviewFitMode = 'cover' | 'contain' | 'fill';
+type ThemeBackgroundMode = 'auto' | 'light' | 'dark';
+type RepeatDirection = 'both' | 'x' | 'y';
+type CanvasPlacement = 'featured' | 'card' | 'list' | 'thumb' | 'newsThumb' | 'hero' | 'banner' | 'story' | 'portraitCard';
+
+const PLACEMENT_RATIO_OPTIONS: Array<{ ratio: PlacementRatio; label: string; usage: string; widthTarget: string }> = [
+ { ratio:'2x1', label:'2:1', usage:'Featured card (home feed)', widthTarget:'800' },
+ { ratio:'16x9', label:'16:9', usage:'Article hero', widthTarget:'1024+' },
+ { ratio:'1x1', label:'1:1', usage:'Thumbnail cards', widthTarget:'80-96' },
+ { ratio:'3x2', label:'3:2', usage:'Compact card', widthTarget:'120' },
+ { ratio:'4x3', label:'4:3', usage:'List card', widthTarget:'160' },
+ { ratio:'9x16', label:'9:16', usage:'Web stories', widthTarget:'full-height' },
+ { ratio:'16x10', label:'16:10', usage:'Trending / Divergence', widthTarget:'variable' },
+ { ratio:'21x9', label:'21:9', usage:'Ultra-wide hero strips', widthTarget:'1280+' },
+ { ratio:'4x5', label:'4:5', usage:'Mobile portrait feed', widthTarget:'480' },
+ { ratio:'5x4', label:'5:4', usage:'Editorial cards', widthTarget:'600' },
+ { ratio:'3x4', label:'3:4', usage:'Portrait list cards', widthTarget:'360' },
+];
+
+const CANVAS_PLACEMENTS: Record<CanvasPlacement, {
+ label: string;
+ source: string;
+ width: number;
+ height: number;
+ objectFit: 'cover' | 'contain' | 'fill';
+}> = {
+ featured: { label: 'Featured', source: 'ArticleCard.featured', width: 800, height: 400, objectFit: 'cover' },
+ card: { label: 'Card', source: 'ArticleCard.default', width: 400, height: 192, objectFit: 'cover' },
+ list: { label: 'List', source: 'ArticleCard.list', width: 160, height: 112, objectFit: 'cover' },
+ thumb: { label: 'Compact Thumb', source: 'ArticleCard.compact', width: 128, height: 80, objectFit: 'cover' },
+ newsThumb: { label: 'News Thumb', source: 'NewsCard', width: 96, height: 96, objectFit: 'cover' },
+ hero: { label: 'Hero', source: 'Article hero mock', width: 1200, height: 675, objectFit: 'cover' },
+ banner: { label: 'Banner', source: 'Wide market banner mock', width: 1440, height: 480, objectFit: 'cover' },
+ story: { label: 'Story', source: 'Story/vertical mock', width: 720, height: 1280, objectFit: 'cover' },
+ portraitCard: { label: 'Portrait Card', source: 'Portrait card mock', width: 600, height: 800, objectFit: 'cover' },
+};
+
+const SliderWithNumber: React.FC<{
+ label: string;
+ value: number;
+ min: number;
+ max: number;
+ step?: number;
+ suffix?: string;
+ onChange: (value: number) => void;
+}> = ({ label, value, min, max, step = 1, suffix = '', onChange }) => (
+ <label className="text-xs text-[rgb(var(--muted-foreground))]">
+ {label}: {Number(value).toFixed(step < 1 ? 2 : 0)}{suffix}
+ <div className="mt-1 grid grid-cols-[1fr_84px] gap-2">
+ <input
+ type="range"
+ min={min}
+ max={max}
+ step={step}
+ value={value}
+ onChange={(e) => onChange(Number(e.target.value))}
+ className="w-full"
+ />
+ <input
+ type="number"
+ min={min}
+ max={max}
+ step={step}
+ value={Number(value.toFixed(step < 1 ? 2 : 0))}
+ onChange={(e) => onChange(Number(e.target.value))}
+ className="h-8 rounded-md border border-[rgb(var(--border))]/60 bg-[rgb(var(--card))] px-2 text-xs text-[rgb(var(--foreground))]"
+ />
+ </div>
+ </label>
+);
+
 // Dynamically import AdvancedNewsEditor client-side only - MOVED OUTSIDE COMPONENT
 const AdvancedNewsEditor = dynamic(() => import('@/components/editors/AdvancedNewsEditor'), { 
  ssr: false,
@@ -213,6 +286,7 @@ const NewArticle: React.FC = () => {
  }, [isEditing, router]);
  const [isLoading, setIsLoading] = useState(false);
  const [error, setError] = useState('');
+ const PRO_EDITOR_RESULT_KEY = 'newstrnt-pro-image-editor-result';
 
  // Load article (if editing) on component mount
  useEffect(() => {
@@ -277,6 +351,47 @@ const NewArticle: React.FC = () => {
  }
  };
 
+ const openProEditorInNewTab = useCallback(() => {
+ const query = formData.imageUrl ? `?imageUrl=${encodeURIComponent(formData.imageUrl)}` : '';
+ window.open(`/content/image-editor${query}`, '_blank', 'noopener,noreferrer');
+ }, [formData.imageUrl]);
+
+ useEffect(() => {
+ const applyResult = (url: string) => {
+ if (!url) return;
+ setFormData((prev) => ({ ...prev, imageUrl: url }));
+ setEditorSourceUrl(url);
+ setEditorSourceName('pro-editor-result');
+ showToast('Updated featured image from Pro Image Editor', 'success');
+ };
+
+ const onStorage = (event: StorageEvent) => {
+ if (event.key !== PRO_EDITOR_RESULT_KEY || !event.newValue) return;
+ try {
+ const parsed = JSON.parse(event.newValue) as { url?: string };
+ if (parsed?.url) applyResult(parsed.url);
+ } catch {
+ // no-op
+ }
+ };
+
+ const onMessage = (event: MessageEvent) => {
+ if (event.origin !== window.location.origin) return;
+ if (event.data?.type !== PRO_EDITOR_RESULT_KEY) return;
+ const url = event.data?.payload?.url;
+ if (typeof url === 'string' && url.trim()) {
+ applyResult(url);
+ }
+ };
+
+ window.addEventListener('storage', onStorage);
+ window.addEventListener('message', onMessage);
+ return () => {
+ window.removeEventListener('storage', onStorage);
+ window.removeEventListener('message', onMessage);
+ };
+ }, []);
+
  const handleInputChange = useCallback((field: keyof ArticleForm, value: any) => {
  setFormData(prev => ({ ...prev, [field]: value }));
  setError(''); // Clear error when user makes changes
@@ -289,9 +404,49 @@ const NewArticle: React.FC = () => {
  }, [handleInputChange]);
 
  // Handle image upload
- const handleImageUpload = useCallback(async (file: File): Promise<string> => {
+ const handleImageUpload = useCallback(async (
+ file: File,
+ options?: {
+ generatePlacementCrops?: boolean;
+ placementCropRatios?: PlacementRatio[];
+ cropMode?: Exclude<CropMode, 'none'>;
+ cropFitMode?: PreviewFitMode;
+ focalX?: number;
+ focalY?: number;
+ backgroundTheme?: ThemeBackgroundMode;
+ repeatPattern?: boolean;
+ repeatDirection?: RepeatDirection;
+ },
+ ): Promise<string> => {
  const formData = new FormData();
  formData.append('image', file);
+ if (options?.generatePlacementCrops) {
+ formData.append('generatePlacementCrops', 'true');
+ if (options.placementCropRatios?.length) {
+ formData.append('placementCropRatios', options.placementCropRatios.join(','));
+ }
+ if (options.cropMode) {
+ formData.append('cropMode', options.cropMode);
+ }
+ if (options.cropFitMode) {
+ formData.append('cropFitMode', options.cropFitMode);
+ }
+ if (typeof options.focalX === 'number') {
+ formData.append('focalX', String(options.focalX));
+ }
+ if (typeof options.focalY === 'number') {
+ formData.append('focalY', String(options.focalY));
+ }
+ if (options.backgroundTheme) {
+ formData.append('backgroundTheme', options.backgroundTheme);
+ }
+ if (typeof options.repeatPattern === 'boolean') {
+ formData.append('repeatPattern', String(options.repeatPattern));
+ }
+ if (options.repeatDirection) {
+ formData.append('repeatDirection', options.repeatDirection);
+ }
+ }
 
  try {
  const response = await fetch('/api/upload/images', {
@@ -314,7 +469,491 @@ const NewArticle: React.FC = () => {
  throw error;
  }
  }, []);
+
  const [plainTextCount, setPlainTextCount] = useState(0);
+ const [imageUploading, setImageUploading] = useState(false);
+ const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+ const [editorSourceUrl, setEditorSourceUrl] = useState<string>('');
+ const [editorSourceName, setEditorSourceName] = useState<string>('image');
+ const [editorReady, setEditorReady] = useState(false);
+ const [zoom, setZoom] = useState(1);
+ const [rotationDeg, setRotationDeg] = useState(0);
+ const [flipX, setFlipX] = useState(false);
+ const [flipY, setFlipY] = useState(false);
+ const [brightness, setBrightness] = useState(100);
+ const [contrast, setContrast] = useState(100);
+ const [saturation, setSaturation] = useState(100);
+ const [blurPx, setBlurPx] = useState(0);
+ const [hueRotate, setHueRotate] = useState(0);
+ const [grayscale, setGrayscale] = useState(0);
+ const [sepia, setSepia] = useState(0);
+ const [vignette, setVignette] = useState(0);
+ const [panX, setPanX] = useState(0);
+ const [panY, setPanY] = useState(0);
+ const [cropRect, setCropRect] = useState({ x: 0.05, y: 0.05, w: 0.9, h: 0.9 });
+ const [cropAspectLock, setCropAspectLock] = useState<'free' | PlacementRatio>('free');
+ const [cropDragMode, setCropDragMode] = useState<null | 'move' | 'nw' | 'ne' | 'sw' | 'se'>(null);
+ const [cropDragStart, setCropDragStart] = useState<{ x: number; y: number; rect: { x: number; y: number; w: number; h: number } } | null>(null);
+ const [panDragStart, setPanDragStart] = useState<{ x: number; y: number; panX: number; panY: number } | null>(null);
+ const [generatePlacementCrops, setGeneratePlacementCrops] = useState(true);
+ const [cropMode, setCropMode] = useState<CropMode>('auto');
+ const [previewFitMode, setPreviewFitMode] = useState<PreviewFitMode>('cover');
+ const [backgroundTheme, setBackgroundTheme] = useState<ThemeBackgroundMode>('auto');
+ const [repeatPattern, setRepeatPattern] = useState(false);
+ const [repeatDirection, setRepeatDirection] = useState<RepeatDirection>('both');
+ const [focalX, setFocalX] = useState(50);
+ const [focalY, setFocalY] = useState(50);
+ const [canvasPlacement, setCanvasPlacement] = useState<CanvasPlacement>('featured');
+ const [selectedPlacementRatios, setSelectedPlacementRatios] = useState<PlacementRatio[]>(['2x1', '16x9', '4x3', '1x1']);
+ const [suggestedRatios, setSuggestedRatios] = useState<PlacementRatio[]>(['2x1', '16x9', '4x3']);
+ const [sourceAspectLabel, setSourceAspectLabel] = useState('—');
+ const [canvasActive, setCanvasActive] = useState(false);
+ const canvasRef = useRef<HTMLDivElement | null>(null);
+ const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
+ const editorImageRef = useRef<HTMLImageElement | null>(null);
+ const editorObjectUrlRef = useRef<string | null>(null);
+
+ useEffect(() => {
+ const source = editorSourceUrl || formData.imageUrl;
+ if (!source) return;
+
+ const image = new Image();
+ image.crossOrigin = 'anonymous';
+ image.onload = () => {
+ editorImageRef.current = image;
+ setEditorReady(true);
+ const width = image.naturalWidth || 1;
+ const height = image.naturalHeight || 1;
+ const ratio = width / height;
+ setSourceAspectLabel(`${width}×${height} (${ratio.toFixed(2)}:1)`);
+
+ let suggestions: PlacementRatio[];
+ if (ratio >= 1.9) {
+ suggestions = ['21x9', '2x1', '16x9', '16x10'];
+ } else if (ratio <= 0.8) {
+ suggestions = ['9x16', '4x5', '3x4', '1x1'];
+ } else {
+ suggestions = ['16x9', '4x3', '5x4', '3x2', '1x1'];
+ }
+
+ setSuggestedRatios(suggestions);
+ };
+ image.onerror = () => {
+ setEditorReady(false);
+ setSuggestedRatios(['16x9', '4x3', '1x1']);
+ setSourceAspectLabel('unavailable');
+ };
+ image.src = source;
+ }, [editorSourceUrl, formData.imageUrl]);
+
+ useEffect(() => {
+ if (!editorSourceUrl && formData.imageUrl) {
+ setEditorSourceUrl(formData.imageUrl);
+ setEditorSourceName('remote-image');
+ }
+ }, [editorSourceUrl, formData.imageUrl]);
+
+ useEffect(() => {
+ return () => {
+ if (editorObjectUrlRef.current) {
+ URL.revokeObjectURL(editorObjectUrlRef.current);
+ editorObjectUrlRef.current = null;
+ }
+ };
+ }, []);
+
+ const startEditingLocalFile = useCallback((file: File) => {
+ setImageUploadError(null);
+ if (editorObjectUrlRef.current) {
+ URL.revokeObjectURL(editorObjectUrlRef.current);
+ }
+ const nextUrl = URL.createObjectURL(file);
+ editorObjectUrlRef.current = nextUrl;
+ setEditorSourceUrl(nextUrl);
+ setEditorSourceName(file.name || 'upload');
+ setEditorReady(false);
+ setZoom(1);
+ setRotationDeg(0);
+ setFlipX(false);
+ setFlipY(false);
+ setBrightness(100);
+ setContrast(100);
+ setSaturation(100);
+ setBlurPx(0);
+ setHueRotate(0);
+ setGrayscale(0);
+ setSepia(0);
+ setVignette(0);
+ setPanX(0);
+ setPanY(0);
+ setCropRect({ x: 0.05, y: 0.05, w: 0.9, h: 0.9 });
+ setCropAspectLock('free');
+ setCropMode('manual');
+ }, []);
+
+ const togglePlacementRatio = useCallback((ratio: PlacementRatio, checked: boolean) => {
+ setSelectedPlacementRatios((current) => {
+ if (checked) {
+ return current.includes(ratio) ? current : [...current, ratio];
+ }
+ if (current.length === 1 && current[0] === ratio) {
+ return current;
+ }
+ return current.filter((item) => item !== ratio);
+ });
+ }, []);
+
+ const applyAutoSuggestion = useCallback(() => {
+ setCropMode('auto');
+ setGeneratePlacementCrops(true);
+ setSelectedPlacementRatios(suggestedRatios);
+ }, [suggestedRatios]);
+
+ const parseAspectFromRatio = useCallback((ratio: PlacementRatio): number => {
+ const [w, h] = ratio.split('x').map(Number);
+ if (!w || !h) return 1;
+ return w / h;
+ }, []);
+ const drawEditorCanvas = useCallback(() => {
+ const canvas = previewCanvasRef.current;
+ const sourceImage = editorImageRef.current;
+ if (!canvas || !sourceImage) return;
+
+ const preset = CANVAS_PLACEMENTS[canvasPlacement];
+ const canvasWidth = preset.width;
+ const canvasHeight = preset.height;
+ canvas.width = canvasWidth;
+ canvas.height = canvasHeight;
+
+ const ctx = canvas.getContext('2d');
+ if (!ctx) return;
+
+ const fillStyle = backgroundTheme === 'dark' ? 'rgb(22,24,29)' : backgroundTheme === 'light' ? 'rgb(245,245,245)' : 'rgb(120,120,120)';
+ ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+ ctx.fillStyle = fillStyle;
+ ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+ if (repeatPattern) {
+ const repetition = repeatDirection === 'x' ? 'repeat-x' : repeatDirection === 'y' ? 'repeat-y' : 'repeat';
+ const pattern = ctx.createPattern(sourceImage, repetition);
+ if (pattern) {
+ ctx.save();
+ ctx.globalAlpha = 0.45;
+ ctx.fillStyle = pattern;
+ ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+ ctx.restore();
+ }
+ }
+
+ const sourceW = sourceImage.naturalWidth;
+ const sourceH = sourceImage.naturalHeight;
+ const sx = Math.max(0, Math.min(sourceW - 1, Math.round(cropRect.x * sourceW)));
+ const sy = Math.max(0, Math.min(sourceH - 1, Math.round(cropRect.y * sourceH)));
+ const sw = Math.max(1, Math.min(sourceW - sx, Math.round(cropRect.w * sourceW)));
+ const sh = Math.max(1, Math.min(sourceH - sy, Math.round(cropRect.h * sourceH)));
+
+ const sourceAspect = sw / sh;
+ const targetAspect = canvasWidth / canvasHeight;
+
+ let drawW = canvasWidth;
+ let drawH = canvasHeight;
+
+ if (previewFitMode === 'contain') {
+ if (sourceAspect > targetAspect) {
+ drawW = canvasWidth;
+ drawH = drawW / sourceAspect;
+ } else {
+ drawH = canvasHeight;
+ drawW = drawH * sourceAspect;
+ }
+ } else if (previewFitMode === 'cover') {
+ if (sourceAspect > targetAspect) {
+ drawH = canvasHeight;
+ drawW = drawH * sourceAspect;
+ } else {
+ drawW = canvasWidth;
+ drawH = drawW / sourceAspect;
+ }
+ }
+
+ ctx.save();
+ ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) blur(${blurPx}px) hue-rotate(${hueRotate}deg) grayscale(${grayscale}%) sepia(${sepia}%)`;
+ ctx.translate(canvasWidth / 2, canvasHeight / 2);
+ ctx.rotate((rotationDeg * Math.PI) / 180);
+ ctx.scale((flipX ? -1 : 1) * zoom, (flipY ? -1 : 1) * zoom);
+ ctx.drawImage(sourceImage, sx, sy, sw, sh, -drawW / 2 + panX, -drawH / 2 + panY, drawW, drawH);
+ ctx.restore();
+
+ if (vignette > 0) {
+ const gradient = ctx.createRadialGradient(
+ canvasWidth / 2,
+ canvasHeight / 2,
+ Math.min(canvasWidth, canvasHeight) * 0.15,
+ canvasWidth / 2,
+ canvasHeight / 2,
+ Math.max(canvasWidth, canvasHeight) * 0.65,
+ );
+ gradient.addColorStop(0, 'rgba(0,0,0,0)');
+ gradient.addColorStop(1, `rgba(0,0,0,${Math.min(0.85, vignette / 100)})`);
+ ctx.fillStyle = gradient;
+ ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+ }
+ }, [backgroundTheme, blurPx, brightness, canvasPlacement, contrast, cropRect.h, cropRect.w, cropRect.x, cropRect.y, flipX, flipY, grayscale, hueRotate, panX, panY, previewFitMode, repeatDirection, repeatPattern, rotationDeg, saturation, sepia, vignette, zoom]);
+
+ useEffect(() => {
+ drawEditorCanvas();
+ }, [drawEditorCanvas]);
+
+ const beginCropDrag = (mode: 'move' | 'nw' | 'ne' | 'sw' | 'se', event: React.MouseEvent) => {
+ event.preventDefault();
+ event.stopPropagation();
+ const node = canvasRef.current;
+ if (!node) return;
+ const rect = node.getBoundingClientRect();
+ const px = (event.clientX - rect.left) / rect.width;
+ const py = (event.clientY - rect.top) / rect.height;
+ setCropDragMode(mode);
+ setCropDragStart({ x: px, y: py, rect: { ...cropRect } });
+ };
+
+ const applyCropDrag = (event: React.MouseEvent<HTMLDivElement>) => {
+ if (cropMode !== 'manual' || !cropDragMode || !cropDragStart) return;
+ const node = canvasRef.current;
+ if (!node) return;
+ const rect = node.getBoundingClientRect();
+ const px = (event.clientX - rect.left) / rect.width;
+ const py = (event.clientY - rect.top) / rect.height;
+ const dx = px - cropDragStart.x;
+ const dy = py - cropDragStart.y;
+
+ const minSize = 0.08;
+ const next = { ...cropDragStart.rect };
+
+ if (cropDragMode === 'move') {
+ next.x = Math.max(0, Math.min(1 - next.w, cropDragStart.rect.x + dx));
+ next.y = Math.max(0, Math.min(1 - next.h, cropDragStart.rect.y + dy));
+ } else {
+ if (cropDragMode.includes('n')) {
+ const newY = Math.max(0, Math.min(cropDragStart.rect.y + cropDragStart.rect.h - minSize, cropDragStart.rect.y + dy));
+ next.h = cropDragStart.rect.h + (cropDragStart.rect.y - newY);
+ next.y = newY;
+ }
+ if (cropDragMode.includes('s')) {
+ next.h = Math.max(minSize, Math.min(1 - cropDragStart.rect.y, cropDragStart.rect.h + dy));
+ }
+ if (cropDragMode.includes('w')) {
+ const newX = Math.max(0, Math.min(cropDragStart.rect.x + cropDragStart.rect.w - minSize, cropDragStart.rect.x + dx));
+ next.w = cropDragStart.rect.w + (cropDragStart.rect.x - newX);
+ next.x = newX;
+ }
+ if (cropDragMode.includes('e')) {
+ next.w = Math.max(minSize, Math.min(1 - cropDragStart.rect.x, cropDragStart.rect.w + dx));
+ }
+
+ if (cropAspectLock !== 'free') {
+ const lockedAspect = parseAspectFromRatio(cropAspectLock);
+ if (lockedAspect > 0) {
+ if (next.w / next.h > lockedAspect) {
+ next.w = next.h * lockedAspect;
+ } else {
+ next.h = next.w / lockedAspect;
+ }
+ next.w = Math.min(next.w, 1 - next.x);
+ next.h = Math.min(next.h, 1 - next.y);
+ }
+ }
+ }
+
+ setCropRect(next);
+ setFocalX((next.x + next.w / 2) * 100);
+ setFocalY((next.y + next.h / 2) * 100);
+ };
+
+ const stopCropDrag = () => {
+ setCropDragMode(null);
+ setCropDragStart(null);
+ setPanDragStart(null);
+ };
+
+ const beginPanDrag = (event: React.MouseEvent<HTMLDivElement>) => {
+ if (!event.altKey) return;
+ event.preventDefault();
+ setPanDragStart({ x: event.clientX, y: event.clientY, panX, panY });
+ };
+
+ const applyPanDrag = (event: React.MouseEvent<HTMLDivElement>) => {
+ if (!panDragStart) return;
+ const dx = event.clientX - panDragStart.x;
+ const dy = event.clientY - panDragStart.y;
+ setPanX(panDragStart.panX + dx);
+ setPanY(panDragStart.panY + dy);
+ };
+
+ const handleCanvasWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+ event.preventDefault();
+ const delta = event.deltaY > 0 ? -0.05 : 0.05;
+ setZoom((current) => Math.max(1, Math.min(4, Number((current + delta).toFixed(2)))));
+ };
+
+ const handleCanvasMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+ applyPanDrag(event);
+ applyCropDrag(event);
+ };
+
+ useEffect(() => {
+ const onKey = (event: KeyboardEvent) => {
+ if (!canvasActive) return;
+ const step = event.shiftKey ? 0.02 : 0.005;
+
+ if (event.key === '+' || event.key === '=') {
+ event.preventDefault();
+ setZoom((current) => Math.min(4, Number((current + 0.05).toFixed(2))));
+ return;
+ }
+ if (event.key === '-' || event.key === '_') {
+ event.preventDefault();
+ setZoom((current) => Math.max(1, Number((current - 0.05).toFixed(2))));
+ return;
+ }
+ if (event.key.toLowerCase() === 'r') {
+ event.preventDefault();
+ setRotationDeg((current) => current + (event.shiftKey ? -5 : 5));
+ return;
+ }
+ if (event.key.toLowerCase() === '0') {
+ event.preventDefault();
+ setZoom(1);
+ setRotationDeg(0);
+ setPanX(0);
+ setPanY(0);
+ return;
+ }
+ if (cropMode === 'manual') {
+ if (event.key === 'ArrowLeft') {
+ event.preventDefault();
+ setCropRect((current) => ({ ...current, x: Math.max(0, current.x - step) }));
+ }
+ if (event.key === 'ArrowRight') {
+ event.preventDefault();
+ setCropRect((current) => ({ ...current, x: Math.min(1 - current.w, current.x + step) }));
+ }
+ if (event.key === 'ArrowUp') {
+ event.preventDefault();
+ setCropRect((current) => ({ ...current, y: Math.max(0, current.y - step) }));
+ }
+ if (event.key === 'ArrowDown') {
+ event.preventDefault();
+ setCropRect((current) => ({ ...current, y: Math.min(1 - current.h, current.y + step) }));
+ }
+ }
+ };
+
+ window.addEventListener('keydown', onKey);
+ return () => window.removeEventListener('keydown', onKey);
+ }, [canvasActive, cropMode]);
+
+ const uploadEditedCanvas = useCallback(async () => {
+ const canvas = previewCanvasRef.current;
+ if (!canvas) return;
+
+ setImageUploadError(null);
+ setImageUploading(true);
+ try {
+ const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.92));
+ if (!blob) {
+ throw new Error('Failed to create edited image output');
+ }
+
+ const editedFile = new File([blob], `edited-${editorSourceName.replace(/\.[^/.]+$/, '') || 'image'}.webp`, {
+ type: 'image/webp',
+ });
+
+ const shouldStoreCrops = generatePlacementCrops && cropMode !== 'none';
+ const url = await handleImageUpload(editedFile, {
+ generatePlacementCrops: shouldStoreCrops,
+ placementCropRatios: selectedPlacementRatios,
+ cropMode: cropMode === 'none' ? undefined : cropMode,
+ cropFitMode: previewFitMode,
+ focalX,
+ focalY,
+ backgroundTheme,
+ repeatPattern,
+ repeatDirection,
+ });
+
+ setFormData(prev => ({ ...prev, imageUrl: url }));
+ setEditorSourceUrl(url);
+ showToast('Edited image uploaded','success');
+ } catch (error) {
+ console.error('Edited canvas upload failed:', error);
+ setImageUploadError(error instanceof Error ? error.message : 'Upload failed');
+ } finally {
+ setImageUploading(false);
+ }
+ }, [backgroundTheme, cropMode, editorSourceName, focalX, focalY, generatePlacementCrops, handleImageUpload, previewFitMode, repeatDirection, repeatPattern, selectedPlacementRatios]);
+
+ const renderSingleCanvasPreview = () => {
+ const source = editorSourceUrl || formData.imageUrl;
+ if (!source) return null;
+
+ const preset = CANVAS_PLACEMENTS[canvasPlacement];
+ const previewBackgroundClass = backgroundTheme === 'dark'
+ ? 'bg-[rgb(22,24,29)]'
+ : backgroundTheme === 'light'
+ ? 'bg-[rgb(245,245,245)]'
+ : 'bg-[rgb(var(--muted))]/30';
+
+ const cropStyle: React.CSSProperties = {
+ left: `${cropRect.x * 100}%`,
+ top: `${cropRect.y * 100}%`,
+ width: `${cropRect.w * 100}%`,
+ height: `${cropRect.h * 100}%`,
+ };
+
+ return (
+ <div className="mt-4 space-y-3">
+ <div className="flex items-center justify-between text-xs text-[rgb(var(--muted-foreground))]">
+ <span>Canvas source: {preset.source} · {preset.width}×{preset.height} · default fit {preset.objectFit}</span>
+ <span>Source ratio: {sourceAspectLabel} · Wheel=zoom · Alt+drag=pan</span>
+ </div>
+ <div
+ ref={canvasRef}
+ className={`relative overflow-hidden rounded-xl border border-[rgb(var(--border))]/50 ${previewBackgroundClass} select-none`}
+ style={{ aspectRatio: `${preset.width} / ${preset.height}` }}
+ tabIndex={0}
+ onFocus={() => setCanvasActive(true)}
+ onBlur={() => setCanvasActive(false)}
+ onWheel={handleCanvasWheel}
+ onMouseDown={beginPanDrag}
+ onMouseMove={handleCanvasMouseMove}
+ onMouseUp={stopCropDrag}
+ onMouseLeave={stopCropDrag}
+ >
+ <canvas ref={previewCanvasRef} className="h-full w-full" />
+ {cropMode === 'manual' && (
+ <>
+ <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+ <div className="absolute border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" style={cropStyle}>
+ <div className="pointer-events-none absolute left-1/3 top-0 h-full w-px bg-white/60" />
+ <div className="pointer-events-none absolute left-2/3 top-0 h-full w-px bg-white/60" />
+ <div className="pointer-events-none absolute top-1/3 left-0 h-px w-full bg-white/60" />
+ <div className="pointer-events-none absolute top-2/3 left-0 h-px w-full bg-white/60" />
+ <div className="absolute inset-0 cursor-move" onMouseDown={(e) => beginCropDrag('move', e)} />
+ <button type="button" className="absolute -left-1.5 -top-1.5 h-3 w-3 rounded-full bg-white" onMouseDown={(e) => beginCropDrag('nw', e)} />
+ <button type="button" className="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full bg-white" onMouseDown={(e) => beginCropDrag('ne', e)} />
+ <button type="button" className="absolute -left-1.5 -bottom-1.5 h-3 w-3 rounded-full bg-white" onMouseDown={(e) => beginCropDrag('sw', e)} />
+ <button type="button" className="absolute -right-1.5 -bottom-1.5 h-3 w-3 rounded-full bg-white" onMouseDown={(e) => beginCropDrag('se', e)} />
+ <button type="button" className="absolute left-1/2 -top-1.5 h-3 w-3 -translate-x-1/2 rounded-full bg-white" onMouseDown={(e) => beginCropDrag('ne', e)} />
+ <button type="button" className="absolute left-1/2 -bottom-1.5 h-3 w-3 -translate-x-1/2 rounded-full bg-white" onMouseDown={(e) => beginCropDrag('se', e)} />
+ <button type="button" className="absolute -left-1.5 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white" onMouseDown={(e) => beginCropDrag('sw', e)} />
+ <button type="button" className="absolute -right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white" onMouseDown={(e) => beginCropDrag('se', e)} />
+ </div>
+ </>
+ )}
+ </div>
+ </div>
+ );
+ };
 
  const addTag = () => {
  if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
@@ -785,15 +1424,188 @@ const NewArticle: React.FC = () => {
  {/* Featured Image */}
  <div>
  <label className="block text-sm font-semibold text-[rgb(var(--foreground))] mb-2">
- Featured Image URL
+ Featured Image
  </label>
+ <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
  <input
  type="url"
  value={formData.imageUrl}
- onChange={(e) => handleInputChange('imageUrl', e.target.value)}
+ onChange={(e) => {
+ handleInputChange('imageUrl', e.target.value);
+ setEditorSourceUrl(e.target.value);
+ setEditorSourceName('remote-image');
+ }}
  placeholder="https://example.com/image.jpg"
  className="w-full px-4 py-3 border border-[rgb(var(--border))]/50 rounded-xl focus:ring-2 focus:ring-[rgb(var(--primary))] focus:border-transparent bg-[rgb(var(--card))] text-[rgb(var(--foreground))] placeholder:text-[rgb(var(--muted-foreground))]"
  />
+ <label className="inline-flex items-center justify-center px-4 py-3 border border-[rgb(var(--border))]/50 rounded-xl bg-[rgb(var(--card))] text-[rgb(var(--foreground))] hover:bg-[rgb(var(--border))]/10 cursor-pointer">
+ <input
+ type="file"
+ accept="image/*"
+ className="hidden"
+ onChange={(e) => {
+ const file = e.target.files?.[0];
+ if (file) {
+ startEditingLocalFile(file);
+ }
+ }}
+ />
+ {imageUploading ? 'Uploading…' : 'Choose file'}
+ </label>
+ </div>
+ {imageUploadError && (
+ <p className="text-xs text-red-500 mt-1">{imageUploadError}</p>
+ )}
+ <div className="mt-2 flex items-center gap-2">
+ <button
+ type="button"
+ onClick={openProEditorInNewTab}
+ className="h-8 rounded-md border border-[rgb(var(--primary))]/60 bg-[rgb(var(--primary))]/10 px-3 text-xs text-[rgb(var(--primary))] hover:bg-[rgb(var(--primary))]/20"
+ >
+ Open Pro Image Editor (New Tab)
+ </button>
+ <span className="text-xs text-[rgb(var(--muted-foreground))]">Full editing controls are in dedicated tab for better space and UX.</span>
+ </div>
+ <details className="mt-3 rounded-lg border border-[rgb(var(--border))]/40 p-3">
+ <summary className="cursor-pointer text-xs font-medium text-[rgb(var(--muted-foreground))]">Show inline legacy controls</summary>
+ <div className="mt-3 space-y-3">
+ <div className="flex flex-wrap items-center gap-2">
+ {Object.entries(CANVAS_PLACEMENTS).map(([key, preset]) => (
+ <button
+ key={key}
+ type="button"
+ onClick={() => setCanvasPlacement(key as CanvasPlacement)}
+ className={`h-8 rounded-md border px-2 text-xs transition-colors ${canvasPlacement === key ? 'border-[rgb(var(--primary))] bg-[rgb(var(--primary))]/10 text-[rgb(var(--primary))]' : 'border-[rgb(var(--border))]/60 text-[rgb(var(--foreground))] hover:bg-[rgb(var(--border))]/10'}`}
+ >
+ {preset.label}
+ </button>
+ ))}
+ </div>
+
+ <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+ <label className="inline-flex items-center gap-2 text-xs text-[rgb(var(--foreground))]">
+ <input
+ type="checkbox"
+ checked={generatePlacementCrops}
+ onChange={(e) => setGeneratePlacementCrops(e.target.checked)}
+ className="h-4 w-4 rounded border-[rgb(var(--border))]/60"
+ />
+ Generate placement crops
+ </label>
+ <label className="text-xs text-[rgb(var(--muted-foreground))]">
+ Crop mode
+ <select value={cropMode} onChange={(e) => setCropMode(e.target.value as CropMode)} className="mt-1 h-8 w-full rounded-md border border-[rgb(var(--border))]/60 bg-[rgb(var(--card))] px-2 text-xs text-[rgb(var(--foreground))]">
+ <option value="none">No crop</option>
+ <option value="auto">Auto-crop</option>
+ <option value="manual">Manual focal</option>
+ </select>
+ </label>
+ <label className="text-xs text-[rgb(var(--muted-foreground))]">
+ Fit simulation
+ <select value={previewFitMode} onChange={(e) => setPreviewFitMode(e.target.value as PreviewFitMode)} className="mt-1 h-8 w-full rounded-md border border-[rgb(var(--border))]/60 bg-[rgb(var(--card))] px-2 text-xs text-[rgb(var(--foreground))]">
+ <option value="cover">cover (site default)</option>
+ <option value="contain">contain</option>
+ <option value="fill">fill</option>
+ </select>
+ </label>
+ <label className="text-xs text-[rgb(var(--muted-foreground))]">
+ Background
+ <select value={backgroundTheme} onChange={(e) => setBackgroundTheme(e.target.value as ThemeBackgroundMode)} className="mt-1 h-8 w-full rounded-md border border-[rgb(var(--border))]/60 bg-[rgb(var(--card))] px-2 text-xs text-[rgb(var(--foreground))]">
+ <option value="auto">Auto</option>
+ <option value="light">Light</option>
+ <option value="dark">Dark</option>
+ </select>
+ </label>
+ </div>
+
+ <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+ <SliderWithNumber label="Zoom" value={zoom} min={1} max={4} step={0.01} suffix="x" onChange={setZoom} />
+ <SliderWithNumber label="Rotate" value={rotationDeg} min={-180} max={180} step={1} suffix="°" onChange={setRotationDeg} />
+ <SliderWithNumber label="Brightness" value={brightness} min={40} max={200} step={1} suffix="%" onChange={setBrightness} />
+ <SliderWithNumber label="Contrast" value={contrast} min={40} max={200} step={1} suffix="%" onChange={setContrast} />
+ <SliderWithNumber label="Saturation" value={saturation} min={0} max={220} step={1} suffix="%" onChange={setSaturation} />
+ <SliderWithNumber label="Blur" value={blurPx} min={0} max={15} step={0.1} suffix="px" onChange={setBlurPx} />
+ <SliderWithNumber label="Hue" value={hueRotate} min={-180} max={180} step={1} suffix="°" onChange={setHueRotate} />
+ <SliderWithNumber label="Grayscale" value={grayscale} min={0} max={100} step={1} suffix="%" onChange={setGrayscale} />
+ <SliderWithNumber label="Sepia" value={sepia} min={0} max={100} step={1} suffix="%" onChange={setSepia} />
+ <SliderWithNumber label="Vignette" value={vignette} min={0} max={100} step={1} suffix="%" onChange={setVignette} />
+ <SliderWithNumber label="Pan X" value={panX} min={-600} max={600} step={1} suffix="px" onChange={setPanX} />
+ <SliderWithNumber label="Pan Y" value={panY} min={-600} max={600} step={1} suffix="px" onChange={setPanY} />
+ </div>
+
+ <div className="flex flex-wrap items-center gap-2">
+ <button type="button" onClick={() => setFlipX((prev) => !prev)} className="h-8 rounded-md border border-[rgb(var(--border))]/60 px-2 text-xs">Flip X</button>
+ <button type="button" onClick={() => setFlipY((prev) => !prev)} className="h-8 rounded-md border border-[rgb(var(--border))]/60 px-2 text-xs">Flip Y</button>
+ <button type="button" onClick={() => { setZoom(1); setRotationDeg(0); setPanX(0); setPanY(0); setBrightness(100); setContrast(100); setSaturation(100); setBlurPx(0); setHueRotate(0); setGrayscale(0); setSepia(0); setVignette(0); }} className="h-8 rounded-md border border-[rgb(var(--border))]/60 px-2 text-xs">Reset transforms</button>
+ </div>
+
+ <div className="grid gap-2 sm:grid-cols-3">
+ <label className="inline-flex items-center gap-2 text-xs text-[rgb(var(--foreground))]">
+ <input type="checkbox" checked={repeatPattern} onChange={(e) => setRepeatPattern(e.target.checked)} className="h-3.5 w-3.5" />
+ Repeat pattern
+ </label>
+ <label className="text-xs text-[rgb(var(--muted-foreground))]">
+ Repeat direction
+ <select value={repeatDirection} onChange={(e) => setRepeatDirection(e.target.value as RepeatDirection)} disabled={!repeatPattern} className="mt-1 h-8 w-full rounded-md border border-[rgb(var(--border))]/60 bg-[rgb(var(--card))] px-2 text-xs text-[rgb(var(--foreground))] disabled:opacity-50">
+ <option value="both">Both (X + Y)</option>
+ <option value="x">Horizontal only</option>
+ <option value="y">Vertical only</option>
+ </select>
+ </label>
+ <div className="flex items-end gap-2">
+ <button type="button" onClick={applyAutoSuggestion} className="h-8 rounded-md border border-[rgb(var(--border))]/60 px-2 text-xs text-[rgb(var(--foreground))] hover:bg-[rgb(var(--border))]/10">Auto suggest</button>
+ <button type="button" onClick={uploadEditedCanvas} disabled={!editorReady || imageUploading} className="h-8 rounded-md border border-[rgb(var(--primary))]/60 bg-[rgb(var(--primary))]/10 px-2 text-xs text-[rgb(var(--primary))] hover:bg-[rgb(var(--primary))]/20 disabled:opacity-50">Apply & Upload</button>
+ </div>
+ </div>
+
+ {cropMode === 'manual' && (
+ <div className="space-y-2 rounded-md border border-[rgb(var(--border))]/40 p-2">
+ <div className="grid gap-2 sm:grid-cols-3">
+ <label className="text-xs text-[rgb(var(--muted-foreground))]">
+ Focus X: {Math.round(focalX)}%
+ <input type="range" min={0} max={100} value={focalX} onChange={(e) => setFocalX(Number(e.target.value))} className="mt-1 w-full" />
+ </label>
+ <label className="text-xs text-[rgb(var(--muted-foreground))]">
+ Focus Y: {Math.round(focalY)}%
+ <input type="range" min={0} max={100} value={focalY} onChange={(e) => setFocalY(Number(e.target.value))} className="mt-1 w-full" />
+ </label>
+ <label className="text-xs text-[rgb(var(--muted-foreground))]">
+ Crop aspect lock
+ <select value={cropAspectLock} onChange={(e) => setCropAspectLock(e.target.value as 'free' | PlacementRatio)} className="mt-1 h-8 w-full rounded-md border border-[rgb(var(--border))]/60 bg-[rgb(var(--card))] px-2 text-xs text-[rgb(var(--foreground))]">
+ <option value="free">Free</option>
+ {PLACEMENT_RATIO_OPTIONS.map((option) => (
+ <option key={option.ratio} value={option.ratio}>{option.label}</option>
+ ))}
+ </select>
+ </label>
+ </div>
+ <div className="grid gap-2 sm:grid-cols-4">
+ <SliderWithNumber label="Crop X" value={cropRect.x * 100} min={0} max={100} step={0.1} suffix="%" onChange={(value) => setCropRect((current) => ({ ...current, x: Math.max(0, Math.min(1 - current.w, value / 100)) }))} />
+ <SliderWithNumber label="Crop Y" value={cropRect.y * 100} min={0} max={100} step={0.1} suffix="%" onChange={(value) => setCropRect((current) => ({ ...current, y: Math.max(0, Math.min(1 - current.h, value / 100)) }))} />
+ <SliderWithNumber label="Crop W" value={cropRect.w * 100} min={8} max={100} step={0.1} suffix="%" onChange={(value) => setCropRect((current) => ({ ...current, w: Math.max(0.08, Math.min(1 - current.x, value / 100)) }))} />
+ <SliderWithNumber label="Crop H" value={cropRect.h * 100} min={8} max={100} step={0.1} suffix="%" onChange={(value) => setCropRect((current) => ({ ...current, h: Math.max(0.08, Math.min(1 - current.y, value / 100)) }))} />
+ </div>
+ </div>
+ )}
+
+ <div className="flex flex-wrap gap-2">
+ {PLACEMENT_RATIO_OPTIONS.map((option) => (
+ <label key={option.ratio} className="inline-flex items-center gap-1 rounded-md border border-[rgb(var(--border))]/50 px-2 py-1 text-xs text-[rgb(var(--foreground))]">
+ <input
+ type="checkbox"
+ checked={selectedPlacementRatios.includes(option.ratio)}
+ onChange={(e) => togglePlacementRatio(option.ratio, e.target.checked)}
+ disabled={!generatePlacementCrops || cropMode === 'none'}
+ className="h-3.5 w-3.5"
+ />
+ {option.label}
+ </label>
+ ))}
+ </div>
+ <p className="text-xs text-[rgb(var(--muted-foreground))]">Suggested ratios: {suggestedRatios.join(', ')} · Keyboard: +/- zoom, R rotate, arrows move crop (Shift = faster), 0 reset view.</p>
+ {renderSingleCanvasPreview()}
+ </div>
+ </details>
  </div>
 
  {/* Content Editor */}
@@ -1003,15 +1815,79 @@ const NewArticle: React.FC = () => {
  </div>
  <div>
  <label className="block text-sm font-semibold text-[rgb(var(--foreground))] mb-2">
- Featured Image URL
+ Featured Image
  </label>
+ <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
  <input
  type="url"
  value={formData.imageUrl}
- onChange={(e) => handleInputChange('imageUrl', e.target.value)}
+ onChange={(e) => {
+ handleInputChange('imageUrl', e.target.value);
+ setEditorSourceUrl(e.target.value);
+ setEditorSourceName('remote-image');
+ }}
  placeholder="https://example.com/image.jpg"
  className="w-full px-4 py-3 border border-[rgb(var(--border))]/50 rounded-xl focus:ring-2 focus:ring-[rgb(var(--primary))] focus:border-transparent bg-[rgb(var(--card))] text-[rgb(var(--foreground))] placeholder:text-[rgb(var(--muted-foreground))]"
  />
+ <label className="inline-flex items-center justify-center px-4 py-3 border border-[rgb(var(--border))]/50 rounded-xl bg-[rgb(var(--card))] text-[rgb(var(--foreground))] hover:bg-[rgb(var(--border))]/10 cursor-pointer">
+ <input
+ type="file"
+ accept="image/*"
+ className="hidden"
+ onChange={(e) => {
+ const file = e.target.files?.[0];
+ if (file) {
+ startEditingLocalFile(file);
+ }
+ }}
+ />
+ {imageUploading ? 'Uploading…' : 'Choose file'}
+ </label>
+ </div>
+ {imageUploadError && <p className="mt-1 text-xs text-red-500">{imageUploadError}</p>}
+ <div className="mt-2">
+ <button
+ type="button"
+ onClick={openProEditorInNewTab}
+ className="h-8 rounded-md border border-[rgb(var(--primary))]/60 bg-[rgb(var(--primary))]/10 px-3 text-xs text-[rgb(var(--primary))] hover:bg-[rgb(var(--primary))]/20"
+ >
+ Open Pro Image Editor (New Tab)
+ </button>
+ </div>
+ <div className="mt-2 rounded-md border border-[rgb(var(--border))]/40 p-2 space-y-2">
+ <div className="flex flex-wrap items-center gap-2">
+ <select value={cropMode} onChange={(e) => setCropMode(e.target.value as CropMode)} className="h-8 rounded-md border border-[rgb(var(--border))]/60 bg-[rgb(var(--card))] px-2 text-xs">
+ <option value="none">No crop</option>
+ <option value="auto">Auto-crop</option>
+ <option value="manual">Manual crop</option>
+ </select>
+ <select value={canvasPlacement} onChange={(e) => setCanvasPlacement(e.target.value as CanvasPlacement)} className="h-8 rounded-md border border-[rgb(var(--border))]/60 bg-[rgb(var(--card))] px-2 text-xs">
+ <option value="featured">Featured</option>
+ <option value="card">Card</option>
+ <option value="list">List</option>
+ <option value="thumb">Thumb</option>
+ <option value="newsThumb">News thumb</option>
+ <option value="hero">Hero</option>
+ <option value="banner">Banner</option>
+ <option value="story">Story</option>
+ <option value="portraitCard">Portrait card</option>
+ </select>
+ <button type="button" onClick={applyAutoSuggestion} className="h-8 rounded-md border border-[rgb(var(--border))]/60 px-2 text-xs hover:bg-[rgb(var(--border))]/10">Auto suggest</button>
+ <button type="button" onClick={uploadEditedCanvas} disabled={!editorReady || imageUploading} className="h-8 rounded-md border border-[rgb(var(--primary))]/60 bg-[rgb(var(--primary))]/10 px-2 text-xs text-[rgb(var(--primary))] hover:bg-[rgb(var(--primary))]/20 disabled:opacity-50">Apply & Upload</button>
+ </div>
+ <div className="grid gap-2 sm:grid-cols-2">
+ <label className="inline-flex items-center gap-2 text-xs text-[rgb(var(--foreground))]">
+ <input type="checkbox" checked={repeatPattern} onChange={(e) => setRepeatPattern(e.target.checked)} className="h-3.5 w-3.5" />
+ Repeat pattern
+ </label>
+ <select value={repeatDirection} onChange={(e) => setRepeatDirection(e.target.value as RepeatDirection)} disabled={!repeatPattern} className="h-8 rounded-md border border-[rgb(var(--border))]/60 bg-[rgb(var(--card))] px-2 text-xs disabled:opacity-50">
+ <option value="both">Both</option>
+ <option value="x">Horizontal</option>
+ <option value="y">Vertical</option>
+ </select>
+ </div>
+ {formData.imageUrl && <div>{renderSingleCanvasPreview()}</div>}
+ </div>
  <div className="mt-3">
  <label className="block text-sm font-semibold text-[rgb(var(--foreground))] mb-2">
  Publish Date
@@ -1202,7 +2078,7 @@ const NewArticle: React.FC = () => {
  </div>
  </div>
  </div>
- );
+);
 };
 
 export default NewArticle;

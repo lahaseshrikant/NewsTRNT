@@ -1522,7 +1522,7 @@ router.post('/ingest', async (req: AuthRequest, res) => {
 /**
  * GET /api/articles/ingest/stats — return recent content engine pipeline runs
  */
-router.get('/ingest/stats', async (req: AuthRequest, res) => {
+router.get('/ingest/stats', optionalAuth, async (req: AuthRequest, res) => {
   const authHeader = req.headers.authorization;
   const bearerKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
   const engineKey = process.env.CONTENT_ENGINE_API_KEY || process.env.MARKET_INGEST_API_KEY;
