@@ -63,14 +63,14 @@ export default function WebStoriesAdmin() {
  title: story.title,
  slug: story.slug || story.title.toLowerCase().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-'),
  category: story.category?.name || story.category ||'Uncategorized',
- slides: story.slidesCount || story.slides?.length || 0,
+ slides: (story.slidesCount ?? (Array.isArray(story.slides) ? story.slides.length : Number(story.slides) || 0)),
  status: story.isPublished ?'published' : (story.isArchived ?'archived' :'draft') as WebStory['status'],
  publishedAt: story.publishedAt || story.createdAt,
  author: story.author ||'Staff',
  views: story.viewCount || story.views || 0,
  likes: story.likeCount || story.likes || 0,
  shares: story.shareCount || story.shares || 0,
- duration: story.duration || 30,
+ duration: story.duration || (Array.isArray(story.slides) ? story.slides.reduce((sum: number, s: any) => sum + (Number(s?.duration) || 0), 0) : 0) || 30,
  coverImage: story.coverImage ||'',
  isFeature: story.isFeature || story.isFeatured || false,
  priority: (story.priority ||'normal') as WebStory['priority'],
@@ -249,10 +249,10 @@ export default function WebStoriesAdmin() {
 
  {/* Loading */}
  {loading && (
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
- {[...Array(8)].map((_, i) => (
- <div key={i} className="bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-xl overflow-hidden animate-pulse">
- <div className="aspect-[9/16] w-full bg-[rgb(var(--muted))]/10 max-h-[200px]" />
+ <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+ {[...Array(12)].map((_, i) => (
+ <div key={i} className="bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg overflow-hidden animate-pulse">
+ <div className="aspect-[3/5] w-full bg-[rgb(var(--muted))]/10" />
  <div className="p-4 space-y-3">
  <div className="h-4 bg-[rgb(var(--muted))]/10 rounded w-3/4" />
  <div className="h-3 bg-[rgb(var(--muted))]/10 rounded w-1/2" />
@@ -264,11 +264,11 @@ export default function WebStoriesAdmin() {
 
  {/* Grid View */}
  {!loading && viewMode ==='grid' && (
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+ <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
  {filteredStories.map(story => (
- <div key={story.id} className="bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-xl overflow-hidden group hover:shadow-sm hover:border-[rgb(var(--primary))]/20 transition-all duration-300">
+ <div key={story.id} className="bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg overflow-hidden group hover:shadow-md hover:border-[rgb(var(--primary))]/30 transition-all duration-200">
  {/* Cover */}
- <div className="relative aspect-[9/16] max-h-[200px] bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 overflow-hidden">
+ <div className="relative aspect-[3/5] bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 overflow-hidden">
  {story.coverImage && (
  <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${story.coverImage})` }} />
  )}
@@ -301,25 +301,25 @@ export default function WebStoriesAdmin() {
  </div>
 
  {/* Info */}
- <div className="p-4">
+ <div className="p-3">
  <Link href={`/content/web-stories/create?id=${story.id}`} className="block">
- <h3 className="font-semibold text-[rgb(var(--foreground))] text-sm line-clamp-2 group-hover:text-[rgb(var(--primary))] transition-colors">
+ <h3 className="font-semibold text-[rgb(var(--foreground))] text-xs line-clamp-2 group-hover:text-[rgb(var(--primary))] transition-colors">
  {story.title}
  </h3>
  </Link>
- <div className="flex items-center gap-2 mt-2 text-xs text-[rgb(var(--muted-foreground))]">
+ <div className="flex items-center gap-1 mt-1 text-[10px] text-[rgb(var(--muted-foreground))]">
  <span>{story.category}</span>
  <span>•</span>
  <span>{story.author}</span>
  </div>
- <div className="flex items-center gap-3 mt-3 text-xs text-[rgb(var(--muted-foreground))]">
- <span className="flex items-center gap-1">{fmtViews(story.views)}</span>
- <span className="flex items-center gap-1">{fmtViews(story.likes)}</span>
- <span className="flex items-center gap-1">{fmtViews(story.shares)}</span>
+ <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-[rgb(var(--muted-foreground))]">
+ <span className="bg-[rgb(var(--muted))] text-[rgb(var(--foreground))] px-2 py-1 rounded-md">Views {story.views}</span>
+ <span className="bg-[rgb(var(--muted))] text-[rgb(var(--foreground))] px-2 py-1 rounded-md">Likes {story.likes}</span>
+ <span className="bg-[rgb(var(--muted))] text-[rgb(var(--foreground))] px-2 py-1 rounded-md">Shares {story.shares}</span>
  </div>
- <div className="flex items-center justify-between mt-3 pt-3 border-t border-[rgb(var(--border))]">
- <span className="text-[11px] text-[rgb(var(--muted-foreground))]">{new Date(story.publishedAt).toLocaleDateString()}</span>
- <span className="text-xs">{priorityIcon[story.priority]}</span>
+ <div className="flex items-center justify-between mt-2 pt-2 border-t border-[rgb(var(--border))] text-[10px]">
+ <span className="text-[rgb(var(--muted-foreground))]">{story.publishedAt ? new Date(story.publishedAt).toLocaleDateString() : 'Unpublished'}</span>
+ <span className="text-xs text-[rgb(var(--muted-foreground))]">Priority: {story.priority}</span>
  </div>
  </div>
  </div>
@@ -367,7 +367,9 @@ export default function WebStoriesAdmin() {
  {story.title}
  </Link>
  <p className="text-xs text-[rgb(var(--muted-foreground))] mt-0.5">{story.category} • {story.slides} slides • {fmtDuration(story.duration)}</p>
- <p className="text-xs text-[rgb(var(--muted-foreground))]">By {story.author}</p>
+ <p className="text-xs text-[rgb(var(--muted-foreground))] break-all truncate max-w-[180px]" title={`By ${story.author}`}>
+ By {story.author}
+ </p>
  </div>
  </div>
  </td>
