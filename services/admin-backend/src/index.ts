@@ -18,6 +18,7 @@ import uploadRoutes from './routes/upload';
 import healthRoutes from './routes/health';
 import contentEngineRoutes from './routes/content-engine';
 import contactRoutes from './routes/contact';
+import placeholderRoutes from './routes/placeholder';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -85,6 +86,7 @@ app.use('/api/market', marketRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/content-engine', contentEngineRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/placeholder', placeholderRoutes);
 app.use('/api', healthRoutes);
 
 // Error handling

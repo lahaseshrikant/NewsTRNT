@@ -126,6 +126,10 @@ router.get('/:idOrSlug', optionalAuth, async (req: AuthRequest, res) => {
   try {
     const { idOrSlug } = req.params;
 
+    if (!idOrSlug) {
+      return res.status(400).json({ error: 'idOrSlug is required' });
+    }
+
     // Determine if it's a UUID or slug
     const isUUID = looksLikeUUID(idOrSlug);
 
@@ -152,11 +156,15 @@ router.get('/:idOrSlug', optionalAuth, async (req: AuthRequest, res) => {
       return;
     }
 
-    // Increment view count
-    await prisma.webStory.update({
-      where: { id: webStory.id },
-      data: { viewCount: { increment: 1 } }
-    });
+    // Increment view count (best-effort, do not fail page load if this step fails)
+    try {
+      await prisma.webStory.update({
+        where: { id: webStory.id },
+        data: { viewCount: { increment: 1 } }
+      });
+    } catch (err) {
+      console.warn('Failed to increment view count for webstory:', webStory.id, err);
+    }
 
     // Transform to frontend format
     const transformedWebStory = {

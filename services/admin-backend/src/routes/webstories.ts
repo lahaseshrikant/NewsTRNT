@@ -13,12 +13,58 @@ const router = Router();
 const looksLikeUUID = (id: string | undefined): boolean =>
   !!id && /^[0-9a-fA-F-]{36}$/.test(id);
 
+async function resolveCategoryId(categoryIdOrName?: string | null): Promise<string | null> {
+  if (!categoryIdOrName) return null;
+  const value = categoryIdOrName.trim();
+  if (!value) return null;
+
+  if (looksLikeUUID(value)) {
+    return value;
+  }
+
+  const normalized = value.toLowerCase();
+  const foundCategory = await prisma.category.findFirst({
+    where: {
+      OR: [
+        { slug: normalized },
+        { name: { equals: value, mode: 'insensitive' } },
+        { name: { equals: normalized, mode: 'insensitive' } },
+      ],
+    },
+  });
+
+  return foundCategory?.id || null;
+}
+
 // Helper: determine web story status
 const getWebStoryStatus = (publishedAt: Date | null, status: string): string => {
   if (status === 'draft') return 'draft';
   if (status === 'archived') return 'archived';
   if (publishedAt && publishedAt > new Date()) return 'scheduled';
   return 'published';
+};
+
+const inferCoverImageFromSlides = (slides: any): string | null => {
+  if (!slides) return null;
+  let parsedSlides = Array.isArray(slides) ? slides : [];
+
+  if (!Array.isArray(parsedSlides) && typeof slides === 'string') {
+    try {
+      parsedSlides = JSON.parse(slides);
+    } catch {
+      parsedSlides = [];
+    }
+  }
+  if (!Array.isArray(parsedSlides) || parsedSlides.length === 0) return null;
+
+  const firstSlide = parsedSlides[0];
+  const imageUrl = firstSlide?.content?.image;
+  if (typeof imageUrl === 'string' && imageUrl.trim()) return imageUrl.trim();
+
+  const videoUrl = firstSlide?.content?.video;
+  if (typeof videoUrl === 'string' && videoUrl.trim()) return videoUrl.trim();
+
+  return null;
 };
 
 // ── Admin CRUD (all require auth + admin) ────────────────────────────────────
@@ -86,7 +132,7 @@ router.get('/admin', authenticateToken, async (req: AuthRequest, res: Response) 
       status: getWebStoryStatus(story.publishedAt, story.status),
       author: story.author || story.createdByUser?.fullName || 'Unknown',
       duration: story.duration,
-      coverImage: story.coverImage,
+      coverImage: story.coverImage || '/api/placeholder/400/600',
       isFeature: story.isFeature,
       priority: story.priority,
       viewCount: story.viewCount,
@@ -157,7 +203,7 @@ router.get('/admin/drafts', authenticateToken, async (req: AuthRequest, res: Res
         updatedAt: story.updatedAt.toISOString(),
         createdAt: story.createdAt.toISOString(),
         status: 'draft',
-        imageUrl: story.coverImage,
+        imageUrl: story.coverImage || '/api/placeholder/400/600',
         type: 'webstory',
         slides: Array.isArray(story.slides) ? (story.slides as any[]).length : 0,
         duration: story.duration,
@@ -246,6 +292,7 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res: Response)
       title,
       slides = [],
       categoryId,
+      category,
       coverImage,
       author,
       duration = 0,
@@ -259,6 +306,29 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res: Response)
       res.status(400).json({ error: 'Title is required' });
       return;
     }
+
+    let resolvedCategoryId: string | undefined;
+    const categoryInput = (categoryId || category || '').toString().trim();
+    if (categoryInput) {
+      resolvedCategoryId = await resolveCategoryId(categoryInput);
+    }
+
+    let parsedSlides: any = [];
+    try {
+      parsedSlides = Array.isArray(slides)
+        ? slides
+        : slides
+          ? JSON.parse(typeof slides === 'string' ? slides : JSON.stringify(slides))
+          : [];
+    } catch (parseError) {
+      console.error('[WebStories] Invalid slides data on create:', parseError);
+      res.status(400).json({ error: 'Invalid slides data format' });
+      return;
+    }
+
+    const effectiveCoverImage = (coverImage && typeof coverImage === 'string' && coverImage.trim())
+      ? coverImage.trim()
+      : inferCoverImageFromSlides(parsedSlides);
 
     const slug =
       title
@@ -279,9 +349,9 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res: Response)
       data: {
         title,
         slug,
-        slides: JSON.parse(typeof slides === 'string' ? slides : JSON.stringify(slides)),
-        categoryId: categoryId || undefined,
-        coverImage,
+        slides: parsedSlides,
+        categoryId: resolvedCategoryId,
+        coverImage: effectiveCoverImage || null,
         author: author || req.user?.email,
         duration,
         isFeature,
@@ -298,7 +368,8 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res: Response)
     res.status(201).json({ success: true, webStory });
   } catch (error) {
     console.error('[WebStories] Error creating:', error);
-    res.status(500).json({ error: 'Failed to create web story' });
+    const message = error instanceof Error ? error.message : 'Failed to create web story';
+    res.status(500).json({ error: 'Failed to create web story', details: message });
   }
 });
 
@@ -354,6 +425,7 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res: Respon
       title,
       slides,
       categoryId,
+      category,
       coverImage,
       author,
       duration,
@@ -377,9 +449,49 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res: Respon
           Date.now();
       }
     }
-    if (slides !== undefined) updateData.slides = typeof slides === 'string' ? JSON.parse(slides) : slides;
-    if (categoryId !== undefined) updateData.categoryId = categoryId || null;
-    if (coverImage !== undefined) updateData.coverImage = coverImage;
+
+    if (slides !== undefined) {
+      try {
+        updateData.slides = Array.isArray(slides)
+          ? slides
+          : slides
+            ? JSON.parse(typeof slides === 'string' ? slides : JSON.stringify(slides))
+            : [];
+      } catch (error) {
+        console.error('[WebStories] Invalid slides data on update:', error);
+        res.status(400).json({ error: 'Invalid slides data format' });
+        return;
+      }
+    }
+
+    const categoryInput = (categoryId || category || '').toString().trim();
+    if (categoryInput !== '') {
+      const resolvedCategoryId = await resolveCategoryId(categoryInput);
+      if (resolvedCategoryId) {
+        updateData.categoryId = resolvedCategoryId;
+      } else {
+        // decided to clear category if explicit category known but not found
+        updateData.categoryId = null;
+      }
+    }
+
+    const existingCover = existing.coverImage?.toString().trim();
+    let finalCoverImage: string | null | undefined = undefined;
+    if (coverImage !== undefined) {
+      const coverRaw = typeof coverImage === 'string' ? coverImage.trim() : '';
+      finalCoverImage = coverRaw || null;
+    }
+
+    if (finalCoverImage === undefined && !existingCover) {
+      const slideSource = updateData.slides ?? existing.slides;
+      const inferred = inferCoverImageFromSlides(slideSource);
+      if (inferred) finalCoverImage = inferred;
+    }
+
+    if (finalCoverImage !== undefined) {
+      updateData.coverImage = finalCoverImage;
+    }
+
     if (author !== undefined) updateData.author = author;
     if (duration !== undefined) updateData.duration = duration;
     if (isFeature !== undefined) updateData.isFeature = isFeature;
@@ -409,7 +521,55 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res: Respon
     res.json({ success: true, webStory });
   } catch (error) {
     console.error('[WebStories] Error updating:', error);
-    res.status(500).json({ error: 'Failed to update web story' });
+    const message = error instanceof Error ? error.message : 'Failed to update web story';
+    res.status(500).json({ error: 'Failed to update web story', details: message });
+  }
+});
+
+/**
+ * POST /api/webstories/admin/bulk — Bulk operation for web stories
+ */
+router.post('/admin/bulk', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { action, ids } = req.body as { action: string; ids: string[] };
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Invalid or missing ids' });
+    }
+
+    const validActions = ['publish', 'draft', 'archive', 'delete', 'restore'];
+    if (!action || !validActions.includes(action)) {
+      return res.status(400).json({ error: 'Invalid action' });
+    }
+
+    const where = {
+      id: { in: ids.filter(id => looksLikeUUID(id)) },
+    } as any;
+
+    let updateData: any = {};
+    switch (action) {
+      case 'publish':
+        updateData = { status: 'published', publishedAt: new Date() };
+        break;
+      case 'draft':
+        updateData = { status: 'draft' };
+        break;
+      case 'archive':
+        updateData = { status: 'archived' };
+        break;
+      case 'delete':
+        updateData = { isDeleted: true, deletedAt: new Date() };
+        break;
+      case 'restore':
+        updateData = { isDeleted: false, deletedAt: null };
+        break;
+    }
+
+    await prisma.webStory.updateMany({ where, data: updateData });
+
+    return res.json({ success: true, action, count: ids.length });
+  } catch (error) {
+    console.error('[WebStories] Error bulk action:', error);
+    return res.status(500).json({ error: 'Failed to perform bulk action', details: (error as Error).message });
   }
 });
 

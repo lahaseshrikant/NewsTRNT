@@ -7,6 +7,23 @@ import { useSearchParams } from 'next/navigation';
 import { useCategories } from '@/hooks/useCategories';
 import { dbApi, WebStory } from '@/lib/api-client';
 
+const sanitizeImageUrl = (url?: string | null, fallback = '/api/placeholder/400/600'): string => {
+  if (!url || typeof url !== 'string') return fallback;
+  const trimmed = url.trim();
+
+  if (trimmed.startsWith('blob:') || trimmed.startsWith('data:')) return fallback;
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  if (trimmed.startsWith('/')) return trimmed;
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return trimmed;
+    return fallback;
+  } catch {
+    return trimmed;
+  }
+};
+
 const WebStoriesContent: React.FC = () => {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
@@ -168,7 +185,13 @@ const WebStoriesContent: React.FC = () => {
               className="group relative aspect-[9/16] bg-gradient-to-br from-ivory to-ash dark:from-ink dark:to-[#1a1917] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]  ring-1 ring-border/30"
             >
               <Image
-                src={story.coverImage}
+                src={sanitizeImageUrl(
+                  story.coverImage ||
+                    (Array.isArray(story.slides)
+                      ? story.slides[0]?.content?.image || story.slides[0]?.content?.video
+                      : '') ||
+                    '/api/placeholder/400/600'
+                )}
                 alt={story.title}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-500"

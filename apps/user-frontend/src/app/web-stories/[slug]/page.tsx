@@ -7,6 +7,28 @@ import Link from 'next/link';
 import { dbApi, WebStory, WebStorySlide } from '@/lib/api-client';
 import { StoriesIcon } from '@/components/icons/EditorialIcons';
 
+const sanitizeMediaUrl = (url?: string | null, fallback = '/api/placeholder/400/600'): string => {
+  if (!url || typeof url !== 'string') return fallback;
+  const trimmed = url.trim();
+
+  // Reject in-memory or unsafe URLs for next/image as this can cause loader errors
+  if (trimmed.startsWith('blob:') || trimmed.startsWith('data:')) return fallback;
+
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  if (trimmed.startsWith('/')) return trimmed;
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return trimmed;
+    }
+    return fallback;
+  } catch {
+    // Keep relative URLs (same origin) so local assets can still be resolved.
+    return trimmed;
+  }
+};
+
 const WebStoryViewer: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -301,7 +323,7 @@ const WebStoryViewer: React.FC = () => {
           {currentSlide.type === 'image' && currentSlide.content.image && (
             <div className="relative w-full h-full">
               <Image
-                src={currentSlide.content.image}
+                src={sanitizeMediaUrl(currentSlide.content.image)}
                 alt={currentSlide.content.headline || 'Story content'}
                 fill
                 className="object-cover object-center"
@@ -321,7 +343,7 @@ const WebStoryViewer: React.FC = () => {
           {currentSlide.type === 'video' && currentSlide.content.video && (
             <div className="relative w-full h-full">
               <video
-                src={currentSlide.content.video}
+                src={sanitizeMediaUrl(currentSlide.content.video)}
                 className="w-full h-full object-cover object-center"
                 autoPlay
                 muted={isMuted}
