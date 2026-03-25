@@ -61,7 +61,7 @@ const escapeHtml = (value: unknown): string =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-const toAbsoluteUrl = (url?: string, fallback = `${SITE_URL}/api/placeholder/400/600`): string => {
+const toAbsoluteUrl = (url?: string, fallback = ''): string => {
   if (!url || typeof url !== 'string') return fallback;
   const trimmed = url.trim();
   if (!trimmed) return fallback;
@@ -307,21 +307,21 @@ const buildMoreStoriesPage = (stories: RelatedStory[], bgImage: string): string 
     const image = toAbsoluteUrl(story.coverImage);
     const category = escapeHtml(story.category || 'Featured');
     return `
-      <a href="${escapeHtml(`${SITE_URL}/web-stories/${encodeURIComponent(story.slug)}/amp`)}" class="story-row" style="animation-delay:${index * 0.15 + 0.4}s" target="_top" rel="noopener">
+      <div class="story-row" style="animation-delay:${index * 0.15 + 0.4}s">
         <div class="row-media">
           <amp-img src="${escapeHtml(image)}" layout="fill" alt="${escapeHtml(story.title)}" class="row-img"></amp-img>
         </div>
         <div class="row-content">
           <span class="row-category">${category}</span>
           <span class="row-title">${escapeHtml(story.title)}</span>
-          <span class="row-read">Read Story <span class="arr">→</span></span>
+          <span class="row-read">Preview <span class="arr">→</span></span>
         </div>
-      </a>
+      </div>
     `;
   }).join('');
 
   return `
-    <amp-story-page id="more-stories" auto-advance-after="0s">
+    <amp-story-page id="more-stories">
       <amp-story-grid-layer template="fill">
         <amp-img src="${escapeHtml(bgImage)}" layout="fill" class="more-stories-bg" alt="Discover More"></amp-img>
         <div class="more-stories-overlay"></div>
@@ -330,11 +330,14 @@ const buildMoreStoriesPage = (stories: RelatedStory[], bgImage: string): string 
         <div class="more-stories-content">
           <div class="more-stories-header">
             <h1 class="more-stories-heading">Keep Exploring</h1>
-            <p class="more-stories-sub">Dive into our top related stories.</p>
+            <p class="more-stories-sub">Swipe up to dive into all stories.</p>
           </div>
           <div class="more-stories-list">${rows}</div>
         </div>
       </amp-story-grid-layer>
+      <amp-story-page-outlink layout="nodisplay">
+        <a href="${escapeHtml(SITE_URL)}/web-stories">Explore All Stories</a>
+      </amp-story-page-outlink>
     </amp-story-page>
   `;
 };
@@ -400,7 +403,8 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ sl
         totalSlides,
       });
 
-  const mainPages = storyPages;
+  const moreStoriesPage = buildMoreStoriesPage(relatedStories, posterUrl);
+  const mainPages = storyPages + moreStoriesPage;
 
   const bookendConfig = buildBookendConfig(relatedStories);
 
