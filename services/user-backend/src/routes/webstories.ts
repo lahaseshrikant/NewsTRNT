@@ -5,6 +5,23 @@ import { AuthRequest } from '../types/auth';
 
 const router = Router();
 
+const inferStoryDescription = (slides: any): string | undefined => {
+  if (!Array.isArray(slides)) return undefined;
+
+  const text = slides
+    .map((slide: any) => {
+      const headline = typeof slide?.content?.headline === 'string' ? slide.content.headline.trim() : '';
+      const body = typeof slide?.content?.text === 'string' ? slide.content.text.trim() : '';
+      return [headline, body].filter(Boolean).join('. ');
+    })
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  if (!text) return undefined;
+  return text.slice(0, 240);
+};
+
 // UUID detection helper
 function looksLikeUUID(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
@@ -89,6 +106,8 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
       author: story.author || 'Unknown',
       duration: story.duration,
       coverImage: story.coverImage || '/api/placeholder/400/600',
+      coverImageUrl: story.coverImage || '/api/placeholder/400/600',
+      description: inferStoryDescription(story.slides),
       isFeature: story.isFeature,
       priority: story.priority,
       viewCount: story.viewCount,
@@ -97,6 +116,7 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
       views: story.viewCount,
       isNew: story.publishedAt && (Date.now() - new Date(story.publishedAt).getTime()) < 24 * 60 * 60 * 1000,
       isTrending: story.viewCount > 1000 || story.isFeature,
+      tags: [story.category?.name || 'News', 'Web Story'],
       publishedAt: story.publishedAt?.toISOString(),
       createdAt: story.createdAt.toISOString(),
       updatedAt: story.updatedAt.toISOString()
@@ -127,7 +147,8 @@ router.get('/:idOrSlug', optionalAuth, async (req: AuthRequest, res) => {
     const { idOrSlug } = req.params;
 
     if (!idOrSlug) {
-      return res.status(400).json({ error: 'idOrSlug is required' });
+      res.status(400).json({ error: 'idOrSlug is required' });
+      return;
     }
 
     // Determine if it's a UUID or slug
@@ -178,13 +199,17 @@ router.get('/:idOrSlug', optionalAuth, async (req: AuthRequest, res) => {
       author: webStory.author || 'Unknown',
       duration: webStory.duration,
       coverImage: webStory.coverImage || '/api/placeholder/400/600',
+      coverImageUrl: webStory.coverImage || '/api/placeholder/400/600',
+      description: inferStoryDescription(webStory.slides),
       isFeature: webStory.isFeature,
       viewCount: webStory.viewCount + 1,
       views: webStory.viewCount + 1,
       likeCount: webStory.likeCount,
       shareCount: webStory.shareCount,
+      tags: [webStory.category?.name || 'News', 'Web Story'],
       publishedAt: webStory.publishedAt?.toISOString(),
-      createdAt: webStory.createdAt.toISOString()
+      createdAt: webStory.createdAt.toISOString(),
+      updatedAt: webStory.updatedAt.toISOString()
     };
 
     res.json({

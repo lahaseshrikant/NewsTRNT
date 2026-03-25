@@ -44,6 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Dynamic article pages — fetch from API if available
   let articlePages: MetadataRoute.Sitemap = [];
+  let webStoryPages: MetadataRoute.Sitemap = [];
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
     const res = await fetch(`${apiUrl}/articles?limit=500&status=published`, {
@@ -63,5 +64,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fail silently — articles will be indexed by crawlers
   }
 
-  return [...staticPages, ...categoryPages, ...articlePages];
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const res = await fetch(`${apiUrl}/webstories?limit=500`, {
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const stories = data.webStories || data.data || [];
+      webStoryPages = stories.flatMap((story: any) => {
+        const slug = story?.slug;
+        if (!slug) return [];
+        const lastModified = new Date(story.updatedAt || story.publishedAt || story.createdAt || Date.now());
+
+        return [
+          {
+            url: `${BASE_URL}/web-stories/${slug}`,
+            lastModified,
+            changeFrequency: 'weekly' as const,
+            priority: 0.8,
+          },
+          {
+            url: `${BASE_URL}/web-stories/${slug}/amp`,
+            lastModified,
+            changeFrequency: 'weekly' as const,
+            priority: 0.8,
+          },
+        ];
+      });
+    }
+  } catch {
+    // Fail silently — web stories will still be discoverable via links
+  }
+
+  return [...staticPages, ...categoryPages, ...articlePages, ...webStoryPages];
 }

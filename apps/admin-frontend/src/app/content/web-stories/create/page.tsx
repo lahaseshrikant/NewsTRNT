@@ -17,6 +17,10 @@ interface StorySlide {
     text?: string;
     image?: string;
     video?: string;
+    poster?: string;
+    alt?: string;
+    caption?: string;
+    attribution?: string;
     cta?: {
       text: string;
       url: string;
@@ -33,6 +37,12 @@ interface StoryData {
   coverImage?: string;
   slides: StorySlide[];
 }
+
+type QualityIssue = {
+  level: 'warning' | 'error';
+  code: string;
+  message: string;
+};
 
 const CreateWebStory: React.FC = () => {
   const router = useRouter();
@@ -161,6 +171,146 @@ const CreateWebStory: React.FC = () => {
     setActiveSlideIndex(to);
   };
 
+  const duplicateSlide = (index: number) => {
+    const source = storyData.slides[index];
+    if (!source) return;
+    const cloned: StorySlide = {
+      ...source,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      content: {
+        ...source.content,
+        cta: source.content.cta ? { ...source.content.cta } : undefined,
+      },
+    };
+
+    const nextSlides = [...storyData.slides];
+    nextSlides.splice(index + 1, 0, cloned);
+    setStoryData(prev => ({ ...prev, slides: nextSlides }));
+    setActiveSlideIndex(index + 1);
+  };
+
+  const addSlideTemplate = (template: 'hero' | 'detail' | 'cta') => {
+    const title = storyData.title.trim() || 'Story update';
+    const normalizedTitle = title.length > 56 ? `${title.slice(0, 56)}…` : title;
+
+    const templateMap: Record<typeof template, StorySlide> = {
+      hero: {
+        id: `${Date.now()}-hero`,
+        type: 'image',
+        background: backgroundOptions[0],
+        content: {
+          headline: normalizedTitle,
+          text: 'A quick visual brief for this story.',
+          caption: '',
+          attribution: '',
+        },
+        duration: 5000,
+      },
+      detail: {
+        id: `${Date.now()}-detail`,
+        type: 'text',
+        background: backgroundOptions[2],
+        content: {
+          headline: 'Key Point',
+          text: 'Add one clear supporting fact or insight here.',
+        },
+        duration: 5000,
+      },
+      cta: {
+        id: `${Date.now()}-cta`,
+        type: 'text',
+        background: backgroundOptions[4],
+        content: {
+          headline: 'Read More',
+          text: 'Continue the full story on NewsTRNT.',
+          cta: {
+            text: 'Continue',
+            url: 'https://newstrnt.com/web-stories',
+          },
+        },
+        duration: 6000,
+      },
+    };
+
+    const newSlide = templateMap[template];
+    setStoryData(prev => ({ ...prev, slides: [...prev.slides, newSlide] }));
+    setActiveSlideIndex(storyData.slides.length);
+  };
+
+  const generateQuickDraft = () => {
+    const title = storyData.title.trim();
+    if (!title) {
+      window.alert('Add a title first to generate a quick story draft.');
+      return;
+    }
+
+    const shortTitle = title.length > 64 ? `${title.slice(0, 64)}…` : title;
+    const generated: StorySlide[] = [
+      {
+        id: `${Date.now()}-q1`,
+        type: 'image',
+        background: backgroundOptions[0],
+        content: {
+          headline: shortTitle,
+          text: 'What happened and why it matters.',
+        },
+        duration: 5000,
+      },
+      {
+        id: `${Date.now()}-q2`,
+        type: 'text',
+        background: backgroundOptions[1],
+        content: {
+          headline: 'Context',
+          text: 'Add one concise context line for audience clarity.',
+        },
+        duration: 5000,
+      },
+      {
+        id: `${Date.now()}-q3`,
+        type: 'text',
+        background: backgroundOptions[2],
+        content: {
+          headline: 'Key Takeaway',
+          text: 'Highlight the key insight in one sentence.',
+        },
+        duration: 5000,
+      },
+      {
+        id: `${Date.now()}-q4`,
+        type: 'text',
+        background: backgroundOptions[4],
+        content: {
+          headline: 'Continue Reading',
+          text: 'Open the full report for deeper coverage.',
+          cta: { text: 'Read Full Story', url: 'https://newstrnt.com' },
+        },
+        duration: 6000,
+      },
+    ];
+
+    setStoryData(prev => ({ ...prev, slides: generated }));
+    setActiveSlideIndex(0);
+  };
+
+  const autofillActiveSlideFromTitle = () => {
+    const title = storyData.title.trim();
+    if (!title) return;
+    const active = storyData.slides[activeSlideIndex];
+    if (!active) return;
+
+    updateSlideContent(activeSlideIndex, {
+      headline: active.content.headline?.trim() || title,
+      text: active.content.text?.trim() || `Top highlights from ${title}.`,
+      caption: active.content.caption?.trim() || 'NewsTRNT visual brief',
+      attribution: active.content.attribution?.trim() || 'Source: NewsTRNT',
+      cta: active.content.cta || {
+        text: 'Read full story',
+        url: 'https://newstrnt.com',
+      },
+    });
+  };
+
   const updateSlide = (index: number, updates: Partial<StorySlide>) => {
     setStoryData(prev => ({
       ...prev,
@@ -211,6 +361,41 @@ const CreateWebStory: React.FC = () => {
     }
 
     return '/api/placeholder/400/600';
+  };
+
+  const getClientQualityIssues = (data: StoryData): QualityIssue[] => {
+    const issues: QualityIssue[] = [];
+    const title = (data.title || '').trim();
+
+    if (title.length < 18) {
+      issues.push({
+        level: 'warning',
+        code: 'weak_title',
+        message: 'Title looks short. Consider a more compelling headline.',
+      });
+    }
+
+    data.slides.forEach((slide, index) => {
+      const mediaUrl = slide.content.image || slide.content.video;
+      const altText = (slide.content.alt || '').trim();
+      if (mediaUrl && !altText) {
+        issues.push({
+          level: 'warning',
+          code: 'missing_alt_text',
+          message: `Slide ${index + 1}: Add alt text for better accessibility and AMP quality.`,
+        });
+      }
+
+      if (typeof mediaUrl === 'string' && mediaUrl.includes('placeholder')) {
+        issues.push({
+          level: 'error',
+          code: 'placeholder_media',
+          message: `Slide ${index + 1}: Placeholder media detected.`,
+        });
+      }
+    });
+
+    return issues;
   };
 
   const uploadImageToServer = async (file: File): Promise<string> => {
@@ -320,6 +505,10 @@ const CreateWebStory: React.FC = () => {
                   text: slide.content?.text || '',
                   image: slide.content?.image || '',
                   video: slide.content?.video || '',
+                  poster: slide.content?.poster || '',
+                  alt: slide.content?.alt || '',
+                  caption: slide.content?.caption || '',
+                  attribution: slide.content?.attribution || '',
                   cta: slide.content?.cta || undefined,
                 },
                 duration: slide.duration || 5000,
@@ -383,6 +572,7 @@ const CreateWebStory: React.FC = () => {
           ...slide.content,
           image: slide.content.image ? sanitizeMediaUrl(slide.content.image) : undefined,
           video: slide.content.video ? sanitizeMediaUrl(slide.content.video) : undefined,
+          poster: slide.content.poster ? sanitizeMediaUrl(slide.content.poster) : undefined,
         },
       }));
 
@@ -400,6 +590,27 @@ const CreateWebStory: React.FC = () => {
         payload.categoryId = categoryValue.toLowerCase();
       }
 
+      if (publish) {
+        const qualityIssues = getClientQualityIssues({ ...storyData, slides: sanitizedSlides });
+        const blocking = qualityIssues.filter(issue => issue.level === 'error');
+        if (blocking.length > 0) {
+          window.alert(`Cannot publish yet:\n\n${blocking.map(issue => `• ${issue.message}`).join('\n')}`);
+          return;
+        }
+
+        if (qualityIssues.length > 0) {
+          const proceed = window.confirm(
+            `Quality checks found ${qualityIssues.length} warning(s):\n\n${qualityIssues
+              .slice(0, 6)
+              .map(issue => `• ${issue.message}`)
+              .join('\n')}\n\nPublish anyway?`
+          );
+          if (!proceed) {
+            return;
+          }
+        }
+      }
+
       console.debug('[WebStories] save payload', payload);
 
       const savingUrl = storyId ? `${API_BASE_URL}/webstories/admin/${storyId}` : `${API_BASE_URL}/webstories/admin`;
@@ -415,6 +626,13 @@ const CreateWebStory: React.FC = () => {
       console.debug('[WebStories] save response', savingMethod, savingUrl, res.status, responseData);
 
       if (!res.ok) {
+        if (Array.isArray(responseData?.qualityIssues) && responseData.qualityIssues.length > 0) {
+          const issueSummary = responseData.qualityIssues
+            .slice(0, 8)
+            .map((issue: QualityIssue) => `• ${issue.message}`)
+            .join('\n');
+          throw new Error(`${responseData?.error || 'Story quality checks failed'}\n\n${issueSummary}`);
+        }
         const message = responseData?.error || responseData?.message || `Failed to save story (${res.status})`;
         throw new Error(message);
       }
@@ -473,7 +691,7 @@ const CreateWebStory: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Category</label>
-              <select value={storyData.category} onChange={e => setStoryData(prev => ({ ...prev, category: e.target.value }))} className="w-full rounded-lg border px-3 py-2">
+              <select value={storyData.category} onChange={e => setStoryData(prev => ({ ...prev, category: e.target.value }))} className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--background))] px-3 py-2 text-[rgb(var(--foreground))]" style={{ colorScheme: 'dark light' }}>
                 <option>Technology</option>
                 <option>Business</option>
                 <option>Environment</option>
@@ -486,7 +704,7 @@ const CreateWebStory: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Priority</label>
-              <select value={storyData.priority} onChange={e => setStoryData(prev => ({ ...prev, priority: e.target.value as 'high' | 'normal' | 'low' }))} className="w-full rounded-lg border px-3 py-2">
+              <select value={storyData.priority} onChange={e => setStoryData(prev => ({ ...prev, priority: e.target.value as 'high' | 'normal' | 'low' }))} className="w-full rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--background))] px-3 py-2 text-[rgb(var(--foreground))]" style={{ colorScheme: 'dark light' }}>
                 <option value="normal">Normal</option>
                 <option value="high">High</option>
                 <option value="low">Low</option>
@@ -507,6 +725,10 @@ const CreateWebStory: React.FC = () => {
               <p className="text-sm text-[rgb(var(--muted-foreground))]">Story Progress</p>
               <p className="text-sm">{storyData.slides.length} slides</p>
               <p className="text-sm">~{Math.round(storyData.slides.reduce((sum, slide) => sum + slide.duration, 0) / 1000)}s duration</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button onClick={generateQuickDraft} className="rounded border border-[rgb(var(--border))] px-2.5 py-1 text-xs">Quick 4-slide draft</button>
+                <button onClick={autofillActiveSlideFromTitle} className="rounded border border-[rgb(var(--border))] px-2.5 py-1 text-xs">Autofill active slide</button>
+              </div>
             </div>
           </div>
         )}
@@ -533,8 +755,11 @@ const CreateWebStory: React.FC = () => {
         </div>
         {!config.collapsed && (
           <>
-            <div className="mb-3">
+            <div className="mb-3 flex flex-wrap gap-2">
               <button onClick={addSlide} className="rounded bg-[rgb(var(--primary))] px-3 py-1 text-sm text-white">Add</button>
+              <button onClick={() => addSlideTemplate('hero')} className="rounded border border-[rgb(var(--border))] px-2.5 py-1 text-xs">Hero</button>
+              <button onClick={() => addSlideTemplate('detail')} className="rounded border border-[rgb(var(--border))] px-2.5 py-1 text-xs">Detail</button>
+              <button onClick={() => addSlideTemplate('cta')} className="rounded border border-[rgb(var(--border))] px-2.5 py-1 text-xs">CTA</button>
             </div>
             <div className="space-y-2 max-h-[280px] overflow-auto">
               {storyData.slides.map((slide, index) => (
@@ -547,6 +772,7 @@ const CreateWebStory: React.FC = () => {
                     <div className="flex items-center gap-1">
                       <button onClick={e => { e.stopPropagation(); moveSlide(index, index - 1); }} disabled={index === 0} className="rounded px-1 py-0.5 text-xs disabled:opacity-40">↑</button>
                       <button onClick={e => { e.stopPropagation(); moveSlide(index, index + 1); }} disabled={index === storyData.slides.length - 1} className="rounded px-1 py-0.5 text-xs disabled:opacity-40">↓</button>
+                      <button onClick={e => { e.stopPropagation(); duplicateSlide(index); }} className="rounded px-1 py-0.5 text-xs">⎘</button>
                       <button onClick={e => { e.stopPropagation(); removeSlide(index); }} className="text-red-500 text-xs">✕</button>
                     </div>
                   </div>
@@ -581,6 +807,7 @@ const CreateWebStory: React.FC = () => {
             <div className="flex gap-2">
               <button onClick={() => updateSlide(activeSlideIndex, { type: 'text' })} className={`rounded px-3 py-1 text-sm ${activeSlide.type === 'text' ? 'bg-[rgb(var(--primary))] text-white' : 'bg-[rgb(var(--muted))]/10'}`}>Text</button>
               <button onClick={() => updateSlide(activeSlideIndex, { type: 'image' })} className={`rounded px-3 py-1 text-sm ${activeSlide.type === 'image' ? 'bg-[rgb(var(--primary))] text-white' : 'bg-[rgb(var(--muted))]/10'}`}>Image</button>
+              <button onClick={() => updateSlide(activeSlideIndex, { type: 'video' })} className={`rounded px-3 py-1 text-sm ${activeSlide.type === 'video' ? 'bg-[rgb(var(--primary))] text-white' : 'bg-[rgb(var(--muted))]/10'}`}>Video</button>
             </div>
 
             <div>
@@ -600,6 +827,63 @@ const CreateWebStory: React.FC = () => {
                   <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleImageUpload(activeSlideIndex, e)} />
                   <button onClick={() => fileInputRef.current?.click()} className="rounded border px-3 py-2 text-sm">Upload Image</button>
                   {activeSlide.content.image && <button onClick={() => updateSlideContent(activeSlideIndex, { image: '' })} className="rounded border px-3 py-2 text-sm text-red-500">Remove</button>}
+                </div>
+              </div>
+            )}
+
+            {activeSlide.type === 'video' && (
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Video URL</label>
+                  <input
+                    type="url"
+                    value={activeSlide.content.video || ''}
+                    onChange={e => updateSlideContent(activeSlideIndex, { video: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full rounded-lg border px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Poster Image URL</label>
+                  <input
+                    type="url"
+                    value={activeSlide.content.poster || ''}
+                    onChange={e => updateSlideContent(activeSlideIndex, { poster: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full rounded-lg border px-3 py-2"
+                  />
+                </div>
+              </div>
+            )}
+
+            {(activeSlide.type === 'image' || activeSlide.type === 'video') && (
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Alt Text (Accessibility)</label>
+                  <input
+                    value={activeSlide.content.alt || ''}
+                    onChange={e => updateSlideContent(activeSlideIndex, { alt: e.target.value })}
+                    className="w-full rounded-lg border px-3 py-2"
+                    placeholder="Describe the visual for screen readers"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Caption</label>
+                  <input
+                    value={activeSlide.content.caption || ''}
+                    onChange={e => updateSlideContent(activeSlideIndex, { caption: e.target.value })}
+                    className="w-full rounded-lg border px-3 py-2"
+                    placeholder="Optional caption"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Attribution</label>
+                  <input
+                    value={activeSlide.content.attribution || ''}
+                    onChange={e => updateSlideContent(activeSlideIndex, { attribution: e.target.value })}
+                    className="w-full rounded-lg border px-3 py-2"
+                    placeholder="Photo/Video credit"
+                  />
                 </div>
               </div>
             )}
@@ -653,27 +937,47 @@ const CreateWebStory: React.FC = () => {
         {!config.collapsed && (
           <div className="flex justify-center">
             <div className="relative w-full max-w-[360px] aspect-[9/16] overflow-hidden rounded-3xl border border-white/10" style={{ background: activeSlide.background }}>
-              {activeSlide.content.image && <Image src={activeSlide.content.image} alt="Active slide" fill className="object-cover" />}
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="absolute inset-0 flex flex-col justify-between p-4">
-                <div className="flex justify-between text-xs text-white/70">
+              {activeSlide.type === 'video' && activeSlide.content.video ? (
+                <video
+                  src={activeSlide.content.video}
+                  poster={activeSlide.content.poster}
+                  className="h-full w-full object-cover"
+                  muted
+                  autoPlay
+                  loop
+                  playsInline
+                />
+              ) : activeSlide.content.image ? (
+                <Image src={activeSlide.content.image} alt={activeSlide.content.alt || 'Active slide'} fill className="object-cover" />
+              ) : null}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/18 via-black/42 to-black/72" />
+              <div className="absolute inset-0 p-4 text-white">
+                <div className="flex justify-between text-[11px] text-white/75">
                   <div>{activeSlideIndex + 1} / {storyData.slides.length}</div>
                   <div>{Math.round(activeSlide.duration / 1000)}s</div>
                 </div>
-                <div className="text-center text-white">
-                  {activeSlide.content.headline && <h2 className="text-2xl font-bold">{activeSlide.content.headline}</h2>}
-                  {activeSlide.content.text && <p className="mt-2 text-sm">{activeSlide.content.text}</p>}
-                  {activeSlide.content.cta && (
-                    <a href={activeSlide.content.cta.url} target="_blank" rel="noreferrer" className="mt-3 inline-block rounded-full bg-white/20 px-3 py-1 text-xs">
+                <div className="absolute inset-x-4 bottom-20 space-y-3">
+                  <div className="space-y-2">
+                    {activeSlide.content.headline && <h2 className="text-[1.45rem] font-semibold leading-tight tracking-tight">{activeSlide.content.headline}</h2>}
+                    {activeSlide.content.text && <p className="text-[0.9rem] leading-relaxed text-white/90">{activeSlide.content.text}</p>}
+                  </div>
+                  {(activeSlide.content.caption || activeSlide.content.attribution) && (
+                    <div className="rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-[11px] leading-relaxed text-white/85 backdrop-blur-sm">
+                      {activeSlide.content.caption && <p>{activeSlide.content.caption}</p>}
+                      {activeSlide.content.attribution && <p className="mt-1 text-white/70">{activeSlide.content.attribution}</p>}
+                    </div>
+                  )}
+                  {activeSlide.content.cta && activeSlide.content.cta.text && activeSlide.content.cta.url && (
+                    <a href={activeSlide.content.cta.url} target="_blank" rel="noreferrer" className="inline-flex min-h-[34px] items-center justify-center rounded-full border border-white/35 bg-white/15 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] backdrop-blur-sm transition-colors hover:bg-white/25">
                       {activeSlide.content.cta.text}
                     </a>
                   )}
                 </div>
-                <div className="h-1 w-full rounded-full bg-white/20">
+                <div className="absolute inset-x-4 bottom-4 h-1 w-auto rounded-full bg-white/20">
                   <div className="h-full rounded-full bg-white" style={{ width: `${Math.round(((activeSlideIndex + 1) / storyData.slides.length) * 100)}%` }} />
                 </div>
               </div>
-              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2">
                 <button className="rounded bg-white/20 px-3 py-1 text-xs" onClick={() => setIsPlaying(prev => !prev)}>{isPlaying ? 'Pause' : 'Play'}</button>
                 <button className="rounded bg-white/20 px-3 py-1 text-xs" onClick={() => setActiveSlideIndex(prev => (prev - 1 + storyData.slides.length) % storyData.slides.length)}>Prev</button>
                 <button className="rounded bg-white/20 px-3 py-1 text-xs" onClick={() => setActiveSlideIndex(prev => (prev + 1) % storyData.slides.length)}>Next</button>
@@ -716,10 +1020,20 @@ const CreateWebStory: React.FC = () => {
               ❯
             </button>
             {activeSlide.content.image ? (
-              <Image src={activeSlide.content.image} alt="Story image" fill className="object-cover" />
+              <Image src={activeSlide.content.image} alt={activeSlide.content.alt || 'Story image'} fill className="object-cover" />
+            ) : activeSlide.type === 'video' && activeSlide.content.video ? (
+              <video
+                src={activeSlide.content.video}
+                poster={activeSlide.content.poster}
+                className="h-full w-full object-cover"
+                muted
+                autoPlay
+                loop
+                playsInline
+              />
             ) : null}
-            <div className="absolute inset-0 bg-black/40" />
-            <div className="absolute inset-0 flex flex-col justify-between p-4">
+            <div className="absolute inset-0 bg-gradient-to-b from-black/18 via-black/42 to-black/72" />
+            <div className="absolute inset-0 p-4">
               <div className="flex items-center justify-between gap-2">
                 <button className="rounded bg-white/20 px-3 py-1 text-xs" onClick={() => setPreviewMode(false)}>
                   Exit
@@ -748,16 +1062,24 @@ const CreateWebStory: React.FC = () => {
                   </button>
                 </div>
               </div>
-              <div className="text-center">
-                {activeSlide.content.headline && <h2 className="text-2xl font-bold">{activeSlide.content.headline}</h2>}
-                {activeSlide.content.text && <p className="mt-2 text-sm">{activeSlide.content.text}</p>}
-                {activeSlide.content.cta ? (
-                  <a href={activeSlide.content.cta.url} target="_blank" rel="noreferrer" className="mt-4 inline-block rounded-full bg-white/20 px-3 py-1 text-xs">
+              <div className="absolute inset-x-6 bottom-24 space-y-4">
+                <div className="space-y-3">
+                  {activeSlide.content.headline && <h2 className="text-[1.9rem] font-semibold leading-tight tracking-tight">{activeSlide.content.headline}</h2>}
+                  {activeSlide.content.text && <p className="text-[0.98rem] leading-relaxed text-white/90">{activeSlide.content.text}</p>}
+                </div>
+                {(activeSlide.content.caption || activeSlide.content.attribution) ? (
+                  <div className="rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-xs leading-relaxed text-white/85 backdrop-blur-sm">
+                    {activeSlide.content.caption && <p>{activeSlide.content.caption}</p>}
+                    {activeSlide.content.attribution && <p className="mt-1 text-white/70">{activeSlide.content.attribution}</p>}
+                  </div>
+                ) : null}
+                {activeSlide.content.cta && activeSlide.content.cta.text && activeSlide.content.cta.url ? (
+                  <a href={activeSlide.content.cta.url} target="_blank" rel="noreferrer" className="inline-flex min-h-[38px] items-center justify-center rounded-full border border-white/35 bg-white/15 px-5 text-xs font-semibold uppercase tracking-[0.1em] backdrop-blur-sm transition-colors hover:bg-white/25">
                     {activeSlide.content.cta.text}
                   </a>
                 ) : null}
               </div>
-              <div className="space-y-1">
+              <div className="absolute inset-x-4 bottom-4 space-y-1">
                 <div className="h-1 w-full rounded-full bg-white/20">
                   <div className="h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
                 </div>

@@ -30,37 +30,38 @@ export const DivergenceMark: React.FC<DivergenceMarkProps> = ({
       className={`${animated ? 'divergence-mark' : ''} ${className}`}
       aria-label="NewsTRNT Divergence Mark"
     >
-      {/* Left diverging path */}
+      {/* Left diverging path — thicker */}
       <path
         d="M24 40V24L10 8"
         stroke={color}
-        strokeWidth="3"
+        strokeWidth="3.6"
         strokeLinecap="round"
         strokeLinejoin="round"
-        fill="none"
       />
-      {/* Right diverging path */}
+
+      {/* Right diverging path — thinner */}
       <path
         d="M24 24L38 8"
         stroke={color}
-        strokeWidth="3"
+        strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
-        fill="none"
       />
-      {/* Horizontal crossbar — the "road not taken" moment */}
+
+      {/* Horizontal crossbar — more visible */}
       <path
         d="M6 8H42"
         stroke={color}
-        strokeWidth="2.5"
+        strokeWidth="2"
         strokeLinecap="round"
-        opacity="0.6"
+        opacity="0.45"
       />
-      {/* Decision point diamond */}
+
+      {/* Decision point — elegant circle */}
       <circle
         cx="24"
         cy="24"
-        r="2.5"
+        r="2"
         fill={color}
       />
     </svg>
@@ -76,9 +77,9 @@ export const NewsTRNTLogo: React.FC<{
   showTagline?: boolean;
 }> = ({ size = 'md', className = '', showTagline = false }) => {
   const sizes = {
-    sm: { icon: 24, text: 'text-lg', tagline: 'text-micro' },
-    md: { icon: 32, text: 'text-xl', tagline: 'text-overline' },
-    lg: { icon: 48, text: 'text-3xl', tagline: 'text-caption' },
+    sm: { icon: 24, text: 'text-lg', tagline: 'text-xs' },
+    md: { icon: 32, text: 'text-xl', tagline: 'text-sm' },
+    lg: { icon: 48, text: 'text-3xl', tagline: 'text-base' },
   };
 
   const s = sizes[size];

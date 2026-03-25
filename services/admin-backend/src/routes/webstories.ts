@@ -67,6 +67,173 @@ const inferCoverImageFromSlides = (slides: any): string | null => {
   return null;
 };
 
+const sanitizeStoryText = (value: unknown, maxLength: number): string | undefined => {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  if (!normalized) return undefined;
+  return normalized.slice(0, maxLength);
+};
+
+const sanitizeStoryUrl = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  if (trimmed.startsWith('/')) return trimmed;
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.toString();
+    }
+  } catch {
+    return undefined;
+  }
+
+  return undefined;
+};
+
+const normalizeStorySlides = (input: any): any[] => {
+  const slides = Array.isArray(input) ? input : [];
+
+  return slides
+    .map((slide: any, index: number) => {
+      const headline = sanitizeStoryText(slide?.content?.headline, 120);
+      const text = sanitizeStoryText(slide?.content?.text, 320);
+      const image = sanitizeStoryUrl(slide?.content?.image);
+      const video = sanitizeStoryUrl(slide?.content?.video);
+      const alt = sanitizeStoryText(slide?.content?.alt, 140);
+      const caption = sanitizeStoryText(slide?.content?.caption, 180);
+      const attribution = sanitizeStoryText(slide?.content?.attribution, 120);
+      const poster = sanitizeStoryUrl(slide?.content?.poster);
+
+      const ctaText = sanitizeStoryText(slide?.content?.cta?.text, 40);
+      const ctaUrl = sanitizeStoryUrl(slide?.content?.cta?.url);
+
+      const requestedType = typeof slide?.type === 'string' ? slide.type : '';
+      let normalizedType: 'image' | 'video' | 'text' = 'text';
+      if (requestedType === 'video' && video) normalizedType = 'video';
+      else if (requestedType === 'image' && image) normalizedType = 'image';
+      else if (video) normalizedType = 'video';
+      else if (image) normalizedType = 'image';
+
+      const durationRaw = Number(slide?.duration);
+      const duration = Number.isFinite(durationRaw)
+        ? Math.min(Math.max(Math.round(durationRaw), 3000), 15000)
+        : 5000;
+
+      const background = sanitizeStoryText(slide?.background, 120) || 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)';
+
+      return {
+        id: sanitizeStoryText(slide?.id, 64) || `slide-${index + 1}`,
+        type: normalizedType,
+        background,
+        duration,
+        content: {
+          ...(headline ? { headline } : {}),
+          ...(text ? { text } : {}),
+          ...(image ? { image } : {}),
+          ...(video ? { video } : {}),
+          ...(alt ? { alt } : {}),
+          ...(caption ? { caption } : {}),
+          ...(attribution ? { attribution } : {}),
+          ...(poster ? { poster } : {}),
+          ...(ctaText && ctaUrl ? { cta: { text: ctaText, url: ctaUrl } } : {}),
+        },
+      };
+    })
+    .filter((slide: any) => {
+      const hasHeadline = !!slide?.content?.headline;
+      const hasText = !!slide?.content?.text;
+      const hasImage = !!slide?.content?.image;
+      const hasVideo = !!slide?.content?.video;
+      return hasHeadline || hasText || hasImage || hasVideo;
+    })
+    .slice(0, 30);
+};
+
+const estimateStoryDurationSeconds = (slides: any[]): number => {
+  if (!Array.isArray(slides) || slides.length === 0) return 0;
+  const totalMs = slides.reduce((sum, slide) => sum + (Number(slide?.duration) || 0), 0);
+  return Math.max(1, Math.round(totalMs / 1000));
+};
+
+type StoryQualityIssue = {
+  level: 'warning' | 'error';
+  code: string;
+  message: string;
+};
+
+const parseWidthHintFromUrl = (value?: string): number | null => {
+  if (!value) return null;
+  try {
+    const parsed = new URL(value.startsWith('//') ? `https:${value}` : value);
+    const widthParam = parsed.searchParams.get('w') || parsed.searchParams.get('width');
+    if (!widthParam) return null;
+    const width = Number(widthParam);
+    return Number.isFinite(width) ? width : null;
+  } catch {
+    return null;
+  }
+};
+
+const getStoryQualityIssues = (title: string, slides: any[]): StoryQualityIssue[] => {
+  const issues: StoryQualityIssue[] = [];
+  const cleanTitle = sanitizeStoryText(title, 160) || '';
+
+  if (cleanTitle.length < 18) {
+    issues.push({
+      level: 'warning',
+      code: 'weak_title',
+      message: 'Title is too short. Use a stronger, benefit-driven headline for better engagement.',
+    });
+  }
+
+  if (cleanTitle.length > 95) {
+    issues.push({
+      level: 'warning',
+      code: 'title_too_long',
+      message: 'Title is very long. Keep it under 90 characters for better readability and SEO.',
+    });
+  }
+
+  slides.forEach((slide, index) => {
+    const slideIndex = index + 1;
+    const image = slide?.content?.image as string | undefined;
+    const video = slide?.content?.video as string | undefined;
+    const alt = sanitizeStoryText(slide?.content?.alt, 140);
+    const mediaUrl = image || video;
+
+    if (mediaUrl && !alt) {
+      issues.push({
+        level: 'warning',
+        code: 'missing_alt_text',
+        message: `Slide ${slideIndex}: Missing alt text for media.`,
+      });
+    }
+
+    if (typeof mediaUrl === 'string' && mediaUrl.includes('placeholder')) {
+      issues.push({
+        level: 'error',
+        code: 'placeholder_media',
+        message: `Slide ${slideIndex}: Placeholder media detected. Replace with production-ready assets.`,
+      });
+    }
+
+    const widthHint = parseWidthHintFromUrl(mediaUrl);
+    if (widthHint !== null && widthHint < 720) {
+      issues.push({
+        level: 'warning',
+        code: 'low_res_image',
+        message: `Slide ${slideIndex}: Media width appears low (${widthHint}px). Prefer 720px+ for AMP stories.`,
+      });
+    }
+  });
+
+  return issues;
+};
+
 // ── Admin CRUD (all require auth + admin) ────────────────────────────────────
 
 /**
@@ -310,7 +477,7 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res: Response)
     let resolvedCategoryId: string | undefined;
     const categoryInput = (categoryId || category || '').toString().trim();
     if (categoryInput) {
-      resolvedCategoryId = await resolveCategoryId(categoryInput);
+      resolvedCategoryId = (await resolveCategoryId(categoryInput)) ?? undefined;
     }
 
     let parsedSlides: any = [];
@@ -326,9 +493,32 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res: Response)
       return;
     }
 
+    const normalizedSlides = normalizeStorySlides(parsedSlides);
+    if (normalizedSlides.length === 0) {
+      res.status(400).json({ error: 'At least one valid slide is required' });
+      return;
+    }
+
     const effectiveCoverImage = (coverImage && typeof coverImage === 'string' && coverImage.trim())
       ? coverImage.trim()
-      : inferCoverImageFromSlides(parsedSlides);
+      : inferCoverImageFromSlides(normalizedSlides);
+
+    const requestedDuration = Number(duration);
+    const effectiveDuration = Number.isFinite(requestedDuration) && requestedDuration > 0
+      ? requestedDuration
+      : estimateStoryDurationSeconds(normalizedSlides);
+
+    const qualityIssues = getStoryQualityIssues(title, normalizedSlides);
+    const blockingIssues = status === 'published'
+      ? qualityIssues.filter(issue => issue.level === 'error')
+      : [];
+    if (blockingIssues.length > 0) {
+      res.status(400).json({
+        error: 'Story quality checks failed',
+        qualityIssues,
+      });
+      return;
+    }
 
     const slug =
       title
@@ -349,11 +539,11 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res: Response)
       data: {
         title,
         slug,
-        slides: parsedSlides,
+        slides: normalizedSlides,
         categoryId: resolvedCategoryId,
-        coverImage: effectiveCoverImage || null,
+        coverImage: effectiveCoverImage ?? undefined,
         author: author || req.user?.email,
-        duration,
+        duration: effectiveDuration,
         isFeature,
         priority,
         status,
@@ -365,7 +555,7 @@ router.post('/admin', authenticateToken, async (req: AuthRequest, res: Response)
       },
     });
 
-    res.status(201).json({ success: true, webStory });
+    res.status(201).json({ success: true, webStory, qualityIssues });
   } catch (error) {
     console.error('[WebStories] Error creating:', error);
     const message = error instanceof Error ? error.message : 'Failed to create web story';
@@ -452,11 +642,19 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res: Respon
 
     if (slides !== undefined) {
       try {
-        updateData.slides = Array.isArray(slides)
+        const parsedSlides = Array.isArray(slides)
           ? slides
           : slides
             ? JSON.parse(typeof slides === 'string' ? slides : JSON.stringify(slides))
             : [];
+
+        const normalizedSlides = normalizeStorySlides(parsedSlides);
+        if (normalizedSlides.length === 0) {
+          res.status(400).json({ error: 'At least one valid slide is required' });
+          return;
+        }
+
+        updateData.slides = normalizedSlides;
       } catch (error) {
         console.error('[WebStories] Invalid slides data on update:', error);
         res.status(400).json({ error: 'Invalid slides data format' });
@@ -493,7 +691,12 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res: Respon
     }
 
     if (author !== undefined) updateData.author = author;
-    if (duration !== undefined) updateData.duration = duration;
+    if (duration !== undefined) {
+      const parsedDuration = Number(duration);
+      updateData.duration = Number.isFinite(parsedDuration) && parsedDuration > 0
+        ? parsedDuration
+        : estimateStoryDurationSeconds((updateData.slides ?? existing.slides) as any[]);
+    }
     if (isFeature !== undefined) updateData.isFeature = isFeature;
     if (priority !== undefined) updateData.priority = priority;
     if (status !== undefined) updateData.status = status;
@@ -510,6 +713,21 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res: Respon
       updateData.publishedAt = new Date();
     }
 
+    const resolvedTitle = (updateData.title ?? existing.title) as string;
+    const resolvedSlides = (updateData.slides ?? existing.slides) as any[];
+    const resolvedStatus = (updateData.status ?? existing.status) as string;
+    const qualityIssues = getStoryQualityIssues(resolvedTitle, resolvedSlides);
+    const blockingIssues = resolvedStatus === 'published'
+      ? qualityIssues.filter(issue => issue.level === 'error')
+      : [];
+    if (blockingIssues.length > 0) {
+      res.status(400).json({
+        error: 'Story quality checks failed',
+        qualityIssues,
+      });
+      return;
+    }
+
     const webStory = await prisma.webStory.update({
       where: { id },
       data: updateData,
@@ -518,7 +736,7 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res: Respon
       },
     });
 
-    res.json({ success: true, webStory });
+    res.json({ success: true, webStory, qualityIssues });
   } catch (error) {
     console.error('[WebStories] Error updating:', error);
     const message = error instanceof Error ? error.message : 'Failed to update web story';

@@ -206,7 +206,8 @@ export default function WebStoriesAdmin() {
  <select
  value={filterStatus}
  onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
- className="px-3 py-2 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--foreground))]"
+ className="px-3 py-2 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/30"
+ style={{ colorScheme: 'dark light' }}
  >
  <option value="all">All Status</option>
  <option value="published">Published</option>
@@ -216,7 +217,8 @@ export default function WebStoriesAdmin() {
  <select
  value={sortBy}
  onChange={(e) => setSortBy(e.target.value as SortBy)}
- className="px-3 py-2 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--foreground))]"
+ className="px-3 py-2 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/30"
+ style={{ colorScheme: 'dark light' }}
  >
  <option value="date">Newest</option>
  <option value="views">Most Viewed</option>

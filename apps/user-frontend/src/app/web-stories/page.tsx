@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -32,7 +32,9 @@ const WebStoriesContent: React.FC = () => {
   const [webStories, setWebStories] = useState<WebStory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(14);
   const { categories: dynamicCategories } = useCategories();
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (categoryParam) setSelectedCategory(categoryParam);
@@ -71,6 +73,32 @@ const WebStoriesContent: React.FC = () => {
     ? webStories.filter(story => story.isTrending)
     : webStories.filter(story => story.category === selectedCategory);
 
+  useEffect(() => {
+    setVisibleCount(14);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target?.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + 10, filteredStories.length));
+        }
+      },
+      { rootMargin: '300px 0px' }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [filteredStories.length]);
+
+  const visibleStories = filteredStories.slice(0, visibleCount);
+  const featuredStory = visibleStories[0];
+  const secondaryStories = visibleStories.slice(1);
+
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -89,20 +117,27 @@ const WebStoriesContent: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <section className="hero-webstories border-b-2 border-vermillion">
-          <div className="relative z-10 container mx-auto py-10">
-            <div className="max-w-4xl">
-              <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-70 mb-3 block">Visual</span>
-              <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">Web Stories</h1>
-              <p className="opacity-60 text-lg">Loading stories...</p>
+      <div className="min-h-screen bg-background text-foreground">
+        <section className="relative overflow-hidden py-24 lg:py-32 border-b border-[rgb(var(--border))]/50 bg-gradient-to-b from-[rgb(var(--primary))]/5 to-background">
+          <div className="absolute inset-0 z-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay" />
+          <div className="relative z-10 container mx-auto px-4 text-center">
+            <div className="max-w-4xl mx-auto flex flex-col items-center">
+              <span className="font-mono text-xs tracking-[0.3em] uppercase mb-6 px-4 py-1.5 border border-[rgb(var(--primary))]/20 bg-[rgb(var(--primary))]/5 text-[rgb(var(--primary))] rounded-full animate-pulse">
+                Initializing Experience
+              </span>
+              <h1 className="font-serif text-5xl md:text-7xl font-bold mb-6 tracking-tight animate-pulse text-muted">
+                Web Stories
+              </h1>
+              <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl animate-pulse">
+                Preparing immersive visual narratives...
+              </p>
             </div>
           </div>
         </section>
-        <div className="container mx-auto py-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="aspect-[9/16] bg-muted rounded-2xl animate-pulse" />
+        <div className="container mx-auto px-4 py-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+              <div key={i} className="aspect-[9/16] bg-[rgb(var(--muted))]/50 rounded-[2rem] animate-pulse border border-[rgb(var(--border))]/50" />
             ))}
           </div>
         </div>
@@ -144,30 +179,62 @@ const WebStoriesContent: React.FC = () => {
       )}
 
       {/* Header */}
-      <section className="hero-webstories border-b-2 border-vermillion">
-        <div className="relative z-10 container mx-auto py-10">
-          <div className="max-w-4xl">
-            <span className="font-mono text-xs tracking-[0.2em] uppercase opacity-70 mb-3 block">Visual</span>
-            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">
+      <section className="relative overflow-hidden pt-6 pb-4 lg:pt-10 lg:pb-6 border-b border-[rgb(var(--border))]/50">
+        <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary))]/10 via-background to-background" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[rgb(var(--primary))]/5 blur-[100px] rounded-full mix-blend-screen pointer-events-none" />
+        
+        <div className="relative z-10 container mx-auto px-4">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-3 mb-3">
+              <span className="px-2.5 py-1 text-[10px] font-mono tracking-wider uppercase border border-[rgb(var(--primary))]/30 rounded-full bg-[rgb(var(--primary))]/10 text-[rgb(var(--primary))] shadow-sm">
+                Visual Journalism
+              </span>
+              <span className="h-px bg-[rgb(var(--border))] flex-1 min-w-[2rem]" />
+            </div>
+            
+            <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold mb-3 tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">
               Web Stories
             </h1>
-            <p className="opacity-60 text-lg">
-              Immersive visual storytelling
+            
+            <p className="text-base text-muted-foreground max-w-xl font-medium leading-snug">
+              Swipe-ready, immersive narratives built for fast reading and rich visual context. Discover our most engaging stories.
             </p>
+            
+            <div className="mt-4 flex flex-wrap gap-4 text-[10px] uppercase tracking-[0.2em] font-mono text-muted-foreground/80">
+              <span className="flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-[rgb(var(--primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                {webStories.length} Stories
+              </span>
+              <span className="w-1 h-1 bg-border rounded-full self-center" />
+              <span className="flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-[rgb(var(--primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                AMP Optimized
+              </span>
+            </div>
           </div>
-          {/* Category Filters */}
-          <div className="flex flex-wrap gap-2 mt-6 max-w-4xl">
+
+          <div className="mt-6 flex overflow-x-auto md:flex-wrap items-center gap-2 pb-2 md:pb-0 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 md:mx-0 md:px-0">
             {categories.map(category => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors backdrop-blur-sm ${
+                className={`snap-start whitespace-nowrap shrink-0 group relative px-4 py-2 font-mono text-[10px] tracking-wider uppercase transition-all duration-300 rounded-full overflow-hidden ${
                   selectedCategory === category.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'border border-current/20 opacity-70 hover:opacity-100'
+                    ? 'text-primary-foreground shadow-[0_0_15px_-5px_rgba(var(--primary),0.4)]'
+                    : 'text-foreground/70 bg-secondary/50 hover:bg-secondary border border-[rgb(var(--border))] hover:text-foreground'
                 }`}
               >
-                {category.label}
+                {selectedCategory === category.id && (
+                  <div className="absolute inset-0 bg-primary -z-10" />
+                )}
+                <span className="relative z-10 flex items-center gap-2">
+                  {category.label}
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${
+                     selectedCategory === category.id ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-background/80 text-muted-foreground'
+                  }`}>
+                    {category.count}
+                  </span>
+                </span>
               </button>
             ))}
           </div>
@@ -175,14 +242,61 @@ const WebStoriesContent: React.FC = () => {
       </section>
 
       <div className="container mx-auto py-8">
+        {featuredStory && (
+          <div className="group mb-7 relative grid overflow-hidden rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-xl md:grid-cols-[1.1fr_minmax(0,1fr)]">
+            <Link href={`/web-stories/${featuredStory.slug}/amp`} className="absolute inset-0 z-10">
+              <span className="sr-only">Play {featuredStory.title}</span>
+            </Link>
+            
+            <div className="relative aspect-[16/10] md:aspect-auto pointer-events-none overflow-hidden">
+              <Image
+                src={sanitizeImageUrl(
+                  featuredStory.coverImage ||
+                    (Array.isArray(featuredStory.slides)
+                      ? featuredStory.slides[0]?.content?.image || featuredStory.slides[0]?.content?.video
+                      : '') ||
+                    '/api/placeholder/400/600'
+                )}
+                alt={featuredStory.title}
+                fill
+                className="object-cover transition duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/15 to-transparent md:bg-gradient-to-t md:from-black/70 md:to-transparent" />
+            </div>
+            
+            <div className="flex flex-col justify-between p-5 relative z-20 pointer-events-none">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Featured story</p>
+                <h2 className="mt-3 font-serif text-2xl font-bold leading-tight md:text-3xl transition-colors group-hover:text-primary">{featuredStory.title}</h2>
+                <p className="mt-3 text-sm text-muted-foreground">Continue into an immersive AMP experience with clear visual storytelling.</p>
+              </div>
+              <div className="mt-5 flex items-center justify-between text-xs text-muted-foreground">
+                <span>{formatDuration(featuredStory.duration)}</span>
+                <div className="flex items-center gap-4 pointer-events-auto">
+                  <Link 
+                    href={`/web-stories/${featuredStory.slug}`}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[rgb(var(--border))]/50 hover:bg-[rgb(var(--primary))] hover:text-white transition-colors text-[10px] font-mono uppercase tracking-wider backdrop-blur-sm"
+                    title="Read Article Version"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                    Article Mode
+                  </Link>
+                  <span>{formatTimeAgo(featuredStory.publishedAt)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Web Stories Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
-          {filteredStories.map((story) => (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 xl:grid-cols-6">
+          {secondaryStories.map((story) => (
             <Link
               key={story.id}
-              href={`/web-stories/${story.slug}`}
-              className="group relative aspect-[9/16] bg-gradient-to-br from-ivory to-ash dark:from-ink dark:to-[#1a1917] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]  ring-1 ring-border/30"
+              href={`/web-stories/${story.slug}/amp`}
+              className="group relative aspect-[10/16] overflow-hidden rounded-2xl border border-[rgb(var(--border))] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
               <Image
                 src={sanitizeImageUrl(
@@ -196,10 +310,10 @@ const WebStoriesContent: React.FC = () => {
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/5" />
               
               {/* Badges */}
-              <div className="absolute top-3 left-3 flex flex-col gap-1">
+              <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                 {story.isNew && (
                   <span className="bg-green-600 text-white px-2 py-1 font-mono text-[9px] uppercase tracking-wider font-bold rounded-sm">
                     New
@@ -220,9 +334,9 @@ const WebStoriesContent: React.FC = () => {
               </div>
 
               {/* Content */}
-              <div className="absolute bottom-0 left-0 right-0 p-3">
+              <div className="absolute bottom-0 left-0 right-0 p-3.5">
                 <div className="mb-2">
-                  <span className="bg-ink text-white px-2 py-1 font-mono text-[9px] uppercase tracking-wider">
+                  <span className="bg-black/70 text-white px-2 py-1 font-mono text-[9px] uppercase tracking-wider rounded-sm">
                     {story.category}
                   </span>
                 </div>
@@ -231,14 +345,14 @@ const WebStoriesContent: React.FC = () => {
                   {story.title}
                 </h3>
                 
-                <div className="flex items-center justify-between text-[10px] text-ash font-mono">
+                <div className="flex items-center justify-between text-[10px] text-white/80 font-mono">
                   <span>{story.duration || 30}s</span>
                   <span>{formatTimeAgo(story.publishedAt)}</span>
                 </div>
               </div>
 
               {/* Play Button Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                 <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
                   <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
                     <svg className="w-4 h-4 text-black ml-1" fill="currentColor" viewBox="0 0 20 20">
@@ -262,12 +376,18 @@ const WebStoriesContent: React.FC = () => {
           </div>
         )}
 
-        {/* Load More */}
         {filteredStories.length > 0 && (
-          <div className="text-center mt-8">
-            <button className="hover-magnetic bg-primary text-primary-foreground px-6 py-3 font-mono text-xs tracking-wider uppercase">
-              Load More Stories
-            </button>
+          <div className="mt-8 space-y-3">
+            <div ref={loadMoreRef} className="h-8" />
+            <div className="flex items-center justify-center">
+              <button
+                onClick={() => setVisibleCount((prev) => Math.min(prev + 10, filteredStories.length))}
+                disabled={visibleCount >= filteredStories.length}
+                className="hover-magnetic rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-6 py-3 font-mono text-xs tracking-wider uppercase disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {visibleCount >= filteredStories.length ? 'You are all caught up' : 'Show More Stories'}
+              </button>
+            </div>
           </div>
         )}
       </div>
