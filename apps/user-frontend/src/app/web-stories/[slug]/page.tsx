@@ -324,7 +324,7 @@ export default async function WebStoryPreviewPage({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedStories.map((item) => (
-                <Link key={item.slug} href={`/web-stories/${item.slug}`} className="group block h-full">
+                <Link key={item.slug} href={`/web-stories/${item.slug}/amp`} className="group block h-full">
                   <div className="relative aspect-[4/5] rounded-3xl overflow-hidden mb-4 border border-[rgb(var(--border))]/50 shadow-sm transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-2">
                     <Image src={sanitizeImageUrl(item.coverImage)} alt={item.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />

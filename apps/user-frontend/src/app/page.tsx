@@ -488,10 +488,10 @@ const HomePage: React.FC = () => {
             {/* Web Stories Section */}
             {webStories.length > 0 && (
               <section className="mb-14">
-                <SectionHeader title="Visual Stories" viewAllLink="/stories" icon={<StoriesIcon size={18} />} />
+                <SectionHeader title="Visual Stories" viewAllLink="/web-stories" icon={<StoriesIcon size={18} />} />
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   {webStories.map((story) => (
-                    <Link key={story.id} href={`/stories/${story.slug}`} className="block group">
+                    <Link key={story.id} href={`/web-stories/${story.slug}/amp`} className="block group">
                       <div className="relative h-52 rounded-editorial overflow-hidden border border-border group-hover:border-primary/30 transition-colors">
                         <Image
                           src={story.coverImage || '/images/placeholder-news.svg'}
