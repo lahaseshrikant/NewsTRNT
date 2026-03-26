@@ -61,7 +61,7 @@ const escapeHtml = (value: unknown): string =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-const toAbsoluteUrl = (url?: string, fallback = `${SITE_URL}/api/placeholder/400/600`): string => {
+const toAbsoluteUrl = (url?: string, fallback = ''): string => {
   if (!url || typeof url !== 'string') return fallback;
   const trimmed = url.trim();
   if (!trimmed) return fallback;
@@ -121,8 +121,7 @@ const buildAmpStoryPage = (
   const ctaUrlRaw = slide.content?.cta?.url;
   const ctaUrl = ctaUrlRaw ? toAbsoluteUrl(ctaUrlRaw, '') : '';
   const actionText = ctaText.length > 22 ? `${ctaText.slice(0, 22)}…` : ctaText;
-  const posterBase = image || `${SITE_URL}/logo.png`;
-  const poster = slide.content?.poster ? toAbsoluteUrl(slide.content.poster, posterBase) : posterBase;
+  const poster = slide.content?.poster ? toAbsoluteUrl(slide.content.poster, image || `${SITE_URL}/api/placeholder/400/600`) : image || `${SITE_URL}/api/placeholder/400/600`;
 
   const fillLayer = (() => {
     if (video) {
@@ -197,22 +196,28 @@ const buildAmpStoryPage = (
   const textLayer = `
     <amp-story-grid-layer template="vertical" class="content-layer">
       <div class="content-wrap">
-        <div class="main-copy" animate-in="fade-in" animate-in-duration="0.5s" animate-in-delay="0.03s">
-          ${headline ? `<h1 animate-in="fly-in-left" animate-in-duration="0.55s" animate-in-delay="0.04s">${headline}</h1>` : ''}
-          ${text ? `<p class="body" animate-in="fly-in-bottom" animate-in-duration="0.45s" animate-in-delay="0.16s">${text}</p>` : ''}
+        <div class="main-copy">
+          ${headline ? `<h1 animate-in="fly-in-bottom" animate-in-duration="1.2s" animate-in-delay="0.2s">${headline}</h1>` : ''}
+          ${text ? `<p class="body" animate-in="fly-in-bottom" animate-in-duration="1.2s" animate-in-delay="0.4s">${text}</p>` : ''}
         </div>
-        ${caption ? `<p class="caption" animate-in="fade-in" animate-in-duration="0.45s" animate-in-delay="0.17s">${caption}</p>` : ''}
-        ${creditText ? `<p class="credit" animate-in="fade-in" animate-in-duration="0.45s" animate-in-delay="0.20s">${creditText}</p>` : ''}
-        ${ctaText && ctaUrl ? `<div class="cta-wrap" animate-in="fly-in-bottom" animate-in-duration="0.45s" animate-in-delay="0.22s"><a href="${escapeHtml(ctaUrl)}" class="cta" target="_blank">${actionText}</a></div>` : ''}
+        ${caption ? `<p class="caption" animate-in="fly-in-bottom" animate-in-duration="1.0s" animate-in-delay="0.5s">${caption}</p>` : ''}
+        ${creditText ? `<p class="credit" animate-in="fly-in-bottom" animate-in-duration="1.0s" animate-in-delay="0.6s">${creditText}</p>` : ''}
       </div>
     </amp-story-grid-layer>
   `;
+
+  const outlink = ctaText && ctaUrl ? `
+    <amp-story-page-outlink layout="nodisplay">
+      <a href="${escapeHtml(ctaUrl)}">${actionText}</a>
+    </amp-story-page-outlink>
+  ` : '';
 
   return `
     <amp-story-page id="p-${index + 1}" auto-advance-after="${slideDurationSec(slide)}s">
       ${fillLayer}
       ${brandLayer}
       ${textLayer}
+      ${outlink}
     </amp-story-page>
   `;
 };
@@ -295,25 +300,44 @@ const buildBookendConfig = (stories: RelatedStory[]): string => {
   return JSON.stringify(payload).replace(/<\//g, '<\\/');
 };
 
-const buildMoreStoriesPage = (stories: RelatedStory[]): string => {
+const buildMoreStoriesPage = (stories: RelatedStory[], bgImage: string): string => {
   if (!stories || stories.length === 0) return '';
 
-  const cards = stories.slice(0, 8).map((story) => {
+  const rows = stories.slice(0, 4).map((story, index) => {
     const image = toAbsoluteUrl(story.coverImage);
+    const category = escapeHtml(story.category || 'Featured');
     return `
-      <a href="${escapeHtml(`${SITE_URL}/web-stories/${encodeURIComponent(story.slug)}/amp`)}" class="more-story-card">
-        <amp-img src="${escapeHtml(image)}" width="180" height="320" layout="responsive" alt="${escapeHtml(story.title)}"></amp-img>
-        <div class="more-story-title">${escapeHtml(story.title)}</div>
-      </a>
+      <div class="story-row" style="animation-delay:${index * 0.15 + 0.4}s">
+        <div class="row-media">
+          <amp-img src="${escapeHtml(image)}" layout="fill" alt="${escapeHtml(story.title)}" class="row-img"></amp-img>
+        </div>
+        <div class="row-content">
+          <span class="row-category">${category}</span>
+          <span class="row-title">${escapeHtml(story.title)}</span>
+          <span class="row-read">Preview <span class="arr">→</span></span>
+        </div>
+      </div>
     `;
   }).join('');
 
   return `
-    <amp-story-page id="more-stories" auto-advance-after="0s">
-      <amp-story-grid-layer template="vertical" class="more-stories-layer">
-        <h1>More stories</h1>
-        <div class="more-stories-grid">${cards}</div>
+    <amp-story-page id="more-stories">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="${escapeHtml(bgImage)}" layout="fill" class="more-stories-bg" alt="Discover More"></amp-img>
+        <div class="more-stories-overlay"></div>
       </amp-story-grid-layer>
+      <amp-story-grid-layer template="vertical" class="more-stories-layer">
+        <div class="more-stories-content">
+          <div class="more-stories-header">
+            <h1 class="more-stories-heading">Keep Exploring</h1>
+            <p class="more-stories-sub">Swipe up to dive into all stories.</p>
+          </div>
+          <div class="more-stories-list">${rows}</div>
+        </div>
+      </amp-story-grid-layer>
+      <amp-story-page-outlink layout="nodisplay">
+        <a href="${escapeHtml(SITE_URL)}/web-stories">Explore All Stories</a>
+      </amp-story-page-outlink>
     </amp-story-page>
   `;
 };
@@ -379,7 +403,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ sl
         totalSlides,
       });
 
-  const moreStoriesPage = buildMoreStoriesPage(relatedStories);
+  const moreStoriesPage = buildMoreStoriesPage(relatedStories, posterUrl);
   const mainPages = storyPages + moreStoriesPage;
 
   const bookendConfig = buildBookendConfig(relatedStories);
@@ -431,28 +455,148 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ sl
         align-content: end;
         background: var(--overlay-bg);
       }
+      .more-stories-bg {
+        object-fit: cover;
+        transform: scale(1.15);
+        filter: blur(28px);
+        opacity: 0.9;
+      }
+      .more-stories-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(8, 12, 20, 0.75) 0%, rgba(2, 6, 15, 0.95) 100%);
+      }
       .more-stories-layer {
-        align-content: start;
-        padding: 28px 22px;
-        background: rgba(0,0,0,0.5);
+        align-content: center;
+        padding: calc(env(safe-area-inset-top) + 24px) calc(env(safe-area-inset-right) + 24px) calc(env(safe-area-inset-bottom) + 32px) calc(env(safe-area-inset-left) + 24px);
         color: #fff;
+        font-family: 'Oswald', 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        position: relative;
+        z-index: 10;
       }
-      .more-stories-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        margin-top: 18px;
+      .more-stories-content {
+        max-width: 500px;
+        margin: 0 auto;
+        width: 100%;
       }
-      .more-story-card {
-        display: block;
-        text-decoration: none;
+      .more-stories-header {
+        text-align: center;
+        margin-bottom: 24px;
+        opacity: 0;
+        transform: translateY(24px);
+        animation: custom-fly-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
+      }
+      .more-stories-heading {
+        margin: 0 0 6px;
+        font-size: clamp(24px, 7vw, 34px);
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #ffffff;
+        text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      }
+      .more-stories-sub {
+        font-family: 'Poppins', 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        color: rgba(255,255,255,0.65);
+        margin: 0;
+      }
+      .more-stories-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .story-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-top: 1px solid rgba(255, 255, 255, 0.22);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 18px;
         color: inherit;
+        text-decoration: none;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+        animation: card-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
       }
-      .more-story-title {
-        margin-top: 6px;
-        font-size: 12px;
-        line-height: 1.3;
+      .story-row:hover {
+        transform: translateY(-3px) scale(1.01);
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      }
+      .row-media {
+        width: 72px;
+        height: 88px;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0;
+        background: #1e293b;
+      }
+      .row-img {
+        object-fit: cover;
+      }
+      .row-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        justify-content: center;
+      }
+      .row-category {
+        font-family: 'Poppins', sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: #f87171;
+        margin-bottom: 4px;
+      }
+      .row-title {
+        font-family: 'Poppins', 'Inter', sans-serif;
+        font-size: 14px;
+        line-height: 1.35;
         font-weight: 600;
+        color: #f8fafc;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .row-read {
+        font-family: 'Poppins', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        margin-top: 8px;
+        color: rgba(255,255,255,0.4);
+        display: inline-flex;
+        align-items: center;
+        transition: color 0.2s ease;
+      }
+      .story-row:hover .row-read {
+        color: #f87171;
+      }
+      .arr {
+        margin-left: 4px;
+        font-size: 12px;
+        transition: transform 0.2s ease;
+      }
+      .story-row:hover .arr {
+        transform: translateX(4px);
+      }
+      @keyframes card-rise {
+        from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes custom-fly-in {
+        from { opacity: 0; transform: translateY(24px); }
+        to { opacity: 1; transform: translateY(0); }
       }
       .chrome-layer {
         align-content: start;
@@ -557,70 +701,42 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ sl
         text-transform: uppercase;
         color: #fff;
         text-shadow: 0 2px 18px rgba(0,0,0,0.6);
-        opacity: 0;
-        transform: translateY(20px);
-        animation: text-appear 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
       }
       .body {
         margin: 12px 0 0;
         font-size: 16px;
         line-height: 1.45;
         color: rgba(255, 255, 255, 0.95);
-        opacity: 0;
-        transform: translateY(20px);
-        animation: text-appear 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.20s forwards;
-      }
-      @keyframes text-appear {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
       }
       .main-copy {
         position: absolute;
         left: 24px;
         right: 24px;
-        bottom: 84px;
-      }
-      .body {
-        margin: 12px 0 0;
-        font-size: 16px;
-        line-height: 1.45;
-        color: rgba(255, 255, 255, 0.95);
+        bottom: calc(84px + env(safe-area-inset-bottom));
       }
       .caption {
         position: absolute;
         right: 8px;
-        bottom: 24px;
+        bottom: calc(24px + env(safe-area-inset-bottom));
         margin: 0;
         font-size: 11px;
         line-height: 1.4;
         color: rgba(255, 255, 255, 0.95);
         max-width: 85%;
         text-align: right;
-        padding-bottom: env(safe-area-inset-bottom);
         z-index: 10;
-        opacity: 0;
-        transform: translateY(16px);
-        animation: caption-fade 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.30s forwards;
       }
       .credit {
         position: absolute;
         right: 8px;
-        bottom: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
         margin: 0;
         font-size: 10px;
         line-height: 1.3;
         color: rgba(255, 255, 255, 0.82);
         text-align: right;
         max-width: 85%;
-        padding-bottom: env(safe-area-inset-bottom);
         z-index: 10;
-        opacity: 0;
-        transform: translateY(16px);
-        animation: caption-fade 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.40s forwards;
-      }
-      @keyframes caption-fade {
-        from { opacity: 0; transform: translateY(16px); }
-        to { opacity: 1; transform: translateY(0); }
       }
       .bg-media {
         animation: slow-zoom 25s ease-in-out 0s infinite alternate;
