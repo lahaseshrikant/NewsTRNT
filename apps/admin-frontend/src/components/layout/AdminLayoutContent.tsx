@@ -243,7 +243,10 @@ export default function AdminLayoutContent({ children }: { children: React.React
  <div key={item.id}>
  {isSection && !collapsed && (
  <p className="text-[10px] font-semibold uppercase tracking-widest text-[rgb(var(--muted-foreground))]/60 px-3 mb-1.5">
+ <span className="inline-flex items-center gap-2">
+ <NavIcon name={item.icon} className="w-[14px] h-[14px] opacity-70" />
  {item.label}
+ </span>
  </p>
  )}
  {isSection ? (
