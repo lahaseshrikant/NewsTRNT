@@ -121,7 +121,8 @@ const buildAmpStoryPage = (
   const ctaUrlRaw = slide.content?.cta?.url;
   const ctaUrl = ctaUrlRaw ? toAbsoluteUrl(ctaUrlRaw, '') : '';
   const actionText = ctaText.length > 22 ? `${ctaText.slice(0, 22)}…` : ctaText;
-  const poster = slide.content?.poster ? toAbsoluteUrl(slide.content.poster, image || `${SITE_URL}/api/placeholder/400/600`) : image || `${SITE_URL}/api/placeholder/400/600`;
+  const posterBase = image || `${SITE_URL}/logo.png`;
+  const poster = slide.content?.poster ? toAbsoluteUrl(slide.content.poster, posterBase) : posterBase;
 
   const fillLayer = (() => {
     if (video) {
