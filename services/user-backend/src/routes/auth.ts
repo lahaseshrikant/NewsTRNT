@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { emailService } from '../lib/email';
 
 const router = Router();
 
@@ -409,10 +410,16 @@ router.post('/forgot-password', async (req, res) => {
     );
 
     // TODO: Send email with reset link
-    // const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-    // await sendEmail(user.email, 'Password Reset', resetLink);
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    await emailService.sendEmail({
+      to: user.email,
+      subject: 'Password Reset Request',
+      text: `You requested a password reset. Click here to reset your password: ${resetLink}\nIf you did not request this, please ignore this email.`,
+      html: `<p>You requested a password reset.</p><p><a href="${resetLink}">Click here to reset your password</a></p><p>If you did not request this, please ignore this email.</p>`,
+      emailCategory: 'AUTH_RESET_PASSWORD',
+    });
 
-    console.log(`Password reset link for ${user.email}: /reset-password?token=${resetToken}`);
+    // console.log(`Password reset link for ${user.email}: /reset-password?token=${resetToken}`);
 
     return res.json({ 
       message: 'If your email is registered, you will receive a reset link' 
@@ -619,10 +626,16 @@ router.post('/send-verification', authenticateToken, async (req: AuthRequest, re
     );
 
     // TODO: Send email with verification link
-    // const verifyLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${verificationToken}`;
-    // await sendEmail(user.email, 'Verify Your Email', verifyLink);
+    const verifyLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/verify-email?token=${verificationToken}`;
+    await emailService.sendEmail({
+      to: user.email,
+      subject: 'Verify Your Email',
+      text: `Please verify your email address by clicking here: ${verifyLink}`,
+      html: `<p>Please verify your email address by clicking the link below:</p><p><a href="${verifyLink}">Verify Email</a></p>`,
+      emailCategory: 'AUTH_VERIFY_EMAIL',
+    });
 
-    console.log(`Email verification link for ${user.email}: /auth/verify-email?token=${verificationToken}`);
+    // console.log(`Email verification link for ${user.email}: /auth/verify-email?token=${verificationToken}`);
 
     return res.json({ message: 'Verification email sent' });
   } catch (error) {

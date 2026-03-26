@@ -8,7 +8,7 @@ interface ApiIntegration {
  id: string;
  name: string;
  description: string;
- category:'news' |'ai' |'analytics' |'social' |'payment' |'notification' |'storage' |'market';
+ category:'news' |'ai' |'analytics' |'social' |'payment' |'notification' |'storage' |'market' | 'email_provider';
  icon: string;
  status:'connected' |'disconnected' |'error' |'pending';
  lastSync?: string;
@@ -33,10 +33,14 @@ const DEFAULT_INTEGRATIONS: ApiIntegration[] = [
  { id:'aws-s3', name:'AWS S3', description:'Scalable object storage for media files and backups', category:'storage', icon:'🗄️', status:'disconnected' },
  { id:'tradingview', name:'TradingView', description:'Real-time stock and crypto market data widgets', category:'market', icon:'📈', status:'disconnected' },
  { id:'alpha-vantage', name:'Alpha Vantage', description:'Stock, forex, and cryptocurrency market data API', category:'market', icon:'💹', status:'disconnected', rateLimit:'5 req/min' },
+ { id:'smtp', name:'Custom SMTP', description:'Bring your own SMTP server for email deliverability', category:'email_provider', icon:'✉️', status:'disconnected' },
+ { id:'brevo', name:'Brevo', description:'Transactional email and SMS API', category:'email_provider', icon:'📫', status:'disconnected' },
+ { id:'mailgun', name:'Mailgun', description:'Powerful APIs that enable you to send, receive, and track emails', category:'email_provider', icon:'📩', status:'disconnected' }
 ];
 
 const CATEGORIES = [
  { key:'all', label:'All', icon:'🔗' },
+ { key:'email_provider', label:'Email Providers', icon:'✉️' },
  { key:'news', label:'News Sources', icon:'📰' },
  { key:'ai', label:'AI Services', icon:'🤖' },
  { key:'analytics', label:'Analytics', icon:'📊' },
@@ -61,7 +65,7 @@ export default function ExternalApisPage() {
 
  const loadIntegrations = async () => {
  try {
- const res = await fetch(`${API_CONFIG.baseURL}/admin/integrations`, {
+ const res = await fetch(`${API_CONFIG.baseURL}/admin/system/integrations`, {
  headers: { ...adminAuth.getAuthHeaders() as Record<string, string> }
  });
  if (res.ok) {
@@ -69,8 +73,8 @@ export default function ExternalApisPage() {
  if (data.integrations) {
  // Merge server data with defaults
  setIntegrations(prev => prev.map(p => {
- const serverItem = data.integrations.find((s: any) => s.id === p.id);
- return serverItem ? { ...p, ...serverItem } : p;
+ const serverItem = data.integrations.find((s: any) => s.id === p.id || s.name === p.id); // server uses name as id?
+ return serverItem ? { ...p, status: serverItem.status, lastSync: serverItem.updatedAt } : p;
  }));
  }
  }
@@ -81,18 +85,20 @@ export default function ExternalApisPage() {
  }
  };
 
- const handleConnect = async (id: string) => {
- if (!apiKeyInput.trim()) return;
+ const handleConnect = async (id: string, configData?: any) => {
+ // Extract API key or configuration input
+ const bodyData = configData || { apiKey: apiKeyInput, config: apiKeyInput };
+ 
  setIntegrations(prev => prev.map(p =>
  p.id === id ? { ...p, status:'pending' } : p
  ));
  try {
- const res = await fetch(`${API_CONFIG.baseURL}/admin/integrations/${id}`, {
+ const res = await fetch(`${API_CONFIG.baseURL}/admin/system/integrations/${id}/connect`, {
  method:'POST',
  headers: {'Content-Type':'application/json',
  ...adminAuth.getAuthHeaders() as Record<string, string>
  },
- body: JSON.stringify({ apiKey: apiKeyInput })
+ body: JSON.stringify(bodyData)
  });
  if (res.ok) {
  setIntegrations(prev => prev.map(p => p.id === id ? { ...p, status:'connected', lastSync: new Date().toISOString() } : p));
@@ -108,7 +114,7 @@ export default function ExternalApisPage() {
 
  const handleDisconnect = async (id: string) => {
  try {
- await fetch(`${API_CONFIG.baseURL}/admin/integrations/${id}`, {
+ await fetch(`${API_CONFIG.baseURL}/admin/system/integrations/${id}/disconnect`, {
  method:'DELETE',
  headers: { ...adminAuth.getAuthHeaders() as Record<string, string> }
  });
@@ -224,14 +230,24 @@ export default function ExternalApisPage() {
 
  {configuring === api.id ? (
  <div className="space-y-2">
- <input
- type="password"
- placeholder="Enter API key..."
- value={apiKeyInput}
- onChange={(e) => setApiKeyInput(e.target.value)}
- className="w-full px-3 py-2 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/40"
- autoFocus
- />
+ {api.category === 'email_provider' ? (
+   <textarea
+   placeholder='Enter JSON config (e.g. {"smtpHost": "...", "smtpPort": 587, "smtpUser": "...", "smtpPass": "...", "providerType": "smtp"})'
+   value={apiKeyInput}
+   onChange={(e) => setApiKeyInput(e.target.value)}
+   className="w-full h-32 px-3 py-2 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/40 font-mono"
+   autoFocus
+   />
+ ) : (
+   <input
+   type="password"
+   placeholder="Enter API key..."
+   value={apiKeyInput}
+   onChange={(e) => setApiKeyInput(e.target.value)}
+   className="w-full px-3 py-2 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg text-sm text-[rgb(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--primary))]/40"
+   autoFocus
+   />
+ )}
  <div className="flex gap-2">
  <button
  onClick={() => handleConnect(api.id)}

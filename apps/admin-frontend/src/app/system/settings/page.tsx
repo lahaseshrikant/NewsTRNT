@@ -47,6 +47,13 @@ interface SystemSettings {
  approvalRoles: RoleName[];
  scrapedAutoPromote: boolean; // whether scraped articles auto‑promote to live
  };
+ emailRoutingRules: {
+ AUTH_RESET_PASSWORD: string;
+ AUTH_VERIFY_EMAIL: string;
+ NEWSLETTER: string;
+ TRANSACTIONAL: string;
+ SYSTEM: string;
+ };
 }
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -86,12 +93,19 @@ const DEFAULT_SETTINGS: SystemSettings = {
  requireApproval: false,
  approvalRoles: ['ADMIN','SUPER_ADMIN','EDITOR'],
  scrapedAutoPromote: false,
+ },
+ emailRoutingRules: {
+ AUTH_RESET_PASSWORD: 'smtp',
+ AUTH_VERIFY_EMAIL: 'smtp',
+ NEWSLETTER: 'smtp',
+ TRANSACTIONAL: 'smtp',
+ SYSTEM: 'smtp'
  }
 };
 
 function SystemSettingsContent() {
  const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
- const [activeTab, setActiveTab] = useState<'security' |'notifications' |'content'>('security');
+ const [activeTab, setActiveTab] = useState<'security' |'notifications' |'content' | 'emailRouting'>('security');
  const [loading, setLoading] = useState(true);
  const [saving, setSaving] = useState(false);
  const [hasChanges, setHasChanges] = useState(false);
@@ -124,6 +138,7 @@ function SystemSettingsContent() {
  if (settingsMap.security) setSettings(prev => ({ ...prev, security: { ...prev.security, ...settingsMap.security } }));
  if (settingsMap.notifications) setSettings(prev => ({ ...prev, notifications: { ...prev.notifications, ...settingsMap.notifications } }));
  if (settingsMap.content) setSettings(prev => ({ ...prev, content: { ...prev.content, ...settingsMap.content } }));
+ if (settingsMap.emailRoutingRules) setSettings(prev => ({ ...prev, emailRoutingRules: { ...prev.emailRoutingRules, ...settingsMap.emailRoutingRules } }));
  }
  }
  }
@@ -148,7 +163,8 @@ function SystemSettingsContent() {
  const settingsToSave = [
  { key:'security', value: settings.security, category:'security' },
  { key:'notifications', value: settings.notifications, category:'notifications' },
- { key:'content', value: settings.content, category:'content' }
+ { key:'content', value: settings.content, category:'content' },
+ { key:'emailRoutingRules', value: settings.emailRoutingRules, category:'emailRoutingRules' }
  ];
  
  await fetch(`${API_URL}/admin/settings/bulk`, {
@@ -160,7 +176,8 @@ function SystemSettingsContent() {
  }
  // Also save to localStorage as backup
  localStorage.setItem('newstrnt_system_settings', JSON.stringify(settings));
- AuditLogger.logFromSession('CONFIG_CHANGE', { resource:'settings', details: { section: activeTab, settings: settings[activeTab] } });
+ const activeSectionValue = activeTab === 'emailRouting' ? settings.emailRoutingRules : settings[activeTab as keyof SystemSettings];
+ AuditLogger.logFromSession('CONFIG_CHANGE', { resource:'settings', details: { section: activeTab, settings: activeSectionValue } });
  setHasChanges(false);
  alert('Settings saved successfully!');
  } catch (err) {
@@ -229,9 +246,10 @@ function SystemSettingsContent() {
  };
 
  const tabs = [
- { id:'security', label:'Security', icon:'🔐' },
+ { id:'security', label:'Security', icon:'🔒' },
  { id:'notifications', label:'Notifications', icon:'🔔' },
- { id:'content', label:'Content', icon:'📝' }
+ { id:'content', label:'Content', icon:'📝' },
+ { id:'emailRouting', label:'Email Routing', icon:'✉️' }
  ] as const;
 
  return (
@@ -691,6 +709,36 @@ function SystemSettingsContent() {
  </div>
  </div>
  </div>
+ )}
+
+ {activeTab === 'emailRouting' && (
+   <div className="space-y-6">
+     <div className="bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-xl p-6">
+       <h3 className="text-lg font-semibold text-[rgb(var(--foreground))] mb-1">Email Routing Rules</h3>
+       <p className="text-sm text-[rgb(var(--muted-foreground))] mb-6">Assign which email integration provider handles different types of emails. You should connect these providers in External APIs first.</p>
+       <div className="space-y-4">
+         {(['AUTH_RESET_PASSWORD', 'AUTH_VERIFY_EMAIL', 'NEWSLETTER', 'TRANSACTIONAL', 'SYSTEM'] as const).map(cat => (
+           <div key={cat} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--muted))]/5">
+             <div>
+               <p className="font-medium text-[rgb(var(--foreground))]">{cat.replace(/_/g, ' ')}</p>
+               <p className="text-sm text-[rgb(var(--muted-foreground))]">Target provider mapped for this email operation.</p>
+             </div>
+             <select 
+               value={settings.emailRoutingRules[cat as keyof typeof settings.emailRoutingRules] || 'smtp'}
+               onChange={(e) => updateSettings('emailRoutingRules', cat, e.target.value)}
+               className="px-3 py-2 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg focus:outline-none focus:border-[rgb(var(--primary))] text-sm min-w-[200px] text-[rgb(var(--foreground))]"
+             >
+               <option value="">-- Use Default --</option>
+               <option value="smtp">Custom SMTP Server (smtp)</option>
+               <option value="brevo">Brevo Integration (brevo)</option>
+               <option value="mailgun">Mailgun Integration (mailgun)</option>
+               <option value="sendgrid">SendGrid Integration (sendgrid)</option>
+             </select>
+           </div>
+         ))}
+       </div>
+     </div>
+   </div>
  )}
  </>
  )}

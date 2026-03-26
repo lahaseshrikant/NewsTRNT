@@ -564,7 +564,7 @@ const CreateWebStory: React.FC = () => {
 
     setSaving(true);
     try {
-      const categoryValue = typeof storyData.category === 'string' ? storyData.category.trim() : (typeof storyData.category?.toString === 'function' ? storyData.category.toString().trim() : '');
+      const categoryValue = (storyData as any).category?.toString()?.trim() || '';
 
       const sanitizedSlides = storyData.slides.map(slide => ({
         ...slide,

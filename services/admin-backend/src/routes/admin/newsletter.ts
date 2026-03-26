@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../../config/database';
 import { authenticateToken, AuthRequest, requireAdmin } from '../../middleware/auth';
+import { emailService } from '../../lib/email';
 
 const router = Router();
 router.use(authenticateToken);
@@ -113,6 +114,62 @@ router.delete('/newsletter/templates/:id', requireAdmin, async (req: AuthRequest
   } catch (error) {
     console.error('Error deleting template:', error);
     res.status(500).json({ error: 'Failed to delete template' });
+  }
+});
+
+// POST /api/admin/newsletter/send - Send newsletter
+router.post('/newsletter/send', requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { templateId, subject: customSubject, subscriberIds } = req.body;
+
+    const template = await prisma.emailTemplate.findUnique({ where: { id: templateId } });
+    if (!template) {
+      return res.status(404).json({ error: 'Template not found' });
+    }
+
+    let query: any = { status: 'active' };
+    if (subscriberIds && Array.isArray(subscriberIds) && subscriberIds.length > 0) {
+      query.id = { in: subscriberIds };
+    }
+
+    const subscribers = await prisma.newsletterSubscription.findMany({ where: query });
+    if (subscribers.length === 0) {
+      return res.status(400).json({ error: 'No active subscribers found to send' });
+    }
+
+    // Import the new email service (assuming top level import to be added next)
+    const { emailService } = require('../../lib/email');
+
+    let sentCount = 0;
+    for (const sub of subscribers) {
+      try {
+        await emailService.sendEmail({
+          to: sub.email,
+          subject: customSubject || template.subject || 'NewsTRNT Newsletter',
+          html: template.content,
+          emailCategory: 'NEWSLETTER',
+        });
+        sentCount++;
+      } catch (e) {
+        console.error(`Failed to send newsletter to ${sub.email}`, e);
+      }
+    }
+
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user?.id,
+        action: 'SEND_NEWSLETTER',
+        targetType: 'newsletter',
+        targetId: templateId,
+        details: { sentCount, totalTarget: subscribers.length }
+      }
+    });
+
+    return res.json({ message: 'Newsletter sent', sentCount, totalTarget: subscribers.length });
+  } catch (error) {
+    console.error('Error sending newsletter:', error);
+    res.status(500).json({ error: 'Failed to send newsletter' });
+    return;
   }
 });
 
