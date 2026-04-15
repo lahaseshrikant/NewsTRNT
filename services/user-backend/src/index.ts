@@ -35,6 +35,14 @@ console.log('📧 Environment loaded:', {
   nodeEnv: process.env.NODE_ENV || 'development',
 });
 
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Promise Rejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 

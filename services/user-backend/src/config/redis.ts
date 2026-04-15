@@ -1,12 +1,23 @@
 import { createClient, RedisClientType } from 'redis';
 
-let redisClient: RedisClientType;
+let redisClient: RedisClientType | null = null;
 let isConnected = false;
 
 export const initializeRedis = async (): Promise<void> => {
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
-  redisClient = createClient({ url: redisUrl });
+  redisClient = createClient({
+    url: redisUrl,
+    socket: {
+      connectTimeout: 5000,
+      reconnectStrategy: (retries: number) => {
+        if (retries >= 10) {
+          return new Error('Redis reconnect attempts exhausted');
+        }
+        return Math.min(retries * 100, 2000);
+      },
+    },
+  });
 
   redisClient.on('error', (err) => {
     console.error('❌ Redis Client Error:', err.message);
@@ -37,7 +48,7 @@ export const initializeRedis = async (): Promise<void> => {
  * Get cached value by key. Returns null on miss or if Redis is down.
  */
 export const cacheGet = async <T = unknown>(key: string): Promise<T | null> => {
-  if (!isConnected) return null;
+  if (!redisClient || !isConnected) return null;
   try {
     const raw = await redisClient.get(key);
     return raw ? (JSON.parse(raw) as T) : null;
@@ -50,7 +61,7 @@ export const cacheGet = async <T = unknown>(key: string): Promise<T | null> => {
  * Set a value in cache with TTL (seconds). Silently fails if Redis is down.
  */
 export const cacheSet = async (key: string, value: unknown, ttlSeconds: number): Promise<void> => {
-  if (!isConnected) return;
+  if (!redisClient || !isConnected) return;
   try {
     await redisClient.setEx(key, ttlSeconds, JSON.stringify(value));
   } catch {
@@ -62,7 +73,7 @@ export const cacheSet = async (key: string, value: unknown, ttlSeconds: number):
  * Invalidate a single key.
  */
 export const cacheDel = async (key: string): Promise<void> => {
-  if (!isConnected) return;
+  if (!redisClient || !isConnected) return;
   try {
     await redisClient.del(key);
   } catch {
@@ -91,7 +102,7 @@ export const cacheInvalidatePattern = async (pattern: string): Promise<void> => 
 };
 
 export const redisHealthCheck = async (): Promise<boolean> => {
-  if (!isConnected) return false;
+  if (!redisClient || !isConnected) return false;
   try {
     await redisClient.ping();
     return true;
@@ -101,8 +112,11 @@ export const redisHealthCheck = async (): Promise<boolean> => {
 };
 
 export const closeRedis = async (): Promise<void> => {
-  if (redisClient) {
+  if (!redisClient) return;
+  try {
     await redisClient.quit();
+  } catch (error) {
+    console.warn('⚠️ Failed to close Redis client cleanly:', (error as Error).message);
   }
 };
 

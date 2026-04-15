@@ -64,7 +64,7 @@ export default function WebStoriesAdmin() {
  slug: story.slug || story.title.toLowerCase().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-'),
  category: story.category?.name || story.category ||'Uncategorized',
  slides: (story.slidesCount ?? (Array.isArray(story.slides) ? story.slides.length : Number(story.slides) || 0)),
- status: story.isPublished ?'published' : (story.isArchived ?'archived' :'draft') as WebStory['status'],
+ status: story.status || (story.isPublished ?'published' : (story.isArchived ?'archived' :'draft')) as WebStory['status'],
  publishedAt: story.publishedAt || story.createdAt,
  author: story.author ||'Staff',
  views: story.viewCount || story.views || 0,
