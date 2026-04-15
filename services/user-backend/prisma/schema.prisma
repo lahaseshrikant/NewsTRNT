@@ -332,7 +332,7 @@ model WebStory {
   deletedAt     DateTime? @map("deleted_at")
   deletedBy     String?   @map("deleted_by")
   createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  updatedAt     DateTime  @default(now()) @map("updated_at")
   createdBy     String?   @map("created_by")
   updatedBy     String?   @map("updated_by")
   category      Category? @relation(fields: [categoryId], references: [id])

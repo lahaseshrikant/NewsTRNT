@@ -178,6 +178,7 @@ router.get('/:idOrSlug', optionalAuth, async (req: AuthRequest, res) => {
     }
 
     // Increment view count (best-effort, do not fail page load if this step fails)
+    // Note: updatedAt will NOT change since we removed @updatedAt decorator
     try {
       await prisma.webStory.update({
         where: { id: webStory.id },

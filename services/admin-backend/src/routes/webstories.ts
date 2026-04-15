@@ -708,6 +708,9 @@ router.put('/admin/:id', authenticateToken, async (req: AuthRequest, res: Respon
       if (dbUser) updateData.updatedBy = dbUser.id;
     }
 
+    // Set updatedAt when content actually changes (removed @updatedAt from schema)
+    updateData.updatedAt = new Date();
+
     // If publishing for the first time, set publishedAt
     if (status === 'published' && !existing.publishedAt && !publishedAt) {
       updateData.publishedAt = new Date();
@@ -766,19 +769,19 @@ router.post('/admin/bulk', authenticateToken, async (req: AuthRequest, res: Resp
     let updateData: any = {};
     switch (action) {
       case 'publish':
-        updateData = { status: 'published', publishedAt: new Date() };
+        updateData = { status: 'published', publishedAt: new Date(), updatedAt: new Date() };
         break;
       case 'draft':
-        updateData = { status: 'draft' };
+        updateData = { status: 'draft', updatedAt: new Date() };
         break;
       case 'archive':
-        updateData = { status: 'archived' };
+        updateData = { status: 'archived', updatedAt: new Date() };
         break;
       case 'delete':
         updateData = { isDeleted: true, deletedAt: new Date() };
         break;
       case 'restore':
-        updateData = { isDeleted: false, deletedAt: null };
+        updateData = { isDeleted: false, deletedAt: null, updatedAt: new Date() };
         break;
     }
 
@@ -814,7 +817,7 @@ router.post('/admin/:id/restore', authenticateToken, async (req: AuthRequest, re
 
     const restored = await prisma.webStory.update({
       where: { id },
-      data: { isDeleted: false, deletedAt: null, deletedBy: null },
+      data: { isDeleted: false, deletedAt: null, deletedBy: null, updatedAt: new Date() },
     });
 
     res.json({ message: 'Web story restored successfully', webStory: restored });
@@ -850,7 +853,7 @@ router.delete('/admin/:id', authenticateToken, async (req: AuthRequest, res: Res
     } else {
       await prisma.webStory.update({
         where: { id },
-        data: { isDeleted: true, deletedAt: new Date(), deletedBy: req.user?.id },
+        data: { isDeleted: true, deletedAt: new Date(), deletedBy: req.user?.id, updatedAt: new Date() },
       });
       res.json({ message: 'Web story moved to trash' });
     }

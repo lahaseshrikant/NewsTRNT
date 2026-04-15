@@ -25,6 +25,9 @@ type StoryPayload = {
   publishedAt?: string;
   duration?: number;
   slides?: StorySlide[];
+  viewCount?: number;
+  likeCount?: number;
+  shareCount?: number;
 };
 
 type RelatedStory = {
