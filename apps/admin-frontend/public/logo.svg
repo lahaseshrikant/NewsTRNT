@@ -1,10 +1,65 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="40" height="40" rx="8" fill="#2563EB"/>
-  <path d="M12 10H28V12H12V10Z" fill="white"/>
-  <path d="M12 15H28V17H12V15Z" fill="white"/>
-  <path d="M12 20H24V22H12V20Z" fill="white"/>
-  <path d="M12 25H28V27H12V25Z" fill="white"/>
-  <path d="M12 30H20V32H12V30Z" fill="white"/>
-  <circle cx="32" cy="8" r="4" fill="#EF4444"/>
+<svg
+  width="220"
+  height="60"
+  viewBox="0 0 220 60"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-label="NewsTRNT Logo"
+>
+  <!-- ===== Divergence Mark (Icon) ===== -->
+  <g transform="translate(0,6)" stroke="#dc2626" fill="#dc2626">
+    <!-- Left path -->
+    <path
+      d="M24 40V24L10 8"
+      stroke-width="3.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+    <!-- Right path -->
+    <path
+      d="M24 24L38 8"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+    <!-- Crossbar -->
+    <path
+      d="M6 8H42"
+      stroke-width="2"
+      stroke-linecap="round"
+      opacity="0.45"
+      fill="none"
+    />
+    <!-- Center dot -->
+    <circle cx="24" cy="24" r="2" />
+  </g>
+
+  <!-- ===== Wordmark ===== -->
+  <text
+    x="56"
+    y="32"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="22"
+    font-weight="700"
+    fill="#111111"
+    letter-spacing="-0.5"
+  >
+    News
+    <tspan fill="#dc2626">TRNT</tspan>
+  </text>
+
+  <!-- ===== Tagline ===== -->
+  <text
+    x="56"
+    y="48"
+    font-family="Arial, sans-serif"
+    font-size="10"
+    fill="#666666"
+    letter-spacing="2"
+  >
+    THE ROAD NOT TAKEN
+  </text>
 </svg>

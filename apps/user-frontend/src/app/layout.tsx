@@ -52,8 +52,9 @@ export const metadata: Metadata = {
     address: false,
   },
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: '/favicon.png',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.png',
   },
   manifest: '/manifest.json',
   openGraph: {

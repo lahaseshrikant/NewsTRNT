@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import React from'react';
 import { Inter, Playfair_Display, JetBrains_Mono } from'next/font/google';
 import'./globals.css';
@@ -29,6 +30,14 @@ const jetbrainsMono = JetBrains_Mono({
  weight: ['400','500','700'],
  fallback: ['Consolas','monospace'],
 });
+
+export const metadata: Metadata = {
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.png',
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
  return (
